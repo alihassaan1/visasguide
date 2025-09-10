@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Globe, Shield, Clock } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-travel.jpg";
 
 const HeroSection = () => {
@@ -34,9 +35,11 @@ const HeroSection = () => {
                       className="w-full"
                     />
                   </div>
-                  <Button className="bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary">
-                    <Search className="h-4 w-4" />
-                  </Button>
+                  <Link to="/visa-finder" className="block">
+                    <Button className="bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary w-full">
+                      <Search className="h-4 w-4" />
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>

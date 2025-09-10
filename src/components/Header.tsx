@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Search, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   return (
@@ -8,27 +9,27 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2">
             <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">V</span>
             </div>
             <h1 className="text-xl font-bold text-primary">Visas.Guide</h1>
-          </div>
+          </Link>
 
           {/* Navigation - Hidden on mobile */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#destinations" className="text-foreground hover:text-primary transition-colors">
+            <Link to="/countries" className="text-foreground hover:text-primary transition-colors">
               Destinations
-            </a>
-            <a href="#visa-types" className="text-foreground hover:text-primary transition-colors">
-              Visa Types
-            </a>
-            <a href="#guides" className="text-foreground hover:text-primary transition-colors">
+            </Link>
+            <Link to="/visa-finder" className="text-foreground hover:text-primary transition-colors">
+              Visa Finder
+            </Link>
+            <Link to="/guides" className="text-foreground hover:text-primary transition-colors">
               Guides
-            </a>
-            <a href="#requirements" className="text-foreground hover:text-primary transition-colors">
+            </Link>
+            <Link to="/requirements" className="text-foreground hover:text-primary transition-colors">
               Requirements
-            </a>
+            </Link>
           </nav>
 
           {/* Search and Mobile Menu */}

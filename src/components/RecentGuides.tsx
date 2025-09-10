@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const guides = [
   {
@@ -116,10 +117,13 @@ const RecentGuides = () => {
                     </p>
 
                     {/* Read More */}
-                    <button className="flex items-center space-x-2 text-sm text-primary hover:text-primary-light transition-colors font-medium group-hover:translate-x-1 transform duration-200">
+                    <Link 
+                      to={`/guides/${guide.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                      className="flex items-center space-x-2 text-sm text-primary hover:text-primary-light transition-colors font-medium group-hover:translate-x-1 transform duration-200"
+                    >
                       <span>Read Guide</span>
                       <ArrowRight className="h-3 w-3" />
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </CardContent>
@@ -129,9 +133,11 @@ const RecentGuides = () => {
 
         {/* View All Button */}
         <div className="text-center mt-12">
-          <button className="bg-gradient-to-r from-primary to-primary-light text-primary-foreground px-8 py-3 rounded-lg hover:shadow-lg transition-all duration-200 font-medium">
-            View All Guides
-          </button>
+          <Link to="/guides">
+            <button className="bg-gradient-to-r from-primary to-primary-light text-primary-foreground px-8 py-3 rounded-lg hover:shadow-lg transition-all duration-200 font-medium">
+              View All Guides
+            </button>
+          </Link>
         </div>
       </div>
     </section>

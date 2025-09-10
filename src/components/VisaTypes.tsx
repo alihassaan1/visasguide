@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plane, Briefcase, GraduationCap, Heart, Home, Clock } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const visaTypes = [
   {
@@ -100,9 +101,12 @@ const VisaTypes = () => {
 
                   {/* CTA */}
                   <div className="pt-2">
-                    <button className="text-sm text-primary hover:text-primary-light transition-colors font-medium group-hover:translate-x-1 transform duration-200">
+                    <Link 
+                      to="/guides"
+                      className="text-sm text-primary hover:text-primary-light transition-colors font-medium group-hover:translate-x-1 transform duration-200 block"
+                    >
                       Learn More →
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </CardContent>
@@ -119,9 +123,11 @@ const VisaTypes = () => {
                 Not sure which visa type you need? Our interactive visa finder can help you determine 
                 the right visa category based on your travel purpose and destination.
               </p>
-              <button className="bg-gradient-to-r from-primary to-primary-light text-primary-foreground px-6 py-2 rounded-lg hover:shadow-lg transition-all duration-200">
-                Use Visa Finder Tool
-              </button>
+              <Link to="/visa-finder">
+                <button className="bg-gradient-to-r from-primary to-primary-light text-primary-foreground px-6 py-2 rounded-lg hover:shadow-lg transition-all duration-200">
+                  Use Visa Finder Tool
+                </button>
+              </Link>
             </CardContent>
           </Card>
         </div>

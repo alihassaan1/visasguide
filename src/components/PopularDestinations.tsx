@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Users, Clock } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const destinations = [
   {
@@ -104,9 +105,12 @@ const PopularDestinations = () => {
 
                   {/* CTA */}
                   <div className="pt-2">
-                    <button className="w-full text-left text-sm text-primary hover:text-primary-light transition-colors font-medium">
+                    <Link 
+                      to={`/countries/${destination.country.toLowerCase().replace(' ', '-')}`}
+                      className="w-full text-left text-sm text-primary hover:text-primary-light transition-colors font-medium block"
+                    >
                       View Requirements →
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </CardContent>

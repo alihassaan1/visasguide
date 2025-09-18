@@ -17,18 +17,21 @@ const Header = () => {
           </Link>
 
           {/* Navigation - Hidden on mobile */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/countries" className="text-foreground hover:text-primary transition-colors">
-              Destinations
+          <nav className="hidden md:flex items-center space-x-6">
+            <Link to="/countries" className="text-sm font-medium hover:text-primary transition-colors">
+              Countries
             </Link>
-            <Link to="/visa-finder" className="text-foreground hover:text-primary transition-colors">
+            <Link to="/visa-finder" className="text-sm font-medium hover:text-primary transition-colors">
               Visa Finder
             </Link>
-            <Link to="/guides" className="text-foreground hover:text-primary transition-colors">
+            <Link to="/guides" className="text-sm font-medium hover:text-primary transition-colors">
               Guides
             </Link>
-            <Link to="/requirements" className="text-foreground hover:text-primary transition-colors">
-              Requirements
+            <Link to="/news" className="text-sm font-medium hover:text-primary transition-colors">
+              News
+            </Link>
+            <Link to="/passport-rankings" className="text-sm font-medium hover:text-primary transition-colors">
+              Rankings
             </Link>
           </nav>
 

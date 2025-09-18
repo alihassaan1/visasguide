@@ -4,12 +4,16 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+import Countries from "./pages/Countries";
+import VisaFinder from "./pages/VisaFinder";
+import ProcessingTimes from "./pages/ProcessingTimes";
 import Requirements from "./pages/Requirements";
 import VisaGuides from "./pages/VisaGuides";
-import Countries from "./pages/Countries";
-import ProcessingTimes from "./pages/ProcessingTimes";
-import VisaFinder from "./pages/VisaFinder";
+import CountryGuide from "./pages/CountryGuide";
+import NewsPage from "./pages/NewsPage";
+import NewsArticle from "./pages/NewsArticle";
+import PassportRankings from "./pages/PassportRankings";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -21,14 +25,15 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/countries" element={<Countries />} />
+          <Route path="/countries/:countryCode" element={<CountryGuide />} />
+          <Route path="/visa-finder" element={<VisaFinder />} />
+          <Route path="/processing-times" element={<ProcessingTimes />} />
           <Route path="/requirements" element={<Requirements />} />
           <Route path="/guides" element={<VisaGuides />} />
-          <Route path="/guides/:slug" element={<VisaGuides />} />
-          <Route path="/countries" element={<Countries />} />
-          <Route path="/countries/:country" element={<Countries />} />
-          <Route path="/processing-times" element={<ProcessingTimes />} />
-          <Route path="/visa-finder" element={<VisaFinder />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/news" element={<NewsPage />} />
+          <Route path="/news/:slug" element={<NewsArticle />} />
+          <Route path="/passport-rankings" element={<PassportRankings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

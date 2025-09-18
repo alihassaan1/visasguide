@@ -14,7 +14,277 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      countries: {
+        Row: {
+          capital: string | null
+          code: string
+          continent: string | null
+          created_at: string
+          currency: string | null
+          flag_emoji: string | null
+          id: string
+          language: string | null
+          name: string
+          passport_rank: number | null
+          passport_score: number | null
+          population: number | null
+          region: string | null
+          updated_at: string
+          visa_free_destinations: number | null
+        }
+        Insert: {
+          capital?: string | null
+          code: string
+          continent?: string | null
+          created_at?: string
+          currency?: string | null
+          flag_emoji?: string | null
+          id?: string
+          language?: string | null
+          name: string
+          passport_rank?: number | null
+          passport_score?: number | null
+          population?: number | null
+          region?: string | null
+          updated_at?: string
+          visa_free_destinations?: number | null
+        }
+        Update: {
+          capital?: string | null
+          code?: string
+          continent?: string | null
+          created_at?: string
+          currency?: string | null
+          flag_emoji?: string | null
+          id?: string
+          language?: string | null
+          name?: string
+          passport_rank?: number | null
+          passport_score?: number | null
+          population?: number | null
+          region?: string | null
+          updated_at?: string
+          visa_free_destinations?: number | null
+        }
+        Relationships: []
+      }
+      guides: {
+        Row: {
+          content: string
+          country_id: string | null
+          created_at: string
+          difficulty: string | null
+          excerpt: string | null
+          featured_image_url: string | null
+          guide_type: string
+          id: string
+          is_featured: boolean | null
+          published_at: string | null
+          read_time_minutes: number | null
+          seo_description: string | null
+          seo_title: string | null
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          country_id?: string | null
+          created_at?: string
+          difficulty?: string | null
+          excerpt?: string | null
+          featured_image_url?: string | null
+          guide_type: string
+          id?: string
+          is_featured?: boolean | null
+          published_at?: string | null
+          read_time_minutes?: number | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          country_id?: string | null
+          created_at?: string
+          difficulty?: string | null
+          excerpt?: string | null
+          featured_image_url?: string | null
+          guide_type?: string
+          id?: string
+          is_featured?: boolean | null
+          published_at?: string | null
+          read_time_minutes?: number | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guides_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      news_articles: {
+        Row: {
+          author: string | null
+          categories: string[] | null
+          content: string | null
+          created_at: string
+          excerpt: string | null
+          featured_image_url: string | null
+          id: string
+          is_featured: boolean | null
+          published_at: string | null
+          seo_description: string | null
+          seo_title: string | null
+          slug: string
+          source_name: string | null
+          source_url: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string | null
+          categories?: string[] | null
+          content?: string | null
+          created_at?: string
+          excerpt?: string | null
+          featured_image_url?: string | null
+          id?: string
+          is_featured?: boolean | null
+          published_at?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug: string
+          source_name?: string | null
+          source_url?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string | null
+          categories?: string[] | null
+          content?: string | null
+          created_at?: string
+          excerpt?: string | null
+          featured_image_url?: string | null
+          id?: string
+          is_featured?: boolean | null
+          published_at?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug?: string
+          source_name?: string | null
+          source_url?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      processing_times: {
+        Row: {
+          country_id: string
+          embassy_location: string | null
+          id: string
+          last_updated: string
+          processing_time_days: number
+          source: string | null
+          visa_type: string
+        }
+        Insert: {
+          country_id: string
+          embassy_location?: string | null
+          id?: string
+          last_updated?: string
+          processing_time_days: number
+          source?: string | null
+          visa_type: string
+        }
+        Update: {
+          country_id?: string
+          embassy_location?: string | null
+          id?: string
+          last_updated?: string
+          processing_time_days?: number
+          source?: string | null
+          visa_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "processing_times_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visa_requirements: {
+        Row: {
+          fee_usd: number | null
+          from_country_id: string
+          id: string
+          last_updated: string
+          max_stay_days: number | null
+          notes: string | null
+          processing_time_days: number | null
+          requirement_type: string
+          requirements: string[] | null
+          to_country_id: string
+        }
+        Insert: {
+          fee_usd?: number | null
+          from_country_id: string
+          id?: string
+          last_updated?: string
+          max_stay_days?: number | null
+          notes?: string | null
+          processing_time_days?: number | null
+          requirement_type: string
+          requirements?: string[] | null
+          to_country_id: string
+        }
+        Update: {
+          fee_usd?: number | null
+          from_country_id?: string
+          id?: string
+          last_updated?: string
+          max_stay_days?: number | null
+          notes?: string | null
+          processing_time_days?: number | null
+          requirement_type?: string
+          requirements?: string[] | null
+          to_country_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visa_requirements_from_country_id_fkey"
+            columns: ["from_country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visa_requirements_to_country_id_fkey"
+            columns: ["to_country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

@@ -35,7 +35,7 @@ const HeroSection = () => {
                       className="w-full"
                     />
                   </div>
-                  <Link to="/visa-finder" className="block">
+                  <Link to="/visa-search" className="block">
                     <Button className="bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary w-full">
                       <Search className="h-4 w-4" />
                     </Button>

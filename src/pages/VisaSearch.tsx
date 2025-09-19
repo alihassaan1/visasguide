@@ -1,0 +1,409 @@
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, MapPin, Clock, DollarSign, AlertCircle, CheckCircle, ArrowRight } from "lucide-react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { Link } from "react-router-dom";
+
+const VisaSearch = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedRegion, setSelectedRegion] = useState("all");
+  const [selectedVisaType, setSelectedVisaType] = useState("all");
+  const [selectedDifficulty, setSelectedDifficulty] = useState("all");
+
+  // Sample visa data - in real app this would come from Supabase
+  const visaData = [
+    {
+      country: "United States",
+      flag: "🇺🇸",
+      visaType: "ESTA/B1-B2",
+      requirement: "Visa Required",
+      processingTime: "1-3 days",
+      fee: "$21 USD",
+      difficulty: "Medium",
+      region: "North America",
+      description: "Electronic System for Travel Authorization for tourism and business visits up to 90 days.",
+      requirements: ["Valid passport", "Return ticket", "Financial proof"],
+      slug: "united-states"
+    },
+    {
+      country: "United Kingdom", 
+      flag: "🇬🇧",
+      visaType: "Standard Visitor",
+      requirement: "Visa Required",
+      processingTime: "3-8 weeks",
+      fee: "£95-£1,408",
+      difficulty: "Hard",
+      region: "Europe",
+      description: "Standard visitor visa for tourism, business, and visiting family or friends.",
+      requirements: ["Valid passport", "Financial documents", "Accommodation proof", "Travel insurance"],
+      slug: "united-kingdom"
+    },
+    {
+      country: "Germany",
+      flag: "🇩🇪", 
+      visaType: "Schengen Visa",
+      requirement: "Visa Required",
+      processingTime: "10-15 days",
+      fee: "€80-€160",
+      difficulty: "Medium",
+      region: "Europe",
+      description: "Schengen visa allows travel to 26 European countries for up to 90 days.",
+      requirements: ["Valid passport", "Travel insurance", "Hotel booking", "Financial proof"],
+      slug: "germany"
+    },
+    {
+      country: "Japan",
+      flag: "🇯🇵",
+      visaType: "Tourist Visa",
+      requirement: "Visa Free",
+      processingTime: "N/A",
+      fee: "Free",
+      difficulty: "Easy",
+      region: "Asia",
+      description: "Visa-free entry for many nationalities for tourism up to 90 days.",
+      requirements: ["Valid passport", "Return ticket"],
+      slug: "japan"
+    },
+    {
+      country: "Australia",
+      flag: "🇦🇺",
+      visaType: "ETA/Visitor",
+      requirement: "Visa Required",
+      processingTime: "1-2 days",
+      fee: "$20 AUD", 
+      difficulty: "Easy",
+      region: "Oceania",
+      description: "Electronic Travel Authority for tourism and business visits up to 3 months.",
+      requirements: ["Valid passport", "Return ticket", "Health declaration"],
+      slug: "australia"
+    },
+    {
+      country: "Canada",
+      flag: "🇨🇦",
+      visaType: "eTA/Visitor",
+      requirement: "Visa Required", 
+      processingTime: "Minutes-weeks",
+      fee: "$7-$100 CAD",
+      difficulty: "Medium",
+      region: "North America", 
+      description: "Electronic Travel Authorization or visitor visa depending on nationality.",
+      requirements: ["Valid passport", "Travel documents", "Financial proof"],
+      slug: "canada"
+    },
+    {
+      country: "Singapore",
+      flag: "🇸🇬",
+      visaType: "Tourist Visa",
+      requirement: "Visa Free",
+      processingTime: "N/A", 
+      fee: "Free",
+      difficulty: "Easy",
+      region: "Asia",
+      description: "Visa-free entry for many nationalities for tourism up to 30-90 days.",
+      requirements: ["Valid passport", "Return ticket", "Sufficient funds"],
+      slug: "singapore"
+    },
+    {
+      country: "France",
+      flag: "🇫🇷",
+      visaType: "Schengen Visa",
+      requirement: "Visa Required",
+      processingTime: "10-15 days",
+      fee: "€80-€160", 
+      difficulty: "Medium",
+      region: "Europe",
+      description: "Schengen visa for tourism, business, and visiting family in France and EU.",
+      requirements: ["Valid passport", "Travel insurance", "Accommodation proof", "Financial documents"],
+      slug: "france"
+    }
+  ];
+
+  const regions = ["all", "Europe", "North America", "Asia", "Oceania", "Africa", "South America"];
+  const visaTypes = ["all", "Tourist Visa", "Schengen Visa", "ESTA/B1-B2", "ETA/Visitor", "eTA/Visitor", "Standard Visitor"];
+  const difficulties = ["all", "Easy", "Medium", "Hard"];
+
+  const filteredData = visaData.filter(item => {
+    const matchesSearch = searchQuery === "" || 
+      item.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.visaType.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRegion = selectedRegion === "all" || item.region === selectedRegion;
+    const matchesVisaType = selectedVisaType === "all" || item.visaType === selectedVisaType;  
+    const matchesDifficulty = selectedDifficulty === "all" || item.difficulty === selectedDifficulty;
+    
+    return matchesSearch && matchesRegion && matchesVisaType && matchesDifficulty;
+  });
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* SEO Structured Data */}
+      <script 
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": "Visa Requirements Search - Find Visa Information by Country",
+            "description": "Search visa requirements, processing times, and fees for travel destinations worldwide. Compare visa policies and find the best travel options.",
+            "url": "https://visas.guide/visa-search"
+          })
+        }}
+      />
+
+      <Header />
+      
+      <main className="container mx-auto px-4 py-8">
+        {/* SEO Header */}
+        <div className="text-center space-y-4 mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+            Search Visa Requirements by Country
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            Find visa requirements, processing times, fees, and application guides for any travel destination. Compare options and plan your trip with confidence.
+          </p>
+        </div>
+
+        {/* Search and Filters */}
+        <section className="mb-12 space-y-6">
+          <div className="relative max-w-2xl mx-auto">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+            <Input 
+              placeholder="Search for a country or visa type..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-12 py-4 text-lg border-2 border-border/50 focus:border-primary"
+            />
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+            <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Regions" />
+              </SelectTrigger>
+              <SelectContent>
+                {regions.map(region => (
+                  <SelectItem key={region} value={region}>
+                    {region === "all" ? "All Regions" : region}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedVisaType} onValueChange={setSelectedVisaType}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Visa Types" />
+              </SelectTrigger>
+              <SelectContent>
+                {visaTypes.map(type => (
+                  <SelectItem key={type} value={type}>
+                    {type === "all" ? "All Visa Types" : type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Difficulties" />
+              </SelectTrigger>
+              <SelectContent>
+                {difficulties.map(difficulty => (
+                  <SelectItem key={difficulty} value={difficulty}>
+                    {difficulty === "all" ? "All Difficulties" : difficulty}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </section>
+
+        {/* Results */}
+        <section className="mb-16">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-bold text-foreground">
+              {filteredData.length} Countries Found
+            </h2>
+            <div className="text-sm text-muted-foreground">
+              Updated daily with latest visa information
+            </div>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-6">
+            {filteredData.map((item, index) => (
+              <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-0 bg-card hover:-translate-y-1">
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {/* Header */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-4">
+                        <span className="text-4xl">{item.flag}</span>
+                        <div>
+                          <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+                            {item.country}
+                          </h3>
+                          <p className="text-muted-foreground">{item.visaType}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end space-y-2">
+                        <Badge 
+                          variant={item.requirement === "Visa Free" ? "default" : "secondary"}
+                          className={item.requirement === "Visa Free" ? "bg-visa-success text-white" : ""}
+                        >
+                          {item.requirement === "Visa Free" ? (
+                            <>
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Visa Free
+                            </>
+                          ) : (
+                            <>
+                              <AlertCircle className="w-3 h-3 mr-1" />
+                              Visa Required
+                            </>
+                          )}
+                        </Badge>
+                        <Badge 
+                          variant="outline"
+                          className={
+                            item.difficulty === "Easy" ? "text-visa-success border-visa-success" :
+                            item.difficulty === "Medium" ? "text-visa-warning border-visa-warning" :
+                            "text-visa-danger border-visa-danger"
+                          }
+                        >
+                          {item.difficulty}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {item.description}
+                    </p>
+
+                    {/* Quick Stats */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex items-center space-x-2">
+                        <Clock className="h-4 w-4 text-visa-info" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Processing Time</p>
+                          <p className="text-sm font-medium text-foreground">{item.processingTime}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <DollarSign className="h-4 w-4 text-visa-warning" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Visa Fee</p>
+                          <p className="text-sm font-medium text-foreground">{item.fee}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Requirements Preview */}
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-2">Key Requirements:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {item.requirements.slice(0, 3).map((req, idx) => (
+                          <Badge key={idx} variant="outline" className="text-xs">
+                            {req}
+                          </Badge>
+                        ))}
+                        {item.requirements.length > 3 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{item.requirements.length - 3} more
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* CTA Buttons */}
+                    <div className="flex space-x-2 pt-2">
+                      <Link to={`/countries/${item.slug}`} className="flex-1">
+                        <Button variant="outline" className="w-full">
+                          <MapPin className="w-4 h-4 mr-2" />
+                          View Details
+                        </Button>
+                      </Link>
+                      <Link to={`/guides/${item.slug}-visa-guide`} className="flex-1">
+                        <Button className="w-full bg-gradient-to-r from-primary to-primary-light text-primary-foreground">
+                          Read Guide
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {filteredData.length === 0 && (
+            <div className="text-center py-12">
+              <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">No Results Found</h3>
+              <p className="text-muted-foreground">
+                Try adjusting your search criteria or browse all countries
+              </p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedRegion("all");
+                  setSelectedVisaType("all");
+                  setSelectedDifficulty("all");
+                }}
+              >
+                Clear All Filters
+              </Button>
+            </div>
+          )}
+        </section>
+
+        {/* Popular Searches */}
+        <section>
+          <Card className="bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
+            <CardContent className="p-8">
+              <h3 className="text-2xl font-bold text-foreground mb-6 text-center">Popular Visa Searches</h3>
+              <div className="grid md:grid-cols-3 gap-6 text-center">
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">Most Searched Countries</h4>
+                  <div className="space-y-1 text-sm text-muted-foreground">
+                    <p>🇺🇸 United States - ESTA</p>
+                    <p>🇬🇧 United Kingdom - Visitor</p> 
+                    <p>🇩🇪 Germany - Schengen</p>
+                    <p>🇦🇺 Australia - ETA</p>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">Visa-Free Destinations</h4>
+                  <div className="space-y-1 text-sm text-muted-foreground">
+                    <p>🇯🇵 Japan - 90 days</p>
+                    <p>🇸🇬 Singapore - 30-90 days</p>
+                    <p>🇹🇭 Thailand - 30 days</p>
+                    <p>🇲🇾 Malaysia - 90 days</p>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">Quick Processing</h4>
+                  <div className="space-y-1 text-sm text-muted-foreground">
+                    <p>🇦🇺 Australia ETA - 1-2 days</p>
+                    <p>🇺🇸 USA ESTA - 1-3 days</p>
+                    <p>🇨🇦 Canada eTA - Minutes</p>
+                    <p>🇳🇿 New Zealand ETA - 3 days</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default VisaSearch;

@@ -21,8 +21,8 @@ const Header = () => {
             <Link to="/countries" className="text-sm font-medium hover:text-primary transition-colors">
               Countries
             </Link>
-            <Link to="/visa-finder" className="text-sm font-medium hover:text-primary transition-colors">
-              Visa Finder
+            <Link to="/visa-search" className="text-sm font-medium hover:text-primary transition-colors">
+              Visa Search
             </Link>
             <Link to="/guides" className="text-sm font-medium hover:text-primary transition-colors">
               Guides

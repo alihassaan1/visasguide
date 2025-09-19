@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Countries from "./pages/Countries";
-import VisaFinder from "./pages/VisaFinder";
+import VisaSearch from "./pages/VisaSearch";
 import ProcessingTimes from "./pages/ProcessingTimes";
 import Requirements from "./pages/Requirements";
 import VisaGuides from "./pages/VisaGuides";
@@ -13,6 +13,8 @@ import CountryGuide from "./pages/CountryGuide";
 import NewsPage from "./pages/NewsPage";
 import NewsArticle from "./pages/NewsArticle";
 import PassportRankings from "./pages/PassportRankings";
+import TouristVisa from "./pages/visa-types/TouristVisa";
+import BusinessVisa from "./pages/visa-types/BusinessVisa";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,10 +29,12 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/countries" element={<Countries />} />
           <Route path="/countries/:countryCode" element={<CountryGuide />} />
-          <Route path="/visa-finder" element={<VisaFinder />} />
+          <Route path="/visa-search" element={<VisaSearch />} />
           <Route path="/processing-times" element={<ProcessingTimes />} />
           <Route path="/requirements" element={<Requirements />} />
           <Route path="/guides" element={<VisaGuides />} />
+          <Route path="/visa-types/tourist-visa" element={<TouristVisa />} />
+          <Route path="/visa-types/business-visa" element={<BusinessVisa />} />
           <Route path="/news" element={<NewsPage />} />
           <Route path="/news/:slug" element={<NewsArticle />} />
           <Route path="/passport-rankings" element={<PassportRankings />} />

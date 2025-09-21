@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       countries: {
         Row: {
           capital: string | null
@@ -143,11 +173,14 @@ export type Database = {
           featured_image_url: string | null
           id: string
           is_featured: boolean | null
+          original_url: string | null
           published_at: string | null
+          rss_feed_id: string | null
           seo_description: string | null
           seo_title: string | null
           slug: string
           source_name: string | null
+          source_type: string | null
           source_url: string | null
           tags: string[] | null
           title: string
@@ -162,11 +195,14 @@ export type Database = {
           featured_image_url?: string | null
           id?: string
           is_featured?: boolean | null
+          original_url?: string | null
           published_at?: string | null
+          rss_feed_id?: string | null
           seo_description?: string | null
           seo_title?: string | null
           slug: string
           source_name?: string | null
+          source_type?: string | null
           source_url?: string | null
           tags?: string[] | null
           title: string
@@ -181,17 +217,28 @@ export type Database = {
           featured_image_url?: string | null
           id?: string
           is_featured?: boolean | null
+          original_url?: string | null
           published_at?: string | null
+          rss_feed_id?: string | null
           seo_description?: string | null
           seo_title?: string | null
           slug?: string
           source_name?: string | null
+          source_type?: string | null
           source_url?: string | null
           tags?: string[] | null
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_news_articles_rss_feed"
+            columns: ["rss_feed_id"]
+            isOneToOne: false
+            referencedRelation: "rss_feeds"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       processing_times: {
         Row: {
@@ -230,6 +277,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      rss_feeds: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          last_fetched: string | null
+          name: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_fetched?: string | null
+          name: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_fetched?: string | null
+          name?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
       }
       visa_requirements: {
         Row: {

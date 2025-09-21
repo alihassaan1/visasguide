@@ -15,6 +15,7 @@ import NewsArticle from "./pages/NewsArticle";
 import PassportRankings from "./pages/PassportRankings";
 import TouristVisa from "./pages/visa-types/TouristVisa";
 import BusinessVisa from "./pages/visa-types/BusinessVisa";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/news" element={<NewsPage />} />
           <Route path="/news/:slug" element={<NewsArticle />} />
           <Route path="/passport-rankings" element={<PassportRankings />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

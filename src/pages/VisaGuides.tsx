@@ -5,8 +5,10 @@ import { Calendar, Clock, ArrowRight, Star, TrendingUp } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 
 const VisaGuides = () => {
+  const [activeCategory, setActiveCategory] = useState("All Guides");
   const featuredGuides = [
     {
       title: "US ESTA Application: Complete Step-by-Step Guide 2024",
@@ -118,9 +120,10 @@ const VisaGuides = () => {
           {categories.map((category, index) => (
             <Button 
               key={index}
-              variant={index === 0 ? "default" : "outline"}
+              variant={activeCategory === category ? "default" : "outline"}
               size="sm"
-              className="text-sm"
+              className="text-sm hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+              onClick={() => setActiveCategory(category)}
             >
               {category}
             </Button>
@@ -135,23 +138,26 @@ const VisaGuides = () => {
           </div>
           <div className="grid lg:grid-cols-3 gap-6">
             {featuredGuides.map((guide, index) => (
-              <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-0 bg-card hover:-translate-y-1">
+              <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-0 bg-card hover:-translate-y-1 overflow-hidden">
                 <CardContent className="p-0">
                   <div className="space-y-4">
-                    {/* Flag Header */}
-                    <div className="relative bg-gradient-to-br from-muted/30 to-muted/10 p-8 text-center">
-                      <span className="text-4xl">{guide.flag}</span>
+                    {/* Enhanced Flag Header */}
+                    <div className="relative bg-gradient-to-br from-primary/5 via-accent/5 to-primary/10 p-8 text-center group-hover:from-primary/10 group-hover:to-accent/10 transition-all duration-300">
+                      <div className="relative inline-block">
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full blur-xl scale-150 opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+                        <span className="relative text-6xl block transform group-hover:scale-110 transition-transform duration-300 drop-shadow-lg">{guide.flag}</span>
+                      </div>
                       <div className="absolute top-3 left-3">
                         {guide.isNew && (
-                          <Badge className="bg-visa-success text-white">New</Badge>
+                          <Badge className="bg-gradient-to-r from-visa-success to-accent-light text-white shadow-lg animate-pulse">New</Badge>
                         )}
                       </div>
                       <div className="absolute top-3 right-3">
-                        <Badge variant="outline" className={
-                          guide.difficulty === "Easy" ? "text-visa-success border-visa-success" :
-                          guide.difficulty === "Medium" ? "text-visa-warning border-visa-warning" :
-                          "text-visa-danger border-visa-danger"
-                        }>
+                        <Badge variant="outline" className={`shadow-md ${
+                          guide.difficulty === "Easy" ? "text-visa-success border-visa-success bg-visa-success/10" :
+                          guide.difficulty === "Medium" ? "text-visa-warning border-visa-warning bg-visa-warning/10" :
+                          "text-visa-danger border-visa-danger bg-visa-danger/10"
+                        }`}>
                           {guide.difficulty}
                         </Badge>
                       </div>
@@ -182,9 +188,9 @@ const VisaGuides = () => {
 
                       {/* CTA */}
                       <Link to={`/guides/${guide.slug}`}>
-                        <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                        <Button variant="outline" className="w-full group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-primary-light group-hover:text-primary-foreground transition-all duration-300 shadow-md hover:shadow-lg">
                           Read Full Guide
-                          <ArrowRight className="h-4 w-4 ml-2" />
+                          <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
                         </Button>
                       </Link>
                     </div>
@@ -203,14 +209,17 @@ const VisaGuides = () => {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {allGuides.map((guide, index) => (
-              <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-0 bg-card hover:-translate-y-1">
+              <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-0 bg-card hover:-translate-y-1 overflow-hidden">
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-3">
-                        <span className="text-2xl">{guide.flag}</span>
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full blur-md scale-150 opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                          <span className="relative text-3xl block transform group-hover:scale-110 transition-transform duration-200 drop-shadow-sm">{guide.flag}</span>
+                        </div>
                         <div>
-                          <Badge variant="outline" className="text-xs mb-2">
+                          <Badge variant="outline" className="text-xs mb-2 bg-muted/50 hover:bg-primary/10 transition-colors">
                             {guide.category}
                           </Badge>
                           <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2">
@@ -232,7 +241,7 @@ const VisaGuides = () => {
                     </div>
 
                     <Link to={`/guides/${guide.slug}`}>
-                      <Button variant="ghost" size="sm" className="w-full justify-start p-0 h-auto text-primary hover:text-primary-light">
+                      <Button variant="ghost" size="sm" className="w-full justify-start p-0 h-auto text-primary hover:text-primary-light hover:translate-x-1 transition-all duration-200">
                         Read Guide →
                       </Button>
                     </Link>

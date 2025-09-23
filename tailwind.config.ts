@@ -58,6 +58,7 @@ export default {
 				visa: {
 					success: 'hsl(var(--visa-success))',
 					warning: 'hsl(var(--visa-warning))',
+					danger: 'hsl(var(--visa-danger))',
 					info: 'hsl(var(--visa-info))'
 				},
 				sidebar: {

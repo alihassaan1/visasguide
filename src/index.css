@@ -44,6 +44,7 @@ All colors MUST be HSL.
     /* Custom travel theme colors */
     --visa-success: 142 76% 36%;
     --visa-warning: 45 93% 47%;
+    --visa-danger: 0 84% 60%;
     --visa-info: 214 88% 45%;
     
     /* Gradients */

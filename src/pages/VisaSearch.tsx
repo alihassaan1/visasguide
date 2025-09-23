@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,113 +17,136 @@ const VisaSearch = () => {
   const [selectedVisaType, setSelectedVisaType] = useState("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
 
-  // Sample visa data - in real app this would come from Supabase
-  const visaData = [
-    {
-      country: "United States",
-      flag: "🇺🇸",
-      visaType: "ESTA/B1-B2",
-      requirement: "Visa Required",
-      processingTime: "1-3 days",
-      fee: "$21 USD",
-      difficulty: "Medium",
-      region: "North America",
-      description: "Electronic System for Travel Authorization for tourism and business visits up to 90 days.",
-      requirements: ["Valid passport", "Return ticket", "Financial proof"],
-      slug: "united-states"
-    },
-    {
-      country: "United Kingdom", 
-      flag: "🇬🇧",
-      visaType: "Standard Visitor",
-      requirement: "Visa Required",
-      processingTime: "3-8 weeks",
-      fee: "£95-£1,408",
-      difficulty: "Hard",
-      region: "Europe",
-      description: "Standard visitor visa for tourism, business, and visiting family or friends.",
-      requirements: ["Valid passport", "Financial documents", "Accommodation proof", "Travel insurance"],
-      slug: "united-kingdom"
-    },
-    {
-      country: "Germany",
-      flag: "🇩🇪", 
-      visaType: "Schengen Visa",
-      requirement: "Visa Required",
-      processingTime: "10-15 days",
-      fee: "€80-€160",
-      difficulty: "Medium",
-      region: "Europe",
-      description: "Schengen visa allows travel to 26 European countries for up to 90 days.",
-      requirements: ["Valid passport", "Travel insurance", "Hotel booking", "Financial proof"],
-      slug: "germany"
-    },
-    {
-      country: "Japan",
-      flag: "🇯🇵",
-      visaType: "Tourist Visa",
-      requirement: "Visa Free",
-      processingTime: "N/A",
-      fee: "Free",
-      difficulty: "Easy",
-      region: "Asia",
-      description: "Visa-free entry for many nationalities for tourism up to 90 days.",
-      requirements: ["Valid passport", "Return ticket"],
-      slug: "japan"
-    },
-    {
-      country: "Australia",
-      flag: "🇦🇺",
-      visaType: "ETA/Visitor",
-      requirement: "Visa Required",
-      processingTime: "1-2 days",
-      fee: "$20 AUD", 
-      difficulty: "Easy",
-      region: "Oceania",
-      description: "Electronic Travel Authority for tourism and business visits up to 3 months.",
-      requirements: ["Valid passport", "Return ticket", "Health declaration"],
-      slug: "australia"
-    },
-    {
-      country: "Canada",
-      flag: "🇨🇦",
-      visaType: "eTA/Visitor",
-      requirement: "Visa Required", 
-      processingTime: "Minutes-weeks",
-      fee: "$7-$100 CAD",
-      difficulty: "Medium",
-      region: "North America", 
-      description: "Electronic Travel Authorization or visitor visa depending on nationality.",
-      requirements: ["Valid passport", "Travel documents", "Financial proof"],
-      slug: "canada"
-    },
-    {
-      country: "Singapore",
-      flag: "🇸🇬",
-      visaType: "Tourist Visa",
-      requirement: "Visa Free",
-      processingTime: "N/A", 
-      fee: "Free",
-      difficulty: "Easy",
-      region: "Asia",
-      description: "Visa-free entry for many nationalities for tourism up to 30-90 days.",
-      requirements: ["Valid passport", "Return ticket", "Sufficient funds"],
-      slug: "singapore"
-    },
-    {
-      country: "France",
-      flag: "🇫🇷",
-      visaType: "Schengen Visa",
-      requirement: "Visa Required",
-      processingTime: "10-15 days",
-      fee: "€80-€160", 
-      difficulty: "Medium",
-      region: "Europe",
-      description: "Schengen visa for tourism, business, and visiting family in France and EU.",
-      requirements: ["Valid passport", "Travel insurance", "Accommodation proof", "Financial documents"],
-      slug: "france"
+  // Fetch countries from Supabase
+  const { data: countries = [] } = useQuery({
+    queryKey: ['countries-visa-search'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('countries')
+        .select('*')
+        .order('name');
+      if (error) throw error;
+      return data;
     }
-  ];
+  });
+
+  // Helper functions to get visa information
+  function getVisaType(countryCode: string) {
+    const visaTypes: Record<string, string> = {
+      'US': 'ESTA/B1-B2',
+      'GB': 'Standard Visitor', 
+      'DE': 'Schengen Visa',
+      'FR': 'Schengen Visa',
+      'IT': 'Schengen Visa',
+      'ES': 'Schengen Visa',
+      'NL': 'Schengen Visa',
+      'BE': 'Schengen Visa',
+      'AT': 'Schengen Visa',
+      'CH': 'Schengen Visa',
+      'JP': 'Tourist Visa',
+      'AU': 'ETA/Visitor',
+      'CA': 'eTA/Visitor',
+      'SG': 'Tourist Visa',
+      'NZ': 'ETA/Visitor'
+    };
+    return visaTypes[countryCode] || 'Tourist Visa';
+  }
+
+  function getRequirement(countryCode: string) {
+    const visaFree = ['JP', 'SG', 'MY', 'KR'];
+    return visaFree.includes(countryCode) ? 'Visa Free' : 'Visa Required';
+  }
+
+  function getProcessingTime(countryCode: string) {
+    const times: Record<string, string> = {
+      'US': '1-3 days',
+      'GB': '3-8 weeks',
+      'DE': '10-15 days',
+      'FR': '10-15 days', 
+      'IT': '10-15 days',
+      'ES': '10-15 days',
+      'JP': 'N/A',
+      'AU': '1-2 days',
+      'CA': 'Minutes-weeks',
+      'SG': 'N/A',
+      'NZ': '3 days'
+    };
+    return times[countryCode] || '7-21 days';
+  }
+
+  function getFee(countryCode: string) {
+    const fees: Record<string, string> = {
+      'US': '$21 USD',
+      'GB': '£95-£1,408',
+      'DE': '€80-€160',
+      'FR': '€80-€160',
+      'IT': '€80-€160',
+      'ES': '€80-€160',
+      'JP': 'Free',
+      'AU': '$20 AUD',
+      'CA': '$7-$100 CAD', 
+      'SG': 'Free',
+      'NZ': '$12 NZD'
+    };
+    return fees[countryCode] || '$50-150 USD';
+  }
+
+  function getDifficulty(countryCode: string) {
+    const easy = ['JP', 'SG', 'AU', 'NZ', 'CA', 'MY', 'KR'];
+    const hard = ['GB', 'US', 'CN', 'IN'];
+    if (easy.includes(countryCode)) return 'Easy';
+    if (hard.includes(countryCode)) return 'Hard';
+    return 'Medium';
+  }
+
+  function getDescription(countryCode: string, countryName: string) {
+    const descriptions: Record<string, string> = {
+      'US': 'Electronic System for Travel Authorization for tourism and business visits up to 90 days.',
+      'GB': 'Standard visitor visa for tourism, business, and visiting family or friends.',
+      'DE': 'Schengen visa allows travel to 26 European countries for up to 90 days.',
+      'FR': 'Schengen visa for tourism, business, and visiting family in France and EU.',
+      'IT': 'Schengen visa for tourism, business, and cultural visits to Italy and EU.',
+      'ES': 'Schengen visa for tourism and business visits to Spain and European Union.',
+      'JP': 'Visa-free entry for many nationalities for tourism up to 90 days.',
+      'AU': 'Electronic Travel Authority for tourism and business visits up to 3 months.',
+      'CA': 'Electronic Travel Authorization or visitor visa depending on nationality.',
+      'SG': 'Visa-free entry for many nationalities for tourism up to 30-90 days.',
+      'NZ': 'Electronic Travel Authority for tourism and business visits up to 3 months.'
+    };
+    return descriptions[countryCode] || `Visa requirements and travel information for ${countryName}.`;
+  }
+
+  function getRequirements(countryCode: string) {
+    const requirements: Record<string, string[]> = {
+      'US': ['Valid passport', 'Return ticket', 'Financial proof'],
+      'GB': ['Valid passport', 'Financial documents', 'Accommodation proof', 'Travel insurance'],
+      'DE': ['Valid passport', 'Travel insurance', 'Hotel booking', 'Financial proof'],
+      'FR': ['Valid passport', 'Travel insurance', 'Accommodation proof', 'Financial documents'],
+      'IT': ['Valid passport', 'Travel insurance', 'Hotel booking', 'Financial proof'],
+      'ES': ['Valid passport', 'Travel insurance', 'Accommodation proof', 'Financial documents'],
+      'JP': ['Valid passport', 'Return ticket'],
+      'AU': ['Valid passport', 'Return ticket', 'Health declaration'],
+      'CA': ['Valid passport', 'Travel documents', 'Financial proof'],
+      'SG': ['Valid passport', 'Return ticket', 'Sufficient funds'],
+      'NZ': ['Valid passport', 'Return ticket', 'Travel insurance']
+    };
+    return requirements[countryCode] || ['Valid passport', 'Return ticket', 'Financial proof'];
+  }
+
+  // Transform countries data to match visa search format
+  const visaData = countries.map(country => ({
+    country: country.name,
+    flag: country.flag_emoji || '🏳️',
+    visaType: getVisaType(country.code),
+    requirement: getRequirement(country.code),
+    processingTime: getProcessingTime(country.code),
+    fee: getFee(country.code),
+    difficulty: getDifficulty(country.code),
+    region: country.continent || 'Other',
+    description: getDescription(country.code, country.name),
+    requirements: getRequirements(country.code),
+    slug: country.code.toLowerCase()
+  }));
 
   const regions = ["all", "Europe", "North America", "Asia", "Oceania", "Africa", "South America"];
   const visaTypes = ["all", "Tourist Visa", "Schengen Visa", "ESTA/B1-B2", "ETA/Visitor", "eTA/Visitor", "Standard Visitor"];
@@ -239,7 +264,7 @@ const VisaSearch = () => {
                   <div className="space-y-4">
                     {/* Header */}
                     <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-4">
+                      <Link to={`/countries/${item.slug}`} className="flex items-center space-x-4 group-hover:text-primary transition-colors cursor-pointer flex-1">
                         <span className="text-4xl">{item.flag}</span>
                         <div>
                           <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
@@ -247,7 +272,7 @@ const VisaSearch = () => {
                           </h3>
                           <p className="text-muted-foreground">{item.visaType}</p>
                         </div>
-                      </div>
+                      </Link>
                       <div className="flex flex-col items-end space-y-2">
                         <Badge 
                           variant={item.requirement === "Visa Free" ? "default" : "secondary"}
@@ -326,7 +351,7 @@ const VisaSearch = () => {
                           View Details
                         </Button>
                       </Link>
-                      <Link to={`/guides/${item.slug}-visa-guide`} className="flex-1">
+                      <Link to={`/countries/${item.slug}`} className="flex-1">
                         <Button className="w-full bg-gradient-to-r from-primary to-primary-light text-primary-foreground">
                           Read Guide
                           <ArrowRight className="w-4 h-4 ml-2" />

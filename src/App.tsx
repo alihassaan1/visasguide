@@ -34,6 +34,7 @@ const App = () => (
           <Route path="/processing-times" element={<ProcessingTimes />} />
           <Route path="/requirements" element={<Requirements />} />
           <Route path="/guides" element={<VisaGuides />} />
+          <Route path="/guides/:slug" element={<CountryGuide />} />
           <Route path="/visa-types/tourist-visa" element={<TouristVisa />} />
           <Route path="/visa-types/business-visa" element={<BusinessVisa />} />
           <Route path="/news" element={<NewsPage />} />

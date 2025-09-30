@@ -1,17 +1,27 @@
-import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Globe, Shield, Clock } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-travel.jpg";
 import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect, useRef } from "react";
 
 const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -20,41 +30,32 @@ const HeroSection = () => {
         return;
       }
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('countries')
         .select('code, name, flag_emoji')
         .ilike('name', `%${searchQuery}%`)
-        .limit(5);
+        .limit(8);
 
-      setSuggestions(data || []);
-    };
-
-    const debounce = setTimeout(fetchSuggestions, 300);
-    return () => clearTimeout(debounce);
-  }, [searchQuery]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
+      if (!error && data) {
+        setSuggestions(data);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    const timeoutId = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  const handleSuggestionClick = (countryCode: string) => {
+    setShowSuggestions(false);
+    setSearchQuery("");
+    navigate(`/countries/${countryCode}`);
+  };
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
       navigate(`/visa-search?q=${encodeURIComponent(searchQuery)}`);
       setShowSuggestions(false);
     }
-  };
-
-  const handleSuggestionClick = (countryName: string) => {
-    setSearchQuery(countryName);
-    setShowSuggestions(false);
-    navigate(`/visa-search?q=${encodeURIComponent(countryName)}`);
   };
 
   return (
@@ -77,47 +78,44 @@ const HeroSection = () => {
             </div>
 
             {/* Search Box */}
-            <div className="bg-card rounded-xl p-6 shadow-lg border max-w-md" ref={searchRef}>
+            <div className="bg-card rounded-xl p-6 shadow-lg border max-w-md" ref={wrapperRef}>
               <div className="space-y-4">
                 <h3 className="font-semibold text-foreground">Find Visa Requirements</h3>
-                <div className="relative">
-                  <div className="flex space-x-2">
-                    <div className="flex-1 relative">
-                      <Input 
-                        placeholder="Enter destination country..."
-                        className="w-full"
-                        value={searchQuery}
-                        onChange={(e) => {
-                          setSearchQuery(e.target.value);
-                          setShowSuggestions(true);
-                        }}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                        onFocus={() => setShowSuggestions(true)}
-                      />
-                      
-                      {/* Suggestions Dropdown */}
-                      {showSuggestions && suggestions.length > 0 && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-card border rounded-lg shadow-lg z-10 overflow-hidden">
-                          {suggestions.map((country) => (
-                            <button
-                              key={country.code}
-                              onClick={() => handleSuggestionClick(country.name)}
-                              className="w-full px-4 py-3 text-left hover:bg-accent/10 transition-colors flex items-center gap-3 border-b last:border-b-0"
-                            >
-                              <span className="text-2xl">{country.flag_emoji}</span>
-                              <span className="text-foreground font-medium">{country.name}</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <Button 
-                      onClick={handleSearch}
-                      className="bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
-                    >
-                      <Search className="h-4 w-4" />
-                    </Button>
+                <div className="flex space-x-2">
+                  <div className="flex-1 relative">
+                    <Input 
+                      placeholder="Enter destination country..."
+                      className="w-full"
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setShowSuggestions(true);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSearch();
+                      }}
+                    />
+                    {showSuggestions && suggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-card border rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+                        {suggestions.map((country) => (
+                          <button
+                            key={country.code}
+                            onClick={() => handleSuggestionClick(country.code)}
+                            className="w-full px-4 py-3 text-left hover:bg-accent/50 flex items-center gap-3 transition-colors"
+                          >
+                            <span className="text-2xl">{country.flag_emoji}</span>
+                            <span className="font-medium text-foreground">{country.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
+                  <Button 
+                    onClick={handleSearch}
+                    className="bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             </div>

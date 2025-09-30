@@ -153,14 +153,28 @@ export default function Admin() {
   });
   const [articles, setArticles] = useState([]);
   const [rssFeeds, setRssFeeds] = useState([]);
+  const [contentPages, setContentPages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newRssFeed, setNewRssFeed] = useState({ name: '', url: '', category: '' });
+  const [editingPage, setEditingPage] = useState<any>(null);
+  const [showPageForm, setShowPageForm] = useState(false);
+  const [pageForm, setPageForm] = useState({
+    title: '',
+    slug: '',
+    meta_title: '',
+    meta_description: '',
+    content: '',
+    excerpt: '',
+    keywords: '',
+    is_published: false
+  });
   const { toast } = useToast();
 
   useEffect(() => {
     loadArticles();
     loadRssFeeds();
     loadSettings();
+    loadContentPages();
   }, []);
 
   const loadSettings = async () => {
@@ -276,6 +290,117 @@ export default function Admin() {
       toast({
         title: "Error",
         description: "Failed to fetch RSS content. Please check your settings.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadContentPages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('content_pages')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setContentPages(data || []);
+    } catch (error) {
+      console.error('Error loading content pages:', error);
+    }
+  };
+
+  const handlePageSubmit = async () => {
+    if (!pageForm.title || !pageForm.slug || !pageForm.content) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const pageData = {
+        ...pageForm,
+        keywords: pageForm.keywords.split(',').map(k => k.trim()).filter(k => k)
+      };
+
+      if (editingPage) {
+        const { error } = await supabase
+          .from('content_pages')
+          .update(pageData)
+          .eq('id', editingPage.id);
+        
+        if (error) throw error;
+        toast({ title: "Success", description: "Page updated successfully." });
+      } else {
+        const { error } = await supabase
+          .from('content_pages')
+          .insert([pageData]);
+        
+        if (error) throw error;
+        toast({ title: "Success", description: "Page created successfully." });
+      }
+
+      setShowPageForm(false);
+      setEditingPage(null);
+      setPageForm({
+        title: '',
+        slug: '',
+        meta_title: '',
+        meta_description: '',
+        content: '',
+        excerpt: '',
+        keywords: '',
+        is_published: false
+      });
+      loadContentPages();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save page. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditPage = (page: any) => {
+    setEditingPage(page);
+    setPageForm({
+      title: page.title,
+      slug: page.slug,
+      meta_title: page.meta_title || '',
+      meta_description: page.meta_description || '',
+      content: page.content,
+      excerpt: page.excerpt || '',
+      keywords: (page.keywords || []).join(', '),
+      is_published: page.is_published
+    });
+    setShowPageForm(true);
+  };
+
+  const handleDeletePage = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this page?')) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('content_pages')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      toast({ title: "Success", description: "Page deleted successfully." });
+      loadContentPages();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete page.",
         variant: "destructive",
       });
     } finally {

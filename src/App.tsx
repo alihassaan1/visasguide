@@ -16,6 +16,7 @@ import PassportRankings from "./pages/PassportRankings";
 import TouristVisa from "./pages/visa-types/TouristVisa";
 import BusinessVisa from "./pages/visa-types/BusinessVisa";
 import Admin from "./pages/Admin";
+import ContentPage from "./pages/ContentPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,15 @@ const App = () => (
           <Route path="/news/:slug" element={<NewsArticle />} />
           <Route path="/passport-rankings" element={<PassportRankings />} />
           <Route path="/admin" element={<Admin />} />
+          
+          {/* Evergreen Content Pages */}
+          <Route path="/schengen-visa-guide" element={<ContentPage />} />
+          <Route path="/us-visit-visa-guide" element={<ContentPage />} />
+          <Route path="/dubai-visit-visa-guide" element={<ContentPage />} />
+          <Route path="/uk-visit-visa-guide" element={<ContentPage />} />
+          <Route path="/canada-visit-visa-guide" element={<ContentPage />} />
+          <Route path="/:slug" element={<ContentPage />} />
+          
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -12,7 +12,131 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { RefreshCw, Settings, Rss, Newspaper, Key } from 'lucide-react';
+import { RefreshCw, Settings, Rss, Newspaper, Key, FileText, Plus, Edit, Eye, Trash2 } from 'lucide-react';
+
+// Content Pages Manager Component
+const ContentPagesManager = () => {
+  const [pages, setPages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    loadPages();
+  }, []);
+
+  const loadPages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('content_pages')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPages(data || []);
+    } catch (error) {
+      console.error('Error loading pages:', error);
+    }
+  };
+
+  const togglePublish = async (id: string, currentStatus: boolean) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('content_pages')
+        .update({ is_published: !currentStatus })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: currentStatus ? "Page unpublished" : "Page published",
+        description: "The page status has been updated successfully.",
+      });
+      
+      loadPages();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update page status.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Evergreen Content Pages</CardTitle>
+          <CardDescription>
+            Manage SEO-optimized content pages for popular visa searches
+          </CardDescription>
+        </div>
+        <Button>
+          <Plus className="mr-2 h-4 w-4" />
+          Add New Page
+        </Button>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {pages.map((page) => (
+            <div key={page.id} className="border rounded-lg p-4">
+              <div className="flex items-start justify-between">
+                <div className="space-y-2 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-foreground">{page.title}</h3>
+                    <Badge variant={page.is_published ? "default" : "secondary"}>
+                      {page.is_published ? "Published" : "Draft"}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{page.excerpt}</p>
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <FileText className="h-3 w-3" />
+                      /{page.slug}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Eye className="h-3 w-3" />
+                      {page.view_count || 0} views
+                    </span>
+                    {page.keywords && (
+                      <span className="flex items-center gap-1 flex-wrap">
+                        {page.keywords.slice(0, 3).map((keyword: string) => (
+                          <Badge key={keyword} variant="outline" className="text-xs">
+                            {keyword}
+                          </Badge>
+                        ))}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 ml-4">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => window.open(`/${page.slug}`, '_blank')}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={page.is_published ? "secondary" : "default"}
+                    onClick={() => togglePublish(page.id, page.is_published)}
+                    disabled={loading}
+                  >
+                    {page.is_published ? "Unpublish" : "Publish"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 interface AdminSettings {
   openai_api_key?: string;
@@ -169,15 +293,19 @@ export default function Admin() {
             <p className="text-muted-foreground">Manage your visa guide content and settings</p>
           </div>
 
-          <Tabs defaultValue="settings" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+          <Tabs defaultValue="content" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="content" className="flex items-center gap-2">
+                <Newspaper size={16} />
+                Content Pages
+              </TabsTrigger>
               <TabsTrigger value="settings" className="flex items-center gap-2">
                 <Settings size={16} />
                 Settings
               </TabsTrigger>
               <TabsTrigger value="articles" className="flex items-center gap-2">
                 <Newspaper size={16} />
-                Articles
+                News
               </TabsTrigger>
               <TabsTrigger value="rss" className="flex items-center gap-2">
                 <Rss size={16} />
@@ -188,6 +316,10 @@ export default function Admin() {
                 API Keys
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="content" className="space-y-6">
+              <ContentPagesManager />
+            </TabsContent>
 
             <TabsContent value="settings" className="space-y-6">
               <Card>

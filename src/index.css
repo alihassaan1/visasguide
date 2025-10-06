@@ -2,6 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* React Quill Styles */
+.ql-container {
+  font-family: inherit;
+}
+
+.ql-editor {
+  min-height: 400px;
+}
+
+.rich-text-editor .ql-toolbar {
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  background: hsl(var(--muted));
+  border-color: hsl(var(--border));
+}
+
+.rich-text-editor .ql-container {
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  background: hsl(var(--background));
+  border-color: hsl(var(--border));
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */

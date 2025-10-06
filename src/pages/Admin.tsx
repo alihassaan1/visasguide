@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,12 +11,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { RefreshCw, Settings, Rss, Newspaper, Key, FileText, Plus, Edit, Eye, Trash2 } from 'lucide-react';
+import { RefreshCw, Settings, Rss, Newspaper, Key, FileText, Plus, Edit, Eye, Trash2, LogOut, Loader2 } from 'lucide-react';
+import { RichTextEditor } from '@/components/admin/RichTextEditor';
+import { ImageUpload } from '@/components/admin/ImageUpload';
 
 // Content Pages Manager Component
-const ContentPagesManager = () => {
+const ContentPagesManager = ({ onEdit }: { onEdit: (page: any) => void }) => {
   const [pages, setPages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -65,6 +69,30 @@ const ContentPagesManager = () => {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this page?')) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('content_pages')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      toast({ title: "Success", description: "Page deleted successfully." });
+      loadPages();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete page.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -74,7 +102,7 @@ const ContentPagesManager = () => {
             Manage SEO-optimized content pages for popular visa searches
           </CardDescription>
         </div>
-        <Button>
+        <Button onClick={() => onEdit(null)}>
           <Plus className="mr-2 h-4 w-4" />
           Add New Page
         </Button>
@@ -122,11 +150,26 @@ const ContentPagesManager = () => {
                   </Button>
                   <Button
                     size="sm"
+                    variant="outline"
+                    onClick={() => onEdit(page)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
                     variant={page.is_published ? "secondary" : "default"}
                     onClick={() => togglePublish(page.id, page.is_published)}
                     disabled={loading}
                   >
                     {page.is_published ? "Unpublish" : "Publish"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleDelete(page.id)}
+                    disabled={loading}
+                  >
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -146,6 +189,9 @@ interface AdminSettings {
 }
 
 export default function Admin() {
+  const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [settings, setSettings] = useState<AdminSettings>({
     rss_fetch_enabled: true,
     auto_content_generation: false,
@@ -166,16 +212,57 @@ export default function Admin() {
     content: '',
     excerpt: '',
     keywords: '',
+    featured_image_url: '',
     is_published: false
   });
   const { toast } = useToast();
 
   useEffect(() => {
-    loadArticles();
-    loadRssFeeds();
-    loadSettings();
-    loadContentPages();
+    checkAdminAccess();
   }, []);
+
+  const checkAdminAccess = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        navigate('/admin/auth');
+        return;
+      }
+
+      const { data: roles, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .eq('role', 'admin')
+        .single();
+
+      if (error || !roles) {
+        toast({
+          title: "Access Denied",
+          description: "You don't have admin privileges.",
+          variant: "destructive",
+        });
+        navigate('/');
+        return;
+      }
+
+      setIsAdmin(true);
+      loadArticles();
+      loadRssFeeds();
+      loadSettings();
+      loadContentPages();
+    } catch (error) {
+      navigate('/admin/auth');
+    } finally {
+      setCheckingAuth(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/admin/auth');
+  };
 
   const loadSettings = async () => {
     // In a real app, you'd load these from a settings table
@@ -324,8 +411,15 @@ export default function Admin() {
     setLoading(true);
     try {
       const pageData = {
-        ...pageForm,
-        keywords: pageForm.keywords.split(',').map(k => k.trim()).filter(k => k)
+        title: pageForm.title,
+        slug: pageForm.slug,
+        meta_title: pageForm.meta_title,
+        meta_description: pageForm.meta_description,
+        content: pageForm.content,
+        excerpt: pageForm.excerpt,
+        featured_image_url: pageForm.featured_image_url,
+        keywords: pageForm.keywords.split(',').map(k => k.trim()).filter(k => k),
+        is_published: pageForm.is_published
       };
 
       if (editingPage) {
@@ -355,13 +449,14 @@ export default function Admin() {
         content: '',
         excerpt: '',
         keywords: '',
+        featured_image_url: '',
         is_published: false
       });
       loadContentPages();
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to save page. Please try again.",
+        description: error.message || "Failed to save page. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -370,17 +465,33 @@ export default function Admin() {
   };
 
   const handleEditPage = (page: any) => {
-    setEditingPage(page);
-    setPageForm({
-      title: page.title,
-      slug: page.slug,
-      meta_title: page.meta_title || '',
-      meta_description: page.meta_description || '',
-      content: page.content,
-      excerpt: page.excerpt || '',
-      keywords: (page.keywords || []).join(', '),
-      is_published: page.is_published
-    });
+    if (page) {
+      setEditingPage(page);
+      setPageForm({
+        title: page.title,
+        slug: page.slug,
+        meta_title: page.meta_title || '',
+        meta_description: page.meta_description || '',
+        content: page.content,
+        excerpt: page.excerpt || '',
+        keywords: (page.keywords || []).join(', '),
+        featured_image_url: page.featured_image_url || '',
+        is_published: page.is_published
+      });
+    } else {
+      setEditingPage(null);
+      setPageForm({
+        title: '',
+        slug: '',
+        meta_title: '',
+        meta_description: '',
+        content: '',
+        excerpt: '',
+        keywords: '',
+        featured_image_url: '',
+        is_published: false
+      });
+    }
     setShowPageForm(true);
   };
 
@@ -408,14 +519,32 @@ export default function Admin() {
     }
   };
 
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Admin Panel</h1>
-            <p className="text-muted-foreground">Manage your visa guide content and settings</p>
+          <div className="mb-8 flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Admin Panel</h1>
+              <p className="text-muted-foreground">Manage your visa guide content and settings</p>
+            </div>
+            <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
           </div>
 
           <Tabs defaultValue="content" className="space-y-6">
@@ -443,7 +572,120 @@ export default function Admin() {
             </TabsList>
 
             <TabsContent value="content" className="space-y-6">
-              <ContentPagesManager />
+              <ContentPagesManager onEdit={handleEditPage} />
+
+              <Dialog open={showPageForm} onOpenChange={setShowPageForm}>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>{editingPage ? 'Edit' : 'Create'} Content Page</DialogTitle>
+                    <DialogDescription>
+                      Create SEO-optimized evergreen content for visa guides
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="title">Title *</Label>
+                        <Input
+                          id="title"
+                          value={pageForm.title}
+                          onChange={(e) => setPageForm({ ...pageForm, title: e.target.value })}
+                          placeholder="e.g., Schengen Visa Guide 2024"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="slug">URL Slug *</Label>
+                        <Input
+                          id="slug"
+                          value={pageForm.slug}
+                          onChange={(e) => setPageForm({ ...pageForm, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                          placeholder="e.g., schengen-visa-guide"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="meta_title">Meta Title (SEO)</Label>
+                      <Input
+                        id="meta_title"
+                        value={pageForm.meta_title}
+                        onChange={(e) => setPageForm({ ...pageForm, meta_title: e.target.value })}
+                        placeholder="Max 60 characters"
+                        maxLength={60}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="meta_description">Meta Description (SEO)</Label>
+                      <Textarea
+                        id="meta_description"
+                        value={pageForm.meta_description}
+                        onChange={(e) => setPageForm({ ...pageForm, meta_description: e.target.value })}
+                        placeholder="Max 160 characters"
+                        maxLength={160}
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="excerpt">Excerpt</Label>
+                      <Textarea
+                        id="excerpt"
+                        value={pageForm.excerpt}
+                        onChange={(e) => setPageForm({ ...pageForm, excerpt: e.target.value })}
+                        placeholder="Brief summary of the content"
+                        rows={3}
+                      />
+                    </div>
+
+                    <ImageUpload
+                      value={pageForm.featured_image_url}
+                      onChange={(url) => setPageForm({ ...pageForm, featured_image_url: url })}
+                    />
+
+                    <div className="space-y-2">
+                      <Label htmlFor="content">Content * (HTML Editor)</Label>
+                      <RichTextEditor
+                        value={pageForm.content}
+                        onChange={(value) => setPageForm({ ...pageForm, content: value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="keywords">Keywords (comma-separated)</Label>
+                      <Input
+                        id="keywords"
+                        value={pageForm.keywords}
+                        onChange={(e) => setPageForm({ ...pageForm, keywords: e.target.value })}
+                        placeholder="e.g., schengen visa, europe visa, visa requirements"
+                      />
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="is_published"
+                        checked={pageForm.is_published}
+                        onCheckedChange={(checked) => setPageForm({ ...pageForm, is_published: checked })}
+                      />
+                      <Label htmlFor="is_published">Publish immediately</Label>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowPageForm(false)}
+                        disabled={loading}
+                      >
+                        Cancel
+                      </Button>
+                      <Button onClick={handlePageSubmit} disabled={loading}>
+                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {editingPage ? 'Update' : 'Create'} Page
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </TabsContent>
 
             <TabsContent value="settings" className="space-y-6">

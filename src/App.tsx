@@ -16,6 +16,7 @@ import PassportRankings from "./pages/PassportRankings";
 import TouristVisa from "./pages/visa-types/TouristVisa";
 import BusinessVisa from "./pages/visa-types/BusinessVisa";
 import Admin from "./pages/Admin";
+import AdminAuth from "./pages/AdminAuth";
 import ContentPage from "./pages/ContentPage";
 import NotFound from "./pages/NotFound";
 
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/news" element={<NewsPage />} />
           <Route path="/news/:slug" element={<NewsArticle />} />
           <Route path="/passport-rankings" element={<PassportRankings />} />
+          <Route path="/admin/auth" element={<AdminAuth />} />
           <Route path="/admin" element={<Admin />} />
           
           {/* Evergreen Content Pages */}

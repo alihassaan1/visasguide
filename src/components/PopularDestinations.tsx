@@ -75,9 +75,9 @@ const PopularDestinations = () => {
                   {/* Header */}
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
-                      <span className="text-3xl">{destination.flag}</span>
+                      <span className="text-4xl">{destination.flag}</span>
                       <div>
-                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                        <h3 className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors">
                           {destination.country}
                         </h3>
                         <p className="text-sm text-muted-foreground">{destination.visaType}</p>
@@ -85,7 +85,7 @@ const PopularDestinations = () => {
                     </div>
                     <Badge 
                       variant={destination.difficulty === "Easy" ? "default" : "secondary"}
-                      className={destination.difficulty === "Easy" ? "bg-visa-success text-white" : ""}
+                      className={destination.difficulty === "Easy" ? "bg-green-600 text-white" : "bg-yellow-600 text-white"}
                     >
                       {destination.difficulty}
                     </Badge>

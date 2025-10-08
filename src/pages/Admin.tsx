@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { RefreshCw, Settings, Rss, Newspaper, Key, FileText, Plus, Edit, Eye, Trash2, LogOut, Loader2 } from 'lucide-react';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { ImageUpload } from '@/components/admin/ImageUpload';
+import { SiteSettingsManager } from '@/components/admin/SiteSettingsManager';
 
 // Content Pages Manager Component
 const ContentPagesManager = ({ onEdit }: { onEdit: (page: any) => void }) => {
@@ -548,14 +549,18 @@ export default function Admin() {
           </div>
 
           <Tabs defaultValue="content" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="content" className="flex items-center gap-2">
                 <Newspaper size={16} />
                 Content Pages
               </TabsTrigger>
+              <TabsTrigger value="site-settings" className="flex items-center gap-2">
+                <Settings size={16} />
+                Site Settings
+              </TabsTrigger>
               <TabsTrigger value="settings" className="flex items-center gap-2">
                 <Settings size={16} />
-                Settings
+                CMS Settings
               </TabsTrigger>
               <TabsTrigger value="articles" className="flex items-center gap-2">
                 <Newspaper size={16} />
@@ -570,6 +575,10 @@ export default function Admin() {
                 API Keys
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="site-settings" className="space-y-6">
+              <SiteSettingsManager />
+            </TabsContent>
 
             <TabsContent value="content" className="space-y-6">
               <ContentPagesManager onEdit={handleEditPage} />

@@ -7,50 +7,56 @@ const visaTypes = [
   {
     icon: Plane,
     title: "Tourist Visa",
-    description: "Short-term leisure travel, sightseeing, and visiting friends or family",
+    description: "Perfect for short-term leisure travel, vacation, sightseeing, and visiting friends or family. This is the most commonly requested visa type worldwide, suitable for tourism and recreational purposes.",
     duration: "Usually 30-90 days",
     popularity: "Most Popular",
-    color: "text-visa-info"
+    color: "text-visa-info",
+    link: "/visa-types/tourist"
   },
   {
     icon: Briefcase, 
     title: "Business Visa",
-    description: "Attending meetings, conferences, negotiations, and business activities",
+    description: "Designed for attending business meetings, conferences, trade shows, negotiations, and other commercial activities. Allows you to conduct business but not work or receive payment from local sources.",
     duration: "30-180 days",
     popularity: "Common",
-    color: "text-primary"
+    color: "text-primary",
+    link: "/visa-types/business"
   },
   {
     icon: GraduationCap,
     title: "Student Visa", 
-    description: "Studying at educational institutions, universities, and academic programs",
+    description: "Required for studying at educational institutions, universities, colleges, and academic programs abroad. Includes full-time students, exchange students, and those enrolled in language courses.",
     duration: "Duration of study",
     popularity: "Popular",
-    color: "text-accent"
+    color: "text-accent",
+    link: "/visa-types/student"
   },
   {
     icon: Briefcase,
     title: "Work Visa",
-    description: "Employment-based immigration and temporary work authorizations",  
+    description: "Essential for employment-based immigration and legal work authorization abroad. Allows you to work for a specific employer or in a particular industry, with duration varying based on employment contract.",
     duration: "1-5 years typically",
     popularity: "In Demand",
-    color: "text-visa-success"
+    color: "text-green-600",
+    link: "/guides"
   },
   {
     icon: Heart,
     title: "Family Visa",
-    description: "Joining spouse, partner, or family members already residing abroad",
+    description: "Enables you to join your spouse, partner, children, or family members who are already residing abroad as citizens or permanent residents. Requirements vary significantly by country and relationship type.",
     duration: "Varies by country", 
     popularity: "Common",
-    color: "text-visa-warning"
+    color: "text-orange-600",
+    link: "/guides"
   },
   {
     icon: Home,
     title: "Transit Visa",
-    description: "Short layovers and connections through international airports",
+    description: "Required for short layovers and connections when passing through international airports. Typically allows you to stay in the airport's international zone or transit area without entering the country.",
     duration: "24-96 hours",
     popularity: "Specific Use", 
-    color: "text-muted-foreground"
+    color: "text-muted-foreground",
+    link: "/guides"
   }
 ];
 
@@ -102,7 +108,7 @@ const VisaTypes = () => {
                   {/* CTA */}
                   <div className="pt-2">
                     <Link 
-                      to="/guides"
+                      to={visa.link}
                       className="text-sm text-primary hover:text-primary-light transition-colors font-medium group-hover:translate-x-1 transform duration-200 block"
                     >
                       Learn More →

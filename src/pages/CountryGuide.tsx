@@ -146,12 +146,51 @@ const CountryGuide = () => {
           </div>
         </div>
 
+        {/* Country Overview Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <Card className="border-0 bg-gradient-to-br from-primary/10 to-primary/5">
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold text-primary mb-1">
+                #{country.passport_rank || 'N/A'}
+              </div>
+              <div className="text-sm text-muted-foreground">Passport Rank</div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-0 bg-gradient-to-br from-green-500/10 to-green-500/5">
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold text-green-600 mb-1">
+                {country.visa_free_destinations || 0}
+              </div>
+              <div className="text-sm text-muted-foreground">Visa-Free Access</div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-0 bg-gradient-to-br from-blue-500/10 to-blue-500/5">
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold text-blue-600 mb-1">
+                {country.population ? (country.population / 1000000).toFixed(1) + 'M' : 'N/A'}
+              </div>
+              <div className="text-sm text-muted-foreground">Population</div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-0 bg-gradient-to-br from-orange-500/10 to-orange-500/5">
+            <CardContent className="p-6 text-center">
+              <div className="text-2xl font-bold text-orange-600 mb-1">
+                {country.passport_score || 'N/A'}
+              </div>
+              <div className="text-sm text-muted-foreground">Passport Score</div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Country Overview */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Globe className="h-5 w-5" />
-              Country Overview
+              Country Information
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -159,16 +198,9 @@ const CountryGuide = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4" />
-                  Capital
+                  Capital City
                 </div>
                 <p className="font-medium">{country.capital || 'N/A'}</p>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Users className="h-4 w-4" />
-                  Population
-                </div>
-                <p className="font-medium">{country.population?.toLocaleString() || 'N/A'}</p>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -179,10 +211,17 @@ const CountryGuide = () => {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <FileText className="h-4 w-4" />
-                  Passport Rank
+                  <Globe className="h-4 w-4" />
+                  Region
                 </div>
-                <p className="font-medium">#{country.passport_rank || 'N/A'}</p>
+                <p className="font-medium">{country.region || 'N/A'}</p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <FileText className="h-4 w-4" />
+                  Language
+                </div>
+                <p className="font-medium">{country.language || 'N/A'}</p>
               </div>
             </div>
           </CardContent>

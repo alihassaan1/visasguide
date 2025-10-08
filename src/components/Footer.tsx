@@ -1,6 +1,33 @@
-import { MapPin, Mail, Phone, Globe } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Mail, Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
+  const { data: footerLinks } = useQuery({
+    queryKey: ['footer-links'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('site_settings')
+        .select('setting_value')
+        .eq('setting_key', 'footer_links')
+        .single();
+      return (data?.setting_value as any) || { popular_destinations: [], visa_types: [], resources: [] };
+    }
+  });
+
+  const { data: socialLinks } = useQuery({
+    queryKey: ['social-links'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('site_settings')
+        .select('setting_value')
+        .eq('setting_key', 'social_links')
+        .single();
+      return (data?.setting_value as any) || {};
+    }
+  });
+
   return (
     <footer className="bg-primary text-primary-foreground">
       <div className="container mx-auto px-4">
@@ -19,9 +46,34 @@ const Footer = () => {
                 Your trusted source for accurate visa information and travel documentation guidance for global travelers.
               </p>
               <div className="flex space-x-4">
-                <Globe className="h-5 w-5 text-primary-foreground/60" />
-                <Mail className="h-5 w-5 text-primary-foreground/60" />
-                <Phone className="h-5 w-5 text-primary-foreground/60" />
+                {socialLinks?.facebook && (
+                  <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground/80 transition-colors">
+                    <Facebook className="h-5 w-5" />
+                  </a>
+                )}
+                {socialLinks?.twitter && (
+                  <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground/80 transition-colors">
+                    <Twitter className="h-5 w-5" />
+                  </a>
+                )}
+                {socialLinks?.instagram && (
+                  <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground/80 transition-colors">
+                    <Instagram className="h-5 w-5" />
+                  </a>
+                )}
+                {socialLinks?.linkedin && (
+                  <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground/80 transition-colors">
+                    <Linkedin className="h-5 w-5" />
+                  </a>
+                )}
+                {socialLinks?.youtube && (
+                  <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground/80 transition-colors">
+                    <Youtube className="h-5 w-5" />
+                  </a>
+                )}
+                {!socialLinks?.facebook && !socialLinks?.twitter && !socialLinks?.instagram && (
+                  <Mail className="h-5 w-5 text-primary-foreground/60" />
+                )}
               </div>
             </div>
 
@@ -29,12 +81,21 @@ const Footer = () => {
             <div className="space-y-4">
               <h4 className="font-semibold text-primary-foreground">Popular Destinations</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">United States</a></li>
-                <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">United Kingdom</a></li>
-                <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Schengen Countries</a></li>
-                <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Canada</a></li>
-                <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Australia</a></li>
-                <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Japan</a></li>
+                {footerLinks?.popular_destinations?.length > 0 ? (
+                  footerLinks.popular_destinations.map((link: any, index: number) => (
+                    <li key={index}>
+                      <Link to={link.url} className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))
+                ) : (
+                  <>
+                    <li><Link to="/countries/united-states" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">United States</Link></li>
+                    <li><Link to="/countries/united-kingdom" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">United Kingdom</Link></li>
+                    <li><Link to="/countries/schengen" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Schengen Countries</Link></li>
+                  </>
+                )}
               </ul>
             </div>
 
@@ -42,12 +103,21 @@ const Footer = () => {
             <div className="space-y-4">
               <h4 className="font-semibold text-primary-foreground">Visa Types</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Tourist Visa</a></li>
-                <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Business Visa</a></li>
-                <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Student Visa</a></li>
-                <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Work Visa</a></li>
-                <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Transit Visa</a></li>
-                <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Family Visa</a></li>
+                {footerLinks?.visa_types?.length > 0 ? (
+                  footerLinks.visa_types.map((link: any, index: number) => (
+                    <li key={index}>
+                      <Link to={link.url} className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))
+                ) : (
+                  <>
+                    <li><Link to="/visa-types/tourist" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Tourist Visa</Link></li>
+                    <li><Link to="/visa-types/business" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Business Visa</Link></li>
+                    <li><Link to="/visa-types/student" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Student Visa</Link></li>
+                  </>
+                )}
               </ul>
             </div>
 
@@ -55,12 +125,21 @@ const Footer = () => {
             <div className="space-y-4">
               <h4 className="font-semibold text-primary-foreground">Resources</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Visa Requirements</a></li>
-                <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Application Guides</a></li>
-                <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Document Checklists</a></li>
-                <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Processing Times</a></li>
-                <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Embassy Contacts</a></li>
-                <li><a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Travel Advisories</a></li>
+                {footerLinks?.resources?.length > 0 ? (
+                  footerLinks.resources.map((link: any, index: number) => (
+                    <li key={index}>
+                      <Link to={link.url} className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))
+                ) : (
+                  <>
+                    <li><Link to="/requirements" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Visa Requirements</Link></li>
+                    <li><Link to="/guides" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Application Guides</Link></li>
+                    <li><Link to="/processing-times" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Processing Times</Link></li>
+                  </>
+                )}
               </ul>
             </div>
           </div>
@@ -73,10 +152,10 @@ const Footer = () => {
               © 2024 Visas.Guide. All rights reserved.
             </div>
             <div className="flex space-x-6 text-sm">
-              <a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Privacy Policy</a>
-              <a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Terms of Service</a>
-              <a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Cookie Policy</a>
-              <a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Contact Us</a>
+              <Link to="/privacy-policy" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Privacy Policy</Link>
+              <Link to="/terms-of-service" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Terms of Service</Link>
+              <Link to="/cookie-policy" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Cookie Policy</Link>
+              <Link to="/contact" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Contact Us</Link>
             </div>
           </div>
         </div>

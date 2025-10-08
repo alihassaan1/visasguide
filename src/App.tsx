@@ -16,9 +16,14 @@ import NewsArticle from "./pages/NewsArticle";
 import PassportRankings from "./pages/PassportRankings";
 import TouristVisa from "./pages/visa-types/TouristVisa";
 import BusinessVisa from "./pages/visa-types/BusinessVisa";
+import StudentVisa from "./pages/visa-types/StudentVisa";
 import Admin from "./pages/Admin";
 import AdminAuth from "./pages/AdminAuth";
 import ContentPage from "./pages/ContentPage";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import CookiePolicy from "./pages/CookiePolicy";
+import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,11 +44,16 @@ const App = () => (
           <Route path="/requirements" element={<Requirements />} />
           <Route path="/guides" element={<VisaGuides />} />
           <Route path="/guides/:slug" element={<CountryGuide />} />
-          <Route path="/visa-types/tourist-visa" element={<TouristVisa />} />
-          <Route path="/visa-types/business-visa" element={<BusinessVisa />} />
+          <Route path="/visa-types/tourist" element={<TouristVisa />} />
+          <Route path="/visa-types/business" element={<BusinessVisa />} />
+          <Route path="/visa-types/student" element={<StudentVisa />} />
           <Route path="/news" element={<NewsPage />} />
           <Route path="/news/:slug" element={<NewsArticle />} />
           <Route path="/passport-rankings" element={<PassportRankings />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/cookie-policy" element={<CookiePolicy />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/admin/auth" element={<AdminAuth />} />
           <Route path="/admin" element={<Admin />} />
           

@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -248,6 +248,30 @@ const CountryGuide = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Visa-Free Countries Link */}
+        <Card className="mt-8 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold mb-2">
+                  Visa-Free Countries for {country.name} Passport Holders
+                </h3>
+                <p className="text-muted-foreground">
+                  Discover all countries you can visit with a {country.name} passport - visa-free, visa on arrival, e-visa, and more
+                </p>
+              </div>
+              <Link 
+                to={`/countries/${country.code.toLowerCase()}/visa-free`}
+                className="ml-4"
+              >
+                <button className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors whitespace-nowrap">
+                  View All Destinations →
+                </button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Travel Tips Section */}
         <Card className="mt-8">

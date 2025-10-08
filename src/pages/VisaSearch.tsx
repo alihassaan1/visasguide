@@ -264,10 +264,11 @@ const VisaSearch = () => {
                   <div className="space-y-4">
                     {/* Header */}
                     <div className="flex items-start justify-between">
-                      <Link to={`/countries/${item.slug}`} className="flex items-center space-x-4 group-hover:text-primary transition-colors cursor-pointer flex-1">
-                        <span className="text-4xl">{item.flag}</span>
+                      <Link to={`/countries/${item.slug}`} className="flex items-center space-x-3 group-hover:text-primary transition-colors cursor-pointer flex-1">
+                        <span className="text-3xl">{item.flag}</span>
                         <div>
-                          <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+                          <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                            <span className="text-2xl">{item.flag}</span>
                             {item.country}
                           </h3>
                           <p className="text-muted-foreground">{item.visaType}</p>

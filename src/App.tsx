@@ -10,6 +10,7 @@ import ProcessingTimes from "./pages/ProcessingTimes";
 import Requirements from "./pages/Requirements";
 import VisaGuides from "./pages/VisaGuides";
 import CountryGuide from "./pages/CountryGuide";
+import VisaFreeCountries from "./pages/VisaFreeCountries";
 import NewsPage from "./pages/NewsPage";
 import NewsArticle from "./pages/NewsArticle";
 import PassportRankings from "./pages/PassportRankings";
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/countries" element={<Countries />} />
           <Route path="/countries/:countryCode" element={<CountryGuide />} />
+          <Route path="/countries/:countryCode/visa-free" element={<VisaFreeCountries />} />
           <Route path="/visa-search" element={<VisaSearch />} />
           <Route path="/processing-times" element={<ProcessingTimes />} />
           <Route path="/requirements" element={<Requirements />} />

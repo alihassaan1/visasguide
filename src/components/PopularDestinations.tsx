@@ -106,7 +106,7 @@ const PopularDestinations = () => {
                   {/* CTA */}
                   <div className="pt-2">
                     <Link 
-                      to={`/countries/${destination.country.toLowerCase().replace(' ', '-')}`}
+                      to={`/countries/${destination.country.toLowerCase().replace(/\s+/g, '-')}`}
                       className="w-full text-left text-sm text-primary hover:text-primary-light transition-colors font-medium block"
                     >
                       View Requirements →

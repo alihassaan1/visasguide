@@ -145,7 +145,7 @@ const VisaSearch = () => {
     region: country.continent || 'Other',
     description: getDescription(country.code, country.name),
     requirements: getRequirements(country.code),
-    slug: country.code.toLowerCase()
+    slug: country.slug
   }));
 
   const regions = ["all", "Europe", "North America", "Asia", "Oceania", "Africa", "South America"];

@@ -107,6 +107,7 @@ export type Database = {
           passport_score: number | null
           population: number | null
           region: string | null
+          slug: string
           updated_at: string
           visa_free_destinations: number | null
         }
@@ -124,6 +125,7 @@ export type Database = {
           passport_score?: number | null
           population?: number | null
           region?: string | null
+          slug: string
           updated_at?: string
           visa_free_destinations?: number | null
         }
@@ -141,6 +143,7 @@ export type Database = {
           passport_score?: number | null
           population?: number | null
           region?: string | null
+          slug?: string
           updated_at?: string
           visa_free_destinations?: number | null
         }

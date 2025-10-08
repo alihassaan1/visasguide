@@ -9,21 +9,21 @@ import { Separator } from "@/components/ui/separator";
 import { Clock, DollarSign, FileText, Globe, Users, MapPin } from "lucide-react";
 
 const CountryGuide = () => {
-  const { countryCode } = useParams<{ countryCode: string }>();
+  const { countrySlug } = useParams<{ countrySlug: string }>();
   
   const { data: country, isLoading: countryLoading } = useQuery({
-    queryKey: ['country', countryCode],
+    queryKey: ['country', countrySlug],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('countries')
         .select('*')
-        .eq('code', countryCode?.toUpperCase())
+        .eq('slug', countrySlug)
         .maybeSingle();
       
       if (error) throw error;
       return data;
     },
-    enabled: !!countryCode
+    enabled: !!countrySlug
   });
 
   const { data: visaRequirements } = useQuery({
@@ -122,7 +122,7 @@ const CountryGuide = () => {
             "@type": "WebPage",
             "name": `${country.name} Visa Requirements & Travel Guide`,
             "description": `Complete visa requirements, passport information, and travel guide for ${country.name}. Get up-to-date visa information for travelers.`,
-            "url": `https://visas.guide/countries/${country.code.toLowerCase()}`,
+            "url": `https://visas.guide/countries/${country.slug}`,
             "mainEntity": {
               "@type": "Country",
               "name": country.name,
@@ -262,7 +262,7 @@ const CountryGuide = () => {
                 </p>
               </div>
               <Link 
-                to={`/countries/${country.code.toLowerCase()}/visa-free`}
+                to={`/countries/${country.slug}/visa-free`}
                 className="ml-4"
               >
                 <button className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors whitespace-nowrap">

@@ -32,8 +32,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/countries" element={<Countries />} />
-          <Route path="/countries/:countryCode" element={<CountryGuide />} />
-          <Route path="/countries/:countryCode/visa-free" element={<VisaFreeCountries />} />
+          <Route path="/countries/:countrySlug" element={<CountryGuide />} />
+          <Route path="/countries/:countrySlug/visa-free" element={<VisaFreeCountries />} />
           <Route path="/visa-search" element={<VisaSearch />} />
           <Route path="/processing-times" element={<ProcessingTimes />} />
           <Route path="/requirements" element={<Requirements />} />

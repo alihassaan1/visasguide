@@ -8,21 +8,21 @@ import { Badge } from "@/components/ui/badge";
 import { Plane, CheckCircle, Clock, FileCheck, AlertCircle } from "lucide-react";
 
 const VisaFreeCountries = () => {
-  const { countryCode } = useParams<{ countryCode: string }>();
+  const { countrySlug } = useParams<{ countrySlug: string }>();
   
   const { data: country, isLoading: countryLoading } = useQuery({
-    queryKey: ['country', countryCode],
+    queryKey: ['country', countrySlug],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('countries')
         .select('*')
-        .eq('code', countryCode?.toUpperCase())
+        .eq('slug', countrySlug)
         .maybeSingle();
       
       if (error) throw error;
       return data;
     },
-    enabled: !!countryCode
+    enabled: !!countrySlug
   });
 
   const { data: visaRequirements, isLoading: requirementsLoading } = useQuery({
@@ -104,7 +104,7 @@ const VisaFreeCountries = () => {
             {countries.map((req) => (
               <Link 
                 key={req.id} 
-                to={`/countries/${req.to_country?.code.toLowerCase()}`}
+                to={`/countries/${req.to_country?.slug}`}
                 className="group"
               >
                 <div className="flex items-center justify-between p-4 border rounded-lg hover:shadow-lg hover:border-primary transition-all duration-200">
@@ -184,7 +184,7 @@ const VisaFreeCountries = () => {
             "@type": "WebPage",
             "name": `Visa Free Countries for ${country.name} Passport Holders`,
             "description": `Complete list of visa-free countries, visa on arrival, e-visa, and visa required destinations for ${country.name} passport holders. Updated ${new Date().getFullYear()}.`,
-            "url": `https://visas.guide/countries/${country.code.toLowerCase()}/visa-free`,
+            "url": `https://visas.guide/countries/${country.slug}/visa-free`,
             "mainEntity": {
               "@type": "ItemList",
               "name": `Visa Free Countries for ${country.name}`,
@@ -257,7 +257,7 @@ const VisaFreeCountries = () => {
         {/* Back Link */}
         <div className="mb-6">
           <Link 
-            to={`/countries/${country.code.toLowerCase()}`}
+            to={`/countries/${country.slug}`}
             className="text-primary hover:underline inline-flex items-center gap-2"
           >
             ← Back to {country.name} Main Guide

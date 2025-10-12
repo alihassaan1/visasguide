@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Clock, DollarSign, FileText, Globe, Users, MapPin } from "lucide-react";
+import { countryCodeToFlagEmoji } from "@/lib/utils";
 
 const CountryGuide = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
@@ -138,7 +139,7 @@ const CountryGuide = () => {
         {/* Country Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
-            <span className="text-6xl">{country.flag_emoji || '🏳️'}</span>
+            <span className="text-6xl">{country.flag_emoji || (country.code ? countryCodeToFlagEmoji(country.code) : '🏳️')}</span>
             <div>
               <h1 className="text-4xl font-bold mb-2">{country.name}</h1>
               <p className="text-xl text-muted-foreground">Complete Visa & Travel Information</p>
@@ -241,7 +242,7 @@ const CountryGuide = () => {
                 {visaRequirements?.slice(0, 10).map((req) => (
                   <div key={req.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
-                      <span className="text-xl">{req.from_country?.flag_emoji}</span>
+                      <span className="text-xl">{req.from_country?.flag_emoji || (req.from_country?.code ? countryCodeToFlagEmoji(req.from_country.code) : '🏳️')}</span>
                       <span className="font-medium">{req.from_country?.name}</span>
                     </div>
                     <Badge className={getRequirementColor(req.requirement_type)}>

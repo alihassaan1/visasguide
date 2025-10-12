@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plane, CheckCircle, Clock, FileCheck, AlertCircle } from "lucide-react";
+import { countryCodeToFlagEmoji } from "@/lib/utils";
 
 const VisaFreeCountries = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();

@@ -10,6 +10,7 @@ import { Search, MapPin, Clock, DollarSign, AlertCircle, CheckCircle, ArrowRight
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
+import { countryCodeToFlagEmoji } from "@/lib/utils";
 
 const VisaSearch = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -136,7 +137,7 @@ const VisaSearch = () => {
   // Transform countries data to match visa search format
   const visaData = countries.map(country => ({
     country: country.name,
-    flag: country.flag_emoji || '🏳️',
+    flag: country.flag_emoji || (country.code ? countryCodeToFlagEmoji(country.code) : '🏳️'),
     visaType: getVisaType(country.code),
     requirement: getRequirement(country.code),
     processingTime: getProcessingTime(country.code),

@@ -99,7 +99,7 @@ const ref = await resp.json();
       const refC = c.code ? byCCA2.get(String(c.code).toUpperCase()) : null;
       if (!refC) continue;
 
-      const patch: any = { id: c.id };
+      const patch: any = { id: c.id, name: c.name, code: c.code, slug: c.slug };
 
       if (!c.flag_emoji) {
         patch.flag_emoji = refC.flag || flagFromCode(c.code);

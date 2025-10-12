@@ -300,8 +300,8 @@ const CountryGuide = () => {
         {/* Visa-Free Countries Link */}
         <Card className="mt-8 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex-1">
                 <h3 className="text-xl font-bold mb-2">
                   Visa-Free Countries for {country.name} Passport Holders
                 </h3>
@@ -311,9 +311,9 @@ const CountryGuide = () => {
               </div>
               <Link 
                 to={`/countries/${country.slug}/visa-free`}
-                className="ml-4"
+                className="w-full sm:w-auto"
               >
-                <button className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors whitespace-nowrap">
+                <button className="w-full sm:w-auto px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors whitespace-nowrap">
                   View All Destinations →
                 </button>
               </Link>

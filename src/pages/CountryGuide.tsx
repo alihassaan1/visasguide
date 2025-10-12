@@ -204,7 +204,7 @@ const CountryGuide = () => {
           <Card className="border-0 bg-gradient-to-br from-green-500/10 to-green-500/5">
             <CardContent className="p-6 text-center">
               <div className="text-3xl font-bold text-green-600 mb-1">
-                {country.visa_free_destinations || 0}
+                {country.visa_free_destinations || computedVisaFreeCount || 0}
               </div>
               <div className="text-sm text-muted-foreground">Visa-Free Access</div>
             </CardContent>

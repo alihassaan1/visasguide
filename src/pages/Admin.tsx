@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { RefreshCw, Settings, Rss, Newspaper, Key, FileText, Plus, Edit, Eye, Trash2, LogOut, Loader2 } from 'lucide-react';
+import { RefreshCw, Settings, Rss, Newspaper, Key, FileText, Plus, Edit, Eye, Trash2, LogOut, Loader2, Database } from 'lucide-react';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { ImageUpload } from '@/components/admin/ImageUpload';
 import { SiteSettingsManager } from '@/components/admin/SiteSettingsManager';
@@ -542,10 +542,16 @@ export default function Admin() {
               <h1 className="text-3xl font-bold text-foreground mb-2">Admin Panel</h1>
               <p className="text-muted-foreground">Manage your visa guide content and settings</p>
             </div>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => navigate('/admin/data')}>
+                <Database className="mr-2 h-4 w-4" />
+                Data Manager
+              </Button>
+              <Button variant="outline" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            </div>
           </div>
 
           <Tabs defaultValue="content" className="space-y-6">

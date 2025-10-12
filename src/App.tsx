@@ -19,6 +19,7 @@ import BusinessVisa from "./pages/visa-types/BusinessVisa";
 import StudentVisa from "./pages/visa-types/StudentVisa";
 import Admin from "./pages/Admin";
 import AdminAuth from "./pages/AdminAuth";
+import DataManager from "./pages/admin/DataManager";
 import ContentPage from "./pages/ContentPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -56,6 +57,7 @@ const App = () => (
           <Route path="/contact" element={<Contact />} />
           <Route path="/admin/auth" element={<AdminAuth />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/data" element={<DataManager />} />
           
           {/* Evergreen Content Pages */}
           <Route path="/schengen-visa-guide" element={<ContentPage />} />

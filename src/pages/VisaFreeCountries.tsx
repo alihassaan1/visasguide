@@ -7,11 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plane, CheckCircle, Clock, FileCheck, AlertCircle } from "lucide-react";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
+import { useRef } from "react";
 
 const VisaFreeCountries = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
   
-  const { data: country, isLoading: countryLoading } = useQuery({
+  const { data: country, isLoading: countryLoading, refetch: refetchCountry } = useQuery({
     queryKey: ['country', countrySlug],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -25,6 +26,17 @@ const VisaFreeCountries = () => {
     },
     enabled: !!countrySlug
   });
+
+  // Lazy backfill: if core fields are missing, trigger countries-backfill for this country
+  const hasBackfilledRef = useRef(false);
+  const missingCore = country && (!country.capital || !country.currency || !country.region || !country.continent || !country.language || !country.population);
+  if (country && missingCore && !hasBackfilledRef.current) {
+    hasBackfilledRef.current = true;
+    supabase.functions
+      .invoke('countries-backfill', { body: { code: country.code } })
+      .then(() => refetchCountry())
+      .catch(() => {});
+  }
 
   const { data: visaRequirements, isLoading: requirementsLoading } = useQuery({
     queryKey: ['visa-free-requirements', country?.id],
@@ -266,33 +278,55 @@ const VisaFreeCountries = () => {
         </div>
 
         {/* Country Sections */}
-        <CountrySection
-          title="Visa-Free Countries"
-          countries={visaFreeCountries}
-          icon={<CheckCircle className="h-6 w-6 text-green-600" />}
-          description={`${country.name} passport holders can travel to these countries without a visa.`}
-        />
+        {visaRequirements && visaRequirements.length > 0 ? (
+          <>
+            <CountrySection
+              title="Visa-Free Countries"
+              countries={visaFreeCountries}
+              icon={<CheckCircle className="h-6 w-6 text-green-600" />}
+              description={`${country.name} passport holders can travel to these countries without a visa.`}
+            />
 
-        <CountrySection
-          title="Visa on Arrival Countries"
-          countries={visaOnArrivalCountries}
-          icon={<Clock className="h-6 w-6 text-yellow-600" />}
-          description={`${country.name} passport holders can obtain a visa upon arrival at these destinations.`}
-        />
+            <CountrySection
+              title="Visa on Arrival Countries"
+              countries={visaOnArrivalCountries}
+              icon={<Clock className="h-6 w-6 text-yellow-600" />}
+              description={`${country.name} passport holders can obtain a visa upon arrival at these destinations.`}
+            />
 
-        <CountrySection
-          title="E-Visa Countries"
-          countries={eVisaCountries}
-          icon={<FileCheck className="h-6 w-6 text-blue-600" />}
-          description={`${country.name} passport holders can apply for an electronic visa online for these countries.`}
-        />
+            <CountrySection
+              title="E-Visa Countries"
+              countries={eVisaCountries}
+              icon={<FileCheck className="h-6 w-6 text-blue-600" />}
+              description={`${country.name} passport holders can apply for an electronic visa online for these countries.`}
+            />
 
-        <CountrySection
-          title="Visa Required Countries"
-          countries={visaRequiredCountries}
-          icon={<AlertCircle className="h-6 w-6 text-red-600" />}
-          description={`${country.name} passport holders must obtain a visa before traveling to these countries.`}
-        />
+            <CountrySection
+              title="Visa Required Countries"
+              countries={visaRequiredCountries}
+              icon={<AlertCircle className="h-6 w-6 text-red-600" />}
+              description={`${country.name} passport holders must obtain a visa before traveling to these countries.`}
+            />
+          </>
+        ) : (
+          <Card className="mt-8 border-orange-200 bg-orange-50 dark:bg-orange-950 dark:border-orange-800">
+            <CardHeader>
+              <CardTitle className="text-orange-900 dark:text-orange-100">
+                Visa Requirements Data Not Available
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-orange-800 dark:text-orange-200">
+                We're currently building our visa requirements database for {country.name}. 
+                This comprehensive dataset will show you all visa-free destinations, visa on arrival countries, 
+                e-visa options, and visa requirements.
+              </p>
+              <p className="text-orange-800 dark:text-orange-200">
+                Check back soon for complete travel information!
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Important Notes */}
         <Card className="mt-8 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">

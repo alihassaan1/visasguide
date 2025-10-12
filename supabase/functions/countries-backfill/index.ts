@@ -4,16 +4,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+const supabase = createClient(SUPABASE_URL ?? "", SUPABASE_SERVICE_ROLE_KEY ?? "", {
   auth: { persistSession: false }
 });
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
 };
 
 // Utility: derive flag emoji from ISO code
@@ -32,6 +33,13 @@ function flagFromCode(code?: string) {
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    console.error("countries-backfill missing env", { hasUrl: !!SUPABASE_URL, hasServiceRole: !!SUPABASE_SERVICE_ROLE_KEY });
+    return new Response(
+      JSON.stringify({ error: "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in Edge Function environment" }),
+      { status: 500, headers: { "content-type": "application/json", ...corsHeaders } }
+    );
   }
 
   const url = new URL(req.url);
@@ -62,7 +70,7 @@ serve(async (req) => {
     }
 
     const { data: countries, error: cErr } = await query;
-    if (cErr) throw cErr;
+    if (cErr) throw new Error(cErr.message || JSON.stringify(cErr));
 
     if (!countries || countries.length === 0) {
       return new Response(JSON.stringify({ updated: 0, message: "No countries to update." }), {
@@ -71,8 +79,12 @@ serve(async (req) => {
     }
 
     // 2) Fetch reference data
-    const resp = await fetch("https://restcountries.com/v3.1/all?fields=name,cca2,capital,region,subregion,continents,languages,currencies,flag,population");
-    const ref = await resp.json();
+const resp = await fetch("https://restcountries.com/v3.1/all?fields=name,cca2,capital,region,subregion,continents,languages,currencies,flag,population");
+if (!resp.ok) {
+  const text = await resp.text();
+  throw new Error(`restcountries_failed: ${resp.status} ${resp.statusText} - ${text.slice(0, 200)}`);
+}
+const ref = await resp.json();
 
     // Index by cca2
     const byCCA2 = new Map<string, any>();
@@ -148,8 +160,10 @@ serve(async (req) => {
     const chunkSize = 200;
     for (let i = 0; i < updates.length; i += chunkSize) {
       const chunk = updates.slice(i, i + chunkSize);
-      const { error: uErr } = await supabase.from("countries").upsert(chunk, { onConflict: "id" });
-      if (uErr) throw uErr;
+const { error: uErr } = await supabase.from("countries").upsert(chunk, { onConflict: "id" });
+if (uErr) {
+  throw new Error(uErr.message || JSON.stringify(uErr));
+}
       updated += chunk.length;
     }
 
@@ -157,6 +171,8 @@ serve(async (req) => {
       headers: { "content-type": "application/json", ...corsHeaders },
     });
   } catch (e) {
-    return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { "content-type": "application/json", ...corsHeaders } });
+const errPayload = e instanceof Error ? { error: e.message, stack: e.stack } : { error: String(e) };
+console.error("countries-backfill error", errPayload);
+return new Response(JSON.stringify(errPayload), { status: 500, headers: { "content-type": "application/json", ...corsHeaders } });
   }
 });

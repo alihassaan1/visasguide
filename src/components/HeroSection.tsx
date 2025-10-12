@@ -4,6 +4,7 @@ import { Search, Globe, Shield, Clock } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-travel.jpg";
 import { supabase } from "@/integrations/supabase/client";
+import { countryCodeToFlagEmoji } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
 
 const HeroSection = () => {
@@ -32,7 +33,7 @@ const HeroSection = () => {
 
       const { data, error } = await supabase
         .from('countries')
-        .select('slug, name, flag_emoji')
+        .select('slug, name, flag_emoji, code')
         .ilike('name', `%${searchQuery}%`)
         .limit(8);
 
@@ -103,7 +104,7 @@ const HeroSection = () => {
                             onClick={() => handleSuggestionClick(country.slug)}
                             className="w-full px-4 py-3 text-left hover:bg-accent/50 flex items-center gap-3 transition-colors"
                           >
-                            <span className="text-2xl">{country.flag_emoji}</span>
+                            <span className="text-2xl font-emoji">{country.flag_emoji || (country.code ? countryCodeToFlagEmoji(country.code) : '🏳️')}</span>
                             <span className="font-medium text-foreground">{country.name}</span>
                           </button>
                         ))}

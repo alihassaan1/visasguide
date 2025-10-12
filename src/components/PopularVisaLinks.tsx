@@ -1,35 +1,111 @@
 import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
 
-interface VisaDestination {
+interface DbCountry {
+  id: string;
   name: string;
   code: string;
   slug: string;
-  keyword: string; // SEO keyword like "US Visa", "Canada Visa"
+  flag_emoji: string | null;
+  visa_free_destinations: number | null;
 }
 
-const popularDestinations: VisaDestination[] = [
-  { name: "United States", code: "US", slug: "united-states", keyword: "US Visa" },
-  { name: "Canada", code: "CA", slug: "canada", keyword: "Canada Visa" },
-  { name: "United Kingdom", code: "GB", slug: "united-kingdom", keyword: "UK Visa" },
-  { name: "Australia", code: "AU", slug: "australia", keyword: "Australia Visa" },
-  { name: "Germany", code: "DE", slug: "germany", keyword: "Germany Visa" },
-  { name: "France", code: "FR", slug: "france", keyword: "France Visa" },
-  { name: "Japan", code: "JP", slug: "japan", keyword: "Japan Visa" },
-  { name: "China", code: "CN", slug: "china", keyword: "China Visa" },
-  { name: "United Arab Emirates", code: "AE", slug: "united-arab-emirates", keyword: "UAE Visa" },
-  { name: "Singapore", code: "SG", slug: "singapore", keyword: "Singapore Visa" },
-  { name: "India", code: "IN", slug: "india", keyword: "India Visa" },
-  { name: "Thailand", code: "TH", slug: "thailand", keyword: "Thailand Visa" },
-  { name: "Spain", code: "ES", slug: "spain", keyword: "Spain Visa" },
-  { name: "Italy", code: "IT", slug: "italy", keyword: "Italy Visa" },
-  { name: "Netherlands", code: "NL", slug: "netherlands", keyword: "Netherlands Visa" },
-  { name: "Switzerland", code: "CH", slug: "switzerland", keyword: "Switzerland Visa" },
-  { name: "New Zealand", code: "NZ", slug: "new-zealand", keyword: "New Zealand Visa" },
-  { name: "South Korea", code: "KR", slug: "south-korea", keyword: "South Korea Visa" },
+const regionCards = [
+  { name: "Europe", emoji: "🇪🇺", href: "/countries?region=Europe" },
+  { name: "Asia", emoji: "🌏", href: "/countries?region=Asia" },
+  { name: "North America", emoji: "🌎", href: "/countries?region=North%20America" },
+  { name: "South America", emoji: "🌎", href: "/countries?region=South%20America" },
+  { name: "Africa", emoji: "🌍", href: "/countries?region=Africa" },
+  { name: "Oceania", emoji: "🌊", href: "/countries?region=Oceania" },
+  { name: "Middle East", emoji: "🕌", href: "/countries?region=Middle%20East" },
 ];
 
+const keywordFor = (name: string, code?: string) => {
+  const map: Record<string, string> = {
+    "United States": "US Visa",
+    "United Kingdom": "UK Visa",
+    "United Arab Emirates": "UAE Visa",
+  };
+  return map[name] || `${name} Visa`;
+};
+
 const PopularVisaLinks = () => {
+  const [searchCounts, setSearchCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("searchCounts");
+      if (raw) setSearchCounts(JSON.parse(raw));
+    } catch {}
+  }, []);
+
+  const { data: countries = [], isLoading } = useQuery({
+    queryKey: ["popular-countries"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("countries")
+        .select("id, name, code, slug, flag_emoji, visa_free_destinations")
+        .order("visa_free_destinations", { ascending: false })
+        .limit(18);
+      if (error) throw error;
+      return data as DbCountry[];
+    },
+  });
+
+  const sorted = useMemo(() => {
+    return [...countries].sort((a, b) =>
+      (searchCounts[b.slug] || 0) - (searchCounts[a.slug] || 0) ||
+      (b.visa_free_destinations || 0) - (a.visa_free_destinations || 0)
+    );
+  }, [countries, searchCounts]);
+
+  const ids = useMemo(() => sorted.map((c) => c.id), [sorted]);
+  const cutoff = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return d.toISOString();
+  }, []);
+
+  const { data: recentRows = [] } = useQuery({
+    queryKey: ["recent-visa-updates", ids, cutoff],
+    queryFn: async () => {
+      if (ids.length === 0) return [] as { to_country_id: string }[];
+      const { data, error } = await supabase
+        .from("visa_requirements")
+        .select("to_country_id,last_updated")
+        .in("to_country_id", ids)
+        .gt("last_updated", cutoff);
+      if (error) throw error;
+      return data as { to_country_id: string }[];
+    },
+    enabled: ids.length > 0,
+  });
+
+  const { data: visaFreeRows = [] } = useQuery({
+    queryKey: ["visa-free-counts", ids],
+    queryFn: async () => {
+      if (ids.length === 0) return [] as { to_country_id: string }[];
+      const { data, error } = await supabase
+        .from("visa_requirements")
+        .select("to_country_id")
+        .in("to_country_id", ids)
+        .eq("requirement_type", "visa_free");
+      if (error) throw error;
+      return data as { to_country_id: string }[];
+    },
+    enabled: ids.length > 0,
+  });
+
+  const recentSet = useMemo(() => new Set(recentRows.map((r: any) => r.to_country_id)), [recentRows]);
+  const visaFreeCount = useMemo(() => {
+    const map = new Map<string, number>();
+    (visaFreeRows as any[]).forEach((r) => map.set(r.to_country_id, (map.get(r.to_country_id) || 0) + 1));
+    return map;
+  }, [visaFreeRows]);
+
   return (
     <section className="py-16 bg-background">
       <div className="container mx-auto px-4">
@@ -46,38 +122,80 @@ const PopularVisaLinks = () => {
 
           {/* Grid of Visa Links */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {popularDestinations.map((destination) => (
+            {/* Schengen Visa special card */}
+            <Link
+              to="/guides/schengen-visa-requirements"
+              className="group flex flex-col items-center justify-center p-6 bg-card border border-border rounded-lg hover:border-primary hover:shadow-md transition-all duration-300"
+            >
+              <div className="text-5xl mb-3 font-emoji group-hover:scale-110 transition-transform duration-300">🇪🇺</div>
+              <span className="text-sm font-medium text-foreground text-center group-hover:text-primary transition-colors">
+                Schengen Visa
+              </span>
+            </Link>
+
+            {sorted.map((c) => (
               <Link
-                key={destination.code}
-                to={`/countries/${destination.slug}`}
+                key={c.id}
+                to={`/countries/${c.slug}`}
                 className="group flex flex-col items-center justify-center p-6 bg-card border border-border rounded-lg hover:border-primary hover:shadow-md transition-all duration-300"
               >
-                <div className="text-5xl mb-3 group-hover:scale-110 transition-transform duration-300">
-                  {countryCodeToFlagEmoji(destination.code)}
+                <div className="text-5xl mb-3 font-emoji group-hover:scale-110 transition-transform duration-300">
+                  {c.flag_emoji || (c.code ? countryCodeToFlagEmoji(c.code) : '🏳️')}
                 </div>
                 <span className="text-sm font-medium text-foreground text-center group-hover:text-primary transition-colors">
-                  {destination.keyword}
+                  {keywordFor(c.name, c.code)}
                 </span>
+                <div className="mt-2 flex gap-2">
+                  {recentSet.has(c.id) && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/20 text-accent-foreground border border-accent/30">
+                      Updated
+                    </span>
+                  )}
+                  {(visaFreeCount.get(c.id) || 0) > 50 && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border border-green-200/50">
+                      Visa-free for many
+                    </span>
+                  )}
+                </div>
               </Link>
             ))}
           </div>
 
           {/* View All Link */}
           <div className="text-center mt-10">
-            <Link 
-              to="/countries" 
+            <Link
+              to="/countries"
               className="inline-flex items-center text-primary hover:text-primary-dark font-medium text-base group"
             >
               View all countries
-              <svg 
-                className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform"
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </Link>
+          </div>
+
+          {/* Explore by Region */}
+          <div className="mt-14">
+            <h3 className="text-2xl font-bold text-foreground mb-6 text-center">Explore by Region</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+              {regionCards.map((r) => (
+                <Link
+                  key={r.name}
+                  to={r.href}
+                  className="flex flex-col items-center justify-center p-4 bg-card border border-border rounded-lg hover:border-primary hover:shadow-md transition-all duration-300"
+                >
+                  <div className="text-3xl mb-2 font-emoji">{r.emoji}</div>
+                  <span className="text-xs font-medium text-foreground text-center group-hover:text-primary transition-colors">
+                    {r.name}
+                  </span>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </div>

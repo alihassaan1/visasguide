@@ -147,3 +147,9 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .font-emoji {
+    font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Twemoji Mozilla', emoji, sans-serif;
+  }
+}

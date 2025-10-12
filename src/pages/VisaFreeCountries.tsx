@@ -110,7 +110,7 @@ const VisaFreeCountries = () => {
               >
                 <div className="flex items-center justify-between p-4 border rounded-lg hover:shadow-lg hover:border-primary transition-all duration-200">
                   <div className="flex items-center gap-3 flex-1">
-                    <span className="text-3xl">{req.to_country?.flag_emoji}</span>
+                    <span className="text-3xl font-emoji">{req.to_country?.flag_emoji || (req.to_country?.code ? countryCodeToFlagEmoji(req.to_country.code) : '🏳️')}</span>
                     <div className="flex-1">
                       <p className="font-medium group-hover:text-primary transition-colors">
                         {req.to_country?.name}
@@ -201,7 +201,7 @@ const VisaFreeCountries = () => {
         {/* Page Header */}
         <div className="mb-12 text-center">
           <div className="flex items-center justify-center gap-4 mb-6">
-            <span className="text-7xl">{country.flag_emoji || '🏳️'}</span>
+            <span className="text-7xl font-emoji">{country.flag_emoji || (country.code ? countryCodeToFlagEmoji(country.code) : '🏳️')}</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Visa Free Countries for {country.name} Passport Holders

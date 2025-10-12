@@ -12,3 +12,7 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Sitemap: https://visas.guide/sitemap.xml
+Sitemap: https://awiytryceqehqapytfgn.supabase.co/functions/v1/sitemap
+

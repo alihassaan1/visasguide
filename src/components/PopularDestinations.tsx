@@ -75,7 +75,7 @@ const PopularDestinations = () => {
                   {/* Header */}
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
-                      <span className="text-4xl">{destination.flag}</span>
+                      <span className="text-4xl font-emoji">{destination.flag}</span>
                       <div>
                         <h3 className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors">
                           {destination.country}

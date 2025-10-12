@@ -9,3 +9,9 @@ max_rows = 1000
 
 [functions.rss-fetcher]
 verify_jwt = false
+
+[functions.countries-backfill]
+verify_jwt = false
+
+[functions.sitemap]
+verify_jwt = false

@@ -11,6 +11,11 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false }
 });
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 // Utility: derive flag emoji from ISO code
 function flagFromCode(code?: string) {
   if (!code) return null;
@@ -25,25 +30,48 @@ function flagFromCode(code?: string) {
 }
 
 serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   const url = new URL(req.url);
   const dry = url.searchParams.get("dryRun") === "true";
 
   try {
-    // 1) Load countries needing backfill
-    const { data: countries, error: cErr } = await supabase
+    let filterCode: string | null = null;
+    let filterId: string | null = null;
+    try {
+      const body = await req.json();
+      filterCode = body?.code ?? null;
+      filterId = body?.id ?? null;
+    } catch (_) {
+      // no body
+    }
+    filterCode = filterCode ?? url.searchParams.get('code');
+
+    // 1) Load countries needing backfill (optionally limited to one)
+    let query = supabase
       .from("countries")
-      .select("id, name, code, slug, flag_emoji, capital, currency, continent, region, language, passport_rank, visa_free_destinations, passport_score")
-      .or("flag_emoji.is.null,capital.is.null,currency.is.null,continent.is.null,region.is.null,language.is.null");
+      .select("id, name, code, slug, flag_emoji, capital, currency, continent, region, language, passport_rank, visa_free_destinations, passport_score, population");
+
+    if (filterId) query = query.eq('id', filterId);
+    if (filterCode) query = query.eq('code', String(filterCode).toUpperCase());
+
+    if (!filterId && !filterCode) {
+      query = query.or("flag_emoji.is.null,capital.is.null,currency.is.null,continent.is.null,region.is.null,language.is.null,population.is.null,visa_free_destinations.is.null");
+    }
+
+    const { data: countries, error: cErr } = await query;
     if (cErr) throw cErr;
 
     if (!countries || countries.length === 0) {
-      return new Response(JSON.stringify({ updated: 0, message: "No missing fields detected." }), {
-        headers: { "content-type": "application/json" },
+      return new Response(JSON.stringify({ updated: 0, message: "No countries to update." }), {
+        headers: { "content-type": "application/json", ...corsHeaders },
       });
     }
 
     // 2) Fetch reference data
-    const resp = await fetch("https://restcountries.com/v3.1/all?fields=name,cca2,capital,region,subregion,continents,languages,currencies,flag");
+    const resp = await fetch("https://restcountries.com/v3.1/all?fields=name,cca2,capital,region,subregion,continents,languages,currencies,flag,population");
     const ref = await resp.json();
 
     // Index by cca2
@@ -78,8 +106,23 @@ serve(async (req) => {
         patch.region = refC.subregion || refC.region || null;
       }
       if (!c.language) {
-        const langs = refC.languages ? Object.values(refC.languages) as string[] : [];
+        const langs = refC.languages ? (Object.values(refC.languages) as string[]) : [];
         patch.language = langs[0] || null;
+      }
+      if (!c.population) {
+        patch.population = refC.population ?? null;
+      }
+
+      // Compute visa-free destinations if not set
+      if (c.visa_free_destinations == null || c.visa_free_destinations === 0) {
+        const { count, error: cntErr } = await supabase
+          .from('visa_requirements')
+          .select('id', { count: 'exact', head: true })
+          .eq('from_country_id', c.id)
+          .in('requirement_type', ['visa_free', 'visa_on_arrival', 'eTA_required', 'evisa_required']);
+        if (!cntErr && typeof count === 'number') {
+          patch.visa_free_destinations = count;
+        }
       }
 
       // Only add if something to update
@@ -91,13 +134,13 @@ serve(async (req) => {
 
     if (updates.length === 0) {
       return new Response(JSON.stringify({ updated: 0, message: "Nothing to update." }), {
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", ...corsHeaders },
       });
     }
 
     if (dry) {
       return new Response(JSON.stringify({ to_update: updates.length, sample: updates.slice(0, 5) }), {
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", ...corsHeaders },
       });
     }
 
@@ -110,10 +153,10 @@ serve(async (req) => {
       updated += chunk.length;
     }
 
-    return new Response(JSON.stringify({ updated, total_missing: countries.length }), {
-      headers: { "content-type": "application/json" },
+    return new Response(JSON.stringify({ updated, total_candidates: countries.length }), {
+      headers: { "content-type": "application/json", ...corsHeaders },
     });
   } catch (e) {
-    return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { "content-type": "application/json" } });
+    return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { "content-type": "application/json", ...corsHeaders } });
   }
 });

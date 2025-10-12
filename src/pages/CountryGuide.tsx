@@ -8,12 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Clock, DollarSign, FileText, Globe, Users, MapPin } from "lucide-react";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 const CountryGuide = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
   
-  const { data: country, isLoading: countryLoading } = useQuery({
+  const { data: country, isLoading: countryLoading, refetch: refetchCountry } = useQuery({
     queryKey: ['country', countrySlug],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -35,6 +35,25 @@ const CountryGuide = () => {
     }
   }, [country?.id]);
 
+  // Lazy backfill: if core fields are missing, trigger countries-backfill for this country and refetch
+  const hasBackfilledRef = useRef(false);
+  useEffect(() => {
+    if (!country || hasBackfilledRef.current) return;
+    const missingCore = !country.capital || !country.currency || !country.region || !country.continent || !country.language || !country.population || country.visa_free_destinations == null;
+    if (missingCore) {
+      hasBackfilledRef.current = true;
+      supabase.functions
+        .invoke('countries-backfill', { body: { code: country.code } })
+        .then(() => {
+          // Refetch country to get fresh data
+          refetchCountry();
+        })
+        .catch(() => {
+          // ignore silently; UI already handles fallbacks
+        });
+    }
+  }, [country, refetchCountry]);
+
   const { data: visaRequirements } = useQuery({
     queryKey: ['visa-requirements', country?.id],
     queryFn: async () => {
@@ -54,6 +73,22 @@ const CountryGuide = () => {
       return data;
     },
     enabled: !!country?.id
+  });
+
+  // Fallback: compute visa-free destinations count if missing in countries table
+  const { data: computedVisaFreeCount } = useQuery({
+    queryKey: ['visa-free-count', country?.id],
+    queryFn: async () => {
+      if (!country?.id) return 0;
+      const { count, error } = await supabase
+        .from('visa_requirements')
+        .select('id', { count: 'exact', head: true })
+        .eq('from_country_id', country.id)
+        .in('requirement_type', ['visa_free', 'visa_on_arrival', 'eTA_required', 'evisa_required']);
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!country?.id && (country?.visa_free_destinations == null || country?.visa_free_destinations === 0)
   });
 
   const { data: processingTimes } = useQuery({

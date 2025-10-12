@@ -110,7 +110,7 @@ const Countries = () => {
                     : "bg-card text-foreground border-border hover:border-primary hover:shadow-sm"
                 }`}
               >
-                <span className="text-lg font-emoji">{region.icon}</span>
+                <span className="text-lg" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>{region.icon}</span>
                 <span className="text-sm font-medium">{region.label}</span>
                 {selectedRegion === region.name && region.name !== "All" && (
                   <X className="h-3 w-3" />
@@ -150,8 +150,8 @@ const Countries = () => {
                   <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-card hover:-translate-y-1 h-full">
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4 mb-3">
-                        <span className="text-5xl font-emoji">
-                          {country.flag_emoji || (country.code ? countryCodeToFlagEmoji(country.code) : "🏳️")}
+                        <span className="text-5xl" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
+                          {country.flag_emoji || countryCodeToFlagEmoji(country.code) || "🏳️"}
                         </span>
                         <div className="flex-1">
                           <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">

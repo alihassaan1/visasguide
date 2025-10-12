@@ -107,7 +107,7 @@ const HeroSection = () => {
                             onClick={() => handleSuggestionClick(country.slug, country.id)}
                             className="w-full px-4 py-3 text-left hover:bg-accent/50 flex items-center gap-3 transition-colors"
                           >
-                            <span className="text-2xl font-emoji">{country.flag_emoji || (country.code ? countryCodeToFlagEmoji(country.code) : '🏳️')}</span>
+                            <span className="text-2xl" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>{country.flag_emoji || countryCodeToFlagEmoji(country.code) || '🏳️'}</span>
                             <span className="font-medium text-foreground">{country.name}</span>
                           </button>
                         ))}

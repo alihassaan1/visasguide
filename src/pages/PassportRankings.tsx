@@ -151,7 +151,7 @@ const PassportRankings = () => {
                       )}
                     </div>
                     <div className="text-center">
-                      <span className="text-4xl mb-2 block font-emoji">{country.flag_emoji || '🏳️'}</span>
+                      <span className="text-4xl mb-2 block" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>{country.flag_emoji || '🏳️'}</span>
                       <h3 className="font-semibold text-sm">{country.name}</h3>
                     </div>
                   </CardHeader>
@@ -208,7 +208,7 @@ const PassportRankings = () => {
                           #{country.passport_rank}
                         </Badge>
                         <div className="flex items-center gap-4">
-                          <span className="text-3xl font-emoji">{country.flag_emoji || '🏳️'}</span>
+                          <span className="text-3xl" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>{country.flag_emoji || '🏳️'}</span>
                           <div>
                             <h3 className="font-semibold text-lg">
                               <Link 

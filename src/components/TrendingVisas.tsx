@@ -76,8 +76,8 @@ const TrendingVisas = () => {
 
                   {/* Flag */}
                   <div className="flex justify-center mb-4">
-                    <span className="text-6xl font-emoji group-hover:scale-110 transition-transform duration-300">
-                      {country.flag_emoji || (country.code ? countryCodeToFlagEmoji(country.code) : "🏳️")}
+                    <span className="text-6xl group-hover:scale-110 transition-transform duration-300" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
+                      {country.flag_emoji || countryCodeToFlagEmoji(country.code) || "🏳️"}
                     </span>
                   </div>
 

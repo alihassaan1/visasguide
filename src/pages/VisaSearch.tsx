@@ -266,7 +266,7 @@ const VisaSearch = () => {
                     {/* Header */}
                     <div className="flex items-start justify-between">
                       <Link to={`/countries/${item.slug}`} className="flex items-center space-x-3 group-hover:text-primary transition-colors cursor-pointer flex-1">
-                        <span className="text-4xl font-emoji">{item.flag}</span>
+                        <span className="text-4xl" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>{item.flag}</span>
                         <div>
                           <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
                             {item.country}

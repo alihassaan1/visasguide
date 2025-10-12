@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Clock, DollarSign, FileText, Globe, Users, MapPin } from "lucide-react";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
+import { useEffect } from "react";
 
 const CountryGuide = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
@@ -26,6 +27,13 @@ const CountryGuide = () => {
     },
     enabled: !!countrySlug
   });
+
+  // Track page view when country data loads
+  useEffect(() => {
+    if (country?.id) {
+      supabase.rpc('increment_page_view_count', { p_country_id: country.id });
+    }
+  }, [country?.id]);
 
   const { data: visaRequirements } = useQuery({
     queryKey: ['visa-requirements', country?.id],

@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import PopularVisaLinks from "@/components/PopularVisaLinks";
+import TrendingVisas from "@/components/TrendingVisas";
 import PopularDestinations from "@/components/PopularDestinations";
 import VisaTypes from "@/components/VisaTypes";
 import RecentGuides from "@/components/RecentGuides";
@@ -41,6 +42,7 @@ const Index = () => {
       <main>
         <HeroSection />
         <PopularVisaLinks />
+        <TrendingVisas />
         <PopularDestinations />
         <VisaTypes />
         <RecentGuides />

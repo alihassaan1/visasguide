@@ -33,7 +33,7 @@ const HeroSection = () => {
 
       const { data, error } = await supabase
         .from('countries')
-        .select('slug, name, flag_emoji, code')
+        .select('id, slug, name, flag_emoji, code')
         .ilike('name', `%${searchQuery}%`)
         .limit(8);
 
@@ -46,7 +46,10 @@ const HeroSection = () => {
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
-  const handleSuggestionClick = (countrySlug: string) => {
+  const handleSuggestionClick = async (countrySlug: string, countryId: string) => {
+    // Track search
+    await supabase.rpc('increment_search_count', { p_country_id: countryId });
+    
     setShowSuggestions(false);
     setSearchQuery("");
     navigate(`/countries/${countrySlug}`);
@@ -101,7 +104,7 @@ const HeroSection = () => {
                         {suggestions.map((country) => (
                           <button
                             key={country.slug}
-                            onClick={() => handleSuggestionClick(country.slug)}
+                            onClick={() => handleSuggestionClick(country.slug, country.id)}
                             className="w-full px-4 py-3 text-left hover:bg-accent/50 flex items-center gap-3 transition-colors"
                           >
                             <span className="text-2xl font-emoji">{country.flag_emoji || (country.code ? countryCodeToFlagEmoji(country.code) : '🏳️')}</span>

@@ -362,6 +362,47 @@ export type Database = {
         }
         Relationships: []
       }
+      search_stats: {
+        Row: {
+          country_id: string | null
+          created_at: string
+          id: string
+          last_searched: string | null
+          last_viewed: string | null
+          page_view_count: number
+          search_count: number
+          updated_at: string
+        }
+        Insert: {
+          country_id?: string | null
+          created_at?: string
+          id?: string
+          last_searched?: string | null
+          last_viewed?: string | null
+          page_view_count?: number
+          search_count?: number
+          updated_at?: string
+        }
+        Update: {
+          country_id?: string | null
+          created_at?: string
+          id?: string
+          last_searched?: string | null
+          last_viewed?: string | null
+          page_view_count?: number
+          search_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "search_stats_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: true
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_settings: {
         Row: {
           created_at: string
@@ -472,6 +513,14 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_page_view_count: {
+        Args: { p_country_id: string }
+        Returns: undefined
+      }
+      increment_search_count: {
+        Args: { p_country_id: string }
+        Returns: undefined
       }
     }
     Enums: {

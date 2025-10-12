@@ -47,7 +47,15 @@ const PopularVisaLinks = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("countries")
-        .select("id, name, code, slug, flag_emoji, visa_free_destinations")
+        .select(`
+          id,
+          name,
+          code,
+          slug,
+          flag_emoji,
+          visa_free_destinations,
+          search_stats(search_count, page_view_count)
+        `)
         .order("visa_free_destinations", { ascending: false })
         .limit(18);
       if (error) throw error;
@@ -56,11 +64,15 @@ const PopularVisaLinks = () => {
   });
 
   const sorted = useMemo(() => {
-    return [...countries].sort((a, b) =>
-      (searchCounts[b.slug] || 0) - (searchCounts[a.slug] || 0) ||
-      (b.visa_free_destinations || 0) - (a.visa_free_destinations || 0)
-    );
-  }, [countries, searchCounts]);
+    return [...countries].sort((a, b) => {
+      const aStats = (a as any).search_stats?.[0];
+      const bStats = (b as any).search_stats?.[0];
+      const aActivity = (aStats?.search_count || 0) + (aStats?.page_view_count || 0) * 0.5;
+      const bActivity = (bStats?.search_count || 0) + (bStats?.page_view_count || 0) * 0.5;
+      
+      return bActivity - aActivity || (b.visa_free_destinations || 0) - (a.visa_free_destinations || 0);
+    });
+  }, [countries]);
 
   const ids = useMemo(() => sorted.map((c) => c.id), [sorted]);
   const cutoff = useMemo(() => {

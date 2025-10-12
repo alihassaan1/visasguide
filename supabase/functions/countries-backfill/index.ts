@@ -48,14 +48,19 @@ serve(async (req) => {
   try {
     let filterCode: string | null = null;
     let filterId: string | null = null;
+    let forceAll: boolean = false;
     try {
       const body = await req.json();
       filterCode = body?.code ?? null;
       filterId = body?.id ?? null;
+      forceAll = Boolean(body?.all) || Boolean(body?.forceAll);
     } catch (_) {
       // no body
     }
     filterCode = filterCode ?? url.searchParams.get('code');
+    if (!forceAll) {
+      forceAll = url.searchParams.get('all') === 'true' || url.searchParams.get('forceAll') === 'true';
+    }
 
     // 1) Load countries needing backfill (optionally limited to one)
     let query = supabase
@@ -65,7 +70,7 @@ serve(async (req) => {
     if (filterId) query = query.eq('id', filterId);
     if (filterCode) query = query.eq('code', String(filterCode).toUpperCase());
 
-    if (!filterId && !filterCode) {
+    if (!filterId && !filterCode && !forceAll) {
       query = query.or("flag_emoji.is.null,capital.is.null,currency.is.null,continent.is.null,region.is.null,language.is.null,population.is.null,visa_free_destinations.is.null");
     }
 
@@ -100,6 +105,14 @@ const ref = await resp.json();
       if (!refC) continue;
 
       const patch: any = { id: c.id, name: c.name, code: c.code, slug: c.slug };
+      if (!c.slug && c.name) {
+        const slug = String(c.name)
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .trim()
+          .replace(/\s+/g, '-');
+        patch.slug = slug || c.slug;
+      }
 
       if (!c.flag_emoji) {
         patch.flag_emoji = refC.flag || flagFromCode(c.code);
@@ -158,16 +171,26 @@ const ref = await resp.json();
 
     // 3) Batch update (chunked)
     const chunkSize = 200;
+    const errors: string[] = [];
     for (let i = 0; i < updates.length; i += chunkSize) {
       const chunk = updates.slice(i, i + chunkSize);
-const { error: uErr } = await supabase.from("countries").upsert(chunk, { onConflict: "id" });
-if (uErr) {
-  throw new Error(uErr.message || JSON.stringify(uErr));
-}
-      updated += chunk.length;
+      const { error: uErr } = await supabase.from("countries").upsert(chunk, { onConflict: "id" });
+      if (uErr) {
+        // Fallback: try row-by-row to salvage successes
+        for (const row of chunk) {
+          const { error: rowErr } = await supabase.from("countries").upsert(row, { onConflict: "id" });
+          if (rowErr) {
+            errors.push(rowErr.message || JSON.stringify(rowErr));
+          } else {
+            updated += 1;
+          }
+        }
+      } else {
+        updated += chunk.length;
+      }
     }
 
-    return new Response(JSON.stringify({ updated, total_candidates: countries.length }), {
+    return new Response(JSON.stringify({ updated, total_candidates: countries.length, errors_count: errors.length, errors: errors.slice(0, 5) }), {
       headers: { "content-type": "application/json", ...corsHeaders },
     });
   } catch (e) {

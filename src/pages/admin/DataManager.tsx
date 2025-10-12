@@ -19,7 +19,7 @@ const DataManager = () => {
       toast.info("Starting country data backfill...");
       
       const { data, error } = await supabase.functions.invoke('countries-backfill', {
-        body: {}
+        body: { all: true }
       });
 
       if (error) throw error;

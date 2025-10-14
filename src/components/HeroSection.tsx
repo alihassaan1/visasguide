@@ -76,8 +76,7 @@ const HeroSection = () => {
                 </span>
               </h1>
               <p className="text-xl text-muted-foreground max-w-lg">
-                Get accurate visa requirements, application guides, and travel documentation for over 190+ countries. 
-                Travel with confidence.
+                Visas.Guide helps travelers navigate visa requirements for 200+ countries with up-to-date visa-free lists, eVisa details, and travel documentation tips.
               </p>
             </div>
 
@@ -146,8 +145,9 @@ const HeroSection = () => {
             <div className="relative overflow-hidden rounded-2xl shadow-2xl">
               <img 
                 src={heroImage} 
-                alt="Travel visas and passports" 
+                alt="Complete visa requirements and travel documentation guide - passports, stamps, and visa application forms" 
                 className="w-full h-[500px] object-cover"
+                loading="eager"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
             </div>

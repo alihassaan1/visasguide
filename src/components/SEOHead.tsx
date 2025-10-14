@@ -1,0 +1,88 @@
+import { useEffect } from "react";
+
+interface SEOHeadProps {
+  title: string;
+  description: string;
+  canonical?: string;
+  ogImage?: string;
+  ogType?: "website" | "article";
+  articlePublishedTime?: string;
+  articleModifiedTime?: string;
+  keywords?: string[];
+}
+
+const SEOHead = ({
+  title,
+  description,
+  canonical,
+  ogImage = "https://visas.guide/hero-travel.jpg",
+  ogType = "website",
+  articlePublishedTime,
+  articleModifiedTime,
+  keywords = []
+}: SEOHeadProps) => {
+  useEffect(() => {
+    // Update document title
+    document.title = title;
+
+    // Update or create meta tags
+    const updateMetaTag = (name: string, content: string, isProperty = false) => {
+      const attribute = isProperty ? 'property' : 'name';
+      let tag = document.querySelector(`meta[${attribute}="${name}"]`);
+      
+      if (!tag) {
+        tag = document.createElement('meta');
+        tag.setAttribute(attribute, name);
+        document.head.appendChild(tag);
+      }
+      
+      tag.setAttribute('content', content);
+    };
+
+    // Basic meta tags
+    updateMetaTag('description', description);
+    if (keywords.length > 0) {
+      updateMetaTag('keywords', keywords.join(', '));
+    }
+
+    // Open Graph tags
+    updateMetaTag('og:title', title, true);
+    updateMetaTag('og:description', description, true);
+    updateMetaTag('og:type', ogType, true);
+    updateMetaTag('og:image', ogImage, true);
+    
+    if (canonical) {
+      updateMetaTag('og:url', canonical, true);
+    }
+
+    if (ogType === 'article') {
+      if (articlePublishedTime) {
+        updateMetaTag('article:published_time', articlePublishedTime, true);
+      }
+      if (articleModifiedTime) {
+        updateMetaTag('article:modified_time', articleModifiedTime, true);
+      }
+    }
+
+    // Twitter Card tags
+    updateMetaTag('twitter:card', 'summary_large_image');
+    updateMetaTag('twitter:title', title);
+    updateMetaTag('twitter:description', description);
+    updateMetaTag('twitter:image', ogImage);
+
+    // Canonical link
+    if (canonical) {
+      let canonicalTag = document.querySelector('link[rel="canonical"]');
+      if (!canonicalTag) {
+        canonicalTag = document.createElement('link');
+        canonicalTag.setAttribute('rel', 'canonical');
+        document.head.appendChild(canonicalTag);
+      }
+      canonicalTag.setAttribute('href', canonical);
+    }
+  }, [title, description, canonical, ogImage, ogType, articlePublishedTime, articleModifiedTime, keywords]);
+
+  return null;
+};
+
+export default SEOHead;

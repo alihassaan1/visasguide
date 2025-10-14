@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Eye } from 'lucide-react';
+import SEOHead from '@/components/SEOHead';
+import NewsletterSignup from '@/components/NewsletterSignup';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 export default function ContentPage() {
   const { slug } = useParams();
@@ -90,14 +93,32 @@ export default function ContentPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* SEO Meta Tags */}
-      <title>{page.meta_title || page.title}</title>
-      <meta name="description" content={page.meta_description || page.excerpt} />
-      {page.keywords && <meta name="keywords" content={page.keywords.join(', ')} />}
+      <SEOHead
+        title={page.meta_title || `${page.title} | Visas.Guide`}
+        description={page.meta_description || page.excerpt || `Learn about ${page.title} on Visas.Guide`}
+        canonical={`https://visas.guide/${page.slug}`}
+        keywords={page.keywords || []}
+        ogImage={page.featured_image_url}
+      />
 
       <Header />
       
       <main className="container mx-auto px-4 py-12">
+        {/* Breadcrumbs */}
+        <Breadcrumb className="mb-6 max-w-4xl mx-auto">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{page.title}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
         <article className="max-w-4xl mx-auto">
           {/* Header */}
           <header className="mb-8">
@@ -129,8 +150,9 @@ export default function ContentPage() {
             <div className="mb-8 rounded-xl overflow-hidden">
               <img 
                 src={page.featured_image_url} 
-                alt={page.title}
+                alt={`${page.title} - comprehensive visa and travel guide illustration`}
                 className="w-full h-[400px] object-cover"
+                loading="lazy"
               />
             </div>
           )}
@@ -158,6 +180,11 @@ export default function ContentPage() {
             </div>
           )}
         </article>
+
+        {/* Newsletter Signup */}
+        <div className="mt-12 max-w-4xl mx-auto">
+          <NewsletterSignup variant="sidebar" />
+        </div>
       </main>
 
       <Footer />

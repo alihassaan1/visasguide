@@ -291,6 +291,36 @@ export type Database = {
           },
         ]
       }
+      newsletter_subscribers: {
+        Row: {
+          country_of_interest: string | null
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          name: string
+          subscribed_at: string
+        }
+        Insert: {
+          country_of_interest?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean
+          name: string
+          subscribed_at?: string
+        }
+        Update: {
+          country_of_interest?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          subscribed_at?: string
+        }
+        Relationships: []
+      }
       processing_times: {
         Row: {
           country_id: string

@@ -7,6 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, Clock, ExternalLink, ArrowLeft, Share2 } from "lucide-react";
+import SEOHead from "@/components/SEOHead";
+import NewsletterSignup from "@/components/NewsletterSignup";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 const NewsArticle = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -112,10 +115,28 @@ const NewsArticle = () => {
     );
   }
 
+  const metaTitle = article.seo_title || `${article.title} | Visas.Guide Travel News`;
+  const metaDescription = article.seo_description || article.excerpt || `Read about ${article.title} - Latest visa and travel news from Visas.Guide`;
+  
+  // Check if recently updated (within last 7 days)
+  const isRecentlyUpdated = article.updated_at && 
+    (new Date().getTime() - new Date(article.updated_at).getTime()) < 7 * 24 * 60 * 60 * 1000;
+
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title={metaTitle}
+        description={metaDescription}
+        canonical={`https://visas.guide/news/${article.slug}`}
+        ogType="article"
+        articlePublishedTime={article.published_at || undefined}
+        articleModifiedTime={article.updated_at}
+        ogImage={article.featured_image_url || undefined}
+        keywords={[...(article.tags || []), ...(article.categories || []), "visa news", "travel news", "immigration updates"]}
+      />
+      
       {/* SEO Meta Tags */}
-      <script 
+      <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
@@ -142,6 +163,27 @@ const NewsArticle = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Breadcrumbs */}
+        <Breadcrumb className="mb-6">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/news">News</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{article.title.substring(0, 40)}...</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
         {/* Back Button */}
         <div className="mb-6">
           <Link to="/news">
@@ -159,6 +201,9 @@ const NewsArticle = () => {
               {article.categories?.map((category, index) => (
                 <Badge key={index} variant="secondary">{category}</Badge>
               ))}
+              {isRecentlyUpdated && (
+                <Badge className="bg-green-500 text-white">Recently Updated</Badge>
+              )}
             </div>
             
             <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
@@ -215,8 +260,9 @@ const NewsArticle = () => {
             <div className="mb-8">
               <img 
                 src={article.featured_image_url} 
-                alt={article.title}
+                alt={`${article.title} - Visa and travel news illustration`}
                 className="w-full rounded-lg shadow-lg"
+                loading="lazy"
               />
             </div>
           )}
@@ -244,6 +290,11 @@ const NewsArticle = () => {
             </div>
           )}
         </article>
+
+        {/* Newsletter Signup */}
+        <div className="my-12">
+          <NewsletterSignup variant="sidebar" />
+        </div>
 
         {/* Related Articles */}
         {relatedArticles && relatedArticles.length > 0 && (

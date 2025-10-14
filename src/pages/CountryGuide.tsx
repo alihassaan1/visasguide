@@ -9,6 +9,9 @@ import { Separator } from "@/components/ui/separator";
 import { Clock, DollarSign, FileText, Globe, Users, MapPin } from "lucide-react";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
 import { useEffect, useRef } from "react";
+import SEOHead from "@/components/SEOHead";
+import NewsletterSignup from "@/components/NewsletterSignup";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 const CountryGuide = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
@@ -155,10 +158,20 @@ const CountryGuide = () => {
     );
   }
 
+  const metaTitle = `${country.name} Visa Guide 2025 – Requirements, Visa-Free Countries, and eVisa Information | Visas.Guide`;
+  const metaDescription = `Complete ${country.name} visa requirements, application process, visa-free countries for ${country.name} passport holders, processing times, and essential travel documentation. Updated 2025.`;
+
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title={metaTitle}
+        description={metaDescription}
+        canonical={`https://visas.guide/countries/${country.slug}`}
+        keywords={[`${country.name} visa`, `${country.name} visa requirements`, `${country.name} visa-free countries`, `${country.name} passport`, `${country.name} evisa`, `travel to ${country.name}`, `${country.name} visa application`]}
+      />
+      
       {/* SEO Meta Tags */}
-      <script 
+      <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
@@ -179,6 +192,27 @@ const CountryGuide = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-8">
+        {/* Breadcrumbs */}
+        <Breadcrumb className="mb-6">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/countries">Countries</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{country.name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
         {/* Country Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
@@ -384,6 +418,11 @@ const CountryGuide = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Newsletter Signup */}
+        <div className="mt-12">
+          <NewsletterSignup variant="sidebar" />
+        </div>
       </main>
       
       <Footer />

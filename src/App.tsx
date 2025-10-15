@@ -21,6 +21,12 @@ import StudentVisa from "./pages/visa-types/StudentVisa";
 import Admin from "./pages/Admin";
 import AdminAuth from "./pages/AdminAuth";
 import DataManager from "./pages/admin/DataManager";
+import AIContentStudio from "./pages/admin/AIContentStudio";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import FreelancerDashboard from "./pages/admin/FreelancerDashboard";
+import MonetizationSettings from "./pages/admin/MonetizationSettings";
+import UserManagement from "./pages/admin/UserManagement";
+import APISettings from "./pages/admin/APISettings";
 import ContentPage from "./pages/ContentPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -60,6 +66,12 @@ const App = () => (
           <Route path="/admin/auth" element={<AdminAuth />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/data" element={<DataManager />} />
+          <Route path="/admin/ai-studio" element={<AIContentStudio />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/freelancer" element={<FreelancerDashboard />} />
+          <Route path="/admin/monetization" element={<MonetizationSettings />} />
+          <Route path="/admin/users" element={<UserManagement />} />
+          <Route path="/admin/api-settings" element={<APISettings />} />
           
           {/* Evergreen Content Pages */}
           <Route path="/schengen-visa-guide" element={<ContentPage />} />

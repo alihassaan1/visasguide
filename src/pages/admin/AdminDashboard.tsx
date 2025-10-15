@@ -37,12 +37,14 @@ export default function AdminDashboard() {
 
       // Get affiliate clicks
       const { data: affiliates } = await supabase
+        // @ts-ignore - settings_affiliates table exists but types not regenerated yet
         .from('settings_affiliates')
         .select('click_count');
 
       const totalViews = pages?.reduce((sum, page) => sum + (page.view_count || 0), 0) || 0;
+      // @ts-ignore - ai_generated column exists but types not regenerated yet
       const aiGenerated = pages?.filter(p => p.ai_generated).length || 0;
-      const totalClicks = affiliates?.reduce((sum, aff) => sum + (aff.click_count || 0), 0) || 0;
+      const totalClicks = affiliates?.reduce((sum: number, aff: any) => sum + (aff.click_count || 0), 0) || 0;
 
       // Get top pages
       const topPagesList = pages

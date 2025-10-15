@@ -31,10 +31,12 @@ export default function MonetizationSettings() {
         .eq('setting_key', 'adsense_code')
         .single();
 
+      // @ts-ignore - Json type contains code property
       if (adsense) setAdsenseCode(adsense.setting_value?.code || '');
 
       // Load affiliate banners
       const { data: affiliateData } = await supabase
+        // @ts-ignore - settings_affiliates table exists but types not regenerated yet
         .from('settings_affiliates')
         .select('*')
         .order('created_at', { ascending: false });
@@ -71,14 +73,13 @@ export default function MonetizationSettings() {
 
   const addAffiliate = async () => {
     try {
-      const { error } = await supabase
-        .from('settings_affiliates')
-        .insert({
-          name: 'New Affiliate Banner',
-          target_url: 'https://example.com',
-          position: 'sidebar',
-          is_active: false
-        });
+      // @ts-ignore - settings_affiliates table exists but types not regenerated yet
+      const { error } = await (supabase.from('settings_affiliates') as any).insert({
+        name: 'New Affiliate Banner',
+        target_url: 'https://example.com',
+        position: 'sidebar',
+        is_active: false
+      });
 
       if (error) throw error;
 
@@ -96,6 +97,7 @@ export default function MonetizationSettings() {
   const updateAffiliate = async (id: string, updates: any) => {
     try {
       const { error } = await supabase
+        // @ts-ignore - settings_affiliates table exists but types not regenerated yet
         .from('settings_affiliates')
         .update(updates)
         .eq('id', id);
@@ -119,6 +121,7 @@ export default function MonetizationSettings() {
   const deleteAffiliate = async (id: string) => {
     try {
       const { error } = await supabase
+        // @ts-ignore - settings_affiliates table exists but types not regenerated yet
         .from('settings_affiliates')
         .delete()
         .eq('id', id);
@@ -249,8 +252,8 @@ export default function MonetizationSettings() {
                     <div>
                       <Label>Banner Image</Label>
                       <ImageUpload
-                        currentImageUrl={affiliate.image_url}
-                        onImageUploaded={(url) => updateAffiliate(affiliate.id, { image_url: url })}
+                        value={affiliate.image_url || ''}
+                        onChange={(url) => updateAffiliate(affiliate.id, { image_url: url })}
                       />
                     </div>
 

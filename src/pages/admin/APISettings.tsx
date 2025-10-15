@@ -17,6 +17,8 @@ export default function APISettings() {
   const [maxTokens, setMaxTokens] = useState("2000");
   const [enableForFreelancers, setEnableForFreelancers] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [apiKeyValid, setApiKeyValid] = useState<boolean | null>(null);
+  const [testingKey, setTestingKey] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -101,6 +103,7 @@ export default function APISettings() {
         .eq('setting_key', 'openai_api_key');
 
       setOpenAIKey('');
+      setApiKeyValid(null);
       toast({ title: "API key cleared" });
     } catch (error: any) {
       toast({
@@ -111,6 +114,45 @@ export default function APISettings() {
     }
   };
 
+  const testAPIKey = async () => {
+    if (!openAIKey) {
+      toast({
+        title: "Error",
+        description: "Please enter an API key first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setTestingKey(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-generate-content', {
+        body: {
+          prompt: "Test connection",
+          contentType: "Test",
+          action: 'generate'
+        }
+      });
+
+      if (error) throw error;
+      
+      setApiKeyValid(true);
+      toast({
+        title: "API Key Valid",
+        description: "Successfully connected to OpenAI API",
+      });
+    } catch (error: any) {
+      setApiKeyValid(false);
+      toast({
+        title: "API Key Invalid",
+        description: error.message || "Failed to connect to OpenAI API",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingKey(false);
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-8">
@@ -118,12 +160,41 @@ export default function APISettings() {
         <p className="text-muted-foreground">Configure OpenAI API for AI content generation</p>
       </div>
 
-      <Alert className="mb-6">
-        <Sparkles className="h-4 w-4" />
-        <AlertDescription>
-          These settings control the AI Content Studio feature. The API key is stored securely in your database.
-        </AlertDescription>
-      </Alert>
+      {!openAIKey && (
+        <Alert className="mb-6" variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            ⚠️ Please configure your ChatGPT API key in API Settings before generating content.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {apiKeyValid === true && (
+        <Alert className="mb-6">
+          <Sparkles className="h-4 w-4" />
+          <AlertDescription>
+            ✅ API Connected - Your OpenAI API key is configured and working.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {apiKeyValid === false && (
+        <Alert className="mb-6" variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            ❌ API Connection Failed - Please check your API key and try again.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {!apiKeyValid && openAIKey && (
+        <Alert className="mb-6">
+          <Sparkles className="h-4 w-4" />
+          <AlertDescription>
+            These settings control the AI Content Studio feature. The API key is stored securely in your database.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card>
         <CardHeader>
@@ -140,10 +211,16 @@ export default function APISettings() {
               <Input
                 type="password"
                 value={openAIKey}
-                onChange={(e) => setOpenAIKey(e.target.value)}
+                onChange={(e) => {
+                  setOpenAIKey(e.target.value);
+                  setApiKeyValid(null);
+                }}
                 placeholder="sk-..."
                 className="font-mono"
               />
+              <Button variant="outline" onClick={testAPIKey} disabled={testingKey || !openAIKey}>
+                {testingKey ? "Testing..." : "Test"}
+              </Button>
               <Button variant="outline" onClick={clearAPIKey}>
                 Clear
               </Button>

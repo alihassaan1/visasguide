@@ -35,16 +35,15 @@ export default function AdminDashboard() {
         .from('newsletter_subscribers')
         .select('id', { count: 'exact' });
 
-      // Get affiliate clicks
-      const { data: affiliates } = await supabase
-        // @ts-ignore - settings_affiliates table exists but types not regenerated yet
-        .from('settings_affiliates')
-        .select('click_count');
+      // Get freelancer count
+      // @ts-ignore
+      const { data: freelancers } = await (supabase.from('user_roles') as any)
+        .select('id', { count: 'exact' })
+        .eq('role', 'freelancer');
 
       const totalViews = pages?.reduce((sum, page) => sum + (page.view_count || 0), 0) || 0;
       // @ts-ignore - ai_generated column exists but types not regenerated yet
-      const aiGenerated = pages?.filter(p => p.ai_generated).length || 0;
-      const totalClicks = affiliates?.reduce((sum: number, aff: any) => sum + (aff.click_count || 0), 0) || 0;
+      const aiGenerated = pages?.filter((p: any) => p.ai_generated).length || 0;
 
       // Get top pages
       const topPagesList = pages
@@ -55,22 +54,40 @@ export default function AdminDashboard() {
         totalPages: pages?.length || 0,
         totalViews,
         aiGenerated,
-        activeFreelancers: 0, // TODO: Count from user_roles
+        activeFreelancers: freelancers?.length || 0,
         newsletterSubs: subs?.length || 0,
-        affiliateClicks: totalClicks
+        affiliateClicks: 0 // Placeholder - track via AffiliateBanner component
       });
 
       setTopPages(topPagesList);
 
-      // Mock monthly data - replace with real data
-      setMonthlyData([
-        { month: 'Jan', views: 12000, posts: 45 },
-        { month: 'Feb', views: 18000, posts: 62 },
-        { month: 'Mar', views: 25000, posts: 78 },
-        { month: 'Apr', views: 32000, posts: 95 },
-        { month: 'May', views: 41000, posts: 120 },
-        { month: 'Jun', views: 52000, posts: 145 },
-      ]);
+      // Generate monthly data from actual pages
+      const last6Months = Array.from({ length: 6 }, (_, i) => {
+        const date = new Date();
+        date.setMonth(date.getMonth() - (5 - i));
+        return {
+          month: date.toLocaleString('default', { month: 'short' }),
+          year: date.getFullYear(),
+          monthNum: date.getMonth()
+        };
+      });
+
+      const monthlyStats = last6Months.map(({ month, year, monthNum }) => {
+        const monthPages = pages?.filter((p: any) => {
+          const createdDate = new Date(p.created_at);
+          return createdDate.getMonth() === monthNum && createdDate.getFullYear() === year;
+        }) || [];
+        
+        const monthViews = monthPages.reduce((sum, page) => sum + (page.view_count || 0), 0);
+        
+        return {
+          month,
+          views: monthViews,
+          posts: monthPages.length
+        };
+      });
+
+      setMonthlyData(monthlyStats);
 
     } catch (error: any) {
       toast({

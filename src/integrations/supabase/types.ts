@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_log: {
+        Row: {
+          action: string
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          metadata: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       admin_users: {
         Row: {
           created_at: string
@@ -44,8 +74,49 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_generations: {
+        Row: {
+          author_id: string
+          content: string
+          content_type: string | null
+          created_at: string
+          id: string
+          model: string | null
+          prompt: string
+          status: string | null
+          tokens_used: number | null
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          content_type?: string | null
+          created_at?: string
+          id?: string
+          model?: string | null
+          prompt: string
+          status?: string | null
+          tokens_used?: number | null
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          content_type?: string | null
+          created_at?: string
+          id?: string
+          model?: string | null
+          prompt?: string
+          status?: string | null
+          tokens_used?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       content_pages: {
         Row: {
+          ai_generated: boolean
+          author_id: string | null
           content: string
           created_at: string
           excerpt: string | null
@@ -56,11 +127,14 @@ export type Database = {
           meta_description: string | null
           meta_title: string | null
           slug: string
+          status: string
           title: string
           updated_at: string
           view_count: number | null
         }
         Insert: {
+          ai_generated?: boolean
+          author_id?: string | null
           content: string
           created_at?: string
           excerpt?: string | null
@@ -71,11 +145,14 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           slug: string
+          status?: string
           title: string
           updated_at?: string
           view_count?: number | null
         }
         Update: {
+          ai_generated?: boolean
+          author_id?: string | null
           content?: string
           created_at?: string
           excerpt?: string | null
@@ -86,6 +163,7 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           slug?: string
+          status?: string
           title?: string
           updated_at?: string
           view_count?: number | null
@@ -216,7 +294,9 @@ export type Database = {
       }
       news_articles: {
         Row: {
+          ai_generated: boolean
           author: string | null
+          author_id: string | null
           categories: string[] | null
           content: string | null
           created_at: string
@@ -233,12 +313,15 @@ export type Database = {
           source_name: string | null
           source_type: string | null
           source_url: string | null
+          status: string
           tags: string[] | null
           title: string
           updated_at: string
         }
         Insert: {
+          ai_generated?: boolean
           author?: string | null
+          author_id?: string | null
           categories?: string[] | null
           content?: string | null
           created_at?: string
@@ -255,12 +338,15 @@ export type Database = {
           source_name?: string | null
           source_type?: string | null
           source_url?: string | null
+          status?: string
           tags?: string[] | null
           title: string
           updated_at?: string
         }
         Update: {
+          ai_generated?: boolean
           author?: string | null
+          author_id?: string | null
           categories?: string[] | null
           content?: string | null
           created_at?: string
@@ -277,6 +363,7 @@ export type Database = {
           source_name?: string | null
           source_type?: string | null
           source_url?: string | null
+          status?: string
           tags?: string[] | null
           title?: string
           updated_at?: string
@@ -432,6 +519,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      settings_affiliates: {
+        Row: {
+          click_count: number
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          position: string
+          target_url: string
+          updated_at: string
+        }
+        Insert: {
+          click_count?: number
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          position?: string
+          target_url: string
+          updated_at?: string
+        }
+        Update: {
+          click_count?: number
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          position?: string
+          target_url?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       site_settings: {
         Row: {

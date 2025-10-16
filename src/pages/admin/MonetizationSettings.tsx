@@ -31,12 +31,12 @@ export default function MonetizationSettings() {
         .eq('setting_key', 'adsense_code')
         .single();
 
-      // @ts-ignore - Json type contains code property
-      if (adsense) setAdsenseCode(adsense.setting_value?.code || '');
+      if (adsense && typeof adsense.setting_value === 'object') {
+        setAdsenseCode((adsense.setting_value as any)?.code || '');
+      }
 
       // Load affiliate banners
       const { data: affiliateData } = await supabase
-        // @ts-ignore - settings_affiliates table exists but types not regenerated yet
         .from('settings_affiliates')
         .select('*')
         .order('created_at', { ascending: false });
@@ -73,8 +73,7 @@ export default function MonetizationSettings() {
 
   const addAffiliate = async () => {
     try {
-      // @ts-ignore - settings_affiliates table exists but types not regenerated yet
-      const { error } = await (supabase.from('settings_affiliates') as any).insert({
+      const { error } = await supabase.from('settings_affiliates').insert({
         name: 'New Affiliate Banner',
         target_url: 'https://example.com',
         position: 'sidebar',
@@ -97,7 +96,6 @@ export default function MonetizationSettings() {
   const updateAffiliate = async (id: string, updates: any) => {
     try {
       const { error } = await supabase
-        // @ts-ignore - settings_affiliates table exists but types not regenerated yet
         .from('settings_affiliates')
         .update(updates)
         .eq('id', id);
@@ -121,7 +119,6 @@ export default function MonetizationSettings() {
   const deleteAffiliate = async (id: string) => {
     try {
       const { error } = await supabase
-        // @ts-ignore - settings_affiliates table exists but types not regenerated yet
         .from('settings_affiliates')
         .delete()
         .eq('id', id);

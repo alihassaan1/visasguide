@@ -31,8 +31,7 @@ export default function UserManagement() {
 
   const loadUsers = async () => {
     try {
-      // @ts-ignore - user_roles table exists
-      const { data: roles } = await (supabase.from('user_roles') as any).select('*');
+      const { data: roles } = await supabase.from('user_roles').select('*');
 
       if (!roles) {
         setUsers([]);
@@ -42,7 +41,6 @@ export default function UserManagement() {
       // Get stats for each user
       const usersWithStats = await Promise.all(
         roles.map(async (role: any) => {
-          // @ts-ignore - author_id column exists but types not regenerated yet
           const { data: pages } = await supabase
             .from('content_pages')
             .select('*')
@@ -50,7 +48,6 @@ export default function UserManagement() {
 
           const totalViews = pages?.reduce((sum, page) => sum + (page.view_count || 0), 0) || 0;
           const publishedPages = pages?.filter(p => p.is_published).length || 0;
-          // @ts-ignore - ai_generated column exists but types not regenerated yet
           const aiGenerated = pages?.filter((p: any) => p.ai_generated).length || 0;
 
           return {
@@ -77,9 +74,8 @@ export default function UserManagement() {
 
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
-      // @ts-ignore
-      const { error } = await (supabase.from('user_roles') as any)
-        .update({ role: newRole })
+      const { error } = await supabase.from('user_roles')
+        .update({ role: newRole as any })
         .eq('user_id', userId);
 
       if (error) throw error;

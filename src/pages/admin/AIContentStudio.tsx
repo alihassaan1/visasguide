@@ -75,16 +75,18 @@ export default function AIContentStudio() {
       if (data.metadata?.title) setTitle(data.metadata.title);
 
       // Track AI generation
-      // @ts-ignore - ai_generations table exists but types not regenerated yet
-      await (supabase.from('ai_generations') as any).insert({
-        author_id: (await supabase.auth.getUser()).data.user?.id,
-        prompt: activeTemplate || prompt,
-        content: data.content,
-        tokens_used: data.tokensUsed,
-        model: data.model,
-        content_type: contentType,
-        status: 'generated'
-      });
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData.user) {
+        await supabase.from('ai_generations').insert({
+          author_id: userData.user.id,
+          prompt: activeTemplate || prompt,
+          content: data.content,
+          tokens_used: data.tokensUsed,
+          model: data.model,
+          content_type: contentType,
+          status: 'generated'
+        });
+      }
 
       toast({
         title: "Content Generated!",
@@ -143,21 +145,19 @@ export default function AIContentStudio() {
 
     try {
       const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const { data: userData } = await supabase.auth.getUser();
       
-      // @ts-ignore - new columns exist but types not regenerated yet
-      const { error } = await supabase.from('content_pages')
-        // @ts-ignore
-        .insert({
-          title,
-          slug,
-          content,
-          meta_description: metaDescription,
-          keywords,
-          is_published: status === 'published',
-          author_id: (await supabase.auth.getUser()).data.user?.id,
-          ai_generated: true,
-          status
-        });
+      const { error } = await supabase.from('content_pages').insert({
+        title,
+        slug,
+        content,
+        meta_description: metaDescription,
+        keywords,
+        is_published: status === 'published',
+        author_id: userData.user?.id,
+        ai_generated: true,
+        status
+      });
 
       if (error) throw error;
 

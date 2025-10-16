@@ -35,14 +35,12 @@ export default function AdminDashboard() {
         .from('newsletter_subscribers')
         .select('id', { count: 'exact' });
 
-      // Get freelancer count
-      // @ts-ignore
-      const { data: freelancers } = await (supabase.from('user_roles') as any)
-        .select('id', { count: 'exact' })
-        .eq('role', 'freelancer');
+      // Get freelancer count - count all users with role
+      const { count: freelancerCount } = await supabase
+        .from('user_roles')
+        .select('*', { count: 'exact', head: true });
 
       const totalViews = pages?.reduce((sum, page) => sum + (page.view_count || 0), 0) || 0;
-      // @ts-ignore - ai_generated column exists but types not regenerated yet
       const aiGenerated = pages?.filter((p: any) => p.ai_generated).length || 0;
 
       // Get top pages
@@ -54,7 +52,7 @@ export default function AdminDashboard() {
         totalPages: pages?.length || 0,
         totalViews,
         aiGenerated,
-        activeFreelancers: freelancers?.length || 0,
+        activeFreelancers: freelancerCount || 0,
         newsletterSubs: subs?.length || 0,
         affiliateClicks: 0 // Placeholder - track via AffiliateBanner component
       });

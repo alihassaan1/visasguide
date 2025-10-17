@@ -29,6 +29,7 @@ import MonetizationSettings from "./pages/admin/MonetizationSettings";
 import UserManagement from "./pages/admin/UserManagement";
 import APISettings from "./pages/admin/APISettings";
 import ContentManager from "./pages/admin/ContentManager";
+import NewsletterManager from "./pages/admin/NewsletterManager";
 import ContentPage from "./pages/ContentPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -78,14 +79,10 @@ const App = () => (
             <Route path="monetization" element={<MonetizationSettings />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="api-settings" element={<APISettings />} />
+            <Route path="newsletter" element={<NewsletterManager />} />
           </Route>
           
-          {/* Evergreen Content Pages */}
-          <Route path="/schengen-visa-guide" element={<ContentPage />} />
-          <Route path="/us-visit-visa-guide" element={<ContentPage />} />
-          <Route path="/dubai-visit-visa-guide" element={<ContentPage />} />
-          <Route path="/uk-visit-visa-guide" element={<ContentPage />} />
-          <Route path="/canada-visit-visa-guide" element={<ContentPage />} />
+          {/* Catch-all for content pages - must be last */}
           <Route path="/:slug" element={<ContentPage />} />
           
           <Route path="*" element={<NotFound />} />

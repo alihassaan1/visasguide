@@ -25,14 +25,14 @@ const menuItems = [
     href: "/admin/content",
   },
   {
-    title: "News Articles",
-    icon: Newspaper,
-    href: "/admin/news",
-  },
-  {
     title: "AI Content Studio",
     icon: Sparkles,
     href: "/admin/ai-studio",
+  },
+  {
+    title: "Newsletter",
+    icon: Newspaper,
+    href: "/admin/newsletter",
   },
   {
     title: "User Management",
@@ -53,11 +53,6 @@ const menuItems = [
     title: "API Settings",
     icon: Key,
     href: "/admin/api-settings",
-  },
-  {
-    title: "RSS Feeds",
-    icon: Rss,
-    href: "/admin/rss",
   },
   {
     title: "Site Settings",

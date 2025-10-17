@@ -42,9 +42,18 @@ const NewsletterSignup = ({ variant = "default" }: NewsletterSignupProps) => {
 
       if (error) throw error;
 
+      // Send confirmation email
+      try {
+        await supabase.functions.invoke('send-newsletter-confirmation', {
+          body: { email, name }
+        });
+      } catch (emailError) {
+        console.error('Failed to send confirmation email:', emailError);
+      }
+
       toast({
         title: "Successfully Subscribed!",
-        description: "You'll receive weekly visa updates and travel news.",
+        description: "Check your email for confirmation.",
       });
 
       setEmail("");

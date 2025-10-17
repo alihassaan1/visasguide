@@ -58,92 +58,50 @@ const Index = () => {
       <main>
         <HeroSection />
         
-        {/* Horizontal Banner */}
-        <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-4 py-8">
+        {/* Horizontal Banner at top */}
+        <div className="mb-8">
           <AffiliateBannerContainer position="horizontal-banner" />
         </div>
-        
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Left Sidebar */}
-            <aside className="lg:col-span-3 space-y-6">
-              <AffiliateBannerContainer position="sidebar-left" />
-              
-              {/* Demo affiliate banner - eSIM */}
-              <a 
-                href="https://www.airalo.com" 
-                target="_blank" 
-                rel="sponsored noopener noreferrer"
-                className="block bg-card border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                <img src={affiliateEsim} alt="eSIM Global Coverage" className="w-full h-48 object-cover" />
-                <div className="p-4">
-                  <h3 className="font-semibold mb-2 text-sm">Stay Connected Worldwide</h3>
-                  <p className="text-xs text-muted-foreground mb-3">Get eSIM for 190+ countries</p>
-                  <div className="text-xs text-primary font-medium">Get eSIM →</div>
-                </div>
-              </a>
-            </aside>
 
-            {/* Main Content */}
-            <div className="lg:col-span-6 space-y-12">
-              <PopularVisaLinks />
-              <TrendingVisas />
-              
-              {/* In-content affiliate */}
-              <div className="my-8">
-                <AffiliateBannerContainer position="in-content" />
-              </div>
-              
-              <TrendingGuidesSection />
-              <PopularDestinations />
-              <VisaTypes />
-              <RecentGuides />
+        <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr_240px] xl:grid-cols-[280px_1fr_280px] gap-6">
+          {/* Left Sidebar - Affiliate Banners */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-24 space-y-4">
+              <AffiliateBannerContainer position="sidebar-left" />
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <main className="min-w-0">
+            <PopularVisaLinks />
+            <TrendingVisas />
+            
+            {/* In-Content Banner */}
+            <div className="my-8">
+              <AffiliateBannerContainer position="in-content" />
             </div>
 
-            {/* Right Sidebar */}
-            <aside className="lg:col-span-3 space-y-6">
+            <TrendingGuidesSection />
+            <PopularDestinations />
+            <VisaTypes />
+            <RecentGuides />
+          </main>
+
+          {/* Right Sidebar - Newsletter & Affiliate Banners */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-24 space-y-6">
+              <NewsletterSignup variant="sidebar" />
               <AffiliateBannerContainer position="sidebar-right" />
-              
-              {/* Demo affiliate banner - Tours */}
-              <a 
-                href="https://www.getyourguide.com" 
-                target="_blank" 
-                rel="sponsored noopener noreferrer"
-                className="block bg-card border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                <img src={affiliateGetYourGuide} alt="GetYourGuide Tours" className="w-full h-48 object-cover" />
-                <div className="p-4">
-                  <h3 className="font-semibold mb-2 text-sm">Book Tours & Activities</h3>
-                  <p className="text-xs text-muted-foreground mb-3">Explore top destinations worldwide</p>
-                  <div className="text-xs text-primary font-medium">Browse Tours →</div>
-                </div>
-              </a>
-              
-              {/* Demo affiliate banner - Insurance */}
-              <a 
-                href="https://www.worldnomads.com" 
-                target="_blank" 
-                rel="sponsored noopener noreferrer"
-                className="block bg-card border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                <img src={affiliateInsurance} alt="Travel Insurance" className="w-full h-48 object-cover" />
-                <div className="p-4">
-                  <h3 className="font-semibold mb-2 text-sm">Travel Insurance</h3>
-                  <p className="text-xs text-muted-foreground mb-3">Protect your journey</p>
-                  <div className="text-xs text-primary font-medium">Get Quote →</div>
-                </div>
-              </a>
-              
-              <NewsletterSignup />
-            </aside>
-          </div>
+            </div>
+          </aside>
         </div>
-        
+
         {/* Footer Banner */}
-        <div className="container mx-auto px-4 py-4">
+        <div className="mt-12">
           <AffiliateBannerContainer position="footer" />
         </div>
+      </div>
       </main>
       
       <Footer />

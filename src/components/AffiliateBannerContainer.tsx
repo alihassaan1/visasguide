@@ -23,13 +23,19 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
 
   if (!banners || banners.length === 0) return null;
 
+  const containerClass = position === "horizontal-banner" 
+    ? "w-full" 
+    : position.includes("sidebar") 
+    ? "w-full max-w-[280px]" 
+    : "w-full";
+
   return (
-    <div className="space-y-4">
+    <div className={`space-y-4 ${containerClass}`}>
       {banners.map((banner) => (
-        <div key={banner.id}>
+        <div key={banner.id} className="w-full">
           {banner.html_embed ? (
             <div 
-              className="affiliate-embed"
+              className="affiliate-embed w-full overflow-hidden"
               dangerouslySetInnerHTML={{ __html: banner.html_embed }}
               onClick={() => {
                 // Track click

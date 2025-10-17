@@ -76,8 +76,9 @@ export default function MonetizationSettings() {
       const { error } = await supabase.from('settings_affiliates').insert({
         name: 'New Affiliate Banner',
         target_url: 'https://example.com',
-        position: 'sidebar',
-        is_active: false
+        position: 'sidebar-right',
+        is_active: false,
+        html_embed: ''
       });
 
       if (error) throw error;
@@ -236,9 +237,10 @@ export default function MonetizationSettings() {
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="sidebar">Sidebar</SelectItem>
-                            <SelectItem value="header">Header</SelectItem>
+                          <SelectContent className="bg-card border z-50">
+                            <SelectItem value="sidebar-left">Sidebar Left</SelectItem>
+                            <SelectItem value="sidebar-right">Sidebar Right</SelectItem>
+                            <SelectItem value="horizontal-banner">Horizontal Banner</SelectItem>
                             <SelectItem value="in-content">In-Content</SelectItem>
                             <SelectItem value="footer">Footer</SelectItem>
                           </SelectContent>
@@ -247,12 +249,28 @@ export default function MonetizationSettings() {
                     </div>
 
                     <div>
-                      <Label>Banner Image</Label>
-                      <ImageUpload
-                        value={affiliate.image_url || ''}
-                        onChange={(url) => updateAffiliate(affiliate.id, { image_url: url })}
+                      <Label>HTML Embed Code (Optional)</Label>
+                      <Textarea
+                        value={affiliate.html_embed || ''}
+                        onChange={(e) => updateAffiliate(affiliate.id, { html_embed: e.target.value })}
+                        placeholder="Paste HTML embed code from GetYourGuide, etc..."
+                        rows={4}
+                        className="font-mono text-xs"
                       />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        If HTML code is provided, it will be used instead of the image banner
+                      </p>
                     </div>
+
+                    {!affiliate.html_embed && (
+                      <div>
+                        <Label>Banner Image</Label>
+                        <ImageUpload
+                          value={affiliate.image_url || ''}
+                          onChange={(url) => updateAffiliate(affiliate.id, { image_url: url })}
+                        />
+                      </div>
+                    )}
 
                     <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                       <div>

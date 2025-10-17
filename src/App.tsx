@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import StickyNewsletterCTA from "@/components/StickyNewsletterCTA";
+import { AdminLayout } from "@/components/admin/AdminLayout";
 import Index from "./pages/Index";
 import Countries from "./pages/Countries";
 import VisaSearch from "./pages/VisaSearch";
@@ -27,6 +28,7 @@ import FreelancerDashboard from "./pages/admin/FreelancerDashboard";
 import MonetizationSettings from "./pages/admin/MonetizationSettings";
 import UserManagement from "./pages/admin/UserManagement";
 import APISettings from "./pages/admin/APISettings";
+import ContentManager from "./pages/admin/ContentManager";
 import ContentPage from "./pages/ContentPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -64,14 +66,19 @@ const App = () => (
           <Route path="/cookie-policy" element={<CookiePolicy />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/admin/auth" element={<AdminAuth />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/admin/data" element={<DataManager />} />
-          <Route path="/admin/ai-studio" element={<AIContentStudio />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/freelancer" element={<FreelancerDashboard />} />
-          <Route path="/admin/monetization" element={<MonetizationSettings />} />
-          <Route path="/admin/users" element={<UserManagement />} />
-          <Route path="/admin/api-settings" element={<APISettings />} />
+          
+          {/* Admin Routes with Layout */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Admin />} />
+            <Route path="content" element={<ContentManager />} />
+            <Route path="data" element={<DataManager />} />
+            <Route path="ai-studio" element={<AIContentStudio />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="freelancer" element={<FreelancerDashboard />} />
+            <Route path="monetization" element={<MonetizationSettings />} />
+            <Route path="users" element={<UserManagement />} />
+            <Route path="api-settings" element={<APISettings />} />
+          </Route>
           
           {/* Evergreen Content Pages */}
           <Route path="/schengen-visa-guide" element={<ContentPage />} />

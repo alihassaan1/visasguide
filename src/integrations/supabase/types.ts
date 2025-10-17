@@ -524,6 +524,7 @@ export type Database = {
         Row: {
           click_count: number
           created_at: string
+          html_embed: string | null
           id: string
           image_url: string | null
           is_active: boolean
@@ -535,6 +536,7 @@ export type Database = {
         Insert: {
           click_count?: number
           created_at?: string
+          html_embed?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean
@@ -546,6 +548,7 @@ export type Database = {
         Update: {
           click_count?: number
           created_at?: string
+          html_embed?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean

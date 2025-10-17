@@ -7,13 +7,27 @@ export function cn(...inputs: ClassValue[]) {
 
 // Convert ISO 3166-1 alpha-2 country code (e.g., "US") to flag emoji
 export function countryCodeToFlagEmoji(code?: string): string {
-  if (!code) return '';
+  if (!code) return '🏳️';
   const cc = code.trim().toUpperCase();
-  if (cc.length !== 2) return '';
+  if (cc.length !== 2) return '🏳️';
+  
+  // Special cases for codes that don't render well as emojis
+  const specialCases: Record<string, string> = {
+    'EN': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', // England
+    'SC': '🏴󠁧󠁢󠁳󠁣󠁴󠁿', // Scotland
+    'WL': '🏴󠁧󠁢󠁷󠁬󠁳󠁿', // Wales
+  };
+
+  if (specialCases[cc]) {
+    return specialCases[cc];
+  }
+  
   try {
     const codePoints = [...cc].map((c) => 127397 + c.charCodeAt(0));
-    return String.fromCodePoint(...codePoints);
+    const flag = String.fromCodePoint(...codePoints);
+    // Validate that we got a proper flag emoji
+    return flag || '🏳️';
   } catch {
-    return '';
+    return '🏳️';
   }
 }

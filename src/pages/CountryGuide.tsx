@@ -12,9 +12,13 @@ import { useEffect, useRef } from "react";
 import SEOHead from "@/components/SEOHead";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { usePageTracking } from "@/hooks/useAnalytics";
 
 const CountryGuide = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
+  
+  // Track page views and time spent
+  usePageTracking(`countries/${countrySlug}`);
   
   const { data: country, isLoading: countryLoading, refetch: refetchCountry } = useQuery({
     queryKey: ['country', countrySlug],

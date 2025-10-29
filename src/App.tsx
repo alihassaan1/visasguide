@@ -30,6 +30,7 @@ import UserManagement from "./pages/admin/UserManagement";
 import APISettings from "./pages/admin/APISettings";
 import ContentManager from "./pages/admin/ContentManager";
 import NewsletterManager from "./pages/admin/NewsletterManager";
+import AnalyticsDashboard from "./pages/admin/AnalyticsDashboard";
 import ContentPage from "./pages/ContentPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -75,6 +76,7 @@ const App = () => (
             <Route path="data" element={<DataManager />} />
             <Route path="ai-studio" element={<AIContentStudio />} />
             <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="analytics" element={<AnalyticsDashboard />} />
             <Route path="freelancer" element={<FreelancerDashboard />} />
             <Route path="monetization" element={<MonetizationSettings />} />
             <Route path="users" element={<UserManagement />} />

@@ -11,6 +11,7 @@ import {
   Database,
   Key,
   Rss,
+  TrendingUp,
 } from "lucide-react";
 
 const menuItems = [
@@ -18,6 +19,11 @@ const menuItems = [
     title: "Dashboard",
     icon: LayoutDashboard,
     href: "/admin/dashboard",
+  },
+  {
+    title: "Analytics",
+    icon: TrendingUp,
+    href: "/admin/analytics",
   },
   {
     title: "Content Manager",

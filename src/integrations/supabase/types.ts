@@ -113,6 +113,69 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          from_country_id: string | null
+          id: string
+          page_slug: string | null
+          referrer_source: string | null
+          search_engine_query: string | null
+          search_term: string | null
+          session_duration_seconds: number | null
+          to_country_id: string | null
+          user_agent: string | null
+          visitor_ip: string | null
+          visitor_location: Json | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          from_country_id?: string | null
+          id?: string
+          page_slug?: string | null
+          referrer_source?: string | null
+          search_engine_query?: string | null
+          search_term?: string | null
+          session_duration_seconds?: number | null
+          to_country_id?: string | null
+          user_agent?: string | null
+          visitor_ip?: string | null
+          visitor_location?: Json | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          from_country_id?: string | null
+          id?: string
+          page_slug?: string | null
+          referrer_source?: string | null
+          search_engine_query?: string | null
+          search_term?: string | null
+          session_duration_seconds?: number | null
+          to_country_id?: string | null
+          user_agent?: string | null
+          visitor_ip?: string | null
+          visitor_location?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_events_from_country_id_fkey"
+            columns: ["from_country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytics_events_to_country_id_fkey"
+            columns: ["to_country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_pages: {
         Row: {
           ai_generated: boolean

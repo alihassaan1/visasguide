@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,14 +9,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, MapPin, Clock, DollarSign, AlertCircle, CheckCircle, ArrowRight } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
+import { usePageTracking } from "@/hooks/useAnalytics";
 
 const VisaSearch = () => {
+  const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRegion, setSelectedRegion] = useState("all");
   const [selectedVisaType, setSelectedVisaType] = useState("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
+  
+  // Track page view
+  usePageTracking('visa-search');
+  
+  const fromSlug = searchParams.get('from');
+  const toSlug = searchParams.get('to');
 
   // Fetch countries from Supabase
   const { data: countries = [] } = useQuery({
@@ -29,6 +37,34 @@ const VisaSearch = () => {
       if (error) throw error;
       return data;
     }
+  });
+
+  // Fetch visa requirements if from/to countries are specified
+  const { data: visaRequirement } = useQuery({
+    queryKey: ['visa-requirement', fromSlug, toSlug],
+    queryFn: async () => {
+      if (!fromSlug || !toSlug) return null;
+      
+      const fromCountry = countries.find(c => c.slug === fromSlug);
+      const toCountry = countries.find(c => c.slug === toSlug);
+      
+      if (!fromCountry || !toCountry) return null;
+
+      const { data, error } = await supabase
+        .from('visa_requirements')
+        .select(`
+          *,
+          from_country:countries!visa_requirements_from_country_id_fkey(name, code, flag_emoji, slug),
+          to_country:countries!visa_requirements_to_country_id_fkey(name, code, flag_emoji, slug)
+        `)
+        .eq('from_country_id', fromCountry.id)
+        .eq('to_country_id', toCountry.id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!fromSlug && !!toSlug && countries.length > 0
   });
 
   // Helper functions to get visa information
@@ -183,6 +219,98 @@ const VisaSearch = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-8">
+        {/* Visa Requirement Result (if from/to specified) */}
+        {visaRequirement && fromSlug && toSlug && (
+          <Card className="mb-8 border-2 border-primary/20">
+            <CardContent className="p-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-6">
+                  <div className="text-center">
+                    <span className="text-5xl block mb-2" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
+                      {visaRequirement.from_country?.flag_emoji || countryCodeToFlagEmoji(visaRequirement.from_country?.code) || '🏳️'}
+                    </span>
+                    <p className="text-sm font-medium">{visaRequirement.from_country?.name}</p>
+                  </div>
+                  <ArrowRight className="h-8 w-8 text-muted-foreground" />
+                  <div className="text-center">
+                    <span className="text-5xl block mb-2" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
+                      {visaRequirement.to_country?.flag_emoji || countryCodeToFlagEmoji(visaRequirement.to_country?.code) || '🏳️'}
+                    </span>
+                    <p className="text-sm font-medium">{visaRequirement.to_country?.name}</p>
+                  </div>
+                </div>
+                <Badge 
+                  className={
+                    visaRequirement.requirement_type === 'visa_free' ? 'bg-visa-success text-white text-lg px-4 py-2' :
+                    visaRequirement.requirement_type === 'visa_on_arrival' ? 'bg-visa-warning text-white text-lg px-4 py-2' :
+                    'bg-visa-danger text-white text-lg px-4 py-2'
+                  }
+                >
+                  {visaRequirement.requirement_type.replace(/_/g, ' ').toUpperCase()}
+                </Badge>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-6 mb-6">
+                {visaRequirement.max_stay_days && (
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-5 w-5 text-visa-info" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Max Stay</p>
+                      <p className="font-semibold">{visaRequirement.max_stay_days} days</p>
+                    </div>
+                  </div>
+                )}
+                {visaRequirement.processing_time_days && (
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-5 w-5 text-visa-warning" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Processing Time</p>
+                      <p className="font-semibold">{visaRequirement.processing_time_days} days</p>
+                    </div>
+                  </div>
+                )}
+                {visaRequirement.fee_usd && (
+                  <div className="flex items-center gap-3">
+                    <DollarSign className="h-5 w-5 text-visa-success" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Visa Fee</p>
+                      <p className="font-semibold">${visaRequirement.fee_usd} USD</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {visaRequirement.notes && (
+                <div className="bg-accent/20 rounded-lg p-4 mb-4">
+                  <p className="text-sm">{visaRequirement.notes}</p>
+                </div>
+              )}
+
+              {visaRequirement.requirements && visaRequirement.requirements.length > 0 && (
+                <div>
+                  <h4 className="font-semibold mb-3">Required Documents:</h4>
+                  <div className="grid md:grid-cols-2 gap-2">
+                    {visaRequirement.requirements.map((req: string, idx: number) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-visa-success" />
+                        <span className="text-sm">{req}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-4 mt-6">
+                <Link to={`/countries/${visaRequirement.to_country?.slug}`} className="flex-1">
+                  <Button className="w-full">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    View {visaRequirement.to_country?.name} Guide
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         {/* SEO Header */}
         <div className="text-center space-y-4 mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground">

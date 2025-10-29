@@ -1,65 +1,44 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, Globe, Shield, Clock } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Search, Globe, Shield, Clock, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-travel.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { trackVisaSearch } from "@/hooks/useAnalytics";
+import { useQuery } from "@tanstack/react-query";
 
 const HeroSection = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<any[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [fromCountry, setFromCountry] = useState("");
+  const [toCountry, setToCountry] = useState("");
   const navigate = useNavigate();
-  const wrapperRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (searchQuery.trim().length < 2) {
-        setSuggestions([]);
-        return;
-      }
-
+  // Fetch all countries for dropdowns
+  const { data: countries = [] } = useQuery({
+    queryKey: ['countries-hero'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('countries')
-        .select('id, slug, name, flag_emoji, code')
-        .ilike('name', `%${searchQuery}%`)
-        .limit(8);
-
-      if (!error && data) {
-        setSuggestions(data);
-      }
-    };
-
-    const timeoutId = setTimeout(fetchSuggestions, 300);
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
-
-  const handleSuggestionClick = async (countrySlug: string, countryId: string) => {
-    // Track search
-    await supabase.rpc('increment_search_count', { p_country_id: countryId });
-    
-    setShowSuggestions(false);
-    setSearchQuery("");
-    navigate(`/countries/${countrySlug}`);
-  };
-
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      navigate(`/visa-search?q=${encodeURIComponent(searchQuery)}`);
-      setShowSuggestions(false);
+        .select('id, name, slug, code, flag_emoji')
+        .order('name');
+      if (error) throw error;
+      return data;
     }
+  });
+
+  const handleSearch = async () => {
+    if (!fromCountry || !toCountry) {
+      return;
+    }
+
+    // Track the visa search
+    await trackVisaSearch(fromCountry, toCountry);
+    
+    // Navigate to visa search results
+    const fromSlug = countries.find(c => c.id === fromCountry)?.slug;
+    const toSlug = countries.find(c => c.id === toCountry)?.slug;
+    navigate(`/visa-search?from=${fromSlug}&to=${toSlug}`);
   };
 
   return (
@@ -80,44 +59,63 @@ const HeroSection = () => {
               </p>
             </div>
 
-            {/* Search Box */}
-            <div className="bg-card rounded-xl p-6 shadow-lg border max-w-md" ref={wrapperRef}>
+            {/* Visa Search Box */}
+            <div className="bg-card rounded-xl p-6 shadow-lg border max-w-md">
               <div className="space-y-4">
-                <h3 className="font-semibold text-foreground">Find Visa Requirements</h3>
-                <div className="flex space-x-2">
-                  <div className="flex-1 relative">
-                    <Input 
-                      placeholder="Enter destination country..."
-                      className="w-full"
-                      value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setShowSuggestions(true);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleSearch();
-                      }}
-                    />
-                    {showSuggestions && suggestions.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-card border rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
-                        {suggestions.map((country) => (
-                          <button
-                            key={country.slug}
-                            onClick={() => handleSuggestionClick(country.slug, country.id)}
-                            className="w-full px-4 py-3 text-left hover:bg-accent/50 flex items-center gap-3 transition-colors"
-                          >
-                            <span className="text-2xl" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>{country.flag_emoji || countryCodeToFlagEmoji(country.code) || '🏳️'}</span>
-                            <span className="font-medium text-foreground">{country.name}</span>
-                          </button>
+                <h3 className="font-semibold text-foreground">Check Visa Requirements</h3>
+                <p className="text-sm text-muted-foreground">Select your passport country and destination</p>
+                
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">From (Your Passport)</label>
+                    <Select value={fromCountry} onValueChange={setFromCountry}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select your country..." />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        {countries.map((country) => (
+                          <SelectItem key={country.id} value={country.id}>
+                            <span className="flex items-center gap-2">
+                              <span style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
+                                {country.flag_emoji || countryCodeToFlagEmoji(country.code) || '🏳️'}
+                              </span>
+                              <span>{country.name}</span>
+                            </span>
+                          </SelectItem>
                         ))}
-                      </div>
-                    )}
+                      </SelectContent>
+                    </Select>
                   </div>
+
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">To (Destination)</label>
+                    <Select value={toCountry} onValueChange={setToCountry}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select destination..." />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        {countries.map((country) => (
+                          <SelectItem key={country.id} value={country.id}>
+                            <span className="flex items-center gap-2">
+                              <span style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
+                                {country.flag_emoji || countryCodeToFlagEmoji(country.code) || '🏳️'}
+                              </span>
+                              <span>{country.name}</span>
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <Button 
                     onClick={handleSearch}
-                    className="bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
+                    className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
+                    disabled={!fromCountry || !toCountry}
                   >
-                    <Search className="h-4 w-4" />
+                    <Search className="h-4 w-4 mr-2" />
+                    Search Visa Requirements
+                    <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </div>
               </div>

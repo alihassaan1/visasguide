@@ -12,6 +12,7 @@ import {
   Key,
   Rss,
   TrendingUp,
+  Globe,
 } from "lucide-react";
 
 const menuItems = [
@@ -54,6 +55,11 @@ const menuItems = [
     title: "Data Manager",
     icon: Database,
     href: "/admin/data",
+  },
+  {
+    title: "Visa Requirements",
+    icon: Globe,
+    href: "/admin/visa-requirements",
   },
   {
     title: "API Settings",

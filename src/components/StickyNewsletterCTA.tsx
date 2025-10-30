@@ -68,7 +68,7 @@ const StickyNewsletterCTA = () => {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-primary to-primary-dark text-primary-foreground p-4 shadow-2xl z-50 animate-slide-up">
+    <div className="hidden md:block fixed bottom-0 left-0 right-0 bg-gradient-to-r from-primary to-primary-dark text-primary-foreground p-4 shadow-2xl z-50 animate-slide-up">
       <div className="container mx-auto max-w-4xl">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1">

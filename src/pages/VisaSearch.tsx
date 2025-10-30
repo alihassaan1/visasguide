@@ -220,7 +220,9 @@ const VisaSearch = () => {
       
       <main className="container mx-auto px-4 py-8">
         {/* Visa Requirement Result (if from/to specified) */}
-        {visaRequirement && fromSlug && toSlug && (
+        {fromSlug && toSlug && (
+          <>
+            {visaRequirement && (
           <Card className="mb-8 border-2 border-primary/20">
             <CardContent className="p-8">
               <div className="flex items-center justify-between mb-6">
@@ -310,6 +312,37 @@ const VisaSearch = () => {
               </div>
             </CardContent>
           </Card>
+            )}
+            
+            {!visaRequirement && countries.length > 0 && (
+              <Card className="mb-8 border-2 border-muted">
+                <CardContent className="p-8 text-center">
+                  <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">No Visa Information Available</h3>
+                  <p className="text-muted-foreground mb-4">
+                    We don't have specific visa requirement data for this country combination yet. 
+                    Please check the general visa search below or visit the destination country's embassy website.
+                  </p>
+                  <div className="flex gap-4 justify-center">
+                    {countries.find(c => c.slug === fromSlug) && (
+                      <Link to={`/countries/${fromSlug}`}>
+                        <Button variant="outline">
+                          View {countries.find(c => c.slug === fromSlug)?.name} Guide
+                        </Button>
+                      </Link>
+                    )}
+                    {countries.find(c => c.slug === toSlug) && (
+                      <Link to={`/countries/${toSlug}`}>
+                        <Button>
+                          View {countries.find(c => c.slug === toSlug)?.name} Guide
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </>
         )}
         {/* SEO Header */}
         <div className="text-center space-y-4 mb-12">

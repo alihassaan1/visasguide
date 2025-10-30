@@ -27,17 +27,24 @@ const HeroSection = () => {
     }
   });
 
-  const handleSearch = async () => {
+  const handleSearch = () => {
     if (!fromCountry || !toCountry) {
       return;
     }
 
-    // Track the visa search
-    await trackVisaSearch(fromCountry, toCountry);
-    
-    // Navigate to visa search results
+    // Find slugs for navigation
     const fromSlug = countries.find(c => c.id === fromCountry)?.slug;
     const toSlug = countries.find(c => c.id === toCountry)?.slug;
+    
+    if (!fromSlug || !toSlug) {
+      console.error('Country slugs not found');
+      return;
+    }
+
+    // Track the visa search (don't await to avoid blocking navigation)
+    trackVisaSearch(fromCountry, toCountry).catch(console.error);
+    
+    // Navigate to visa search results immediately
     navigate(`/visa-search?from=${fromSlug}&to=${toSlug}`);
   };
 

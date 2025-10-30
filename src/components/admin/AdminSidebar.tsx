@@ -13,6 +13,7 @@ import {
   Rss,
   TrendingUp,
   Globe,
+  Download,
 } from "lucide-react";
 
 const menuItems = [
@@ -60,6 +61,11 @@ const menuItems = [
     title: "Visa Requirements",
     icon: Globe,
     href: "/admin/visa-requirements",
+  },
+  {
+    title: "Import Visa Data",
+    icon: Download,
+    href: "/admin/data-import",
   },
   {
     title: "API Settings",

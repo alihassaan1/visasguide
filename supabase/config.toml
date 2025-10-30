@@ -18,3 +18,6 @@ verify_jwt = false
 
 [functions.ai-generate-content]
 verify_jwt = true
+
+[functions.visa-data-import]
+verify_jwt = true

@@ -32,6 +32,7 @@ import ContentManager from "./pages/admin/ContentManager";
 import NewsletterManager from "./pages/admin/NewsletterManager";
 import AnalyticsDashboard from "./pages/admin/AnalyticsDashboard";
 import VisaRequirementsManager from "./pages/admin/VisaRequirementsManager";
+import DataImporter from "./pages/admin/DataImporter";
 import ContentPage from "./pages/ContentPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -76,6 +77,7 @@ const App = () => (
             <Route path="content" element={<ContentManager />} />
             <Route path="data" element={<DataManager />} />
             <Route path="visa-requirements" element={<VisaRequirementsManager />} />
+            <Route path="data-import" element={<DataImporter />} />
             <Route path="ai-studio" element={<AIContentStudio />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="analytics" element={<AnalyticsDashboard />} />

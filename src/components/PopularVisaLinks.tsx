@@ -139,7 +139,7 @@ const PopularVisaLinks = () => {
               to="/guides/schengen-visa-requirements"
               className="group flex flex-col items-center justify-center p-6 bg-card border border-border rounded-lg hover:border-primary hover:shadow-md transition-all duration-300"
             >
-              <div className="text-5xl mb-3 group-hover:scale-110 transition-transform duration-300" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>🇪🇺</div>
+              <div className="text-5xl mb-3 font-emoji group-hover:scale-110 transition-transform duration-300">🇪🇺</div>
               <span className="text-sm font-medium text-foreground text-center group-hover:text-primary transition-colors">
                 Schengen Visa
               </span>
@@ -151,7 +151,7 @@ const PopularVisaLinks = () => {
                 to={`/countries/${c.slug}`}
                 className="group flex flex-col items-center justify-center p-6 bg-card border border-border rounded-lg hover:border-primary hover:shadow-md transition-all duration-300"
               >
-                <div className="text-5xl mb-3 group-hover:scale-110 transition-transform duration-300" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
+                <div className="text-5xl mb-3 font-emoji group-hover:scale-110 transition-transform duration-300">
                   {c.flag_emoji || countryCodeToFlagEmoji(c.code) || '🏳️'}
                 </div>
                 <span className="text-sm font-medium text-foreground text-center group-hover:text-primary transition-colors">
@@ -201,7 +201,7 @@ const PopularVisaLinks = () => {
                   to={r.href}
                   className="flex flex-col items-center justify-center p-4 bg-card border border-border rounded-lg hover:border-primary hover:shadow-md transition-all duration-300"
                 >
-                  <div className="text-3xl mb-2" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>{r.emoji}</div>
+                  <div className="text-3xl mb-2 font-emoji">{r.emoji}</div>
                   <span className="text-xs font-medium text-foreground text-center group-hover:text-primary transition-colors">
                     {r.name}
                   </span>

@@ -150,6 +150,8 @@ All colors MUST be HSL.
 
 @layer utilities {
   .font-emoji {
-    font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Twemoji Mozilla', emoji, sans-serif;
+    font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Android Emoji', 'EmojiSymbols', 'EmojiOne Color', 'Twemoji Mozilla', emoji, sans-serif !important;
+    font-weight: normal !important;
+    font-style: normal !important;
   }
 }

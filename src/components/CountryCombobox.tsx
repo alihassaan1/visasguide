@@ -59,7 +59,7 @@ export function CountryCombobox({
           >
             {selectedCountry ? (
               <span className="flex items-center gap-2">
-                <span style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
+                <span className="font-emoji">
                   {selectedCountry.flag_emoji || countryCodeToFlagEmoji(selectedCountry.code) || '🏳️'}
                 </span>
                 <span>{selectedCountry.name}</span>
@@ -92,7 +92,7 @@ export function CountryCombobox({
                       )}
                     />
                     <span className="flex items-center gap-2">
-                      <span style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
+                      <span className="font-emoji">
                         {country.flag_emoji || countryCodeToFlagEmoji(country.code) || '🏳️'}
                       </span>
                       <span>{country.name}</span>

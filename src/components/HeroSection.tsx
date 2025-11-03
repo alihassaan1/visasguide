@@ -3,11 +3,10 @@ import { Search, Globe, Shield, Clock, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-travel.jpg";
 import { supabase } from "@/integrations/supabase/client";
-import { countryCodeToFlagEmoji } from "@/lib/utils";
-import { useState, useEffect, useRef } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
 import { trackVisaSearch } from "@/hooks/useAnalytics";
 import { useQuery } from "@tanstack/react-query";
+import { CountryCombobox } from "@/components/CountryCombobox";
 
 const HeroSection = () => {
   const [fromCountry, setFromCountry] = useState("");
@@ -44,8 +43,8 @@ const HeroSection = () => {
     // Track the visa search (don't await to avoid blocking navigation)
     trackVisaSearch(fromCountry, toCountry).catch(console.error);
     
-    // Navigate to visa search results immediately
-    navigate(`/visa-search?from=${fromSlug}&to=${toSlug}`);
+    // Navigate to SEO-friendly visa requirements page
+    navigate(`/visa-requirements/${fromSlug}-to-${toSlug}`);
   };
 
   return (
@@ -73,47 +72,21 @@ const HeroSection = () => {
                 <p className="text-sm text-muted-foreground">Select your passport country and destination</p>
                 
                 <div className="space-y-3">
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">From (Your Passport)</label>
-                    <Select value={fromCountry} onValueChange={setFromCountry}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select your country..." />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[300px]">
-                        {countries.map((country) => (
-                          <SelectItem key={country.id} value={country.id}>
-                            <span className="flex items-center gap-2">
-                              <span style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
-                                {country.flag_emoji || countryCodeToFlagEmoji(country.code) || '🏳️'}
-                              </span>
-                              <span>{country.name}</span>
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <CountryCombobox
+                    countries={countries}
+                    value={fromCountry}
+                    onValueChange={setFromCountry}
+                    label="From (Your Passport)"
+                    placeholder="Select your country..."
+                  />
 
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">To (Destination)</label>
-                    <Select value={toCountry} onValueChange={setToCountry}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select destination..." />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[300px]">
-                        {countries.map((country) => (
-                          <SelectItem key={country.id} value={country.id}>
-                            <span className="flex items-center gap-2">
-                              <span style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
-                                {country.flag_emoji || countryCodeToFlagEmoji(country.code) || '🏳️'}
-                              </span>
-                              <span>{country.name}</span>
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <CountryCombobox
+                    countries={countries}
+                    value={toCountry}
+                    onValueChange={setToCountry}
+                    label="To (Destination)"
+                    placeholder="Select destination..."
+                  />
 
                   <Button 
                     onClick={handleSearch}

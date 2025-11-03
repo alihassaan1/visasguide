@@ -15,6 +15,7 @@ import CountryGuide from "./pages/CountryGuide";
 import VisaFreeCountries from "./pages/VisaFreeCountries";
 import NewsPage from "./pages/NewsPage";
 import NewsArticle from "./pages/NewsArticle";
+import VisaRequirements from "./pages/VisaRequirements";
 import PassportRankings from "./pages/PassportRankings";
 import TouristVisa from "./pages/visa-types/TouristVisa";
 import BusinessVisa from "./pages/visa-types/BusinessVisa";
@@ -55,6 +56,7 @@ const App = () => (
           <Route path="/countries/:countrySlug" element={<CountryGuide />} />
           <Route path="/countries/:countrySlug/visa-free" element={<VisaFreeCountries />} />
           <Route path="/visa-search" element={<VisaSearch />} />
+          <Route path="/visa-requirements/:slug" element={<VisaRequirements />} />
           <Route path="/processing-times" element={<ProcessingTimes />} />
           <Route path="/requirements" element={<Requirements />} />
           <Route path="/guides" element={<VisaGuides />} />

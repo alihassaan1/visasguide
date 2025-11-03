@@ -13,12 +13,23 @@ const StickyNewsletterCTA = () => {
 
   useEffect(() => {
     // Show after 10 seconds of page load
-    const timer = setTimeout(() => {
+    const showTimer = setTimeout(() => {
       setIsVisible(true);
     }, 10000);
 
-    return () => clearTimeout(timer);
+    return () => clearTimeout(showTimer);
   }, []);
+
+  useEffect(() => {
+    // Auto-close after 5 seconds of being visible
+    if (isVisible) {
+      const autoCloseTimer = setTimeout(() => {
+        setIsVisible(false);
+      }, 5000);
+
+      return () => clearTimeout(autoCloseTimer);
+    }
+  }, [isVisible]);
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();

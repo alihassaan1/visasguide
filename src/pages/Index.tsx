@@ -64,15 +64,8 @@ const Index = () => {
           <AffiliateBannerContainer position="horizontal-banner" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr_240px] xl:grid-cols-[280px_1fr_280px] gap-6">
-          {/* Left Sidebar - Affiliate Banners */}
-          <aside className="hidden lg:block">
-            <div className="sticky top-24 space-y-4">
-              <AffiliateBannerContainer position="sidebar-left" />
-            </div>
-          </aside>
-
-          {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] gap-8">
+          {/* Main Content - Full Width on Left */}
           <main className="min-w-0">
             <PopularVisaLinks />
             <TrendingVisas />
@@ -93,6 +86,7 @@ const Index = () => {
             <div className="sticky top-24 space-y-6">
               <NewsletterSignup variant="sidebar" />
               <AffiliateBannerContainer position="sidebar-right" />
+              <AffiliateBannerContainer position="sidebar-left" />
             </div>
           </aside>
         </div>

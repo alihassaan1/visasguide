@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
+import logo from "@/assets/logo.png";
 
 const Header = () => {
   return (
@@ -9,11 +10,17 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">V</span>
-            </div>
-            <h1 className="text-xl font-bold text-primary">Visas.Guide</h1>
+          <Link 
+            to="/" 
+            className="flex items-center space-x-2"
+            aria-label="Visas.Guide - Home"
+          >
+            <img 
+              src={logo} 
+              alt="Visas.Guide - Complete Visa Requirements and Travel Information" 
+              className="h-10 w-auto"
+              title="visas.guide"
+            />
           </Link>
 
           {/* Navigation - Hidden on mobile */}

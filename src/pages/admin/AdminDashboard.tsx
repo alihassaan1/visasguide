@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Users, FileText, Sparkles, Eye, TrendingUp, DollarSign } from "lucide-react";
+import { Users, FileText, Sparkles, Eye, TrendingUp, DollarSign, RefreshCw } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 
 export default function AdminDashboard() {
@@ -33,12 +33,20 @@ export default function AdminDashboard() {
       // Get newsletter subscribers
       const { data: subs } = await supabase
         .from('newsletter_subscribers')
-        .select('id', { count: 'exact' });
+        .select('id', { count: 'exact' })
+        .eq('is_active', true);
 
       // Get freelancer count - count all users with role
       const { count: freelancerCount } = await supabase
         .from('user_roles')
         .select('*', { count: 'exact', head: true });
+
+      // Get affiliate clicks total
+      const { data: affiliates } = await supabase
+        .from('settings_affiliates')
+        .select('click_count');
+
+      const affiliateClicksTotal = affiliates?.reduce((sum, aff) => sum + (aff.click_count || 0), 0) || 0;
 
       const totalViews = pages?.reduce((sum, page) => sum + (page.view_count || 0), 0) || 0;
       const aiGenerated = pages?.filter((p: any) => p.ai_generated).length || 0;
@@ -54,7 +62,7 @@ export default function AdminDashboard() {
         aiGenerated,
         activeFreelancers: freelancerCount || 0,
         newsletterSubs: subs?.length || 0,
-        affiliateClicks: 0 // Placeholder - track via AffiliateBanner component
+        affiliateClicks: affiliateClicksTotal
       });
 
       setTopPages(topPagesList);
@@ -100,9 +108,19 @@ export default function AdminDashboard() {
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-        <p className="text-muted-foreground">Complete overview of Visas.Guide performance</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+          <p className="text-muted-foreground">Complete overview of Visas.Guide performance</p>
+        </div>
+        <button
+          onClick={loadDashboard}
+          disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        >
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
       </div>
 
       {/* Stats Grid */}

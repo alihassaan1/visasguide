@@ -21,10 +21,10 @@ serve(async (req) => {
     if (source === 'passport-index') {
       return await importFromPassportIndex(supabase);
     } else if (source === 'travel-buddy') {
-      const rapidApiKey = Deno.env.get('RAPIDAPI_KEY');
+      const rapidApiKey = Deno.env.get('TRAVELBUDDY_API_KEY');
       if (!rapidApiKey) {
         return new Response(
-          JSON.stringify({ error: 'RAPIDAPI_KEY not configured' }),
+          JSON.stringify({ error: 'TRAVELBUDDY_API_KEY not configured' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }

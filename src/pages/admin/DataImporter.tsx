@@ -154,7 +154,7 @@ export default function DataImporter() {
                   >
                     RapidAPI
                   </a>
-                  {' '}and add it as RAPIDAPI_KEY in your secrets.
+                  {' '}and add it as TRAVELBUDDY_API_KEY in your secrets.
                 </AlertDescription>
               </Alert>
 

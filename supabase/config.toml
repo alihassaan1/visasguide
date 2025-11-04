@@ -21,3 +21,6 @@ verify_jwt = true
 
 [functions.visa-data-import]
 verify_jwt = true
+
+[functions.rss-feed]
+verify_jwt = false

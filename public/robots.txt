@@ -13,6 +13,11 @@ Allow: /
 User-agent: *
 Allow: /
 
+# Sitemaps and Feeds
 Sitemap: https://visas.guide/sitemap.xml
+Sitemap: https://awiytryceqehqapytfgn.supabase.co/functions/v1/sitemap
+
+# RSS Feed
+# https://visas.guide/rss
 Sitemap: https://awiytryceqehqapytfgn.supabase.co/functions/v1/sitemap
 

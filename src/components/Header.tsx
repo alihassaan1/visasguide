@@ -18,7 +18,7 @@ const Header = () => {
             <img 
               src={logo} 
               alt="Visas.Guide - Complete Visa Requirements and Travel Information" 
-              className="h-10 w-auto"
+              className="h-14 w-auto"
               title="visas.guide"
             />
           </Link>

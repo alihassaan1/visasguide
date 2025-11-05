@@ -69,7 +69,7 @@ const VisaFreeCountries = () => {
       supabase.functions
         .invoke('visa-data-import', { 
           body: { 
-            source: 'travelbuddy',
+            source: 'travel-buddy',
             from_country_code: country.code 
           } 
         })

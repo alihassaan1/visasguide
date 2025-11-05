@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plane, CheckCircle, Clock, FileCheck, AlertCircle } from "lucide-react";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
+import { toast } from "sonner";
 
 const VisaFreeCountries = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
@@ -38,7 +39,7 @@ const VisaFreeCountries = () => {
       .catch(() => {});
   }
 
-  const { data: visaRequirements, isLoading: requirementsLoading } = useQuery({
+  const { data: visaRequirements, isLoading: requirementsLoading, refetch: refetchRequirements } = useQuery({
     queryKey: ['visa-free-requirements', country?.id],
     queryFn: async () => {
       if (!country?.id) return [];
@@ -57,6 +58,36 @@ const VisaFreeCountries = () => {
     },
     enabled: !!country?.id
   });
+
+  // Auto-import visa data if missing
+  const hasImportedRef = useRef(false);
+  useEffect(() => {
+    if (country && visaRequirements !== undefined && visaRequirements.length === 0 && !hasImportedRef.current && !requirementsLoading) {
+      hasImportedRef.current = true;
+      toast.info(`Fetching visa requirements for ${country.name}...`);
+      
+      supabase.functions
+        .invoke('visa-data-import', { 
+          body: { 
+            source: 'travelbuddy',
+            from_country_code: country.code 
+          } 
+        })
+        .then((response) => {
+          if (response.error) {
+            console.error('Import error:', response.error);
+            toast.error('Failed to fetch visa requirements');
+          } else {
+            toast.success('Visa requirements updated!');
+            refetchRequirements();
+          }
+        })
+        .catch((error) => {
+          console.error('Import failed:', error);
+          toast.error('Failed to fetch visa requirements');
+        });
+    }
+  }, [country, visaRequirements, requirementsLoading, refetchRequirements]);
 
   const visaFreeCountries = visaRequirements?.filter(req => req.requirement_type === 'visa_free') || [];
   const visaOnArrivalCountries = visaRequirements?.filter(req => req.requirement_type === 'visa_on_arrival') || [];

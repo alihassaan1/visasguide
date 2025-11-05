@@ -16,10 +16,10 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { source } = await req.json();
+    const { source, from_country_code } = await req.json();
 
     if (source === 'passport-index') {
-      return await importFromPassportIndex(supabase);
+      return await importFromPassportIndex(supabase, from_country_code);
     } else if (source === 'travel-buddy') {
       const rapidApiKey = Deno.env.get('TRAVELBUDDY_API_KEY');
       if (!rapidApiKey) {
@@ -28,7 +28,7 @@ serve(async (req) => {
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      return await importFromTravelBuddy(supabase, rapidApiKey);
+      return await importFromTravelBuddy(supabase, rapidApiKey, from_country_code);
     }
 
     return new Response(
@@ -44,8 +44,8 @@ serve(async (req) => {
   }
 });
 
-async function importFromPassportIndex(supabase: any) {
-  console.log('Importing from Passport Index Dataset...');
+async function importFromPassportIndex(supabase: any, fromCountryCodeFilter?: string) {
+  console.log('Importing from Passport Index Dataset...', fromCountryCodeFilter ? `for ${fromCountryCodeFilter}` : 'for all countries');
   
   // Fetch the CSV from GitHub
   const response = await fetch(
@@ -77,6 +77,12 @@ async function importFromPassportIndex(supabase: any) {
 
     const values = line.split(',').map(v => v.trim());
     const fromCountryCode = values[0];
+    
+    // Skip if filtering by country and this isn't the one
+    if (fromCountryCodeFilter && fromCountryCode !== fromCountryCodeFilter) {
+      continue;
+    }
+    
     const fromCountry = countryMap.get(fromCountryCode);
     
     if (!fromCountry) {
@@ -153,20 +159,32 @@ async function importFromPassportIndex(supabase: any) {
   );
 }
 
-async function importFromTravelBuddy(supabase: any, rapidApiKey: string) {
-  console.log('Importing from Travel Buddy AI API...');
+async function importFromTravelBuddy(supabase: any, rapidApiKey: string, fromCountryCodeFilter?: string) {
+  console.log('Importing from Travel Buddy AI API...', fromCountryCodeFilter ? `for ${fromCountryCodeFilter}` : 'for all countries');
   
   // Get all countries from database
   const { data: countries } = await supabase
     .from('countries')
     .select('id, name, code');
 
+  // Filter source countries if specified
+  const sourceCountries = fromCountryCodeFilter 
+    ? countries.filter((c: any) => c.code === fromCountryCodeFilter)
+    : countries;
+
+  if (fromCountryCodeFilter && sourceCountries.length === 0) {
+    return new Response(
+      JSON.stringify({ error: `Country with code ${fromCountryCodeFilter} not found` }),
+      { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   let importedCount = 0;
   let skippedCount = 0;
   let errorCount = 0;
 
   // For each combination of countries
-  for (const fromCountry of countries) {
+  for (const fromCountry of sourceCountries) {
     for (const toCountry of countries) {
       if (fromCountry.id === toCountry.id) continue; // Skip same country
 

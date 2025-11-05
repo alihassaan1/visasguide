@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,15 +20,18 @@ const VisaFinder = () => {
   });
   const [results, setResults] = useState<any>(null);
 
-  const nationalities = [
-    "Indian", "Chinese", "Pakistani", "Nigerian", "Philippine", "Indonesian", "Bangladeshi", 
-    "Vietnamese", "Turkish", "Iranian", "Russian", "Ukrainian", "Brazilian", "Mexican", "Thai"
-  ];
-
-  const destinations = [
-    "United States", "United Kingdom", "Germany", "France", "Canada", "Australia", 
-    "Japan", "South Korea", "Singapore", "Dubai", "Italy", "Spain", "Netherlands", "Switzerland"
-  ];
+  // Fetch all countries from the database
+  const { data: countries = [] } = useQuery({
+    queryKey: ["countries"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("countries")
+        .select("id, name, code, slug")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const purposes = [
     { value: "tourism", label: "Tourism & Leisure", icon: "🏖️" },
@@ -50,19 +55,70 @@ const VisaFinder = () => {
     }
   };
 
-  const generateResults = () => {
-    // Mock result generation - in real app this would call an API
-    const mockResults = {
-      visaRequired: selections.nationality !== "US Citizen" || selections.destination !== "United States",
-      visaType: getVisaType(),
-      processingTime: getProcessingTime(),
-      fee: getFee(),
+  const generateResults = async () => {
+    // Find the country IDs from the selections
+    const fromCountry = countries.find(c => c.name === selections.nationality);
+    const toCountry = countries.find(c => c.name === selections.destination);
+
+    if (!fromCountry || !toCountry) {
+      // Fallback to mock data if countries not found
+      const mockResults = {
+        visaRequired: true,
+        visaType: getVisaType(),
+        processingTime: getProcessingTime(),
+        fee: getFee(),
+        difficulty: getDifficulty(),
+        requirements: getRequirements(),
+        nextSteps: getNextSteps()
+      };
+      setResults(mockResults);
+      setStep(5);
+      return;
+    }
+
+    // Fetch actual visa requirements from database
+    const { data: visaReq, error } = await supabase
+      .from("visa_requirements")
+      .select("*")
+      .eq("from_country_id", fromCountry.id)
+      .eq("to_country_id", toCountry.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching visa requirements:", error);
+    }
+
+    const actualResults = {
+      visaRequired: visaReq?.requirement_type !== "visa_free",
+      visaType: getVisaTypeFromData(visaReq),
+      processingTime: visaReq?.processing_time_days 
+        ? `${visaReq.processing_time_days} days` 
+        : getProcessingTime(),
+      fee: visaReq?.fee_usd ? `$${visaReq.fee_usd}` : getFee(),
       difficulty: getDifficulty(),
-      requirements: getRequirements(),
-      nextSteps: getNextSteps()
+      requirements: visaReq?.requirements?.length ? visaReq.requirements : getRequirements(),
+      nextSteps: getNextSteps(),
+      maxStayDays: visaReq?.max_stay_days,
+      notes: visaReq?.notes,
+      requirementType: visaReq?.requirement_type || "visa_required"
     };
-    setResults(mockResults);
+    
+    setResults(actualResults);
     setStep(5);
+  };
+
+  const getVisaTypeFromData = (visaReq: any) => {
+    if (!visaReq) return getVisaType();
+    
+    const typeMap: Record<string, string> = {
+      visa_free: "Visa Free Entry",
+      visa_on_arrival: "Visa on Arrival",
+      evisa_required: "eVisa Required",
+      eTA_required: "eTA Required",
+      visa_required: getVisaType()
+    };
+    
+    return typeMap[visaReq.requirement_type] || getVisaType();
   };
 
   const getVisaType = () => {
@@ -163,9 +219,9 @@ const VisaFinder = () => {
                         <SelectValue placeholder="Select your nationality" />
                       </SelectTrigger>
                       <SelectContent>
-                        {nationalities.map((nationality) => (
-                          <SelectItem key={nationality} value={nationality}>
-                            {nationality}
+                        {countries.map((country) => (
+                          <SelectItem key={country.id} value={country.name}>
+                            {country.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -178,9 +234,9 @@ const VisaFinder = () => {
                         <SelectValue placeholder="Select destination country" />
                       </SelectTrigger>
                       <SelectContent>
-                        {destinations.map((destination) => (
-                          <SelectItem key={destination} value={destination}>
-                            {destination}
+                        {countries.map((country) => (
+                          <SelectItem key={country.id} value={country.name}>
+                            {country.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -265,9 +321,22 @@ const VisaFinder = () => {
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                   <div className="text-center">
                     <Badge className={results.visaRequired ? "bg-visa-warning text-white" : "bg-visa-success text-white"}>
-                      {results.visaRequired ? "Visa Required" : "Visa Free"}
+                      {results.requirementType === "visa_free" 
+                        ? "Visa Free" 
+                        : results.requirementType === "visa_on_arrival"
+                        ? "Visa on Arrival"
+                        : results.requirementType === "evisa_required"
+                        ? "eVisa"
+                        : results.requirementType === "eTA_required"
+                        ? "eTA Required"
+                        : "Visa Required"}
                     </Badge>
                     <h3 className="font-semibold text-foreground mt-2">{results.visaType}</h3>
+                    {results.maxStayDays && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Max stay: {results.maxStayDays} days
+                      </p>
+                    )}
                   </div>
                   
                   <div className="text-center">
@@ -305,6 +374,13 @@ const VisaFinder = () => {
                         </li>
                       ))}
                     </ul>
+                    {results.notes && (
+                      <div className="mt-4 p-4 bg-muted rounded-lg">
+                        <p className="text-sm text-muted-foreground">
+                          <strong>Note:</strong> {results.notes}
+                        </p>
+                      </div>
+                    )}
                   </div>
                   
                   <div>

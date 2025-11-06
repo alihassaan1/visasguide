@@ -62,8 +62,33 @@ const VisaFreeCountries = () => {
   // Auto-import visa data if missing
   const hasImportedRef = useRef(false);
   useEffect(() => {
-    if (country && visaRequirements !== undefined && visaRequirements.length === 0 && !hasImportedRef.current && !requirementsLoading) {
+    // Reset the ref when country changes
+    if (country) {
+      hasImportedRef.current = false;
+    }
+  }, [country?.id]);
+
+  useEffect(() => {
+    const shouldImport = 
+      country && 
+      visaRequirements !== undefined && 
+      Array.isArray(visaRequirements) &&
+      visaRequirements.length === 0 && 
+      !hasImportedRef.current && 
+      !requirementsLoading;
+
+    console.log('Auto-import check:', { 
+      hasCountry: !!country, 
+      visaReqsDefined: visaRequirements !== undefined,
+      visaReqsLength: visaRequirements?.length,
+      hasImported: hasImportedRef.current,
+      isLoading: requirementsLoading,
+      shouldImport 
+    });
+
+    if (shouldImport) {
       hasImportedRef.current = true;
+      console.log(`Triggering auto-import for ${country.name} (${country.code})`);
       toast.info(`Fetching visa requirements for ${country.name}...`);
       
       supabase.functions
@@ -74,9 +99,11 @@ const VisaFreeCountries = () => {
           } 
         })
         .then((response) => {
+          console.log('Import response:', response);
           if (response.error) {
             console.error('Import error:', response.error);
             toast.error('Failed to fetch visa requirements');
+            hasImportedRef.current = false; // Reset on error
           } else {
             toast.success('Visa requirements updated!');
             refetchRequirements();
@@ -85,6 +112,7 @@ const VisaFreeCountries = () => {
         .catch((error) => {
           console.error('Import failed:', error);
           toast.error('Failed to fetch visa requirements');
+          hasImportedRef.current = false; // Reset on error
         });
     }
   }, [country, visaRequirements, requirementsLoading, refetchRequirements]);

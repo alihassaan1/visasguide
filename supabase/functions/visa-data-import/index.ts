@@ -101,13 +101,13 @@ async function importFromPassportIndex(supabase: any, fromCountryCodeFilter?: st
 
       // Map visa requirement codes to types
       let requirementType = 'visa_required';
-      let maxStayDays = null;
+      let maxStayDays: number | null = null;
 
       if (value === '3') {
         requirementType = 'visa_free';
         maxStayDays = 90; // Default assumption
       } else if (value === '2') {
-        requirementType = 'eTA_required';
+        requirementType = 'e_visa';
         maxStayDays = 90;
       } else if (value === '1') {
         requirementType = 'visa_on_arrival';
@@ -183,7 +183,43 @@ async function importFromTravelBuddy(supabase: any, rapidApiKey: string, fromCou
   let skippedCount = 0;
   let errorCount = 0;
 
-  // For each combination of countries
+  const apiHeaders = {
+    'Content-Type': 'application/json',
+    'X-RapidAPI-Key': rapidApiKey,
+    'X-RapidAPI-Host': 'visa-requirement.p.rapidapi.com'
+  };
+
+  // Retry helper with exponential backoff to avoid 429 rate limits
+  const fetchWithRetry = async (passport: string, destination: string) => {
+    let attempt = 0;
+    let delayMs = 800; // start conservative
+
+    while (attempt < 5) {
+      const res = await fetch('https://visa-requirement.p.rapidapi.com/v2/visa/check', {
+        method: 'POST',
+        headers: apiHeaders,
+        body: JSON.stringify({ passport, destination })
+      });
+
+      if (res.ok) return res;
+
+      // Retry on 429 or server errors
+      if (res.status === 429 || res.status >= 500) {
+        attempt++;
+        const retryAfter = parseInt(res.headers.get('retry-after') || '0', 10);
+        const wait = retryAfter ? retryAfter * 1000 : delayMs;
+        await new Promise((r) => setTimeout(r, wait));
+        delayMs = Math.min(8000, Math.floor(delayMs * 1.8));
+        continue;
+      }
+
+      // Non-retryable error
+      return res;
+    }
+
+    // Exhausted retries
+    return new Response(null, { status: 429, statusText: 'Too Many Requests' });
+  };
   for (const fromCountry of sourceCountries) {
     for (const toCountry of countries) {
       if (fromCountry.id === toCountry.id) continue; // Skip same country
@@ -202,19 +238,8 @@ async function importFromTravelBuddy(supabase: any, rapidApiKey: string, fromCou
           continue;
         }
 
-        // Call Travel Buddy API
-        const response = await fetch('https://visa-requirement.p.rapidapi.com/v2/visa/check', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-RapidAPI-Key': rapidApiKey,
-            'X-RapidAPI-Host': 'visa-requirement.p.rapidapi.com'
-          },
-          body: JSON.stringify({
-            passport: fromCountry.code,
-            destination: toCountry.code
-          })
-        });
+        // Call Travel Buddy API with retry/backoff
+        const response = await fetchWithRetry(fromCountry.code, toCountry.code);
 
         if (!response.ok) {
           console.error(`API error for ${fromCountry.code} -> ${toCountry.code}: ${response.status}`);
@@ -233,10 +258,8 @@ async function importFromTravelBuddy(supabase: any, rapidApiKey: string, fromCou
           requirementType = 'visa_free';
         } else if (primaryRule.includes('visa on arrival')) {
           requirementType = 'visa_on_arrival';
-        } else if (primaryRule.includes('evisa')) {
-          requirementType = 'evisa_required';
-        } else if (primaryRule.includes('eta')) {
-          requirementType = 'eTA_required';
+        } else if (primaryRule.includes('evisa') || primaryRule.includes('eta')) {
+          requirementType = 'e_visa';
         }
 
         // Parse duration
@@ -274,8 +297,8 @@ async function importFromTravelBuddy(supabase: any, rapidApiKey: string, fromCou
           importedCount++;
         }
 
-        // Rate limiting - wait 100ms between requests
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Rate limiting - wait between requests to respect API limits
+        await new Promise(resolve => setTimeout(resolve, 800));
 
       } catch (error) {
         console.error(`Error processing ${fromCountry.code} -> ${toCountry.code}:`, error);

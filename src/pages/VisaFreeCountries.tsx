@@ -48,7 +48,7 @@ const VisaFreeCountries = () => {
         .from('visa_requirements')
         .select(`
           *,
-          to_country:countries!visa_requirements_to_country_id_fkey(name, code, flag_emoji, capital, continent)
+          to_country:countries!visa_requirements_to_country_id_fkey(name, code, flag_emoji, capital, continent, slug)
         `)
         .eq('from_country_id', country.id)
         .order('requirement_type');
@@ -119,13 +119,14 @@ const VisaFreeCountries = () => {
 
   const visaFreeCountries = visaRequirements?.filter(req => req.requirement_type === 'visa_free') || [];
   const visaOnArrivalCountries = visaRequirements?.filter(req => req.requirement_type === 'visa_on_arrival') || [];
-  const eVisaCountries = visaRequirements?.filter(req => req.requirement_type === 'eTA_required' || req.requirement_type === 'evisa_required') || [];
+  const eVisaCountries = visaRequirements?.filter(req => req.requirement_type === 'e_visa' || req.requirement_type === 'eTA_required' || req.requirement_type === 'evisa_required') || [];
   const visaRequiredCountries = visaRequirements?.filter(req => req.requirement_type === 'visa_required') || [];
 
   const getRequirementIcon = (type: string) => {
     switch (type) {
       case 'visa_free': return <CheckCircle className="h-5 w-5 text-green-600" />;
       case 'visa_on_arrival': return <Clock className="h-5 w-5 text-yellow-600" />;
+      case 'e_visa':
       case 'eTA_required':
       case 'evisa_required': return <FileCheck className="h-5 w-5 text-blue-600" />;
       case 'visa_required': return <AlertCircle className="h-5 w-5 text-red-600" />;
@@ -137,6 +138,7 @@ const VisaFreeCountries = () => {
     switch (type) {
       case 'visa_free': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
       case 'visa_on_arrival': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      case 'e_visa':
       case 'eTA_required':
       case 'evisa_required': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
       case 'visa_required': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';

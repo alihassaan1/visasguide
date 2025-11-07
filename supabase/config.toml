@@ -20,7 +20,7 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.visa-data-import]
-verify_jwt = true
+verify_jwt = false
 
 [functions.rss-feed]
 verify_jwt = false

@@ -269,7 +269,7 @@ const VisaRequirements = () => {
                 We don't have visa requirement information for this country combination yet.
               </p>
               <Link 
-                to={`/country/${toCountry.slug}`}
+                to={`/countries/${toCountry.slug}`}
                 className="text-primary hover:underline"
               >
                 View general information about {toCountry.name} →
@@ -284,10 +284,10 @@ const VisaRequirements = () => {
             <CardTitle>Related Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Link to={`/country/${fromCountry.slug}`} className="block text-primary hover:underline">
+            <Link to={`/countries/${fromCountry.slug}`} className="block text-primary hover:underline">
               → View {fromCountry.name} passport information
             </Link>
-            <Link to={`/country/${toCountry.slug}`} className="block text-primary hover:underline">
+            <Link to={`/countries/${toCountry.slug}`} className="block text-primary hover:underline">
               → View {toCountry.name} visa requirements
             </Link>
             <Link to="/visa-search" className="block text-primary hover:underline">

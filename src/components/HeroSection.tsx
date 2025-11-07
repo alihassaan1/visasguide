@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Search, Globe, Shield, Clock, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import heroImage from "@/assets/hero-travel.jpg";
+import heroImage from "@/assets/home-hero-visa-approved.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { trackVisaSearch } from "@/hooks/useAnalytics";
@@ -123,7 +123,7 @@ const HeroSection = () => {
             <div className="relative overflow-hidden rounded-2xl shadow-2xl">
               <img 
                 src={heroImage} 
-                alt="Complete visa requirements and travel documentation guide - passports, stamps, and visa application forms" 
+                alt="Visa approved stamp with passports and application form – visa requirements and travel documentation guide"
                 className="w-full h-[500px] object-cover"
                 loading="eager"
               />

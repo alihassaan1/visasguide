@@ -49,6 +49,7 @@ export default function AIContentStudio() {
   const [provider, setProvider] = useState<'openai' | 'deepseek'>('deepseek');
   const [generateImage, setGenerateImage] = useState(false);
   const [featuredImageUrl, setFeaturedImageUrl] = useState("");
+  const [draftId, setDraftId] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     if (!prompt && !activeTemplate) {
@@ -98,6 +99,36 @@ export default function AIContentStudio() {
         title: "Content Generated!",
         description: `Used ${data.tokensUsed} tokens with ${data.model}`,
       });
+
+      // Auto-save as draft so it appears in Content Manager
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        const autoTitle = data.metadata?.title || title || prompt?.slice(0, 60) || "AI Generated Article";
+        const slug = autoTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const insertPayload: any = {
+          title: autoTitle,
+          slug,
+          content: data.content,
+          meta_description: data.metadata?.meta_description || metaDescription,
+          keywords: data.metadata?.keywords || keywords,
+          is_published: false,
+          author_id: userData.user?.id,
+          ai_generated: true,
+          status: 'draft',
+          featured_image_url: featuredImageUrl || null,
+        };
+        const { data: inserted, error: insertError } = await supabase
+          .from('content_pages')
+          .insert(insertPayload)
+          .select('id')
+          .single();
+        if (!insertError && inserted?.id) {
+          setDraftId(inserted.id);
+          setTitle(autoTitle);
+        }
+      } catch (e) {
+        console.warn('Auto-save draft failed:', e);
+      }
 
       // Generate image if requested
       if (generateImage && title) {
@@ -175,29 +206,44 @@ export default function AIContentStudio() {
 
     try {
       const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      const { data: userData } = await supabase.auth.getUser();
-      
-      const { error } = await supabase.from('content_pages').insert({
-        title,
-        slug,
-        content,
-        meta_description: metaDescription,
-        keywords,
-        is_published: status === 'published',
-        author_id: userData.user?.id,
-        ai_generated: true,
-        status,
-        featured_image_url: featuredImageUrl || null
-      });
 
-      if (error) throw error;
+      if (draftId) {
+        const { error } = await supabase.from('content_pages').update({
+          title,
+          slug,
+          content,
+          meta_description: metaDescription,
+          keywords,
+          is_published: status === 'published',
+          ai_generated: true,
+          status,
+          featured_image_url: featuredImageUrl || null
+        }).eq('id', draftId);
+
+        if (error) throw error;
+      } else {
+        const { data: userData } = await supabase.auth.getUser();
+        const { error } = await supabase.from('content_pages').insert({
+          title,
+          slug,
+          content,
+          meta_description: metaDescription,
+          keywords,
+          is_published: status === 'published',
+          author_id: userData.user?.id,
+          ai_generated: true,
+          status,
+          featured_image_url: featuredImageUrl || null
+        });
+        if (error) throw error;
+      }
 
       toast({
         title: "Success!",
         description: `Content saved as ${status}`,
       });
 
-      navigate('/admin');
+      navigate('/admin/content');
     } catch (error: any) {
       toast({
         title: "Save Failed",

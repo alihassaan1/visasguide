@@ -10,7 +10,8 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({
     totalPages: 0,
     totalViews: 0,
-    aiGenerated: 0,
+    aiGeneratedPages: 0,
+    aiGenerations: 0,
     activeFreelancers: 0,
     newsletterSubs: 0,
     affiliateClicks: 0
@@ -48,6 +49,11 @@ export default function AdminDashboard() {
 
       const affiliateClicksTotal = affiliates?.reduce((sum, aff) => sum + (aff.click_count || 0), 0) || 0;
 
+      // Count AI generations (from ai_generations table)
+      const { count: aiGenerationsCount } = await supabase
+        .from('ai_generations')
+        .select('*', { count: 'exact', head: true });
+
       // Get real analytics data
       const { data: analyticsEvents } = await supabase
         .from('analytics_events')
@@ -55,7 +61,7 @@ export default function AdminDashboard() {
 
       const pageViews = analyticsEvents?.filter(e => e.event_type === 'page_view') || [];
       const totalViews = pageViews.length;
-      const aiGenerated = pages?.filter((p: any) => p.ai_generated).length || 0;
+      const aiGeneratedPages = pages?.filter((p: any) => p.ai_generated).length || 0;
 
       // Count views per page slug from analytics
       const pageViewCounts: Record<string, number> = {};
@@ -77,7 +83,8 @@ export default function AdminDashboard() {
       setStats({
         totalPages: pages?.length || 0,
         totalViews,
-        aiGenerated,
+        aiGeneratedPages,
+        aiGenerations: aiGenerationsCount || 0,
         activeFreelancers: freelancerCount || 0,
         newsletterSubs: subs?.length || 0,
         affiliateClicks: affiliateClicksTotal
@@ -146,7 +153,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              {stats.aiGenerated} AI-generated ({stats.totalPages > 0 ? Math.round((stats.aiGenerated / stats.totalPages) * 100) : 0}%)
+              {stats.aiGeneratedPages} AI-generated ({stats.totalPages > 0 ? Math.round((stats.aiGeneratedPages / stats.totalPages) * 100) : 0}%)
             </p>
           </CardContent>
         </Card>
@@ -185,10 +192,10 @@ export default function AdminDashboard() {
               <CardDescription>AI Content Generated</CardDescription>
               <Sparkles className="h-5 w-5 text-muted-foreground" />
             </div>
-            <CardTitle className="text-3xl">{stats.aiGenerated}</CardTitle>
+            <CardTitle className="text-3xl">{stats.aiGenerations}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">AI-powered articles</p>
+            <p className="text-sm text-muted-foreground">AI generations</p>
           </CardContent>
         </Card>
 

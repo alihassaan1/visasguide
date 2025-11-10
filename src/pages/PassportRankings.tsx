@@ -69,10 +69,63 @@ const PassportRankings = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead 
-        title="Passport Index Rankings 2025 - Global Passport Power Rankings"
-        description="Discover the world's most powerful passports in 2025. Compare passport strength, visa-free destinations, and travel freedom by country."
+        title="Passport Index Rankings 2025: Ranking Passports by Global Travel Freedom | Visas.Guide"
+        description="Discover the world's most powerful passports in 2025. Compare 199 countries ranked by visa-free access, visa on arrival, eVisas, and global mobility. Find passport strength scores, travel freedom rankings, and destination access for every country. Updated January 2025."
         canonical="https://visas.guide/passport-index"
-        keywords={['passport rankings', 'passport index', 'strongest passports', 'visa-free travel', 'passport power', 'travel freedom']}
+        keywords={[
+          'passport index',
+          'passport rankings 2025',
+          'strongest passports',
+          'passport power rankings',
+          'visa free countries',
+          'passport strength',
+          'global mobility',
+          'travel freedom index',
+          'passport score',
+          'visa free access',
+          'best passports',
+          'passport comparison',
+          'visa requirements by country',
+          'passport ranking by country',
+          'most powerful passport',
+          'visa on arrival',
+          'eVisa countries',
+          'travel document rankings',
+          'passport index 2025',
+          'henley passport index',
+          'destination significance score'
+        ]}
+      />
+
+      {/* Structured Data for Search Engines */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Dataset",
+            "name": "Passport Index Rankings 2025",
+            "description": "Comprehensive passport ranking system evaluating 199 countries and territories based on visa-free access, visa on arrival, eVisas, and global mobility. Updated for January 2025.",
+            "url": "https://visas.guide/passport-index",
+            "keywords": "passport rankings, passport index, visa free countries, passport power, global mobility, travel freedom",
+            "creator": {
+              "@type": "Organization",
+              "name": "Visas.Guide",
+              "url": "https://visas.guide"
+            },
+            "license": "https://visas.guide/terms-of-service",
+            "temporalCoverage": "2025",
+            "spatialCoverage": {
+              "@type": "Place",
+              "name": "Worldwide"
+            },
+            "about": {
+              "@type": "Thing",
+              "name": "Passport Strength Rankings",
+              "description": "Rankings based on Destination Significance Score (DSS) measuring visa-free access, visa on arrival, and eVisa availability"
+            }
+          })
+        }}
       />
 
       <Header />

@@ -6,14 +6,11 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { CheckCircle, XCircle, AlertCircle, Clock, DollarSign, FileText, Globe, Plane, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, AlertCircle, Clock, DollarSign, FileText, Globe, Plane } from "lucide-react";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
 import { usePageTracking } from "@/hooks/useAnalytics";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
 
 const VisaRequirements = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -40,32 +37,6 @@ const VisaRequirements = () => {
 
   const fromCountry = countries.find(c => c.slug === fromSlug);
   const toCountry = countries.find(c => c.slug === toSlug);
-
-  // Toast and import handler
-  const { toast } = useToast();
-  const [importing, setImporting] = useState(false);
-  const handleImport = async () => {
-    if (!fromCountry) return;
-    try {
-      setImporting(true);
-      const { error } = await supabase.functions.invoke('visa-data-import', {
-        body: { source: 'travel-buddy', fromCountryCodeFilter: fromCountry.code }
-      });
-      if (error) throw error;
-      toast({
-        title: 'Import started',
-        description: 'Fetching visa data. Please refresh this page in ~1 minute.',
-      });
-    } catch (e: any) {
-      toast({
-        title: 'Import failed',
-        description: e?.message || 'Please try again later.',
-        variant: 'destructive',
-      });
-    } finally {
-      setImporting(false);
-    }
-  };
 
   // Fetch visa requirement
   const { data: visaRequirement, isLoading } = useQuery({
@@ -297,12 +268,6 @@ const VisaRequirements = () => {
               <p className="text-muted-foreground mb-6">
                 We don't have visa requirement information for this country combination yet.
               </p>
-              <div className="flex flex-col items-center gap-3 mb-6">
-                <Button onClick={handleImport} disabled={importing}>
-                  {importing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Try importing data now
-                </Button>
-                <p className="text-sm text-muted-foreground">This may take up to a minute. Refresh after it completes.</p>
-              </div>
               <Link 
                 to={`/countries/${toCountry.slug}`}
                 className="text-primary hover:underline"

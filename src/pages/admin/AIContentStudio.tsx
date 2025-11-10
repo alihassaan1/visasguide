@@ -6,10 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
-import { Loader2, Sparkles, FileText, PenLine, Save } from "lucide-react";
+import { ImageUpload } from "@/components/admin/ImageUpload";
+import { Loader2, Sparkles, FileText, PenLine, Save, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 
 const PROMPT_TEMPLATES = [
   {
@@ -44,6 +46,9 @@ export default function AIContentStudio() {
   const [metaDescription, setMetaDescription] = useState("");
   const [keywords, setKeywords] = useState<string[]>([]);
   const [activeTemplate, setActiveTemplate] = useState("");
+  const [provider, setProvider] = useState<'openai' | 'deepseek'>('deepseek');
+  const [generateImage, setGenerateImage] = useState(false);
+  const [featuredImageUrl, setFeaturedImageUrl] = useState("");
 
   const handleGenerate = async () => {
     if (!prompt && !activeTemplate) {
@@ -63,7 +68,8 @@ export default function AIContentStudio() {
           contentType,
           visaType,
           country,
-          action: 'generate'
+          action: 'generate',
+          provider
         }
       });
 
@@ -92,6 +98,30 @@ export default function AIContentStudio() {
         title: "Content Generated!",
         description: `Used ${data.tokensUsed} tokens with ${data.model}`,
       });
+
+      // Generate image if requested
+      if (generateImage && title) {
+        try {
+          const imagePrompt = `Create a professional, high-quality featured image for a visa guide article titled: "${title}". The image should be relevant to visa and travel themes.`;
+          const { data: imgData, error: imgError } = await supabase.functions.invoke('ai-generate-content', {
+            body: {
+              prompt: imagePrompt,
+              action: 'generate_image',
+              provider
+            }
+          });
+
+          if (!imgError && imgData?.imageUrl) {
+            setFeaturedImageUrl(imgData.imageUrl);
+            toast({
+              title: "Image Generated!",
+              description: "Featured image has been created",
+            });
+          }
+        } catch (imgError: any) {
+          console.error('Image generation failed:', imgError);
+        }
+      }
     } catch (error: any) {
       toast({
         title: "Generation Failed",
@@ -156,7 +186,8 @@ export default function AIContentStudio() {
         is_published: status === 'published',
         author_id: userData.user?.id,
         ai_generated: true,
-        status
+        status,
+        featured_image_url: featuredImageUrl || null
       });
 
       if (error) throw error;
@@ -234,6 +265,19 @@ export default function AIContentStudio() {
                 </div>
 
                 <div>
+                  <Label>AI Provider</Label>
+                  <Select value={provider} onValueChange={(v) => setProvider(v as 'openai' | 'deepseek')}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="deepseek">DeepSeek (Recommended)</SelectItem>
+                      <SelectItem value="openai">OpenAI</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
                   <Label>Visa Type (Optional)</Label>
                   <Input
                     value={visaType}
@@ -250,6 +294,18 @@ export default function AIContentStudio() {
                     placeholder="e.g., Canada, United States"
                   />
                 </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="generate-image"
+                  checked={generateImage}
+                  onCheckedChange={setGenerateImage}
+                />
+                <Label htmlFor="generate-image" className="cursor-pointer">
+                  <ImageIcon className="inline-block mr-2 h-4 w-4" />
+                  Generate Featured Image with AI
+                </Label>
               </div>
 
               <div>
@@ -320,6 +376,17 @@ export default function AIContentStudio() {
                     placeholder="Your generated content will appear here..."
                   />
                 </div>
+
+                {featuredImageUrl && (
+                  <div>
+                    <Label>Featured Image</Label>
+                    <ImageUpload
+                      value={featuredImageUrl}
+                      onChange={setFeaturedImageUrl}
+                      label="Featured Image"
+                    />
+                  </div>
+                )}
 
                 <Tabs defaultValue="meta">
                   <TabsList>

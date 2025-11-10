@@ -7,6 +7,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper function to get OpenAI key
+async function getOpenAIKey(supabaseClient: any) {
+  const { data: openaiSettings } = await supabaseClient
+    .from('site_settings')
+    .select('setting_value')
+    .eq('setting_key', 'openai_api_key')
+    .single();
+  return openaiSettings?.setting_value?.key || Deno.env.get('OPENAI_API_KEY');
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -21,19 +31,57 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { data: openaiSettings } = await supabaseClient
-      .from('site_settings')
-      .select('setting_value')
-      .eq('setting_key', 'openai_api_key')
-      .single();
+    // Handle image generation
+    if (action === 'generate_image') {
+      const OPENAI_API_KEY = await getOpenAIKey(supabaseClient);
+      if (!OPENAI_API_KEY) {
+        return new Response(
+          JSON.stringify({ error: 'OpenAI API key not configured for image generation' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
 
+      const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-image-1',
+          prompt,
+          n: 1,
+          size: '1024x1024',
+          response_format: 'b64_json'
+        }),
+      });
+
+      if (!imageResponse.ok) {
+        const error = await imageResponse.text();
+        console.error('Image generation error:', error);
+        return new Response(
+          JSON.stringify({ error: 'Failed to generate image' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const imageData = await imageResponse.json();
+      const base64Image = imageData.data[0].b64_json;
+      const imageUrl = `data:image/png;base64,${base64Image}`;
+
+      return new Response(
+        JSON.stringify({ imageUrl }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     const { data: deepseekSettings } = await supabaseClient
       .from('site_settings')
       .select('setting_value')
       .eq('setting_key', 'deepseek_api_key')
       .single();
 
-    const OPENAI_API_KEY = openaiSettings?.setting_value?.key || Deno.env.get('OPENAI_API_KEY');
+    const OPENAI_API_KEY = await getOpenAIKey(supabaseClient);
     const DEEPSEEK_API_KEY = deepseekSettings?.setting_value?.key;
     
     // Choose provider based on parameter

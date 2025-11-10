@@ -1,19 +1,31 @@
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { CheckCircle, XCircle, AlertCircle, Clock, DollarSign, FileText, Globe, Plane } from "lucide-react";
+import { CheckCircle, XCircle, AlertCircle, Clock, DollarSign, FileText, Globe, Plane, Plus } from "lucide-react";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
 import { usePageTracking } from "@/hooks/useAnalytics";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
 
 const VisaRequirements = () => {
   const { slug } = useParams<{ slug: string }>();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   // Parse slug to get from and to country slugs (format: "india-to-uae")
   const slugParts = slug?.split("-to-");
@@ -21,6 +33,35 @@ const VisaRequirements = () => {
   const toSlug = slugParts?.[1];
 
   usePageTracking(`visa-requirements-${slug}`);
+
+  // Check if user is admin or freelancer
+  useEffect(() => {
+    const checkUserRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+      
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+      
+      setIsAdmin(roles && roles.some(r => r.role === 'admin' || r.role === 'moderator'));
+    };
+    checkUserRole();
+  }, []);
+
+  // Form state
+  const [formData, setFormData] = useState({
+    requirement_type: "visa_required",
+    max_stay_days: "",
+    processing_time_days: "",
+    fee_usd: "",
+    notes: "",
+    requirements: ""
+  });
 
   // Fetch countries
   const { data: countries = [] } = useQuery({
@@ -37,6 +78,56 @@ const VisaRequirements = () => {
 
   const fromCountry = countries.find(c => c.slug === fromSlug);
   const toCountry = countries.find(c => c.slug === toSlug);
+
+  // Add visa requirement mutation
+  const addMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const payload = {
+        from_country_id: fromCountry?.id,
+        to_country_id: toCountry?.id,
+        requirement_type: data.requirement_type,
+        max_stay_days: data.max_stay_days ? parseInt(data.max_stay_days) : null,
+        processing_time_days: data.processing_time_days ? parseInt(data.processing_time_days) : null,
+        fee_usd: data.fee_usd ? parseFloat(data.fee_usd) : null,
+        notes: data.notes || null,
+        requirements: data.requirements ? data.requirements.split(',').map((r: string) => r.trim()) : []
+      };
+
+      const { error } = await supabase
+        .from('visa_requirements')
+        .insert(payload);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['visa-requirement', fromCountry?.id, toCountry?.id] });
+      toast({
+        title: "Success",
+        description: "Visa requirement added successfully."
+      });
+      setIsAddDialogOpen(false);
+      setFormData({
+        requirement_type: "visa_required",
+        max_stay_days: "",
+        processing_time_days: "",
+        fee_usd: "",
+        notes: "",
+        requirements: ""
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    addMutation.mutate(formData);
+  };
 
   // Fetch visa requirement
   const { data: visaRequirement, isLoading } = useQuery({
@@ -268,6 +359,105 @@ const VisaRequirements = () => {
               <p className="text-muted-foreground mb-6">
                 We don't have visa requirement information for this country combination yet.
               </p>
+              
+              {isAdmin && (
+                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="mb-4">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Visa Data
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Add Visa Requirement</DialogTitle>
+                      <DialogDescription>
+                        Add visa requirement information for {fromCountry.name} → {toCountry.name}
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Requirement Type</Label>
+                        <Select value={formData.requirement_type} onValueChange={(value) => setFormData({...formData, requirement_type: value})}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="visa_free">Visa Free</SelectItem>
+                            <SelectItem value="visa_on_arrival">Visa on Arrival</SelectItem>
+                            <SelectItem value="e_visa">eVisa</SelectItem>
+                            <SelectItem value="visa_required">Visa Required</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label>Max Stay (days)</Label>
+                          <Input
+                            type="number"
+                            value={formData.max_stay_days}
+                            onChange={(e) => setFormData({...formData, max_stay_days: e.target.value})}
+                            placeholder="90"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Processing Time (days)</Label>
+                          <Input
+                            type="number"
+                            value={formData.processing_time_days}
+                            onChange={(e) => setFormData({...formData, processing_time_days: e.target.value})}
+                            placeholder="15"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Fee (USD)</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={formData.fee_usd}
+                            onChange={(e) => setFormData({...formData, fee_usd: e.target.value})}
+                            placeholder="80"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Requirements (comma-separated)</Label>
+                        <Textarea
+                          value={formData.requirements}
+                          onChange={(e) => setFormData({...formData, requirements: e.target.value})}
+                          placeholder="Valid passport, Travel insurance, Hotel booking"
+                          rows={3}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Notes</Label>
+                        <Textarea
+                          value={formData.notes}
+                          onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                          placeholder="Additional information..."
+                          rows={3}
+                        />
+                      </div>
+
+                      <div className="flex gap-2 justify-end">
+                        <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={addMutation.isPending}>
+                          {addMutation.isPending ? 'Adding...' : 'Add Requirement'}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              )}
+
               <Link 
                 to={`/countries/${toCountry.slug}`}
                 className="text-primary hover:underline"

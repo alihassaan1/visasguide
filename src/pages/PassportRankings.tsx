@@ -4,33 +4,60 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { Input } from "@/components/ui/input";
-import { Search, Trophy } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, Trophy, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
 const PassportRankings = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
 
-  const { data: countries, isLoading } = useQuery({
-    queryKey: ['passport-rankings', searchTerm],
+  const { data: allCountries, isLoading } = useQuery({
+    queryKey: ['passport-rankings-all'],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from('countries')
         .select('*')
         .not('passport_rank', 'is', null)
         .order('passport_rank', { ascending: true });
 
-      if (searchTerm) {
-        query = query.ilike('name', `%${searchTerm}%`);
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
       return data;
     }
   });
+
+  // Filter countries based on search term
+  const filteredCountries = useMemo(() => {
+    if (!allCountries) return [];
+    if (!searchTerm) return allCountries;
+    
+    return allCountries.filter(country =>
+      country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      country.code.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [allCountries, searchTerm]);
+
+  // Paginate filtered results
+  const totalPages = Math.ceil(filteredCountries.length / itemsPerPage);
+  const paginatedCountries = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredCountries.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredCountries, currentPage, itemsPerPage]);
+
+  // Reset to page 1 when search changes
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const getRankBadge = (rank: number) => {
     if (rank <= 3) return 'bg-yellow-500 text-white';
@@ -64,19 +91,26 @@ const PassportRankings = () => {
             <Input
               placeholder="Search countries..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="pl-10"
             />
           </div>
+          
+          {/* Results count */}
+          {filteredCountries.length > 0 && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredCountries.length)} of {filteredCountries.length} countries
+            </p>
+          )}
         </div>
 
         {/* What is the Strongest Passport */}
-        {countries && countries.length > 0 && !searchTerm && (
+        {allCountries && allCountries.length > 0 && !searchTerm && (
           <div className="mb-8 p-6 bg-muted/50 rounded-lg">
             <h2 className="text-2xl font-bold mb-3">What is the Strongest Passport in the World?</h2>
             <p className="text-muted-foreground">
-              The {countries[0].name} passport is the strongest passport in the world, with a score of {countries[0].passport_score} as of January 2025. 
-              It is followed by the {countries[1]?.name}, {countries[2]?.name}, {countries[3]?.name} and {countries[4]?.name} passports respectively, 
+              The {allCountries[0].name} passport is the strongest passport in the world, with a score of {allCountries[0].passport_score} as of January 2025. 
+              It is followed by the {allCountries[1]?.name}, {allCountries[2]?.name}, {allCountries[3]?.name} and {allCountries[4]?.name} passports respectively, 
               to complete the top-five list of strongest passports for January 2025.
             </p>
           </div>
@@ -88,56 +122,132 @@ const PassportRankings = () => {
         <div className="bg-card rounded-lg border overflow-hidden">
           {isLoading ? (
             <div className="p-8 text-center text-muted-foreground">Loading rankings...</div>
-          ) : countries && countries.length > 0 ? (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="font-bold">Country Name</TableHead>
-                    <TableHead className="font-bold">Passport Score</TableHead>
-                    <TableHead className="font-bold">Passport Rank</TableHead>
-                    <TableHead className="font-bold">Visa Free</TableHead>
-                    <TableHead className="font-bold">eTA</TableHead>
-                    <TableHead className="font-bold">Passport Free</TableHead>
-                    <TableHead className="font-bold">VOA</TableHead>
-                    <TableHead className="font-bold">eVisa</TableHead>
-                    <TableHead className="font-bold">Visa Required</TableHead>
-                    <TableHead className="font-bold">Entry Ban</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {countries.map((country) => (
-                    <TableRow key={country.id} className="hover:bg-muted/30">
-                      <TableCell>
-                        <Link 
-                          to={`/countries/${country.slug}`}
-                          className="flex items-center gap-2 hover:text-primary transition-colors font-medium"
-                        >
-                          <span className="text-xl">{country.flag_emoji || '🏳️'}</span>
-                          <span>{country.name}</span>
-                        </Link>
-                      </TableCell>
-                      <TableCell className="font-semibold">{country.passport_score || '-'}</TableCell>
-                      <TableCell>
-                        <Badge className={getRankBadge(country.passport_rank!)}>
-                          {country.passport_rank}
-                          {country.passport_rank === 1 ? 'st' : country.passport_rank === 2 ? 'nd' : country.passport_rank === 3 ? 'rd' : 'th'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{country.visa_free_destinations || 0}</TableCell>
-                      <TableCell>-</TableCell>
-                      <TableCell>-</TableCell>
-                      <TableCell>-</TableCell>
-                      <TableCell>-</TableCell>
-                      <TableCell>-</TableCell>
-                      <TableCell>-</TableCell>
+          ) : paginatedCountries && paginatedCountries.length > 0 ? (
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="font-bold">Country Name</TableHead>
+                      <TableHead className="font-bold">Passport Score</TableHead>
+                      <TableHead className="font-bold">Passport Rank</TableHead>
+                      <TableHead className="font-bold">Visa Free</TableHead>
+                      <TableHead className="font-bold">eTA</TableHead>
+                      <TableHead className="font-bold">Passport Free</TableHead>
+                      <TableHead className="font-bold">VOA</TableHead>
+                      <TableHead className="font-bold">eVisa</TableHead>
+                      <TableHead className="font-bold">Visa Required</TableHead>
+                      <TableHead className="font-bold">Entry Ban</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedCountries.map((country) => (
+                      <TableRow key={country.id} className="hover:bg-muted/30">
+                        <TableCell>
+                          <Link 
+                            to={`/countries/${country.slug}`}
+                            className="flex items-center gap-2 hover:text-primary transition-colors font-medium"
+                          >
+                            <span className="text-xl">{country.flag_emoji || '🏳️'}</span>
+                            <span>{country.name}</span>
+                          </Link>
+                        </TableCell>
+                        <TableCell className="font-semibold">{country.passport_score || '-'}</TableCell>
+                        <TableCell>
+                          <Badge className={getRankBadge(country.passport_rank!)}>
+                            {country.passport_rank}
+                            {country.passport_rank === 1 ? 'st' : country.passport_rank === 2 ? 'nd' : country.passport_rank === 3 ? 'rd' : 'th'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{country.visa_free_destinations || 0}</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>-</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between px-6 py-4 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    Page {currentPage} of {totalPages}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(1)}
+                      disabled={currentPage === 1}
+                    >
+                      First
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    
+                    {/* Page numbers */}
+                    <div className="flex gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => goToPage(pageNum)}
+                            className="w-9"
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                    >
+                      Last
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
-            <div className="p-8 text-center text-muted-foreground">No countries found.</div>
+            <div className="p-8 text-center text-muted-foreground">
+              {searchTerm ? `No countries found matching "${searchTerm}"` : 'No countries found.'}
+            </div>
           )}
         </div>
       </main>

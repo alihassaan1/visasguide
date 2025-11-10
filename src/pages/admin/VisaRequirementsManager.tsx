@@ -9,14 +9,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Edit, Search } from "lucide-react";
+import { Plus, Trash2, Edit, Search, Download, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 
 export default function VisaRequirementsManager() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0, country: '' });
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -159,6 +162,38 @@ export default function VisaRequirementsManager() {
     saveMutation.mutate(formData);
   };
 
+  const handleBulkImport = async () => {
+    if (!confirm('Import visa data for ALL countries? This will take several minutes and may use API credits.')) {
+      return;
+    }
+
+    setImporting(true);
+    const countriesWithCode = countries.filter(c => c.code && c.code.length === 2);
+    setImportProgress({ current: 0, total: countriesWithCode.length, country: '' });
+
+    for (let i = 0; i < countriesWithCode.length; i++) {
+      const country = countriesWithCode[i];
+      setImportProgress({ current: i + 1, total: countriesWithCode.length, country: country.name });
+      
+      try {
+        await supabase.functions.invoke('visa-data-import', {
+          body: { source: 'travel-buddy', fromCountryCodeFilter: country.code }
+        });
+        // Small delay to avoid overwhelming the API
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (error: any) {
+        console.error(`Failed to import ${country.name}:`, error);
+      }
+    }
+
+    setImporting(false);
+    queryClient.invalidateQueries({ queryKey: ['visa-requirements-admin'] });
+    toast({
+      title: 'Import Complete',
+      description: `Processed ${countriesWithCode.length} countries. Refresh to see updated data.`,
+    });
+  };
+
   const getRequirementBadge = (type: string) => {
     const colors: Record<string, string> = {
       visa_free: 'bg-green-500',
@@ -205,6 +240,22 @@ export default function VisaRequirementsManager() {
         </Card>
       </div>
 
+      {/* Bulk Import Progress */}
+      {importing && (
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Importing: {importProgress.country}</span>
+                <span className="text-sm text-muted-foreground">{importProgress.current} / {importProgress.total}</span>
+              </div>
+              <Progress value={(importProgress.current / importProgress.total) * 100} />
+              <p className="text-xs text-muted-foreground">This may take several minutes. Do not close this page.</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Actions */}
       <div className="flex gap-4 mb-6">
         <div className="relative flex-1">
@@ -216,6 +267,11 @@ export default function VisaRequirementsManager() {
             className="pl-10"
           />
         </div>
+
+        <Button onClick={handleBulkImport} disabled={importing} variant="secondary">
+          {importing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+          Bulk Import All
+        </Button>
         
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>

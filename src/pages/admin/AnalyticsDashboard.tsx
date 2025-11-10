@@ -62,27 +62,38 @@ const AnalyticsDashboard = () => {
   const { data: topCountryPages } = useQuery({
     queryKey: ['top-country-pages'],
     queryFn: async () => {
+      // Get all countries
       const { data: countries } = await supabase
         .from('countries')
-        .select('*')
-        .order('name');
+        .select('*');
       
-      const { data: searchStats } = await supabase
-        .from('search_stats')
-        .select('country_id, page_view_count, search_count')
-        .order('page_view_count', { ascending: false })
-        .limit(10);
+      // Get analytics events for country pages
+      const { data: analyticsEvents } = await supabase
+        .from('analytics_events')
+        .select('page_slug, event_type')
+        .eq('event_type', 'page_view');
       
-      if (!countries || !searchStats) return [];
+      if (!countries || !analyticsEvents) return [];
       
-      return searchStats.map(stat => {
-        const country = countries.find(c => c.id === stat.country_id);
-        return {
+      // Count views per country page (slug format: /country/[slug])
+      const countryPageViews: Record<string, number> = {};
+      analyticsEvents.forEach(event => {
+        if (event.page_slug?.startsWith('/country/')) {
+          const slug = event.page_slug.replace('/country/', '');
+          countryPageViews[slug] = (countryPageViews[slug] || 0) + 1;
+        }
+      });
+      
+      // Map to countries and sort by views
+      return countries
+        .map(country => ({
           country,
-          page_views: stat.page_view_count,
-          searches: stat.search_count
-        };
-      }).filter(item => item.country);
+          page_views: countryPageViews[country.slug] || 0,
+          searches: 0
+        }))
+        .filter(item => item.page_views > 0)
+        .sort((a, b) => b.page_views - a.page_views)
+        .slice(0, 10);
     }
   });
 

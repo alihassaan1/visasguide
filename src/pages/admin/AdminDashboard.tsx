@@ -48,12 +48,30 @@ export default function AdminDashboard() {
 
       const affiliateClicksTotal = affiliates?.reduce((sum, aff) => sum + (aff.click_count || 0), 0) || 0;
 
-      const totalViews = pages?.reduce((sum, page) => sum + (page.view_count || 0), 0) || 0;
+      // Get real analytics data
+      const { data: analyticsEvents } = await supabase
+        .from('analytics_events')
+        .select('event_type, page_slug, created_at');
+
+      const pageViews = analyticsEvents?.filter(e => e.event_type === 'page_view') || [];
+      const totalViews = pageViews.length;
       const aiGenerated = pages?.filter((p: any) => p.ai_generated).length || 0;
 
-      // Get top pages
+      // Count views per page slug from analytics
+      const pageViewCounts: Record<string, number> = {};
+      pageViews.forEach(view => {
+        if (view.page_slug) {
+          pageViewCounts[view.page_slug] = (pageViewCounts[view.page_slug] || 0) + 1;
+        }
+      });
+
+      // Get top pages with actual view counts
       const topPagesList = pages
-        ?.sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
+        ?.map(page => ({
+          ...page,
+          view_count: pageViewCounts[page.slug] || 0
+        }))
+        .sort((a, b) => b.view_count - a.view_count)
         .slice(0, 10) || [];
 
       setStats({
@@ -67,7 +85,7 @@ export default function AdminDashboard() {
 
       setTopPages(topPagesList);
 
-      // Generate monthly data from actual pages
+      // Generate monthly data from actual analytics
       const last6Months = Array.from({ length: 6 }, (_, i) => {
         const date = new Date();
         date.setMonth(date.getMonth() - (5 - i));
@@ -79,12 +97,15 @@ export default function AdminDashboard() {
       });
 
       const monthlyStats = last6Months.map(({ month, year, monthNum }) => {
+        const monthViews = pageViews.filter((view: any) => {
+          const viewDate = new Date(view.created_at);
+          return viewDate.getMonth() === monthNum && viewDate.getFullYear() === year;
+        }).length;
+        
         const monthPages = pages?.filter((p: any) => {
           const createdDate = new Date(p.created_at);
           return createdDate.getMonth() === monthNum && createdDate.getFullYear() === year;
         }) || [];
-        
-        const monthViews = monthPages.reduce((sum, page) => sum + (page.view_count || 0), 0);
         
         return {
           month,

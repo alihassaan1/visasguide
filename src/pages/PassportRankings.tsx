@@ -71,7 +71,7 @@ const PassportRankings = () => {
       <SEOHead 
         title="Passport Index Rankings 2025 - Global Passport Power Rankings"
         description="Discover the world's most powerful passports in 2025. Compare passport strength, visa-free destinations, and travel freedom by country."
-        canonical="https://visas.guide/passport-rankings"
+        canonical="https://visas.guide/passport-index"
         keywords={['passport rankings', 'passport index', 'strongest passports', 'visa-free travel', 'passport power', 'travel freedom']}
       />
 

@@ -78,8 +78,8 @@ const Header = () => {
             <Link to="/news" className="text-sm font-medium hover:text-primary transition-colors">
               News
             </Link>
-            <Link to="/passport-rankings" className="text-sm font-medium hover:text-primary transition-colors">
-              Passport Index
+            <Link to="/passport-index" className="text-sm font-medium hover:text-primary transition-colors">
+              Passport Index Rankings
             </Link>
           </nav>
 

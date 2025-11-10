@@ -13,12 +13,15 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 export default function APISettings() {
   const { toast } = useToast();
   const [openAIKey, setOpenAIKey] = useState("");
+  const [deepseekKey, setDeepseekKey] = useState("");
   const [model, setModel] = useState("gpt-4o-mini");
   const [maxTokens, setMaxTokens] = useState("2000");
   const [enableForFreelancers, setEnableForFreelancers] = useState(true);
   const [loading, setLoading] = useState(false);
   const [apiKeyValid, setApiKeyValid] = useState<boolean | null>(null);
+  const [deepseekKeyValid, setDeepseekKeyValid] = useState<boolean | null>(null);
   const [testingKey, setTestingKey] = useState(false);
+  const [testingDeepseek, setTestingDeepseek] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -30,6 +33,12 @@ export default function APISettings() {
         .from('site_settings')
         .select('setting_value')
         .eq('setting_key', 'openai_api_key')
+        .single();
+
+      const { data: deepseekData } = await supabase
+        .from('site_settings')
+        .select('setting_value')
+        .eq('setting_key', 'deepseek_api_key')
         .single();
 
       const { data: modelData } = await supabase
@@ -47,6 +56,10 @@ export default function APISettings() {
       if (keyData?.setting_value) {
         // @ts-ignore
         setOpenAIKey(keyData.setting_value.key || '');
+      }
+      if (deepseekData?.setting_value) {
+        // @ts-ignore
+        setDeepseekKey(deepseekData.setting_value.key || '');
       }
       if (modelData?.setting_value) {
         // @ts-ignore
@@ -66,10 +79,16 @@ export default function APISettings() {
   const saveSettings = async () => {
     setLoading(true);
     try {
-      // Save API key
+      // Save OpenAI API key
       await supabase.from('site_settings').upsert({
         setting_key: 'openai_api_key',
         setting_value: { key: openAIKey }
+      });
+
+      // Save DeepSeek API key
+      await supabase.from('site_settings').upsert({
+        setting_key: 'deepseek_api_key',
+        setting_value: { key: deepseekKey }
       });
 
       // Save model settings
@@ -104,7 +123,25 @@ export default function APISettings() {
 
       setOpenAIKey('');
       setApiKeyValid(null);
-      toast({ title: "API key cleared" });
+      toast({ title: "OpenAI API key cleared" });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const clearDeepseekKey = async () => {
+    try {
+      await supabase.from('site_settings')
+        .delete()
+        .eq('setting_key', 'deepseek_api_key');
+
+      setDeepseekKey('');
+      setDeepseekKeyValid(null);
+      toast({ title: "DeepSeek API key cleared" });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -153,11 +190,58 @@ export default function APISettings() {
     }
   };
 
+  const testDeepseekKey = async () => {
+    if (!deepseekKey) {
+      toast({
+        title: "Error",
+        description: "Please enter a DeepSeek API key first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setTestingDeepseek(true);
+    try {
+      // Test DeepSeek API connection
+      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${deepseekKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: [{ role: 'user', content: 'Test connection' }],
+          max_tokens: 10
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to connect to DeepSeek API');
+      }
+      
+      setDeepseekKeyValid(true);
+      toast({
+        title: "API Key Valid",
+        description: "Successfully connected to DeepSeek API",
+      });
+    } catch (error: any) {
+      setDeepseekKeyValid(false);
+      toast({
+        title: "API Key Invalid",
+        description: error.message || "Failed to connect to DeepSeek API",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingDeepseek(false);
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">API Settings</h1>
-        <p className="text-muted-foreground">Configure OpenAI API for AI content generation</p>
+        <p className="text-muted-foreground">Configure AI API keys for content generation</p>
       </div>
 
       {!openAIKey && (
@@ -234,6 +318,34 @@ export default function APISettings() {
           </div>
 
           <div>
+            <Label>DeepSeek API Key</Label>
+            <div className="flex gap-2">
+              <Input
+                type="password"
+                value={deepseekKey}
+                onChange={(e) => {
+                  setDeepseekKey(e.target.value);
+                  setDeepseekKeyValid(null);
+                }}
+                placeholder="sk-..."
+                className="font-mono"
+              />
+              <Button variant="outline" onClick={testDeepseekKey} disabled={testingDeepseek || !deepseekKey}>
+                {testingDeepseek ? "Testing..." : "Test"}
+              </Button>
+              <Button variant="outline" onClick={clearDeepseekKey}>
+                Clear
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              Get your API key from{" "}
+              <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener noreferrer" className="underline">
+                DeepSeek Platform
+              </a>
+            </p>
+          </div>
+
+          <div>
             <Label>Model</Label>
             <Select value={model} onValueChange={setModel}>
               <SelectTrigger>
@@ -289,8 +401,9 @@ export default function APISettings() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>• GPT-4o Mini is recommended for most use cases - great balance of quality and cost</p>
+          <p>• DeepSeek is a cost-effective alternative to OpenAI with competitive performance</p>
           <p>• Monitor your OpenAI usage at platform.openai.com to track costs</p>
-          <p>• Set billing limits on your OpenAI account to prevent unexpected charges</p>
+          <p>• Set billing limits on your API accounts to prevent unexpected charges</p>
           <p>• Each content generation typically uses 1,000-2,500 tokens</p>
         </CardContent>
       </Card>

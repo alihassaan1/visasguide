@@ -34,6 +34,7 @@ import NewsletterManager from "./pages/admin/NewsletterManager";
 import AnalyticsDashboard from "./pages/admin/AnalyticsDashboard";
 import VisaRequirementsManager from "./pages/admin/VisaRequirementsManager";
 import DataImporter from "./pages/admin/DataImporter";
+import SiteSettings from "./pages/admin/SiteSettings";
 import ContentPage from "./pages/ContentPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -87,6 +88,7 @@ const App = () => (
             <Route path="monetization" element={<MonetizationSettings />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="api-settings" element={<APISettings />} />
+            <Route path="settings" element={<SiteSettings />} />
             <Route path="newsletter" element={<NewsletterManager />} />
           </Route>
           

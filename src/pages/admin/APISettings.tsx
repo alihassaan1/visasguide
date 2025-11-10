@@ -202,23 +202,23 @@ export default function APISettings() {
 
     setTestingDeepseek(true);
     try {
-      // Test DeepSeek API connection
-      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${deepseekKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'deepseek-chat',
-          messages: [{ role: 'user', content: 'Test connection' }],
-          max_tokens: 10
-        })
+      // Save key first before testing
+      await supabase.from('site_settings').upsert({
+        setting_key: 'deepseek_api_key',
+        setting_value: { key: deepseekKey }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to connect to DeepSeek API');
-      }
+      // Test DeepSeek API connection through edge function
+      const { data, error } = await supabase.functions.invoke('ai-generate-content', {
+        body: {
+          prompt: "Test connection",
+          contentType: "Test",
+          action: 'generate',
+          provider: 'deepseek'
+        }
+      });
+
+      if (error) throw error;
       
       setDeepseekKeyValid(true);
       toast({

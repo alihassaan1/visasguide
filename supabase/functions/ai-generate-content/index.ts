@@ -13,25 +13,39 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, contentType, visaType, country, action = 'generate' } = await req.json();
+    const { prompt, contentType, visaType, country, action = 'generate', provider = 'openai' } = await req.json();
     
-    // Get OpenAI API key from settings
+    // Get API keys from settings
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { data: settings } = await supabaseClient
+    const { data: openaiSettings } = await supabaseClient
       .from('site_settings')
       .select('setting_value')
       .eq('setting_key', 'openai_api_key')
       .single();
 
-    const OPENAI_API_KEY = settings?.setting_value?.key || Deno.env.get('OPENAI_API_KEY');
+    const { data: deepseekSettings } = await supabaseClient
+      .from('site_settings')
+      .select('setting_value')
+      .eq('setting_key', 'deepseek_api_key')
+      .single();
+
+    const OPENAI_API_KEY = openaiSettings?.setting_value?.key || Deno.env.get('OPENAI_API_KEY');
+    const DEEPSEEK_API_KEY = deepseekSettings?.setting_value?.key;
     
-    if (!OPENAI_API_KEY) {
+    // Choose provider based on parameter
+    const useDeepseek = provider === 'deepseek' && DEEPSEEK_API_KEY;
+    const API_KEY = useDeepseek ? DEEPSEEK_API_KEY : OPENAI_API_KEY;
+    const apiUrl = useDeepseek 
+      ? 'https://api.deepseek.com/v1/chat/completions'
+      : 'https://api.openai.com/v1/chat/completions';
+    
+    if (!API_KEY) {
       return new Response(
-        JSON.stringify({ error: 'OpenAI API key not configured' }),
+        JSON.stringify({ error: `${useDeepseek ? 'DeepSeek' : 'OpenAI'} API key not configured` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -43,7 +57,9 @@ serve(async (req) => {
       .eq('setting_key', 'openai_model')
       .single();
 
-    const model = modelSettings?.setting_value?.model || 'gpt-4o-mini';
+    const model = useDeepseek 
+      ? 'deepseek-chat'
+      : (modelSettings?.setting_value?.model || 'gpt-4o-mini');
 
     let systemPrompt = `You are an expert travel and visa content writer for Visas.Guide. 
     Create SEO-optimized, accurate, and helpful content about visa requirements and travel documentation.
@@ -76,10 +92,10 @@ serve(async (req) => {
       }
     }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -95,9 +111,9 @@ serve(async (req) => {
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('OpenAI API error:', error);
+      console.error(`${useDeepseek ? 'DeepSeek' : 'OpenAI'} API error:`, error);
       return new Response(
-        JSON.stringify({ error: 'Failed to generate content' }),
+        JSON.stringify({ error: `Failed to generate content: ${error}` }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

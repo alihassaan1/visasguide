@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Users, FileText, Sparkles, Eye, TrendingUp, DollarSign, RefreshCw } from "lucide-react";
+import { Users, FileText, Sparkles, Eye, TrendingUp, DollarSign } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 
 export default function AdminDashboard() {
@@ -129,19 +129,9 @@ export default function AdminDashboard() {
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Complete overview of Visas.Guide performance</p>
-        </div>
-        <button
-          onClick={loadDashboard}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-        >
-          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </button>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+        <p className="text-muted-foreground">Complete overview of Visas.Guide performance</p>
       </div>
 
       {/* Stats Grid */}

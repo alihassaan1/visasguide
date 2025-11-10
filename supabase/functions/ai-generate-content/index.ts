@@ -109,6 +109,26 @@ serve(async (req) => {
       }),
     });
 
+    // Handle test connection separately
+    if (action === 'test_connection') {
+      if (!response.ok) {
+        const errorText = await response.text();
+        let reason = errorText;
+        try {
+          const parsed = JSON.parse(errorText);
+          reason = parsed?.error?.message || parsed?.message || errorText;
+        } catch {}
+        console.error(`${useDeepseek ? 'DeepSeek' : 'OpenAI'} test failed:`, reason);
+        const lowered = String(reason).toLowerCase();
+        const isInsufficient = lowered.includes('insufficient balance') || lowered.includes('insufficient_quota') || lowered.includes('insufficient');
+        return new Response(
+          JSON.stringify({ ok: false, reason, code: isInsufficient ? 'insufficient_balance' : 'error' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     if (!response.ok) {
       const error = await response.text();
       console.error(`${useDeepseek ? 'DeepSeek' : 'OpenAI'} API error:`, error);

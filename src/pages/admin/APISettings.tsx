@@ -208,28 +208,34 @@ export default function APISettings() {
         setting_value: { key: deepseekKey }
       });
 
-      // Test DeepSeek API connection through edge function
+      // Test DeepSeek API connection through edge function (returns { ok: boolean, reason?: string })
       const { data, error } = await supabase.functions.invoke('ai-generate-content', {
         body: {
           prompt: "Test connection",
           contentType: "Test",
-          action: 'generate',
+          action: 'test_connection',
           provider: 'deepseek'
         }
       });
 
       if (error) throw error;
-      
-      setDeepseekKeyValid(true);
-      toast({
-        title: "API Key Valid",
-        description: "Successfully connected to DeepSeek API",
-      });
+
+      if (data?.ok) {
+        setDeepseekKeyValid(true);
+        toast({ title: "API Key Valid", description: "Successfully connected to DeepSeek API" });
+      } else {
+        setDeepseekKeyValid(false);
+        toast({
+          title: "API Key Invalid",
+          description: data?.reason || "Failed to connect to DeepSeek API",
+          variant: "destructive",
+        });
+      }
     } catch (error: any) {
       setDeepseekKeyValid(false);
       toast({
         title: "API Key Invalid",
-        description: error.message || "Failed to connect to DeepSeek API",
+        description: error?.message || "Edge function error while testing DeepSeek API",
         variant: "destructive",
       });
     } finally {

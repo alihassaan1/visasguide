@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +35,7 @@ const PROMPT_TEMPLATES = [
 export default function AIContentStudio() {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   
   const [loading, setLoading] = useState(false);
   const [contentType, setContentType] = useState("Evergreen Guide");
@@ -50,6 +51,40 @@ export default function AIContentStudio() {
   const [generateImage, setGenerateImage] = useState(false);
   const [featuredImageUrl, setFeaturedImageUrl] = useState("");
   const [draftId, setDraftId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (editId) {
+      loadExistingContent(editId);
+    }
+  }, [searchParams]);
+
+  const loadExistingContent = async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('content_pages')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setTitle(data.title || '');
+        setContent(data.content || '');
+        setMetaDescription(data.meta_description || '');
+        setKeywords(data.keywords || []);
+        setFeaturedImageUrl(data.featured_image_url || '');
+        setDraftId(data.id);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error Loading Content",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleGenerate = async () => {
     if (!prompt && !activeTemplate) {

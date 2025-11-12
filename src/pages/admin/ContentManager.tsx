@@ -92,7 +92,7 @@ export default function ContentManager() {
           <h1 className="text-3xl font-bold mb-2">Content Manager</h1>
           <p className="text-muted-foreground">Manage all content pages and articles</p>
         </div>
-        <Button onClick={() => navigate("/admin")}>
+        <Button onClick={() => navigate("/admin/ai-content-studio")}>
           <Plus className="mr-2 h-4 w-4" />
           Create New Page
         </Button>
@@ -157,7 +157,7 @@ export default function ContentManager() {
           ) : filteredPages.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground mb-4">No pages found</p>
-              <Button onClick={() => navigate("/admin")}>
+              <Button onClick={() => navigate("/admin/ai-content-studio")}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create Your First Page
               </Button>
@@ -210,7 +210,7 @@ export default function ContentManager() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => navigate("/admin")}
+                          onClick={() => navigate(`/admin/ai-content-studio?edit=${page.id}`)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>

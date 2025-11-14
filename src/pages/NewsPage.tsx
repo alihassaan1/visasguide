@@ -82,7 +82,7 @@ const NewsPage = () => {
             "@type": "WebPage",
             "name": "Latest Visa & Travel News - Visas Guide",
             "description": "Stay updated with the latest visa requirements, travel restrictions, and immigration news from around the world. Real-time updates on visa policy changes.",
-            "url": "https://visas.guide/news",
+            "url": "https://visas.guide/blog",
             "mainEntity": {
               "@type": "Blog",
               "name": "Visa & Travel News",
@@ -162,7 +162,7 @@ const NewsPage = () => {
                     </div>
                     <CardTitle className="line-clamp-2">
                       <Link 
-                        to={`/news/${article.slug}`}
+                        to={`/blog/${article.slug}`}
                         className="hover:text-primary transition-colors"
                       >
                         {article.title}
@@ -245,7 +245,7 @@ const NewsPage = () => {
                     </div>
                     <CardTitle className="line-clamp-2">
                       <Link 
-                        to={`/news/${article.slug}`}
+                        to={`/blog/${article.slug}`}
                         className="hover:text-primary transition-colors"
                       >
                         {article.title}

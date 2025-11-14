@@ -102,7 +102,7 @@ const NewsArticle = () => {
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Article Not Found</h1>
             <p className="text-muted-foreground mb-6">The article you're looking for doesn't exist.</p>
-            <Link to="/news">
+            <Link to="/blog">
               <Button>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to News
@@ -127,7 +127,7 @@ const NewsArticle = () => {
       <SEOHead
         title={metaTitle}
         description={metaDescription}
-        canonical={`https://visas.guide/news/${article.slug}`}
+        canonical={`https://visas.guide/blog/${article.slug}`}
         ogType="article"
         articlePublishedTime={article.published_at || undefined}
         articleModifiedTime={article.updated_at}
@@ -144,7 +144,7 @@ const NewsArticle = () => {
             "@type": "NewsArticle",
             "headline": article.title,
             "description": article.excerpt,
-            "url": `https://visas.guide/news/${article.slug}`,
+            "url": `https://visas.guide/blog/${article.slug}`,
             "datePublished": article.published_at,
             "dateModified": article.updated_at,
             "author": {
@@ -174,7 +174,7 @@ const NewsArticle = () => {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link to="/news">News</Link>
+                <Link to="/blog">Blog</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
@@ -186,7 +186,7 @@ const NewsArticle = () => {
 
         {/* Back Button */}
         <div className="mb-6">
-          <Link to="/news">
+          <Link to="/blog">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to News
@@ -320,7 +320,7 @@ const NewsArticle = () => {
                     </div>
                     <h3 className="font-semibold line-clamp-2 mb-2">
                       <Link 
-                        to={`/news/${related.slug}`}
+                        to={`/blog/${related.slug}`}
                         className="hover:text-primary transition-colors"
                       >
                         {related.title}

@@ -49,7 +49,7 @@ const Header = () => {
           { label: "Countries", url: "/countries", order: 0 },
           { label: "Visa Search", url: "/visa-search", order: 1 },
           { label: "Guides", url: "/guides", order: 2 },
-          { label: "Blog", url: "/news", order: 3 },
+          { label: "Blog", url: "/blog", order: 3 },
           { label: "Passport Index Rankings", url: "/passport-index", order: 4 }
         ]);
       }

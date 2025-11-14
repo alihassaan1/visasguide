@@ -9,7 +9,7 @@ const Sitemap = () => {
       { url: "https://visas.guide/countries", priority: "0.9", changefreq: "daily" },
       { url: "https://visas.guide/visa-search", priority: "0.9", changefreq: "daily" },
       { url: "https://visas.guide/guides", priority: "0.8", changefreq: "daily" },
-      { url: "https://visas.guide/news", priority: "0.7", changefreq: "hourly" },
+      { url: "https://visas.guide/blog", priority: "0.7", changefreq: "hourly" },
       { url: "https://visas.guide/passport-index", priority: "0.7", changefreq: "weekly" },
       { url: "https://visas.guide/processing-times", priority: "0.6", changefreq: "weekly" },
       { url: "https://visas.guide/requirements", priority: "0.6", changefreq: "weekly" },

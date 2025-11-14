@@ -138,9 +138,9 @@ export default function MonetizationSettings() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Monetization Settings</h1>
+    <div className="container mx-auto p-3 sm:p-6 max-w-7xl">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Monetization Settings</h1>
         <p className="text-muted-foreground">Manage AdSense and affiliate banners</p>
       </div>
 

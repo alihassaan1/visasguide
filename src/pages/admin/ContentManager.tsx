@@ -86,13 +86,13 @@ export default function ContentManager() {
   );
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="container mx-auto p-3 sm:p-6 max-w-7xl">
+      <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Content Manager</h1>
-          <p className="text-muted-foreground">Manage all content pages and articles</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Content Manager</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Manage all content pages and articles</p>
         </div>
-        <Button onClick={() => navigate("/admin/ai-content-studio")}>
+        <Button onClick={() => navigate("/admin/ai-content-studio")} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Create New Page
         </Button>
@@ -112,32 +112,32 @@ export default function ContentManager() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
         <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Total Pages</CardDescription>
-            <CardTitle className="text-3xl">{pages.length}</CardTitle>
+          <CardHeader className="pb-2 sm:pb-3">
+            <CardDescription className="text-xs sm:text-sm">Total Pages</CardDescription>
+            <CardTitle className="text-2xl sm:text-3xl">{pages.length}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Published</CardDescription>
-            <CardTitle className="text-3xl">
+          <CardHeader className="pb-2 sm:pb-3">
+            <CardDescription className="text-xs sm:text-sm">Published</CardDescription>
+            <CardTitle className="text-2xl sm:text-3xl">
               {pages.filter((p) => p.is_published).length}
             </CardTitle>
           </CardHeader>
         </Card>
         <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Total Views</CardDescription>
-            <CardTitle className="text-3xl">
+          <CardHeader className="pb-2 sm:pb-3">
+            <CardDescription className="text-xs sm:text-sm">Total Views</CardDescription>
+            <CardTitle className="text-2xl sm:text-3xl">
               {pages.reduce((sum, p) => sum + (p.view_count || 0), 0).toLocaleString()}
             </CardTitle>
           </CardHeader>
         </Card>
         <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>AI Generated</CardDescription>
+          <CardHeader className="pb-2 sm:pb-3">
+            <CardDescription className="text-xs sm:text-sm">AI Generated</CardDescription>
             <CardTitle className="text-3xl">
               {pages.filter((p) => p.ai_generated).length}
             </CardTitle>
@@ -148,22 +148,24 @@ export default function ContentManager() {
       {/* Pages Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Pages</CardTitle>
-          <CardDescription>Manage and edit your content pages</CardDescription>
+          <CardTitle className="text-lg sm:text-xl">All Pages</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">Manage and edit your content pages</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p>Loading...</p>
+            <p className="text-sm sm:text-base">Loading...</p>
           ) : filteredPages.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground mb-4">No pages found</p>
-              <Button onClick={() => navigate("/admin/ai-content-studio")}>
+            <div className="text-center py-8 sm:py-12">
+              <p className="text-sm sm:text-base text-muted-foreground mb-4">No pages found</p>
+              <Button onClick={() => navigate("/admin/ai-content-studio")} className="w-full sm:w-auto">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Your First Page
               </Button>
             </div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <div className="inline-block min-w-full align-middle">
+                <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>
@@ -178,53 +180,37 @@ export default function ContentManager() {
               <TableBody>
                 {filteredPages.map((page) => (
                   <TableRow key={page.id}>
-                    <TableCell className="font-medium">{page.title}</TableCell>
-                    <TableCell className="font-mono text-sm">/{page.slug}</TableCell>
+                    <TableCell className="font-medium text-xs sm:text-sm">{page.title}</TableCell>
+                    <TableCell className="text-xs sm:text-sm">/{page.slug}</TableCell>
                     <TableCell>
-                      <Badge variant={page.is_published ? "default" : "secondary"}>
+                      <Badge variant={page.is_published ? "default" : "secondary"} className="text-xs">
                         {page.is_published ? "Published" : "Draft"}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={page.ai_generated ? "outline" : "secondary"}>
-                        {page.ai_generated ? "AI" : "User"}
+                    <TableCell className="text-xs sm:text-sm">{page.created_by || "-"}</TableCell>
+                    <TableCell className="text-xs sm:text-sm">
+                      <Badge variant="outline" className="text-xs">
+                        <Eye className="h-3 w-3 mr-1" />
+                        {page.view_count || 0}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <TrendingUp className="h-3 w-3 text-primary" />
-                        {(page.view_count || 0).toLocaleString()}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {new Date(page.created_at).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'short', 
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                    <TableCell className="text-xs sm:text-sm">
+                      {new Date(page.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => window.open(`/${page.slug}`, "_blank")}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                      <div className="flex gap-1 sm:gap-2">
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => navigate(`/admin/ai-content-studio?edit=${page.id}`)}
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => togglePublish(page.id, page.is_published)}
+                          className="text-xs hidden sm:inline-flex"
                         >
                           {page.is_published ? "Unpublish" : "Publish"}
                         </Button>
@@ -233,7 +219,7 @@ export default function ContentManager() {
                           variant="ghost"
                           onClick={() => handleDelete(page.id)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                       </div>
                     </TableCell>
@@ -241,6 +227,8 @@ export default function ContentManager() {
                 ))}
               </TableBody>
             </Table>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

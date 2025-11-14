@@ -331,40 +331,40 @@ export default function AIContentStudio() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">AI Content Studio</h1>
+    <div className="container mx-auto p-3 sm:p-6 max-w-7xl">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">AI Content Studio</h1>
         <p className="text-muted-foreground">Generate SEO-optimized visa guides and articles with AI</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Prompt Templates Sidebar */}
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle className="text-lg">Prompt Templates</CardTitle>
-            <CardDescription>Quick-start templates for common content types</CardDescription>
+            <CardTitle className="text-base sm:text-lg">Prompt Templates</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">Quick-start templates for common content types</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             {PROMPT_TEMPLATES.map((template) => (
               <Button
                 key={template.name}
                 variant={activeTemplate === template.template ? "default" : "outline"}
-                className="w-full justify-start text-left"
+                className="w-full justify-start text-left text-xs sm:text-sm"
                 onClick={() => applyTemplate(template.template)}
               >
-                <FileText className="mr-2 h-4 w-4" />
-                {template.name}
+                <FileText className="mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                <span className="truncate">{template.name}</span>
               </Button>
             ))}
           </CardContent>
         </Card>
 
         {/* Main Content Area */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Generation Controls */}
           <Card>
             <CardHeader>
-              <CardTitle>Content Configuration</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Content Configuration</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

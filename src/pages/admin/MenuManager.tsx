@@ -139,9 +139,9 @@ export default function MenuManager() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Menu Manager</h1>
+    <div className="container mx-auto p-3 sm:p-6 max-w-4xl">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Menu Manager</h1>
         <p className="text-muted-foreground">
           Manage navigation menu items that appear in the header
         </p>
@@ -156,8 +156,8 @@ export default function MenuManager() {
         </CardHeader>
         <CardContent className="space-y-4">
           {menuItems.map((item, index) => (
-            <div key={index} className="flex items-end gap-3 p-4 border rounded-lg bg-muted/50">
-              <div className="flex items-center gap-2">
+            <div key={index} className="flex flex-col sm:flex-row items-start sm:items-end gap-3 p-3 sm:p-4 border rounded-lg bg-muted/50">
+              <div className="flex items-center gap-2 self-start sm:self-auto">
                 <div className="flex flex-col gap-1">
                   <Button
                     variant="ghost"
@@ -181,7 +181,7 @@ export default function MenuManager() {
                 <GripVertical className="h-5 w-5 text-muted-foreground" />
               </div>
 
-              <div className="flex-1 grid grid-cols-2 gap-3">
+              <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor={`label-${index}`}>Label</Label>
                   <Input

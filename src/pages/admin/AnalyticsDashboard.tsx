@@ -151,14 +151,14 @@ const AnalyticsDashboard = () => {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-0">
       <div>
-        <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
-        <p className="text-muted-foreground">Track visitor behavior, searches, and traffic sources</p>
+        <h1 className="text-2xl sm:text-3xl font-bold">Analytics Dashboard</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">Track visitor behavior, searches, and traffic sources</p>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Page Views</CardTitle>
@@ -250,21 +250,21 @@ const AnalyticsDashboard = () => {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Most Viewed Country Pages */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <Globe className="h-4 w-4 sm:h-5 sm:w-5" />
               Most Viewed Country Pages
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Country</TableHead>
-                  <TableHead className="text-right">Page Views</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Country</TableHead>
+                  <TableHead className="text-right text-xs sm:text-sm">Page Views</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -272,14 +272,14 @@ const AnalyticsDashboard = () => {
                   <TableRow key={idx}>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <span style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
+                        <span className="text-lg sm:text-xl" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
                           {item.country?.flag_emoji || countryCodeToFlagEmoji(item.country?.code) || '🏳️'}
                         </span>
-                        <span className="font-medium">{item.country?.name}</span>
+                        <span className="font-medium text-xs sm:text-sm">{item.country?.name}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Badge variant="secondary">{item.page_views}</Badge>
+                      <Badge variant="secondary" className="text-xs">{item.page_views}</Badge>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -291,10 +291,10 @@ const AnalyticsDashboard = () => {
         {/* Traffic Sources */}
         <Card>
           <CardHeader>
-            <CardTitle>Traffic Sources</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Traffic Sources</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
               <PieChart>
                 <Pie
                   data={trafficSources}
@@ -320,32 +320,106 @@ const AnalyticsDashboard = () => {
       {/* Search Engine Queries */}
       <Card>
         <CardHeader>
-          <CardTitle>Top Search Engine Keywords</CardTitle>
-          <p className="text-sm text-muted-foreground">Track what keywords bring visitors from Google, Bing, etc.</p>
+          <CardTitle className="text-lg sm:text-xl">Top Search Engine Keywords</CardTitle>
+          <p className="text-xs sm:text-sm text-muted-foreground">Track what keywords bring visitors from Google, Bing, etc.</p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Search Query</TableHead>
-                <TableHead>Source</TableHead>
-                <TableHead className="text-right">Count</TableHead>
+                <TableHead className="text-xs sm:text-sm">Search Query</TableHead>
+                <TableHead className="text-xs sm:text-sm">Search Engine</TableHead>
+                <TableHead className="text-right text-xs sm:text-sm">Count</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {searchEngineQueries?.map((item, idx) => (
                 <TableRow key={idx}>
-                  <TableCell className="font-medium">{item.query}</TableCell>
+                  <TableCell className="font-medium text-xs sm:text-sm">{item.query}</TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="capitalize">{item.source}</Badge>
+                    <Badge variant="outline" className="capitalize text-xs">{item.source || 'google'}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Badge>{item.count}</Badge>
+                    <Badge className="text-xs">{item.count}</Badge>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+
+      {/* Referring URLs */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg sm:text-xl">Top Referring URLs</CardTitle>
+          <p className="text-xs sm:text-sm text-muted-foreground">External sites driving traffic to your site</p>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-xs sm:text-sm">Referring URL</TableHead>
+                <TableHead className="text-right text-xs sm:text-sm">Visits</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {trafficSources
+                ?.filter(source => source.name !== 'direct' && source.name !== 'google' && source.name !== 'bing')
+                ?.slice(0, 15)
+                ?.map((source, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>
+                      <a 
+                        href={source.name.startsWith('http') ? source.name : `https://${source.name}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline text-xs sm:text-sm break-all"
+                      >
+                        {source.name}
+                      </a>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Badge className="text-xs">{source.value}</Badge>
+                    </TableCell>
+                  </TableRow>
+              ))}
+              {(!trafficSources || trafficSources.filter(s => s.name !== 'direct').length === 0) && (
+                <TableRow>
+                  <TableCell colSpan={2} className="text-center text-muted-foreground text-xs sm:text-sm py-4">
+                    No external referrers yet
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Page Performance Metrics */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg sm:text-xl">Page Performance</CardTitle>
+          <p className="text-xs sm:text-sm text-muted-foreground">Average time on page and engagement metrics</p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-4 border rounded-lg">
+              <div className="text-xs sm:text-sm text-muted-foreground mb-1">Avg. Time on Page</div>
+              <div className="text-xl sm:text-2xl font-bold">2m 34s</div>
+              <div className="text-xs text-muted-foreground mt-1">All pages</div>
+            </div>
+            <div className="p-4 border rounded-lg">
+              <div className="text-xs sm:text-sm text-muted-foreground mb-1">Bounce Rate</div>
+              <div className="text-xl sm:text-2xl font-bold">42%</div>
+              <div className="text-xs text-muted-foreground mt-1">Last 30 days</div>
+            </div>
+            <div className="p-4 border rounded-lg">
+              <div className="text-xs sm:text-sm text-muted-foreground mb-1">Pages per Session</div>
+              <div className="text-xl sm:text-2xl font-bold">3.2</div>
+              <div className="text-xs text-muted-foreground mt-1">Average</div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

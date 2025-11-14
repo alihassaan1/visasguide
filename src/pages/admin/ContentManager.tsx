@@ -169,6 +169,7 @@ export default function ContentManager() {
                   <TableHead>Title</TableHead>
                   <TableHead>Slug</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Created By</TableHead>
                   <TableHead>Views</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Actions</TableHead>
@@ -183,11 +184,11 @@ export default function ContentManager() {
                       <Badge variant={page.is_published ? "default" : "secondary"}>
                         {page.is_published ? "Published" : "Draft"}
                       </Badge>
-                      {page.ai_generated && (
-                        <Badge variant="outline" className="ml-2">
-                          AI
-                        </Badge>
-                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={page.ai_generated ? "outline" : "secondary"}>
+                        {page.ai_generated ? "AI" : "User"}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
@@ -196,7 +197,13 @@ export default function ContentManager() {
                       </div>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {new Date(page.created_at).toLocaleDateString()}
+                      {new Date(page.created_at).toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">

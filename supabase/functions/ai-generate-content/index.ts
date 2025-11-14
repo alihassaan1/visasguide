@@ -109,7 +109,45 @@ serve(async (req) => {
       ? 'deepseek-chat'
       : (modelSettings?.setting_value?.model || 'gpt-4o-mini');
 
-    let systemPrompt = `You are an expert travel and visa content writer for Visas.Guide. 
+    // Handle meta generation actions
+    if (action === 'generate_meta' || action === 'generate_keywords') {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: 'You are an SEO expert. Return only the requested content without any additional text or formatting.' },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.7,
+          max_tokens: 200,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error(`API Error:`, error);
+        throw new Error(`API request failed: ${error}`);
+      }
+
+      const data = await response.json();
+      const generatedContent = data.choices[0].message.content.trim();
+
+      return new Response(
+        JSON.stringify({ 
+          content: generatedContent,
+          tokensUsed: data.usage?.total_tokens || 0,
+          model 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    let systemPrompt = `You are an expert travel and visa content writer for Visas.Guide.
     Create SEO-optimized, accurate, and helpful content about visa requirements and travel documentation.
     Format your response in HTML with proper headings, paragraphs, lists, and structure.`;
 

@@ -22,12 +22,27 @@ export default function ContentPage() {
 
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        // Check if user is admin to allow viewing drafts
+        const { data: { user } } = await supabase.auth.getUser();
+        const { data: userRole } = user ? await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .maybeSingle() : { data: null };
+        
+        const isAdmin = userRole?.role === 'admin';
+        
+        // Build query - admins can see all, others only published
+        let query = supabase
           .from('content_pages')
           .select('*')
-          .eq('slug', slug)
-          .eq('is_published', true)
-          .maybeSingle();
+          .eq('slug', slug);
+        
+        if (!isAdmin) {
+          query = query.eq('is_published', true);
+        }
+        
+        const { data, error } = await query.maybeSingle();
 
         if (error) throw error;
 
@@ -102,6 +117,16 @@ export default function ContentPage() {
       />
 
       <Header />
+      
+      {!page.is_published && (
+        <div className="bg-yellow-500/10 border-b border-yellow-500/20 py-3">
+          <div className="container mx-auto px-4">
+            <p className="text-center text-sm font-medium text-yellow-700 dark:text-yellow-500">
+              📝 Preview Mode: This page is not published yet
+            </p>
+          </div>
+        </div>
+      )}
       
       <main className="container mx-auto px-4 py-12">
         {/* Breadcrumbs */}

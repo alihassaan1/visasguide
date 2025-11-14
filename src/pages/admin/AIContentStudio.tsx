@@ -51,6 +51,8 @@ export default function AIContentStudio() {
   const [generateImage, setGenerateImage] = useState(false);
   const [featuredImageUrl, setFeaturedImageUrl] = useState("");
   const [draftId, setDraftId] = useState<string | null>(null);
+  const [slug, setSlug] = useState("");
+  const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
     const editId = searchParams.get('edit');
@@ -75,7 +77,9 @@ export default function AIContentStudio() {
         setMetaDescription(data.meta_description || '');
         setKeywords(data.keywords || []);
         setFeaturedImageUrl(data.featured_image_url || '');
+        setSlug(data.slug || '');
         setDraftId(data.id);
+        setIsEditMode(true);
       }
     } catch (error: any) {
       toast({
@@ -240,17 +244,18 @@ export default function AIContentStudio() {
     }
 
     try {
-      const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const pageSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
       if (draftId) {
         const { error } = await supabase.from('content_pages').update({
           title,
-          slug,
+          slug: pageSlug,
           content,
           meta_description: metaDescription,
+          meta_title: title,
           keywords,
           is_published: status === 'published',
-          ai_generated: true,
+          ai_generated: isEditMode ? undefined : true,
           status,
           featured_image_url: featuredImageUrl || null
         }).eq('id', draftId);
@@ -260,9 +265,10 @@ export default function AIContentStudio() {
         const { data: userData } = await supabase.auth.getUser();
         const { error } = await supabase.from('content_pages').insert({
           title,
-          slug,
+          slug: pageSlug,
           content,
           meta_description: metaDescription,
+          meta_title: title,
           keywords,
           is_published: status === 'published',
           author_id: userData.user?.id,
@@ -441,12 +447,29 @@ export default function AIContentStudio() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Title</Label>
+                  <Label>Title *</Label>
                   <Input
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      if (!isEditMode && !slug) {
+                        setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+                      }
+                    }}
                     placeholder="Enter article title..."
                   />
+                </div>
+
+                <div>
+                  <Label>Page Slug *</Label>
+                  <Input
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, '-'))}
+                    placeholder="e.g., schengen-visa-guide"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    URL: visas.guide/{slug || 'your-slug-here'}
+                  </p>
                 </div>
 
                 <div>
@@ -476,7 +499,7 @@ export default function AIContentStudio() {
                   </TabsList>
                   <TabsContent value="meta" className="space-y-4">
                     <div>
-                      <Label>Meta Description</Label>
+                      <Label>Meta Description *</Label>
                       <Input
                         value={metaDescription}
                         onChange={(e) => setMetaDescription(e.target.value)}
@@ -488,7 +511,18 @@ export default function AIContentStudio() {
                       </p>
                     </div>
                   </TabsContent>
-                  <TabsContent value="keywords">
+                  <TabsContent value="keywords" className="space-y-4">
+                    <div>
+                      <Label>Meta Keywords</Label>
+                      <Input
+                        value={keywords.join(', ')}
+                        onChange={(e) => setKeywords(e.target.value.split(',').map(k => k.trim()).filter(k => k))}
+                        placeholder="Enter keywords separated by commas"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        These keywords help with SEO and content categorization
+                      </p>
+                    </div>
                     <div className="flex flex-wrap gap-2">
                       {keywords.map((keyword, i) => (
                         <span key={i} className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">

@@ -24,3 +24,6 @@ verify_jwt = false
 
 [functions.rss-feed]
 verify_jwt = false
+
+[functions.deepseek-chat]
+verify_jwt = true

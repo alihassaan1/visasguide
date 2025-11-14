@@ -10,6 +10,7 @@ import { Calendar, Clock, ExternalLink, ArrowLeft, Share2 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { formatArticleContent } from "@/lib/contentFormatter";
 
 const NewsArticle = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -270,7 +271,7 @@ const NewsArticle = () => {
           {/* Article Content */}
           <div className="prose prose-lg dark:prose-invert max-w-none">
             {article.content ? (
-              <div dangerouslySetInnerHTML={{ __html: article.content }} />
+              <div dangerouslySetInnerHTML={{ __html: formatArticleContent(article.content) }} />
             ) : (
               <div className="text-muted-foreground">
                 <p>Article content is not available. Please visit the original source for the full article.</p>

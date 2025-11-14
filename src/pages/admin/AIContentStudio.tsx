@@ -484,7 +484,7 @@ export default function AIContentStudio() {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6 pb-8">
                 <div>
                   <Label>Title *</Label>
                   <Input

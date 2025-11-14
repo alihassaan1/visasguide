@@ -81,7 +81,7 @@ const App = () => (
             <Route path="data" element={<DataManager />} />
             <Route path="visa-requirements" element={<VisaRequirementsManager />} />
             <Route path="data-import" element={<DataImporter />} />
-            <Route path="ai-studio" element={<AIContentStudio />} />
+            <Route path="ai-content-studio" element={<AIContentStudio />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="analytics" element={<AnalyticsDashboard />} />
             <Route path="freelancer" element={<FreelancerDashboard />} />

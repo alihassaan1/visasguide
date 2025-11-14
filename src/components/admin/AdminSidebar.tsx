@@ -43,6 +43,11 @@ const menuItems = [
     href: "/admin/country-content-updater",
   },
   {
+    title: "Visa Requirements Updater",
+    icon: Sparkles,
+    href: "/admin/visa-requirements-content-updater",
+  },
+  {
     title: "Newsletter",
     icon: Newspaper,
     href: "/admin/newsletter",

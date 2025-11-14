@@ -148,6 +148,24 @@ const VisaRequirements = () => {
     enabled: !!fromCountry && !!toCountry
   });
 
+  // Fetch AI-generated content page if visa data doesn't exist
+  const contentSlug = `${fromSlug}-to-${toSlug}-visa-requirements`;
+  const { data: contentPage, isLoading: contentLoading } = useQuery({
+    queryKey: ['visa-content-page', contentSlug],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('content_pages')
+        .select('*')
+        .eq('slug', contentSlug)
+        .eq('is_published', true)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!fromSlug && !!toSlug && !visaRequirement
+  });
+
   const getRequirementBadge = (type: string) => {
     switch (type?.toLowerCase()) {
       case 'visa free':
@@ -167,7 +185,7 @@ const VisaRequirements = () => {
     }
   };
 
-  if (isLoading || !fromCountry || !toCountry) {
+  if (isLoading || contentLoading || !fromCountry || !toCountry) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -349,6 +367,31 @@ const VisaRequirements = () => {
                   <p className="text-muted-foreground">{visaRequirement.notes}</p>
                 </CardContent>
               </Card>
+            )}
+          </div>
+        ) : contentPage ? (
+          // Display AI-generated content if available
+          <div className="space-y-6">
+            {contentPage.featured_image_url && (
+              <div className="rounded-lg overflow-hidden mb-6">
+                <img 
+                  src={contentPage.featured_image_url} 
+                  alt={contentPage.title}
+                  className="w-full h-64 object-cover"
+                />
+              </div>
+            )}
+            
+            <Card>
+              <CardContent className="prose prose-slate max-w-none pt-6">
+                <div dangerouslySetInnerHTML={{ __html: contentPage.content }} />
+              </CardContent>
+            </Card>
+
+            {contentPage.ai_generated && (
+              <div className="text-center text-xs text-muted-foreground mt-4">
+                ℹ️ This guide was AI-generated. For official visa information, please contact the embassy.
+              </div>
             )}
           </div>
         ) : (

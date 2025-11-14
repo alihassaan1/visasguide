@@ -53,6 +53,7 @@ export default function AIContentStudio() {
   const [draftId, setDraftId] = useState<string | null>(null);
   const [slug, setSlug] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   useEffect(() => {
     const editId = searchParams.get('edit');
@@ -102,6 +103,10 @@ export default function AIContentStudio() {
 
     setLoading(true);
     try {
+      // Parse the prompt for slug if present
+      const slugMatch = prompt.match(/slug[:\s]+([\/\w-]+)/i);
+      const extractedSlug = slugMatch ? slugMatch[1].replace(/^\/|\/$/g, '') : '';
+      
       const { data, error } = await supabase.functions.invoke('ai-generate-content', {
         body: {
           prompt: activeTemplate || prompt,
@@ -119,6 +124,13 @@ export default function AIContentStudio() {
       setMetaDescription(data.metadata?.meta_description || '');
       setKeywords(data.metadata?.keywords || []);
       if (data.metadata?.title) setTitle(data.metadata.title);
+      
+      // Set slug from extracted value or generate from title
+      if (extractedSlug) {
+        setSlug(extractedSlug);
+      } else if (data.metadata?.title && !isEditMode) {
+        setSlug(data.metadata.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+      }
 
       // Track AI generation
       const { data: userData } = await supabase.auth.getUser();
@@ -170,18 +182,30 @@ export default function AIContentStudio() {
       }
 
       // Generate image if requested
-      if (generateImage && title) {
+      if (generateImage && (data.metadata?.title || title)) {
+        setIsGeneratingImage(true);
         try {
-          const imagePrompt = `Create a professional, high-quality featured image for a visa guide article titled: "${title}". The image should be relevant to visa and travel themes.`;
+          const imageTitle = data.metadata?.title || title;
+          const imagePrompt = `Create a professional, high-quality featured image for a visa guide article titled: "${imageTitle}". The image should be relevant to visa and travel themes, include passport, travel documents, or visa stamps imagery.`;
+          
+          console.log('Generating image with prompt:', imagePrompt);
+          
           const { data: imgData, error: imgError } = await supabase.functions.invoke('ai-generate-content', {
             body: {
               prompt: imagePrompt,
               action: 'generate_image',
-              provider
+              provider: 'openai' // Always use OpenAI for images
             }
           });
 
-          if (!imgError && imgData?.imageUrl) {
+          if (imgError) {
+            console.error('Image generation error:', imgError);
+            toast({
+              title: "Image Generation Failed",
+              description: imgError.message || "Could not generate image. Please check API settings.",
+              variant: "destructive",
+            });
+          } else if (imgData?.imageUrl) {
             setFeaturedImageUrl(imgData.imageUrl);
             toast({
               title: "Image Generated!",
@@ -190,6 +214,13 @@ export default function AIContentStudio() {
           }
         } catch (imgError: any) {
           console.error('Image generation failed:', imgError);
+          toast({
+            title: "Image Generation Failed",
+            description: imgError.message || "An error occurred during image generation",
+            variant: "destructive",
+          });
+        } finally {
+          setIsGeneratingImage(false);
         }
       }
     } catch (error: any) {
@@ -397,22 +428,30 @@ export default function AIContentStudio() {
 
               <div>
                 <Label>Prompt or Topic</Label>
-                <Input
+                <textarea
                   value={prompt}
                   onChange={(e) => {
                     setPrompt(e.target.value);
                     setActiveTemplate('');
                   }}
-                  placeholder="Enter your content topic or prompt..."
-                  className="h-20"
+                  placeholder="Enter your content topic or prompt in natural language. Example: 'Create an article about Pakistan passport visa-free countries with slug pakistan-passport-visa-free-countries-list-2025-update'"
+                  className="w-full min-h-[100px] px-3 py-2 text-sm rounded-md border border-input bg-background"
                 />
+                <p className="text-xs text-muted-foreground mt-2">
+                  💡 Tip: You can specify the slug in your prompt like "with slug your-desired-slug"
+                </p>
               </div>
 
-              <Button onClick={handleGenerate} disabled={loading} className="w-full">
+              <Button onClick={handleGenerate} disabled={loading || isGeneratingImage} className="w-full">
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
+                    Generating Content...
+                  </>
+                ) : isGeneratingImage ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating Image...
                   </>
                 ) : (
                   <>

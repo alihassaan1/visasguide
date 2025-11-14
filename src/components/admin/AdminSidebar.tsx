@@ -1,5 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   LayoutDashboard,
   FileText,
@@ -89,7 +91,7 @@ const menuItems = [
     href: "/admin/settings",
   },
   {
-    title: "AI Site Review",
+    title: "DeepSeek Chat",
     icon: MessageSquare,
     href: "/admin/site-review",
   },
@@ -97,6 +99,32 @@ const menuItems = [
 
 export function AdminSidebar() {
   const location = useLocation();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    checkAdminRole();
+  }, []);
+
+  const checkAdminRole = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data: roles } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', session.user.id)
+      .eq('role', 'admin');
+
+    setIsAdmin(roles && roles.length > 0);
+  };
+
+  // Filter menu items based on admin status
+  const visibleMenuItems = menuItems.filter(item => {
+    if (item.href === '/admin/site-review') {
+      return isAdmin;
+    }
+    return true;
+  });
 
   return (
     <div className="w-64 bg-card border-r min-h-screen p-4">
@@ -106,7 +134,7 @@ export function AdminSidebar() {
       </div>
 
       <nav className="space-y-1">
-        {menuItems.map((item) => {
+        {visibleMenuItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.href;
           

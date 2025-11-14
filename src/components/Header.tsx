@@ -7,11 +7,18 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
+interface MenuItem {
+  label: string;
+  url: string;
+  order: number;
+}
+
 const Header = () => {
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [countries, setCountries] = useState<any[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -23,6 +30,31 @@ const Header = () => {
       if (data) setCountries(data);
     };
     fetchCountries();
+  }, []);
+
+  useEffect(() => {
+    const fetchMenuItems = async () => {
+      const { data } = await supabase
+        .from('site_settings')
+        .select('setting_value')
+        .eq('setting_key', 'menu_items')
+        .single();
+
+      if (data?.setting_value && Array.isArray(data.setting_value)) {
+        const items = data.setting_value as unknown as MenuItem[];
+        setMenuItems(items.sort((a, b) => a.order - b.order));
+      } else {
+        // Default menu items
+        setMenuItems([
+          { label: "Countries", url: "/countries", order: 0 },
+          { label: "Visa Search", url: "/visa-search", order: 1 },
+          { label: "Guides", url: "/guides", order: 2 },
+          { label: "Blog", url: "/news", order: 3 },
+          { label: "Passport Index Rankings", url: "/passport-index", order: 4 }
+        ]);
+      }
+    };
+    fetchMenuItems();
   }, []);
 
   useEffect(() => {
@@ -66,21 +98,15 @@ const Header = () => {
 
           {/* Navigation - Hidden on mobile */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/countries" className="text-sm font-medium hover:text-primary transition-colors">
-              Countries
-            </Link>
-            <Link to="/visa-search" className="text-sm font-medium hover:text-primary transition-colors">
-              Visa Search
-            </Link>
-            <Link to="/guides" className="text-sm font-medium hover:text-primary transition-colors">
-              Guides
-            </Link>
-            <Link to="/news" className="text-sm font-medium hover:text-primary transition-colors">
-              News
-            </Link>
-            <Link to="/passport-index" className="text-sm font-medium hover:text-primary transition-colors">
-              Passport Index Rankings
-            </Link>
+            {menuItems.map((item) => (
+              <Link 
+                key={item.url}
+                to={item.url} 
+                className="text-sm font-medium hover:text-primary transition-colors"
+              >
+                {item.label}
+              </Link>
+            ))}
           </nav>
 
           {/* Search and Mobile Menu */}

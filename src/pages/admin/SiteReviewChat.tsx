@@ -73,7 +73,7 @@ export default function SiteReviewChat() {
   return (
     <div className="p-8 max-w-5xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground mb-2">AI Site Review Assistant</h1>
+        <h1 className="text-3xl font-bold text-foreground mb-2">DeepSeek Chat</h1>
         <p className="text-muted-foreground">
           Chat with DeepSeek AI to get improvement suggestions for your website
         </p>

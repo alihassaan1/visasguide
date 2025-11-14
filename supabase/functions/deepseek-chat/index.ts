@@ -22,14 +22,25 @@ serve(async (req) => {
     // Get DeepSeek API key from site_settings
     const { data: settings } = await supabase
       .from('site_settings')
-      .select('deepseek_api_key')
+      .select('setting_value')
+      .eq('setting_key', 'deepseek_api_key')
       .single();
 
-    const apiKey = settings?.deepseek_api_key || Deno.env.get('DEEPSEEK_API_KEY');
+    let apiKey = null;
+    if (settings?.setting_value && typeof settings.setting_value === 'object') {
+      apiKey = (settings.setting_value as any).key;
+    }
     
     if (!apiKey) {
-      throw new Error('DeepSeek API key not configured');
+      apiKey = Deno.env.get('DEEPSEEK_API_KEY');
     }
+    
+    if (!apiKey) {
+      console.error('DeepSeek API key not found in site_settings or environment variables');
+      throw new Error('DeepSeek API key not configured. Please add it in API Settings.');
+    }
+
+    console.log('DeepSeek API key found, making request...');
 
     // Call DeepSeek API
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {

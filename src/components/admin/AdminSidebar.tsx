@@ -35,7 +35,12 @@ const menuItems = [
   {
     title: "AI Content Studio",
     icon: Sparkles,
-    href: "/admin/ai-studio",
+    href: "/admin/ai-content-studio",
+  },
+  {
+    title: "Country Content Updater",
+    icon: Globe,
+    href: "/admin/country-content-updater",
   },
   {
     title: "Newsletter",
@@ -59,7 +64,7 @@ const menuItems = [
   },
   {
     title: "Visa Requirements",
-    icon: Globe,
+    icon: Rss,
     href: "/admin/visa-requirements",
   },
   {

@@ -531,46 +531,127 @@ export default function AIContentStudio() {
                   </div>
                 )}
 
-                <Tabs defaultValue="meta">
-                  <TabsList>
-                    <TabsTrigger value="meta">SEO Metadata</TabsTrigger>
-                    <TabsTrigger value="keywords">Keywords</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="meta" className="space-y-4">
-                    <div>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
                       <Label>Meta Description *</Label>
-                      <Input
-                        value={metaDescription}
-                        onChange={(e) => setMetaDescription(e.target.value)}
-                        placeholder="SEO description (max 160 characters)"
-                        maxLength={160}
-                      />
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {metaDescription.length}/160 characters
-                      </p>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          if (!title && !content) {
+                            toast({
+                              title: "Error",
+                              description: "Please add a title or content first",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          setLoading(true);
+                          try {
+                            const { data, error } = await supabase.functions.invoke('ai-generate-content', {
+                              body: {
+                                prompt: `Generate a compelling SEO meta description (max 160 characters) for this article:\nTitle: ${title}\nContent: ${content.slice(0, 500)}`,
+                                action: 'generate_meta',
+                                provider: 'deepseek'
+                              }
+                            });
+                            if (error) throw error;
+                            const desc = data.content.trim().replace(/^["']|["']$/g, '').slice(0, 160);
+                            setMetaDescription(desc);
+                            toast({ title: "Meta Description Generated!" });
+                          } catch (error: any) {
+                            toast({
+                              title: "Generation Failed",
+                              description: error.message,
+                              variant: "destructive",
+                            });
+                          } finally {
+                            setLoading(false);
+                          }
+                        }}
+                        disabled={loading}
+                      >
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Generate with AI
+                      </Button>
                     </div>
-                  </TabsContent>
-                  <TabsContent value="keywords" className="space-y-4">
-                    <div>
+                    <Input
+                      value={metaDescription}
+                      onChange={(e) => setMetaDescription(e.target.value)}
+                      placeholder="SEO description (max 160 characters)"
+                      maxLength={160}
+                    />
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {metaDescription.length}/160 characters
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
                       <Label>Meta Keywords</Label>
-                      <Input
-                        value={keywords.join(', ')}
-                        onChange={(e) => setKeywords(e.target.value.split(',').map(k => k.trim()).filter(k => k))}
-                        placeholder="Enter keywords separated by commas"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        These keywords help with SEO and content categorization
-                      </p>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          if (!title && !content) {
+                            toast({
+                              title: "Error",
+                              description: "Please add a title or content first",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          setLoading(true);
+                          try {
+                            const { data, error } = await supabase.functions.invoke('ai-generate-content', {
+                              body: {
+                                prompt: `Generate 5-8 relevant SEO keywords (comma-separated) for this article:\nTitle: ${title}\nContent: ${content.slice(0, 500)}`,
+                                action: 'generate_keywords',
+                                provider: 'deepseek'
+                              }
+                            });
+                            if (error) throw error;
+                            const keywordsText = data.content.trim().replace(/^["']|["']$/g, '');
+                            setKeywords(keywordsText.split(',').map((k: string) => k.trim()).filter((k: string) => k));
+                            toast({ title: "Keywords Generated!" });
+                          } catch (error: any) {
+                            toast({
+                              title: "Generation Failed",
+                              description: error.message,
+                              variant: "destructive",
+                            });
+                          } finally {
+                            setLoading(false);
+                          }
+                        }}
+                        disabled={loading}
+                      >
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Generate with AI
+                      </Button>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {keywords.map((keyword, i) => (
-                        <span key={i} className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
-                          {keyword}
-                        </span>
-                      ))}
-                    </div>
-                  </TabsContent>
-                </Tabs>
+                    <Input
+                      value={keywords.join(', ')}
+                      onChange={(e) => setKeywords(e.target.value.split(',').map(k => k.trim()).filter(k => k))}
+                      placeholder="Enter keywords separated by commas"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      These keywords help with SEO and content categorization
+                    </p>
+                    {keywords.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {keywords.map((keyword, i) => (
+                          <span key={i} className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
+                            {keyword}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
 
                 <div className="flex gap-2">
                   <Button onClick={() => handleSave('draft')} variant="outline" className="flex-1">

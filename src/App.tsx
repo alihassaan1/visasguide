@@ -24,6 +24,7 @@ import Admin from "./pages/Admin";
 import AdminAuth from "./pages/AdminAuth";
 import DataManager from "./pages/admin/DataManager";
 import AIContentStudio from "./pages/admin/AIContentStudio";
+import CountryContentUpdater from "./pages/admin/CountryContentUpdater";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import FreelancerDashboard from "./pages/admin/FreelancerDashboard";
 import MonetizationSettings from "./pages/admin/MonetizationSettings";
@@ -82,6 +83,7 @@ const App = () => (
             <Route path="visa-requirements" element={<VisaRequirementsManager />} />
             <Route path="data-import" element={<DataImporter />} />
             <Route path="ai-content-studio" element={<AIContentStudio />} />
+            <Route path="country-content-updater" element={<CountryContentUpdater />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="analytics" element={<AnalyticsDashboard />} />
             <Route path="freelancer" element={<FreelancerDashboard />} />

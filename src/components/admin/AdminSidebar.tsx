@@ -17,6 +17,7 @@ import {
   Globe,
   Download,
   MessageSquare,
+  Menu as MenuIcon,
 } from "lucide-react";
 
 const menuItems = [
@@ -84,6 +85,11 @@ const menuItems = [
     title: "API Settings",
     icon: Key,
     href: "/admin/api-settings",
+  },
+  {
+    title: "Menu Manager",
+    icon: MenuIcon,
+    href: "/admin/menu",
   },
   {
     title: "Site Settings",

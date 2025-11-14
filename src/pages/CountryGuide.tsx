@@ -98,6 +98,38 @@ const CountryGuide = () => {
     enabled: !!country?.id && (country?.visa_free_destinations == null || country?.visa_free_destinations === 0)
   });
 
+  // Query for visa on arrival count
+  const { data: visaOnArrivalCount } = useQuery({
+    queryKey: ['visa-on-arrival-count', country?.id],
+    queryFn: async () => {
+      if (!country?.id) return 0;
+      const { count, error } = await supabase
+        .from('visa_requirements')
+        .select('id', { count: 'exact', head: true })
+        .eq('from_country_id', country.id)
+        .eq('requirement_type', 'visa_on_arrival');
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!country?.id
+  });
+
+  // Query for visa required count
+  const { data: visaRequiredCount } = useQuery({
+    queryKey: ['visa-required-count', country?.id],
+    queryFn: async () => {
+      if (!country?.id) return 0;
+      const { count, error } = await supabase
+        .from('visa_requirements')
+        .select('id', { count: 'exact', head: true })
+        .eq('from_country_id', country.id)
+        .eq('requirement_type', 'visa_required');
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!country?.id
+  });
+
   const { data: processingTimes } = useQuery({
     queryKey: ['processing-times', country?.id],
     queryFn: async () => {
@@ -229,7 +261,7 @@ const CountryGuide = () => {
         </div>
 
         {/* Country Overview Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           <Card className="border-0 bg-gradient-to-br from-primary/10 to-primary/5">
             <CardContent className="p-6 text-center">
               <div className="text-3xl font-bold text-primary mb-1">
@@ -263,6 +295,24 @@ const CountryGuide = () => {
                 {country.passport_score || 'N/A'}
               </div>
               <div className="text-sm text-muted-foreground">Passport Score</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 bg-gradient-to-br from-yellow-500/10 to-yellow-500/5">
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold text-yellow-600 mb-1">
+                {visaOnArrivalCount || 0}
+              </div>
+              <div className="text-sm text-muted-foreground">Visa on Arrival</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 bg-gradient-to-br from-red-500/10 to-red-500/5">
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold text-red-600 mb-1">
+                {visaRequiredCount || 0}
+              </div>
+              <div className="text-sm text-muted-foreground">Visa Required</div>
             </CardContent>
           </Card>
         </div>

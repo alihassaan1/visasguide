@@ -387,12 +387,6 @@ const VisaRequirements = () => {
                 <div dangerouslySetInnerHTML={{ __html: contentPage.content }} />
               </CardContent>
             </Card>
-
-            {contentPage.ai_generated && (
-              <div className="text-center text-xs text-muted-foreground mt-4">
-                ℹ️ This guide was AI-generated. For official visa information, please contact the embassy.
-              </div>
-            )}
           </div>
         ) : (
           <Card>

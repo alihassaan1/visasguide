@@ -14,6 +14,7 @@ import {
   TrendingUp,
   Globe,
   Download,
+  MessageSquare,
 } from "lucide-react";
 
 const menuItems = [
@@ -86,6 +87,11 @@ const menuItems = [
     title: "Site Settings",
     icon: Settings,
     href: "/admin/settings",
+  },
+  {
+    title: "AI Site Review",
+    icon: MessageSquare,
+    href: "/admin/site-review",
   },
 ];
 

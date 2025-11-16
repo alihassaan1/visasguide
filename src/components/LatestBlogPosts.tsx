@@ -22,51 +22,90 @@ const LatestBlogPosts = () => {
     },
   });
 
-  if (isLoading || !posts?.length) return null;
-
   return (
-    <section className="py-12">
-      <div className="flex items-center justify-between mb-8">
+    <section className="py-16 bg-gradient-to-b from-background to-muted/20">
+      <div className="flex items-center justify-between mb-10">
         <div>
-          <h2 className="text-3xl font-bold text-foreground mb-2">Latest News & Updates</h2>
-          <p className="text-muted-foreground">Stay informed with the latest visa news and travel updates</p>
+          <h2 className="text-4xl font-bold text-foreground mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            Latest News & Updates
+          </h2>
+          <p className="text-lg text-muted-foreground">Stay informed with the latest visa news and travel updates</p>
         </div>
-        <Link to="/news" className="hidden sm:flex items-center gap-2 text-primary hover:underline">
-          View All <ArrowRight className="w-4 h-4" />
-        </Link>
+        {!isLoading && posts && posts.length > 0 && (
+          <Link 
+            to="/news" 
+            className="hidden sm:flex items-center gap-2 text-primary hover:text-primary/80 transition-colors font-semibold group"
+          >
+            View All <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {posts.map((post) => (
-          <Link key={post.id} to={`/news/${post.slug}`}>
-            <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 h-full">
-              {post.featured_image_url && (
-                <div className="aspect-video overflow-hidden">
-                  <img
-                    src={post.featured_image_url}
-                    alt={post.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-              )}
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                  <Calendar className="w-4 h-4" />
-                  <span>{post.published_at ? format(new Date(post.published_at), "MMM dd, yyyy") : ""}</span>
-                </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                  {post.title}
-                </h3>
-                <p className="text-muted-foreground line-clamp-3">{post.excerpt}</p>
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="overflow-hidden h-full">
+              <div className="aspect-video bg-muted animate-pulse" />
+              <CardContent className="p-6 space-y-3">
+                <div className="h-4 bg-muted rounded animate-pulse w-1/3" />
+                <div className="h-6 bg-muted rounded animate-pulse" />
+                <div className="h-4 bg-muted rounded animate-pulse" />
               </CardContent>
             </Card>
-          </Link>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : !posts || posts.length === 0 ? (
+        <Card className="p-12 text-center border-dashed">
+          <p className="text-muted-foreground text-lg">No blog posts available yet. Check back soon!</p>
+        </Card>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {posts.map((post) => (
+              <Link key={post.id} to={`/news/${post.slug}`} className="group">
+                <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 h-full border-border/50 hover:border-primary/50 bg-card">
+                  {post.featured_image_url ? (
+                    <div className="aspect-video overflow-hidden bg-muted relative">
+                      <img
+                        src={post.featured_image_url}
+                        alt={post.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+                  ) : (
+                    <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                      <Calendar className="w-16 h-16 text-primary/40" />
+                    </div>
+                  )}
+                  <CardContent className="p-6 space-y-3">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="w-4 h-4" />
+                      <span>{post.published_at ? format(new Date(post.published_at), "MMM dd, yyyy") : ""}</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-tight">
+                      {post.title}
+                    </h3>
+                    {post.excerpt && (
+                      <p className="text-muted-foreground line-clamp-3 leading-relaxed">{post.excerpt}</p>
+                    )}
+                    <div className="flex items-center gap-2 text-primary font-medium pt-2 group-hover:gap-3 transition-all">
+                      Read More <ArrowRight className="w-4 h-4" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
 
-      <Link to="/news" className="sm:hidden flex items-center justify-center gap-2 text-primary hover:underline mt-6">
-        View All News <ArrowRight className="w-4 h-4" />
-      </Link>
+          <Link 
+            to="/news" 
+            className="sm:hidden flex items-center justify-center gap-2 text-primary hover:text-primary/80 transition-colors font-semibold mt-8 group"
+          >
+            View All News <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </>
+      )}
     </section>
   );
 };

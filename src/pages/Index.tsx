@@ -1,19 +1,12 @@
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
-import PopularVisaLinks from "@/components/PopularVisaLinks";
-import TrendingVisas from "@/components/TrendingVisas";
-import PopularDestinations from "@/components/PopularDestinations";
-import VisaTypes from "@/components/VisaTypes";
-import RecentGuides from "@/components/RecentGuides";
 import Footer from "@/components/Footer";
 import NewsletterSignup from "@/components/NewsletterSignup";
-import TrendingGuidesSection from "@/components/TrendingGuidesSection";
 import SEOHead from "@/components/SEOHead";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
-import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
-import affiliateGetYourGuide from "@/assets/affiliate-getyourguide.jpg";
-import affiliateEsim from "@/assets/affiliate-esim.jpg";
-import affiliateInsurance from "@/assets/affiliate-insurance.jpg";
+import LatestBlogPosts from "@/components/LatestBlogPosts";
+import CountryGuidesGrid from "@/components/CountryGuidesGrid";
+import SEOKeywordsSection from "@/components/SEOKeywordsSection";
 
 const Index = () => {
   return (
@@ -58,44 +51,15 @@ const Index = () => {
       <main>
         <HeroSection />
         
-      <div className="container mx-auto px-4 py-8">
-        {/* Horizontal Banner at top */}
-        <div className="mb-8">
-          <AffiliateBannerContainer position="horizontal-banner" />
+        <div className="container mx-auto px-4">
+          <LatestBlogPosts />
+          <CountryGuidesGrid />
+          <SEOKeywordsSection />
+          
+          <div className="py-12">
+            <NewsletterSignup variant="default" />
+          </div>
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] gap-8">
-          {/* Main Content - Full Width on Left */}
-          <main className="min-w-0">
-            <PopularVisaLinks />
-            <TrendingVisas />
-            
-            {/* In-Content Banner */}
-            <div className="my-8">
-              <AffiliateBannerContainer position="in-content" />
-            </div>
-
-            <TrendingGuidesSection />
-            <PopularDestinations />
-            <VisaTypes />
-            <RecentGuides />
-          </main>
-
-          {/* Right Sidebar - Newsletter & Affiliate Banners */}
-          <aside className="hidden lg:block">
-            <div className="sticky top-24 space-y-6">
-              <NewsletterSignup variant="sidebar" />
-              <AffiliateBannerContainer position="sidebar-right" />
-              <AffiliateBannerContainer position="sidebar-left" />
-            </div>
-          </aside>
-        </div>
-
-        {/* Footer Banner */}
-        <div className="mt-12">
-          <AffiliateBannerContainer position="footer" />
-        </div>
-      </div>
       </main>
       
       <Footer />

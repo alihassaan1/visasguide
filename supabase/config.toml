@@ -27,3 +27,6 @@ verify_jwt = false
 
 [functions.deepseek-chat]
 verify_jwt = true
+
+[functions.content-agent]
+verify_jwt = false

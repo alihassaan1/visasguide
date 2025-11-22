@@ -6,6 +6,7 @@ import logo from "@/assets/logo.png";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 interface MenuItem {
   label: string;
@@ -19,6 +20,7 @@ const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [countries, setCountries] = useState<any[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -145,9 +147,30 @@ const Header = () => {
                 </div>
               )}
             </div>
-            <Button variant="outline" size="icon" className="md:hidden">
-              <Menu className="h-4 w-4" />
-            </Button>
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" className="md:hidden">
+                  <Menu className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right">
+                <SheetHeader>
+                  <SheetTitle>Menu</SheetTitle>
+                </SheetHeader>
+                <nav className="flex flex-col space-y-4 mt-6">
+                  {menuItems.map((item) => (
+                    <Link 
+                      key={item.url}
+                      to={item.url} 
+                      className="text-lg font-medium hover:text-primary transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>

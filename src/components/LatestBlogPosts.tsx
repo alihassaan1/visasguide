@@ -7,7 +7,7 @@ import { format } from "date-fns";
 
 const LatestBlogPosts = () => {
   const { data: posts, isLoading } = useQuery({
-    queryKey: ["latest-blog-posts"],
+    queryKey: ["latest-blog-and-guides"],
     queryFn: async () => {
       // Fetch news articles
       const { data: newsData, error: newsError } = await supabase
@@ -20,15 +20,15 @@ const LatestBlogPosts = () => {
 
       if (newsError) throw newsError;
 
-      // Fetch content pages
-      const { data: contentData, error: contentError } = await supabase
-        .from("content_pages")
-        .select("*")
-        .eq("is_published", true)
-        .order("created_at", { ascending: false })
+      // Fetch country guides
+      const { data: guidesData, error: guidesError } = await supabase
+        .from("guides")
+        .select("*, countries(name, slug)")
+        .not("published_at", "is", null)
+        .order("published_at", { ascending: false })
         .limit(10);
 
-      if (contentError) throw contentError;
+      if (guidesError) throw guidesError;
 
       // Combine and sort by date
       const newsArticles = (newsData || []).map(article => ({
@@ -37,13 +37,13 @@ const LatestBlogPosts = () => {
         date: new Date(article.published_at!)
       }));
 
-      const contentPages = (contentData || []).map(page => ({
-        ...page,
-        type: 'content' as const,
-        date: new Date(page.created_at)
+      const countryGuides = (guidesData || []).map(guide => ({
+        ...guide,
+        type: 'guide' as const,
+        date: new Date(guide.published_at!)
       }));
 
-      const combined = [...newsArticles, ...contentPages]
+      const combined = [...newsArticles, ...countryGuides]
         .sort((a, b) => b.date.getTime() - a.date.getTime())
         .slice(0, 3);
 
@@ -56,9 +56,9 @@ const LatestBlogPosts = () => {
       <div className="flex items-center justify-between mb-10">
         <div>
           <h2 className="text-4xl font-bold text-foreground mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Latest News & Updates
+            Latest Updates & Guides
           </h2>
-          <p className="text-lg text-muted-foreground">Stay informed with the latest visa news and travel updates</p>
+          <p className="text-lg text-muted-foreground">Stay informed with visa news, country guides, and travel updates</p>
         </div>
         {!isLoading && posts && posts.length > 0 && (
           <Link 
@@ -93,7 +93,7 @@ const LatestBlogPosts = () => {
             {posts.map((post) => (
               <Link 
                 key={post.id} 
-                to={post.type === 'news' ? `/blog/${post.slug}` : `/${post.slug}`} 
+                to={post.type === 'news' ? `/blog/${post.slug}` : `/guides/${post.slug}`} 
                 className="group"
               >
                 <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 h-full border-border/50 hover:border-primary/50 bg-card">

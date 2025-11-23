@@ -9,16 +9,45 @@ const LatestBlogPosts = () => {
   const { data: posts, isLoading } = useQuery({
     queryKey: ["latest-blog-posts"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch news articles
+      const { data: newsData, error: newsError } = await supabase
         .from("news_articles")
         .select("*")
         .eq("status", "published")
         .not("published_at", "is", null)
         .order("published_at", { ascending: false })
-        .limit(3);
+        .limit(10);
 
-      if (error) throw error;
-      return data || [];
+      if (newsError) throw newsError;
+
+      // Fetch content pages
+      const { data: contentData, error: contentError } = await supabase
+        .from("content_pages")
+        .select("*")
+        .eq("is_published", true)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      if (contentError) throw contentError;
+
+      // Combine and sort by date
+      const newsArticles = (newsData || []).map(article => ({
+        ...article,
+        type: 'news' as const,
+        date: new Date(article.published_at!)
+      }));
+
+      const contentPages = (contentData || []).map(page => ({
+        ...page,
+        type: 'content' as const,
+        date: new Date(page.created_at)
+      }));
+
+      const combined = [...newsArticles, ...contentPages]
+        .sort((a, b) => b.date.getTime() - a.date.getTime())
+        .slice(0, 3);
+
+      return combined;
     },
   });
 
@@ -33,7 +62,7 @@ const LatestBlogPosts = () => {
         </div>
         {!isLoading && posts && posts.length > 0 && (
           <Link 
-            to="/news" 
+            to="/blog" 
             className="hidden sm:flex items-center gap-2 text-primary hover:text-primary/80 transition-colors font-semibold group"
           >
             View All <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -62,7 +91,11 @@ const LatestBlogPosts = () => {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {posts.map((post) => (
-              <Link key={post.id} to={`/news/${post.slug}`} className="group">
+              <Link 
+                key={post.id} 
+                to={post.type === 'news' ? `/blog/${post.slug}` : `/${post.slug}`} 
+                className="group"
+              >
                 <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 h-full border-border/50 hover:border-primary/50 bg-card">
                   {post.featured_image_url ? (
                     <div className="aspect-video overflow-hidden bg-muted relative">
@@ -81,7 +114,7 @@ const LatestBlogPosts = () => {
                   <CardContent className="p-6 space-y-3">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Calendar className="w-4 h-4" />
-                      <span>{post.published_at ? format(new Date(post.published_at), "MMM dd, yyyy") : ""}</span>
+                      <span>{format(post.date, "MMM dd, yyyy")}</span>
                     </div>
                     <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-tight">
                       {post.title}
@@ -99,10 +132,10 @@ const LatestBlogPosts = () => {
           </div>
 
           <Link 
-            to="/news" 
+            to="/blog" 
             className="sm:hidden flex items-center justify-center gap-2 text-primary hover:text-primary/80 transition-colors font-semibold mt-8 group"
           >
-            View All News <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            View All <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </>
       )}

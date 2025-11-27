@@ -84,7 +84,9 @@ serve(async (req) => {
 
 8. Travel Tips (5-6 practical tips for visitors)
 
-Format the content in HTML with proper semantic tags (h2, h3, ul, li, p, div with appropriate Tailwind classes). Make it SEO-optimized and comprehensive.`;
+Format the content in HTML with proper semantic tags (h2, h3, ul, li, p, div with appropriate Tailwind classes). 
+IMPORTANT: Do NOT use any border classes (border, border-l, border-r, border-t, border-b). Keep styling minimal and clean.
+Make it SEO-optimized and comprehensive.`;
 
           try {
             const response = await fetch('https://api.deepseek.com/v1/chat/completions', {

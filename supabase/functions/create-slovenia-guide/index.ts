@@ -133,15 +133,15 @@ serve(async (req) => {
     <section>
       <h2 class="text-3xl font-bold mb-6">Frequently Asked Questions</h2>
       <div class="space-y-6">
-        <div class="border-b pb-4">
+        <div class="pb-4">
           <h3 class="text-xl font-semibold mb-2">How long can I stay in Slovenia with a Schengen visa?</h3>
           <p class="text-muted-foreground">Up to 90 days within a 180-day period.</p>
         </div>
-        <div class="border-b pb-4">
+        <div class="pb-4">
           <h3 class="text-xl font-semibold mb-2">Can I extend my visa?</h3>
           <p class="text-muted-foreground">Only in exceptional cases, such as emergencies.</p>
         </div>
-        <div class="border-b pb-4">
+        <div class="pb-4">
           <h3 class="text-xl font-semibold mb-2">Is travel insurance mandatory?</h3>
           <p class="text-muted-foreground">Yes. Minimum €30,000 coverage.</p>
         </div>

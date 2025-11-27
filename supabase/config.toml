@@ -16,6 +16,12 @@ verify_jwt = false
 [functions.sitemap]
 verify_jwt = false
 
+[functions.create-slovenia-guide]
+verify_jwt = false
+
+[functions.content-agent]
+verify_jwt = false
+
 [functions.ai-generate-content]
 verify_jwt = true
 

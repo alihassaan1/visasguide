@@ -18,6 +18,7 @@ import {
   Download,
   MessageSquare,
   Menu as MenuIcon,
+  Activity,
 } from "lucide-react";
 
 const menuItems = [
@@ -90,6 +91,11 @@ const menuItems = [
     title: "Menu Manager",
     icon: MenuIcon,
     href: "/admin/menu",
+  },
+  {
+    title: "Content Agent Logs",
+    icon: Activity,
+    href: "/admin/content-agent-logs",
   },
   {
     title: "Site Settings",

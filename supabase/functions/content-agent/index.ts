@@ -192,6 +192,20 @@ Make it SEO-optimized and comprehensive.`;
 
     if (contentPages) {
       for (const page of contentPages) {
+        // Check if this page was already processed by the agent recently (within last 24 hours)
+        const { data: recentUpdate } = await supabase
+          .from('activity_log')
+          .select('created_at')
+          .eq('action', 'content_agent_update')
+          .eq('entity_id', page.id)
+          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+          .maybeSingle();
+
+        if (recentUpdate) {
+          console.log(`Skipping ${page.title} - already updated by agent in last 24 hours`);
+          continue; // Skip this page to avoid duplicate processing
+        }
+
         const missingFields: string[] = [];
         
         if (!page.excerpt || page.excerpt.trim().length < 50) missingFields.push('excerpt');
@@ -219,6 +233,20 @@ Make it SEO-optimized and comprehensive.`;
 
     if (newsArticles) {
       for (const article of newsArticles) {
+        // Check if this article was already processed by the agent recently (within last 24 hours)
+        const { data: recentUpdate } = await supabase
+          .from('activity_log')
+          .select('created_at')
+          .eq('action', 'content_agent_update')
+          .eq('entity_id', article.id)
+          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+          .maybeSingle();
+
+        if (recentUpdate) {
+          console.log(`Skipping ${article.title} - already updated by agent in last 24 hours`);
+          continue; // Skip this article to avoid duplicate processing
+        }
+
         const missingFields: string[] = [];
         
         if (!article.excerpt || article.excerpt.trim().length < 50) missingFields.push('excerpt');

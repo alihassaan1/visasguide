@@ -20,12 +20,13 @@ const LatestBlogPosts = () => {
 
       if (newsError) throw newsError;
 
-      // Fetch country guides
+      // Fetch country guides from content_pages
       const { data: guidesData, error: guidesError } = await supabase
-        .from("guides")
-        .select("*, countries(name, slug)")
-        .not("published_at", "is", null)
-        .order("published_at", { ascending: false })
+        .from("content_pages")
+        .select("*")
+        .eq("is_published", true)
+        .like("slug", "countries/%")
+        .order("created_at", { ascending: false })
         .limit(10);
 
       if (guidesError) throw guidesError;
@@ -40,7 +41,7 @@ const LatestBlogPosts = () => {
       const countryGuides = (guidesData || []).map(guide => ({
         ...guide,
         type: 'guide' as const,
-        date: new Date(guide.published_at!)
+        date: new Date(guide.created_at)
       }));
 
       const combined = [...newsArticles, ...countryGuides]
@@ -93,7 +94,7 @@ const LatestBlogPosts = () => {
             {posts.map((post) => (
               <Link 
                 key={post.id} 
-                to={post.type === 'news' ? `/blog/${post.slug}` : `/guides/${post.slug}`} 
+                to={post.type === 'news' ? `/blog/${post.slug}` : `/${post.slug}`} 
                 className="group"
               >
                 <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 h-full border-border/50 hover:border-primary/50 bg-card">

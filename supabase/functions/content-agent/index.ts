@@ -49,6 +49,122 @@ serve(async (req) => {
     const issues: ContentIssue[] = [];
     const logs: any[] = [];
 
+    // Scan countries for missing guide content
+    const { data: countries } = await supabase
+      .from('countries')
+      .select('id, name, slug, code')
+      .limit(5); // Process 5 countries per run
+
+    if (countries) {
+      for (const country of countries) {
+        // Check if guide content exists for this country
+        const { data: existingGuide } = await supabase
+          .from('content_pages')
+          .select('id')
+          .eq('slug', `countries/${country.slug}`)
+          .maybeSingle();
+
+        if (!existingGuide) {
+          // Generate country guide content
+          const countryGuidePrompt = `Write a comprehensive travel and visa guide for ${country.name}. Structure it with these sections:
+
+1. About ${country.name} (2-3 paragraphs about tourism, attractions, why people visit)
+
+2. Available Visa Types (Tourist Visa, Business Visa, Student Visa, Work Visa, Transit Visa - with requirements for each)
+
+3. Entry Requirements for All Visitors (passport validity, funds, accommodation proof, tickets, insurance)
+
+4. Who Doesn't Need a Visa (list visa-exempt countries and travelers)
+
+5. How to Apply (step-by-step application process)
+
+6. Visa Processing Time (standard and peak season times)
+
+7. Frequently Asked Questions (3-5 common questions with answers)
+
+8. Travel Tips (5-6 practical tips for visitors)
+
+Format the content in HTML with proper semantic tags (h2, h3, ul, li, p, div with appropriate Tailwind classes). Make it SEO-optimized and comprehensive.`;
+
+          try {
+            const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
+              },
+              body: JSON.stringify({
+                model: 'deepseek-chat',
+                messages: [
+                  {
+                    role: 'system',
+                    content: 'You are an expert travel and visa content writer. Create comprehensive, SEO-optimized guides with proper HTML formatting and Tailwind CSS classes.'
+                  },
+                  {
+                    role: 'user',
+                    content: countryGuidePrompt
+                  }
+                ],
+                temperature: 0.7,
+                max_tokens: 3000,
+              }),
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              const generatedContent = data.choices[0].message.content;
+
+              // Create the country guide content page
+              const { error: insertError } = await supabase
+                .from('content_pages')
+                .insert({
+                  slug: `countries/${country.slug}`,
+                  title: `${country.name} Travel & Visa Guide 2025`,
+                  content: generatedContent,
+                  excerpt: `Complete guide to ${country.name} visa requirements, types, and application process. Essential information for travelers visiting ${country.name}.`,
+                  meta_title: `${country.name} Visa Guide 2025 – Requirements & Application | Visas.Guide`,
+                  meta_description: `Complete ${country.name} visa requirements guide for 2025. Tourist, business, student, and work visa information, processing times, and application process.`,
+                  keywords: [`${country.name.toLowerCase()} visa`, `${country.name.toLowerCase()} visa requirements`, `${country.name.toLowerCase()} travel guide`, `visit ${country.name.toLowerCase()}`],
+                  is_published: true,
+                  status: 'published',
+                  ai_generated: true
+                });
+
+              if (!insertError) {
+                await supabase.from('activity_log').insert({
+                  action: 'content_agent_country_guide_created',
+                  entity_type: 'content_page',
+                  entity_id: country.id,
+                  metadata: {
+                    country: country.name,
+                    slug: `countries/${country.slug}`,
+                    created_at: new Date().toISOString()
+                  }
+                });
+
+                logs.push({
+                  entity: `${country.name} Guide`,
+                  type: 'country_guide',
+                  status: 'success',
+                  message: 'Country guide created'
+                });
+
+                console.log(`Created country guide for ${country.name}`);
+              }
+            }
+          } catch (error) {
+            console.error(`Error creating guide for ${country.name}:`, error);
+            logs.push({
+              entity: `${country.name} Guide`,
+              type: 'country_guide',
+              status: 'error',
+              error: error.message
+            });
+          }
+        }
+      }
+    }
+
     // Scan content_pages for missing content
     const { data: contentPages } = await supabase
       .from('content_pages')
@@ -219,7 +335,8 @@ serve(async (req) => {
     }
 
     const summary = {
-      total_scanned: (contentPages?.length || 0) + (newsArticles?.length || 0),
+      total_scanned: (countries?.length || 0) + (contentPages?.length || 0) + (newsArticles?.length || 0),
+      countries_processed: countries?.length || 0,
       issues_found: issues.length,
       updates_made: logs.filter(l => l.status === 'success').length,
       errors: logs.filter(l => l.status === 'error').length,

@@ -35,6 +35,23 @@ const CountryGuide = () => {
     enabled: !!countrySlug
   });
 
+  // Fetch country guide content from content_pages
+  const { data: guideContent } = useQuery({
+    queryKey: ['country-guide-content', countrySlug],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('content_pages')
+        .select('*')
+        .eq('slug', `countries/${countrySlug}`)
+        .eq('is_published', true)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!countrySlug
+  });
+
   // Track page view when country data loads
   useEffect(() => {
     if (country?.id) {
@@ -316,6 +333,18 @@ const CountryGuide = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Country Guide Content */}
+        {guideContent && (
+          <Card className="mb-8">
+            <CardContent className="p-8">
+              <div 
+                className="prose prose-lg max-w-none dark:prose-invert"
+                dangerouslySetInnerHTML={{ __html: guideContent.content }}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Country Overview */}
         <Card className="mb-8">

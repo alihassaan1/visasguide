@@ -26,7 +26,7 @@ serve(async (req) => {
       <h2 class="text-3xl font-bold mb-6">Available Visa Types for Slovenia</h2>
       
       <div class="space-y-6">
-        <div class="border-l-4 border-primary pl-6">
+        <div class="pl-6">
           <h3 class="text-2xl font-bold mb-3">Tourist Visa (Schengen Short Stay – Type C)</h3>
           <p class="mb-4">Allows stays up to 90 days within 180 days. Typical uses: tourism, family visits, short business trips.</p>
           
@@ -46,17 +46,17 @@ serve(async (req) => {
           </div>
         </div>
 
-        <div class="border-l-4 border-primary pl-6">
+        <div class="pl-6">
           <h3 class="text-2xl font-bold mb-3">Business Visa</h3>
           <p class="mb-4">For meetings, conferences, trade events. Requirements are similar to tourist visa, with company invitation letter.</p>
         </div>
 
-        <div class="border-l-4 border-primary pl-6">
+        <div class="pl-6">
           <h3 class="text-2xl font-bold mb-3">Student Visa</h3>
           <p class="mb-4">Required for study periods under 90 days (short-term). Longer programs require a national D visa + residence permit.</p>
         </div>
 
-        <div class="border-l-4 border-primary pl-6">
+        <div class="pl-6">
           <h3 class="text-2xl font-bold mb-3">Work Visa</h3>
           <p class="mb-4">You need:</p>
           <ul class="list-disc pl-6 space-y-2 mb-4">
@@ -68,7 +68,7 @@ serve(async (req) => {
           <p class="text-sm text-muted-foreground">This is usually part of a single permit (residence + work authorization).</p>
         </div>
 
-        <div class="border-l-4 border-primary pl-6">
+        <div class="pl-6">
           <h3 class="text-2xl font-bold mb-3">Transit Visa</h3>
           <p>Required for some nationalities when connecting flights in the Schengen area.</p>
         </div>

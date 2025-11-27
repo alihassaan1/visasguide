@@ -115,7 +115,7 @@ Format the content in HTML with proper semantic tags (h2, h3, ul, li, p, div wit
               const generatedContent = data.choices[0].message.content;
 
               // Create the country guide content page
-              const { error: insertError } = await supabase
+              const { data: insertedPage, error: insertError } = await supabase
                 .from('content_pages')
                 .insert({
                   slug: `countries/${country.slug}`,
@@ -128,16 +128,24 @@ Format the content in HTML with proper semantic tags (h2, h3, ul, li, p, div wit
                   is_published: true,
                   status: 'published',
                   ai_generated: true
-                });
+                })
+                .select()
+                .single();
 
-              if (!insertError) {
+              if (!insertError && insertedPage) {
                 await supabase.from('activity_log').insert({
-                  action: 'content_agent_country_guide_created',
-                  entity_type: 'content_page',
-                  entity_id: country.id,
+                  action: 'content_agent_create',
+                  entity_type: 'country_guide',
+                  entity_id: insertedPage.id,
                   metadata: {
-                    country: country.name,
-                    slug: `countries/${country.slug}`,
+                    country_name: country.name,
+                    country_code: country.code,
+                    country_slug: country.slug,
+                    content_slug: `countries/${country.slug}`,
+                    title: `${country.name} Travel & Visa Guide 2025`,
+                    content_preview: generatedContent.substring(0, 200) + '...',
+                    ai_generated: true,
+                    fields_generated: ['content', 'excerpt', 'meta_title', 'meta_description', 'keywords'],
                     created_at: new Date().toISOString()
                   }
                 });
@@ -146,10 +154,18 @@ Format the content in HTML with proper semantic tags (h2, h3, ul, li, p, div wit
                   entity: `${country.name} Guide`,
                   type: 'country_guide',
                   status: 'success',
-                  message: 'Country guide created'
+                  message: 'Country guide created',
+                  page_id: insertedPage.id
                 });
 
-                console.log(`Created country guide for ${country.name}`);
+                console.log(`✅ Created comprehensive country guide for ${country.name} (ID: ${insertedPage.id})`);
+              } else {
+                logs.push({
+                  entity: `${country.name} Guide`,
+                  type: 'country_guide',
+                  status: 'error',
+                  error: insertError?.message || 'Unknown error'
+                });
               }
             }
           } catch (error) {
@@ -300,14 +316,20 @@ Format the content in HTML with proper semantic tags (h2, h3, ul, li, p, div wit
             .eq('id', issue.id);
 
           if (!updateError) {
-            // Log the update
+            // Log the update with full details
             await supabase.from('activity_log').insert({
               action: 'content_agent_update',
               entity_type: issue.type,
               entity_id: issue.id,
               metadata: {
                 title: issue.title,
+                slug: currentData.slug,
                 fields_updated: Object.keys(updates),
+                updates_preview: Object.keys(updates).reduce((acc, key) => {
+                  acc[key] = updates[key].substring(0, 100) + (updates[key].length > 100 ? '...' : '');
+                  return acc;
+                }, {}),
+                ai_generated: true,
                 updated_at: new Date().toISOString()
               }
             });
@@ -319,7 +341,14 @@ Format the content in HTML with proper semantic tags (h2, h3, ul, li, p, div wit
               status: 'success'
             });
 
-            console.log(`Successfully updated ${issue.title}`);
+            console.log(`Successfully updated ${issue.title} - Fields: ${Object.keys(updates).join(', ')}`);
+          } else {
+            logs.push({
+              entity: issue.title,
+              type: issue.type,
+              status: 'error',
+              error: updateError.message
+            });
           }
         }
 

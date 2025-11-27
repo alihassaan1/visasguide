@@ -49,6 +49,18 @@ serve(async (req) => {
     const issues: ContentIssue[] = [];
     const logs: any[] = [];
 
+    // Broadcast agent start
+    await supabase
+      .from('activity_log')
+      .insert({
+        action: 'content_agent_status',
+        entity_type: 'system',
+        metadata: {
+          status: 'started',
+          timestamp: new Date().toISOString()
+        }
+      });
+
     // Scan countries for missing guide content
     const { data: countries } = await supabase
       .from('countries')
@@ -206,6 +218,21 @@ Make it SEO-optimized and comprehensive.`;
           continue; // Skip this page to avoid duplicate processing
         }
 
+        // Broadcast current processing status
+        await supabase
+          .from('activity_log')
+          .insert({
+            action: 'content_agent_status',
+            entity_type: 'content_page',
+            entity_id: page.id,
+            metadata: {
+              status: 'processing',
+              title: page.title,
+              slug: page.slug,
+              timestamp: new Date().toISOString()
+            }
+          });
+
         const missingFields: string[] = [];
         
         if (!page.excerpt || page.excerpt.trim().length < 50) missingFields.push('excerpt');
@@ -246,6 +273,21 @@ Make it SEO-optimized and comprehensive.`;
           console.log(`Skipping ${article.title} - already updated by agent in last 24 hours`);
           continue; // Skip this article to avoid duplicate processing
         }
+
+        // Broadcast current processing status
+        await supabase
+          .from('activity_log')
+          .insert({
+            action: 'content_agent_status',
+            entity_type: 'news_article',
+            entity_id: article.id,
+            metadata: {
+              status: 'processing',
+              title: article.title,
+              slug: article.slug,
+              timestamp: new Date().toISOString()
+            }
+          });
 
         const missingFields: string[] = [];
         
@@ -403,6 +445,19 @@ Make it SEO-optimized and comprehensive.`;
     };
 
     console.log('Content Agent: Scan complete', summary);
+
+    // Broadcast agent completion
+    await supabase
+      .from('activity_log')
+      .insert({
+        action: 'content_agent_status',
+        entity_type: 'system',
+        metadata: {
+          status: 'completed',
+          updates_made: logs.filter(l => l.status === 'success').length,
+          timestamp: new Date().toISOString()
+        }
+      });
 
     return new Response(JSON.stringify(summary), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

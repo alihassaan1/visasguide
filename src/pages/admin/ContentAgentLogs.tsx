@@ -4,13 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Activity, CheckCircle, XCircle, Clock } from "lucide-react";
+import { RefreshCw, Activity, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const ContentAgentLogs = () => {
   const [isRunning, setIsRunning] = useState(false);
+  const [currentPage, setCurrentPage] = useState<{ title: string; type: string } | null>(null);
+  const [agentStatus, setAgentStatus] = useState<'idle' | 'running' | 'completed'>('idle');
 
   const { data: logs, isLoading, refetch } = useQuery({
     queryKey: ["content-agent-logs"],
@@ -26,6 +29,47 @@ const ContentAgentLogs = () => {
       return data || [];
     },
   });
+
+  // Set up realtime subscription for live progress
+  useEffect(() => {
+    const channel = supabase
+      .channel('agent-progress')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'activity_log',
+          filter: 'action=eq.content_agent_status'
+        },
+        (payload) => {
+          const metadata = payload.new.metadata as any;
+          console.log('Agent status update:', metadata);
+          
+          if (metadata.status === 'started') {
+            setAgentStatus('running');
+            setCurrentPage(null);
+          } else if (metadata.status === 'processing') {
+            setCurrentPage({
+              title: metadata.title,
+              type: payload.new.entity_type
+            });
+          } else if (metadata.status === 'completed') {
+            setAgentStatus('completed');
+            setCurrentPage(null);
+            setTimeout(() => {
+              setAgentStatus('idle');
+              refetch();
+            }, 3000);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refetch]);
 
   const runAgent = async () => {
     try {
@@ -82,6 +126,32 @@ const ContentAgentLogs = () => {
           )}
         </Button>
       </div>
+
+      {agentStatus === 'running' && (
+        <Alert className="bg-blue-500/10 border-blue-500/20">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <AlertDescription className="ml-2">
+            <div className="font-medium">Agent is running...</div>
+            {currentPage && (
+              <div className="text-sm mt-1">
+                Currently processing: <span className="font-semibold">{currentPage.title}</span>
+                <Badge variant="outline" className="ml-2 text-xs">
+                  {currentPage.type?.replace('_', ' ')}
+                </Badge>
+              </div>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {agentStatus === 'completed' && (
+        <Alert className="bg-green-500/10 border-green-500/20">
+          <CheckCircle className="h-4 w-4 text-green-500" />
+          <AlertDescription className="ml-2">
+            <div className="font-medium text-green-500">Agent completed successfully!</div>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>

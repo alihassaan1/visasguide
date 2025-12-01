@@ -19,5 +19,3 @@ Sitemap: https://awiytryceqehqapytfgn.supabase.co/functions/v1/sitemap
 
 # RSS Feed
 # https://visas.guide/rss
-Sitemap: https://awiytryceqehqapytfgn.supabase.co/functions/v1/sitemap
-

@@ -13,6 +13,28 @@ interface ContentIssue {
   missingFields: string[];
 }
 
+// Country name abbreviations mapping for CTR optimization
+const COUNTRY_ABBREVIATIONS: Record<string, string[]> = {
+  'saint-kitts-and-nevis': ['St Kitts', 'Saint Kitts', 'St Kitts and Nevis'],
+  'united-states': ['USA', 'US', 'United States', 'America'],
+  'united-kingdom': ['UK', 'Britain', 'United Kingdom', 'Great Britain'],
+  'united-arab-emirates': ['UAE', 'Dubai', 'United Arab Emirates'],
+  'czech-republic': ['Czech Republic', 'Czechia'],
+  'south-korea': ['South Korea', 'Korea'],
+  'new-zealand': ['New Zealand', 'NZ'],
+  'hong-kong': ['Hong Kong', 'HK'],
+  'saudi-arabia': ['Saudi Arabia', 'KSA'],
+};
+
+// Get CTR-optimized country display name
+function getCTROptimizedName(slug: string, name: string): string {
+  const abbrevs = COUNTRY_ABBREVIATIONS[slug];
+  if (abbrevs && abbrevs.length > 0) {
+    return abbrevs[0]; // Return shortest/most common abbreviation
+  }
+  return name;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -20,6 +42,19 @@ serve(async (req) => {
 
   try {
     console.log('Content Agent: Starting scan...');
+    
+    // Parse request body for priority country
+    let priorityCountrySlug: string | null = null;
+    let targetAudience: string = 'global';
+    
+    try {
+      const body = await req.json();
+      priorityCountrySlug = body?.priorityCountry || null;
+      targetAudience = body?.targetAudience || 'global';
+      console.log(`Priority country: ${priorityCountrySlug}, Target audience: ${targetAudience}`);
+    } catch {
+      // No body provided, continue with default behavior
+    }
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -57,28 +92,284 @@ serve(async (req) => {
         entity_type: 'system',
         metadata: {
           status: 'started',
+          priorityCountry: priorityCountrySlug,
+          targetAudience,
           timestamp: new Date().toISOString()
         }
       });
 
-    // Scan countries for missing guide content
-    const { data: countries } = await supabase
-      .from('countries')
-      .select('id, name, slug, code')
-      .limit(5); // Process 5 countries per run
+    // If priority country specified, process it first with CTR-optimized content
+    if (priorityCountrySlug) {
+      console.log(`Processing priority country: ${priorityCountrySlug}`);
+      
+      const { data: priorityCountry } = await supabase
+        .from('countries')
+        .select('id, name, slug, code')
+        .eq('slug', priorityCountrySlug)
+        .single();
 
-    if (countries) {
-      for (const country of countries) {
-        // Check if guide content exists for this country
-        const { data: existingGuide } = await supabase
-          .from('content_pages')
-          .select('id')
-          .eq('slug', `countries/${country.slug}`)
-          .maybeSingle();
+      if (priorityCountry) {
+        const ctrName = getCTROptimizedName(priorityCountry.slug, priorityCountry.name);
+        const alternativeNames = COUNTRY_ABBREVIATIONS[priorityCountry.slug] || [priorityCountry.name];
+        
+        // Generate CTR-optimized content with search intent keywords
+        const ctrPrompt = `Write a comprehensive, CTR-optimized visa guide for ${priorityCountry.name}. 
 
-        if (!existingGuide) {
-          // Generate country guide content
-          const countryGuidePrompt = `Write a comprehensive travel and visa guide for ${country.name}. Structure it with these sections:
+CRITICAL: This content must rank for these exact search queries:
+- "${ctrName} visa requirements"
+- "${ctrName.toLowerCase()} visa requirements 2025"
+- "do i need a visa for ${ctrName.toLowerCase()}"
+- "do ${targetAudience === 'US' ? 'US citizens' : 'Americans'} need a visa for ${ctrName.toLowerCase()}"
+
+${targetAudience === 'US' ? `TARGET AUDIENCE: US citizens and American travelers. Include US-specific information prominently.
+
+Start with: "Do US citizens need a visa for ${ctrName}?" and answer immediately.` : ''}
+
+Structure the content with these sections:
+
+1. **Opening Hook** (Answer the main question immediately - do visitors need a visa?)
+   - State visa-free entry policy upfront if applicable
+   - Mention allowed stay duration
+
+2. **Visa-Free Entry Details** for ${priorityCountry.name}
+   - List countries that can enter visa-free
+   - Duration of visa-free stay
+   - Passport validity requirements
+
+3. **Entry Requirements** (What You Need to Enter)
+   - Valid passport requirements
+   - Proof of accommodation
+   - Return/onward ticket
+   - Sufficient funds
+   - Health insurance requirements
+
+4. **Step-by-Step Visa Application Process** (for those who need a visa)
+   - Document checklist
+   - Application steps
+   - Processing times
+   - Fees
+
+5. **US Citizens Section** (if targeting US audience)
+   - Specific requirements for American travelers
+   - Direct flights from US cities
+   - Embassy/consulate information
+
+6. **Frequently Asked Questions** (Target "People Also Ask")
+   - "Can I extend my stay in ${ctrName}?"
+   - "What documents do I need to visit ${ctrName}?"
+   - "Is ${ctrName} visa-free for Americans?"
+   - "How long can I stay in ${ctrName} without a visa?"
+
+7. **Travel Tips for ${priorityCountry.name}**
+   - Best time to visit
+   - Currency information
+   - Safety tips
+   - Local customs
+
+Format in clean HTML with h2, h3, p, ul, li tags. Use Tailwind CSS classes for styling.
+IMPORTANT: Do NOT use border classes. Keep styling minimal and clean.
+Make it comprehensive (1500+ words) and SEO-optimized.`;
+
+        try {
+          // Broadcast processing status
+          await supabase.from('activity_log').insert({
+            action: 'content_agent_status',
+            entity_type: 'priority_country',
+            metadata: {
+              status: 'processing',
+              country_name: priorityCountry.name,
+              country_slug: priorityCountry.slug,
+              ctr_optimized: true,
+              target_audience: targetAudience,
+              timestamp: new Date().toISOString()
+            }
+          });
+
+          const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+              model: 'deepseek-chat',
+              messages: [
+                {
+                  role: 'system',
+                  content: `You are an expert travel and visa content writer specializing in SEO-optimized, high-CTR content. Your goal is to create content that:
+1. Matches exact search queries users type into Google
+2. Answers the main question immediately (no fluff)
+3. Uses power words that drive clicks
+4. Includes target keywords naturally throughout
+5. Provides comprehensive, accurate visa information`
+                },
+                {
+                  role: 'user',
+                  content: ctrPrompt
+                }
+              ],
+              temperature: 0.7,
+              max_tokens: 4000,
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const generatedContent = data.choices[0].message.content;
+
+            // CTR-optimized meta title and description
+            const metaTitle = `${ctrName} Visa Requirements 2025 | ${targetAudience === 'US' ? 'Do US Citizens Need a Visa?' : 'Entry Guide & Requirements'}`;
+            const metaDescription = `${targetAudience === 'US' ? 'Do US citizens need a visa for ' + ctrName + '?' : 'Complete ' + ctrName + ' visa guide.'} ✓ ${priorityCountry.name === 'Saint Kitts and Nevis' ? '90-day visa-free entry' : 'Entry requirements'} ✓ Required documents ✓ Step-by-step application process. Updated 2025.`;
+            
+            // Keywords optimized for search queries
+            const keywords = [
+              `${ctrName.toLowerCase()} visa requirements`,
+              `${ctrName.toLowerCase()} visa`,
+              `do i need a visa for ${ctrName.toLowerCase()}`,
+              `${priorityCountry.name.toLowerCase()} visa requirements`,
+              `${ctrName.toLowerCase()} entry requirements`,
+              `visit ${ctrName.toLowerCase()}`,
+              `${ctrName.toLowerCase()} travel guide 2025`,
+              ...(targetAudience === 'US' ? [`us citizens ${ctrName.toLowerCase()}`, `americans ${ctrName.toLowerCase()} visa`] : [])
+            ];
+
+            // Check if content page exists
+            const { data: existingPage } = await supabase
+              .from('content_pages')
+              .select('id')
+              .eq('slug', `countries/${priorityCountry.slug}`)
+              .maybeSingle();
+
+            if (existingPage) {
+              // Update existing page with CTR-optimized content
+              const { error: updateError } = await supabase
+                .from('content_pages')
+                .update({
+                  title: `${ctrName} Visa Requirements 2025 | ${priorityCountry.name} Entry Guide`,
+                  content: generatedContent,
+                  excerpt: `Complete guide to ${ctrName} visa requirements for 2025. ${targetAudience === 'US' ? 'Essential info for US citizens and American travelers.' : 'Everything you need to know before visiting ' + priorityCountry.name + '.'}`,
+                  meta_title: metaTitle,
+                  meta_description: metaDescription,
+                  keywords: keywords,
+                  updated_at: new Date().toISOString()
+                })
+                .eq('id', existingPage.id);
+
+              if (!updateError) {
+                logs.push({
+                  entity: `${priorityCountry.name} Guide (CTR Optimized)`,
+                  type: 'priority_country',
+                  status: 'success',
+                  message: 'CTR-optimized content updated',
+                  page_id: existingPage.id
+                });
+                console.log(`✅ Updated CTR-optimized content for ${priorityCountry.name}`);
+              }
+            } else {
+              // Create new CTR-optimized page
+              const { data: insertedPage, error: insertError } = await supabase
+                .from('content_pages')
+                .insert({
+                  slug: `countries/${priorityCountry.slug}`,
+                  title: `${ctrName} Visa Requirements 2025 | ${priorityCountry.name} Entry Guide`,
+                  content: generatedContent,
+                  excerpt: `Complete guide to ${ctrName} visa requirements for 2025. ${targetAudience === 'US' ? 'Essential info for US citizens and American travelers.' : 'Everything you need to know before visiting ' + priorityCountry.name + '.'}`,
+                  meta_title: metaTitle,
+                  meta_description: metaDescription,
+                  keywords: keywords,
+                  is_published: true,
+                  status: 'published',
+                  ai_generated: true
+                })
+                .select()
+                .single();
+
+              if (!insertError && insertedPage) {
+                logs.push({
+                  entity: `${priorityCountry.name} Guide (CTR Optimized)`,
+                  type: 'priority_country',
+                  status: 'success',
+                  message: 'CTR-optimized content created',
+                  page_id: insertedPage.id
+                });
+                console.log(`✅ Created CTR-optimized content for ${priorityCountry.name}`);
+              }
+            }
+
+            // Log the CTR optimization
+            await supabase.from('activity_log').insert({
+              action: 'content_agent_ctr_optimization',
+              entity_type: 'country_guide',
+              metadata: {
+                country_name: priorityCountry.name,
+                country_slug: priorityCountry.slug,
+                ctr_name: ctrName,
+                meta_title: metaTitle,
+                meta_description: metaDescription,
+                keywords: keywords,
+                target_audience: targetAudience,
+                ai_generated: true,
+                timestamp: new Date().toISOString()
+              }
+            });
+
+            // Submit to IndexNow for faster re-indexing
+            try {
+              const indexNowResponse = await fetch(`${supabaseUrl}/functions/v1/indexnow`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${supabaseKey}`,
+                },
+                body: JSON.stringify({
+                  urls: [`/countries/${priorityCountry.slug}`]
+                })
+              });
+              
+              if (indexNowResponse.ok) {
+                console.log(`✅ Submitted ${priorityCountry.slug} to IndexNow`);
+                logs.push({
+                  entity: `IndexNow: ${priorityCountry.name}`,
+                  type: 'indexnow',
+                  status: 'success',
+                  message: 'URL submitted to IndexNow for re-indexing'
+                });
+              }
+            } catch (indexError) {
+              console.error('IndexNow submission error:', indexError);
+            }
+          }
+        } catch (error) {
+          console.error(`Error processing priority country ${priorityCountry.name}:`, error);
+          logs.push({
+            entity: `${priorityCountry.name} Guide`,
+            type: 'priority_country',
+            status: 'error',
+            error: error.message
+          });
+        }
+      }
+    }
+
+    // Continue with regular country processing (only if no priority country)
+    if (!priorityCountrySlug) {
+      const { data: countries } = await supabase
+        .from('countries')
+        .select('id, name, slug, code')
+        .limit(5);
+
+      if (countries) {
+        for (const country of countries) {
+          const { data: existingGuide } = await supabase
+            .from('content_pages')
+            .select('id')
+            .eq('slug', `countries/${country.slug}`)
+            .maybeSingle();
+
+          if (!existingGuide) {
+            const ctrName = getCTROptimizedName(country.slug, country.name);
+            
+            const countryGuidePrompt = `Write a comprehensive travel and visa guide for ${country.name}. Structure it with these sections:
 
 1. About ${country.name} (2-3 paragraphs about tourism, attractions, why people visit)
 
@@ -100,96 +391,96 @@ Format the content in HTML with proper semantic tags (h2, h3, ul, li, p, div wit
 IMPORTANT: Do NOT use any border classes (border, border-l, border-r, border-t, border-b). Keep styling minimal and clean.
 Make it SEO-optimized and comprehensive.`;
 
-          try {
-            const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
-              },
-              body: JSON.stringify({
-                model: 'deepseek-chat',
-                messages: [
-                  {
-                    role: 'system',
-                    content: 'You are an expert travel and visa content writer. Create comprehensive, SEO-optimized guides with proper HTML formatting and Tailwind CSS classes.'
-                  },
-                  {
-                    role: 'user',
-                    content: countryGuidePrompt
-                  }
-                ],
-                temperature: 0.7,
-                max_tokens: 3000,
-              }),
-            });
+            try {
+              const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${apiKey}`,
+                },
+                body: JSON.stringify({
+                  model: 'deepseek-chat',
+                  messages: [
+                    {
+                      role: 'system',
+                      content: 'You are an expert travel and visa content writer. Create comprehensive, SEO-optimized guides with proper HTML formatting and Tailwind CSS classes.'
+                    },
+                    {
+                      role: 'user',
+                      content: countryGuidePrompt
+                    }
+                  ],
+                  temperature: 0.7,
+                  max_tokens: 3000,
+                }),
+              });
 
-            if (response.ok) {
-              const data = await response.json();
-              const generatedContent = data.choices[0].message.content;
+              if (response.ok) {
+                const data = await response.json();
+                const generatedContent = data.choices[0].message.content;
 
-              // Create the country guide content page
-              const { data: insertedPage, error: insertError } = await supabase
-                .from('content_pages')
-                .insert({
-                  slug: `countries/${country.slug}`,
-                  title: `${country.name} Travel & Visa Guide 2025`,
-                  content: generatedContent,
-                  excerpt: `Complete guide to ${country.name} visa requirements, types, and application process. Essential information for travelers visiting ${country.name}.`,
-                  meta_title: `${country.name} Visa Guide 2025 – Requirements & Application | Visas.Guide`,
-                  meta_description: `Complete ${country.name} visa requirements guide for 2025. Tourist, business, student, and work visa information, processing times, and application process.`,
-                  keywords: [`${country.name.toLowerCase()} visa`, `${country.name.toLowerCase()} visa requirements`, `${country.name.toLowerCase()} travel guide`, `visit ${country.name.toLowerCase()}`],
-                  is_published: true,
-                  status: 'published',
-                  ai_generated: true
-                })
-                .select()
-                .single();
+                const { data: insertedPage, error: insertError } = await supabase
+                  .from('content_pages')
+                  .insert({
+                    slug: `countries/${country.slug}`,
+                    title: `${ctrName} Visa Requirements 2025 | ${country.name} Travel Guide`,
+                    content: generatedContent,
+                    excerpt: `Complete guide to ${country.name} visa requirements, types, and application process. Essential information for travelers visiting ${country.name}.`,
+                    meta_title: `${ctrName} Visa Requirements 2025 | Entry Guide | Visas.Guide`,
+                    meta_description: `Complete ${ctrName} visa requirements guide for 2025. Tourist, business, student visa info, processing times, and application process. Updated guide.`,
+                    keywords: [`${ctrName.toLowerCase()} visa`, `${ctrName.toLowerCase()} visa requirements`, `${country.name.toLowerCase()} travel guide`, `visit ${ctrName.toLowerCase()}`],
+                    is_published: true,
+                    status: 'published',
+                    ai_generated: true
+                  })
+                  .select()
+                  .single();
 
-              if (!insertError && insertedPage) {
-                await supabase.from('activity_log').insert({
-                  action: 'content_agent_create',
-                  entity_type: 'country_guide',
-                  entity_id: insertedPage.id,
-                  metadata: {
-                    country_name: country.name,
-                    country_code: country.code,
-                    country_slug: country.slug,
-                    content_slug: `countries/${country.slug}`,
-                    title: `${country.name} Travel & Visa Guide 2025`,
-                    content_preview: generatedContent.substring(0, 200) + '...',
-                    ai_generated: true,
-                    fields_generated: ['content', 'excerpt', 'meta_title', 'meta_description', 'keywords'],
-                    created_at: new Date().toISOString()
-                  }
-                });
+                if (!insertError && insertedPage) {
+                  await supabase.from('activity_log').insert({
+                    action: 'content_agent_create',
+                    entity_type: 'country_guide',
+                    entity_id: insertedPage.id,
+                    metadata: {
+                      country_name: country.name,
+                      country_code: country.code,
+                      country_slug: country.slug,
+                      content_slug: `countries/${country.slug}`,
+                      title: `${country.name} Travel & Visa Guide 2025`,
+                      content_preview: generatedContent.substring(0, 200) + '...',
+                      ai_generated: true,
+                      fields_generated: ['content', 'excerpt', 'meta_title', 'meta_description', 'keywords'],
+                      created_at: new Date().toISOString()
+                    }
+                  });
 
-                logs.push({
-                  entity: `${country.name} Guide`,
-                  type: 'country_guide',
-                  status: 'success',
-                  message: 'Country guide created',
-                  page_id: insertedPage.id
-                });
+                  logs.push({
+                    entity: `${country.name} Guide`,
+                    type: 'country_guide',
+                    status: 'success',
+                    message: 'Country guide created',
+                    page_id: insertedPage.id
+                  });
 
-                console.log(`✅ Created comprehensive country guide for ${country.name} (ID: ${insertedPage.id})`);
-              } else {
-                logs.push({
-                  entity: `${country.name} Guide`,
-                  type: 'country_guide',
-                  status: 'error',
-                  error: insertError?.message || 'Unknown error'
-                });
+                  console.log(`✅ Created comprehensive country guide for ${country.name} (ID: ${insertedPage.id})`);
+                } else {
+                  logs.push({
+                    entity: `${country.name} Guide`,
+                    type: 'country_guide',
+                    status: 'error',
+                    error: insertError?.message || 'Unknown error'
+                  });
+                }
               }
+            } catch (error) {
+              console.error(`Error creating guide for ${country.name}:`, error);
+              logs.push({
+                entity: `${country.name} Guide`,
+                type: 'country_guide',
+                status: 'error',
+                error: error.message
+              });
             }
-          } catch (error) {
-            console.error(`Error creating guide for ${country.name}:`, error);
-            logs.push({
-              entity: `${country.name} Guide`,
-              type: 'country_guide',
-              status: 'error',
-              error: error.message
-            });
           }
         }
       }
@@ -200,11 +491,10 @@ Make it SEO-optimized and comprehensive.`;
       .from('content_pages')
       .select('*')
       .eq('is_published', true)
-      .limit(10); // Process 10 pages per run to avoid timeouts
+      .limit(10);
 
     if (contentPages) {
       for (const page of contentPages) {
-        // Check if this page was already processed by the agent recently (within last 24 hours)
         const { data: recentUpdate } = await supabase
           .from('activity_log')
           .select('created_at')
@@ -215,10 +505,9 @@ Make it SEO-optimized and comprehensive.`;
 
         if (recentUpdate) {
           console.log(`Skipping ${page.title} - already updated by agent in last 24 hours`);
-          continue; // Skip this page to avoid duplicate processing
+          continue;
         }
 
-        // Broadcast current processing status
         await supabase
           .from('activity_log')
           .insert({
@@ -260,7 +549,6 @@ Make it SEO-optimized and comprehensive.`;
 
     if (newsArticles) {
       for (const article of newsArticles) {
-        // Check if this article was already processed by the agent recently (within last 24 hours)
         const { data: recentUpdate } = await supabase
           .from('activity_log')
           .select('created_at')
@@ -271,10 +559,9 @@ Make it SEO-optimized and comprehensive.`;
 
         if (recentUpdate) {
           console.log(`Skipping ${article.title} - already updated by agent in last 24 hours`);
-          continue; // Skip this article to avoid duplicate processing
+          continue;
         }
 
-        // Broadcast current processing status
         await supabase
           .from('activity_log')
           .insert({
@@ -314,7 +601,6 @@ Make it SEO-optimized and comprehensive.`;
       try {
         console.log(`Processing ${issue.type}: ${issue.title}`);
         
-        // Get current content
         const table = issue.type === 'content_page' ? 'content_pages' : 'news_articles';
         const { data: currentData } = await supabase
           .from(table)
@@ -326,7 +612,6 @@ Make it SEO-optimized and comprehensive.`;
 
         const updates: any = {};
 
-        // Generate missing content using DeepSeek
         for (const field of issue.missingFields) {
           let prompt = '';
           
@@ -347,7 +632,6 @@ Make it SEO-optimized and comprehensive.`;
               break;
           }
 
-          // Call DeepSeek API
           const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -380,7 +664,6 @@ Make it SEO-optimized and comprehensive.`;
           }
         }
 
-        // Update the record
         if (Object.keys(updates).length > 0) {
           const { error: updateError } = await supabase
             .from(table)
@@ -388,7 +671,6 @@ Make it SEO-optimized and comprehensive.`;
             .eq('id', issue.id);
 
           if (!updateError) {
-            // Log the update with full details
             await supabase.from('activity_log').insert({
               action: 'content_agent_update',
               entity_type: issue.type,
@@ -436,8 +718,9 @@ Make it SEO-optimized and comprehensive.`;
     }
 
     const summary = {
-      total_scanned: (countries?.length || 0) + (contentPages?.length || 0) + (newsArticles?.length || 0),
-      countries_processed: countries?.length || 0,
+      total_scanned: (contentPages?.length || 0) + (newsArticles?.length || 0),
+      priority_country: priorityCountrySlug,
+      target_audience: targetAudience,
       issues_found: issues.length,
       updates_made: logs.filter(l => l.status === 'success').length,
       errors: logs.filter(l => l.status === 'error').length,
@@ -455,6 +738,7 @@ Make it SEO-optimized and comprehensive.`;
         metadata: {
           status: 'completed',
           updates_made: logs.filter(l => l.status === 'success').length,
+          priority_country: priorityCountrySlug,
           timestamp: new Date().toISOString()
         }
       });

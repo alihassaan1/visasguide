@@ -7,32 +7,33 @@ schemas = ["public", "graphql_public"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
-[functions.rss-fetcher]
-verify_jwt = false
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
 
-[functions.countries-backfill]
-verify_jwt = false
+[studio]
+enabled = true
+port = 54323
+api_url = "http://127.0.0.1"
 
-[functions.sitemap]
-verify_jwt = false
-
-[functions.create-slovenia-guide]
-verify_jwt = false
-
-[functions.content-agent]
-verify_jwt = false
-
-[functions.ai-generate-content]
-verify_jwt = true
+[auth]
+site_url = "http://127.0.0.1:3000"
+additional_redirect_urls = ["https://localhost:3000"]
+jwt_expiry = 3600
+enable_signup = true
 
 [functions.visa-data-import]
 verify_jwt = false
 
-[functions.rss-feed]
+[functions.rss-fetcher]
 verify_jwt = false
 
 [functions.deepseek-chat]
 verify_jwt = true
 
 [functions.indexnow]
+verify_jwt = false
+
+[functions.content-agent]
 verify_jwt = false

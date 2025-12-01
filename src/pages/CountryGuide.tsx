@@ -211,8 +211,28 @@ const CountryGuide = () => {
     );
   }
 
-  const metaTitle = `${country.name} Visa Guide 2025 – Requirements, Visa-Free Countries, and eVisa Information | Visas.Guide`;
-  const metaDescription = `Complete ${country.name} visa requirements, application process, visa-free countries for ${country.name} passport holders, processing times, and essential travel documentation. Updated 2025.`;
+  // CTR-optimized country name abbreviations for better search query matching
+  const countryAbbreviations: Record<string, string> = {
+    'saint-kitts-and-nevis': 'St Kitts',
+    'united-states': 'USA',
+    'united-kingdom': 'UK',
+    'united-arab-emirates': 'UAE',
+    'czech-republic': 'Czechia',
+    'south-korea': 'South Korea',
+    'new-zealand': 'New Zealand',
+    'hong-kong': 'Hong Kong',
+    'saudi-arabia': 'Saudi Arabia',
+  };
+  
+  // Get CTR-optimized display name
+  const ctrName = countryAbbreviations[country.slug] || country.name;
+  
+  // Use guide content meta if available (CTR-optimized by content agent)
+  const metaTitle = guideContent?.meta_title || 
+    `${ctrName} Visa Requirements 2025 | ${country.name !== ctrName ? country.name + ' ' : ''}Entry Guide & Requirements`;
+  
+  const metaDescription = guideContent?.meta_description || 
+    `Do you need a visa for ${ctrName}? ✓ Complete ${country.name} visa requirements ✓ Visa-free countries ✓ Application process ✓ Processing times. Updated 2025 guide.`;
 
   return (
     <div className="min-h-screen bg-background">

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,8 +37,12 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <title>Contact Us | Visas.Guide</title>
-      <meta name="description" content="Contact Visas.Guide for visa information inquiries, support, and general questions about travel documentation." />
+      <SEOHead
+        title="Contact Us – Get Visa Help & Support | Visas.Guide"
+        description="Have questions about visa requirements? Contact our team for visa information, support, and travel documentation guidance. We respond within 24 hours."
+        canonical="https://visas.guide/contact"
+        keywords={["contact visa guide", "visa help", "visa support", "travel documentation help", "visa questions"]}
+      />
       
       <Header />
       

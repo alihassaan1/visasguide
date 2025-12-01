@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Clock, ArrowRight, Star, TrendingUp } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 
@@ -102,6 +103,12 @@ const VisaGuides = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Visa Application Guides & Travel Documentation Tips 2025 | Visas.Guide"
+        description="Step-by-step visa application guides for popular destinations. Expert tips on Schengen, US ESTA, UK visitor visas, and more. Avoid common mistakes and get approved."
+        canonical="https://visas.guide/guides"
+        keywords={["visa application guide", "how to apply for visa", "schengen visa guide", "ESTA application", "UK visa tips", "visa documentation", "travel visa help"]}
+      />
       <Header />
       
       <main className="container mx-auto px-4 py-8">

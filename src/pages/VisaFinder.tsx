@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MapPin, Users, Clock, CreditCard, CheckCircle, ArrowRight } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 import { Link } from "react-router-dom";
 
 const VisaFinder = () => {
@@ -164,6 +165,12 @@ const VisaFinder = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Visa Finder Tool – Check Your Visa Requirements in Seconds | Visas.Guide"
+        description="Use our free Visa Finder tool to instantly discover visa requirements based on your nationality, destination, and travel purpose. Get personalized results."
+        canonical="https://visas.guide/visa-finder"
+        keywords={["visa finder", "check visa requirements", "do I need a visa", "visa checker tool", "travel visa calculator", "visa eligibility"]}
+      />
       <Header />
       
       <main className="container mx-auto px-4 py-8">

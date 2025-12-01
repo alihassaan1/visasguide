@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -73,6 +74,12 @@ const NewsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Latest Visa News & Immigration Updates 2025 | Visas.Guide Blog"
+        description="Stay informed with the latest visa policy changes, travel restrictions, immigration updates, and border news from around the world. Updated daily."
+        canonical="https://visas.guide/blog"
+        keywords={["visa news", "immigration updates", "travel restrictions", "visa policy changes", "border news", "travel updates 2025"]}
+      />
       {/* SEO Meta Tags */}
       <script 
         type="application/ld+json"

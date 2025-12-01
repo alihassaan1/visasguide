@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Search, MapPin, Clock, Users, DollarSign, X } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -70,6 +71,12 @@ const Countries = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Visa Requirements by Country – Browse 200+ Destinations | Visas.Guide"
+        description="Explore visa requirements for 200+ countries. Find entry rules, visa-free access, eVisa options, and travel documentation for every destination worldwide."
+        canonical="https://visas.guide/countries"
+        keywords={["country visa requirements", "visa by country", "travel destinations", "visa information", "country entry requirements", "international travel"]}
+      />
       <Header />
       
       <main className="container mx-auto px-4 py-8">

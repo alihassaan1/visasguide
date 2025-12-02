@@ -166,6 +166,62 @@ serve(async (req) => {
       throw new Error('DeepSeek API key not configured');
     }
 
+    // Get agent task settings from site_settings
+    const { data: agentSettings } = await supabase
+      .from('site_settings')
+      .select('setting_value')
+      .eq('setting_key', 'agent_task_settings')
+      .maybeSingle();
+
+    const taskConfig = agentSettings?.setting_value as any || {
+      ctr: { enabled: true, batchSize: 8 },
+      create: { enabled: true, batchSize: 5 },
+      visaEnrichment: { enabled: true, batchSize: 10 },
+      blogGeneration: { enabled: true, batchSize: 3 },
+      faqGeneration: { enabled: true, batchSize: 5 },
+    };
+
+    // Override batch size from settings if not provided in request
+    if (!batchSize || batchSize === 3) {
+      if (bulkCTRMode && taskConfig.ctr) batchSize = taskConfig.ctr.batchSize;
+      else if (visaEnrichmentMode && taskConfig.visaEnrichment) batchSize = taskConfig.visaEnrichment.batchSize;
+      else if (blogGenerationMode && taskConfig.blogGeneration) batchSize = taskConfig.blogGeneration.batchSize;
+      else if (faqGenerationMode && taskConfig.faqGeneration) batchSize = taskConfig.faqGeneration.batchSize;
+      else if (taskConfig.create) batchSize = taskConfig.create.batchSize;
+    }
+
+    // Check if task is enabled
+    const isTaskEnabled = (mode: string): boolean => {
+      if (mode === 'bulkCTR') return taskConfig.ctr?.enabled !== false;
+      if (mode === 'visaEnrichment') return taskConfig.visaEnrichment?.enabled !== false;
+      if (mode === 'blogGeneration') return taskConfig.blogGeneration?.enabled !== false;
+      if (mode === 'faqGeneration') return taskConfig.faqGeneration?.enabled !== false;
+      return taskConfig.create?.enabled !== false;
+    };
+
+    // Determine which mode is being run and check if enabled
+    let currentMode = 'default';
+    if (bulkCTRMode) currentMode = 'bulkCTR';
+    else if (visaEnrichmentMode) currentMode = 'visaEnrichment';
+    else if (blogGenerationMode) currentMode = 'blogGeneration';
+    else if (faqGenerationMode) currentMode = 'faqGeneration';
+
+    if (!isTaskEnabled(currentMode) && !priorityCountrySlug) {
+      console.log(`Task ${currentMode} is disabled in settings. Skipping.`);
+      return new Response(JSON.stringify({ 
+        mode: currentMode,
+        status: 'skipped',
+        reason: 'Task is disabled in agent settings',
+        updates_made: 0,
+        errors: 0,
+        logs: []
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`Task ${currentMode} is enabled. Batch size: ${batchSize}`);
+
     const logs: any[] = [];
 
     // Broadcast agent start

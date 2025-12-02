@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, MapPin, Phone, Printer } from "lucide-react";
+import { MapPin, Phone, Printer } from "lucide-react";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -137,19 +137,6 @@ const Contact = () => {
                   <CardTitle>Contact Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <Mail className="h-5 w-5 text-primary mt-1" />
-                    <div>
-                      <h3 className="font-semibold mb-1">Email</h3>
-                      <a href="mailto:visasguide2025@gmail.com" className="text-primary hover:underline">
-                        visasguide2025@gmail.com
-                      </a>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        We typically respond within 24-48 hours
-                      </p>
-                    </div>
-                  </div>
-
                   <div className="flex items-start gap-3">
                     <Phone className="h-5 w-5 text-primary mt-1" />
                     <div>

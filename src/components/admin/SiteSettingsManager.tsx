@@ -30,6 +30,7 @@ interface SocialLinks {
 interface AnalyticsSettings {
   google_analytics_id: string;
   google_tag_manager_id: string;
+  facebook_pixel_id: string;
 }
 
 export const SiteSettingsManager = () => {
@@ -49,7 +50,8 @@ export const SiteSettingsManager = () => {
   });
   const [analyticsSettings, setAnalyticsSettings] = useState<AnalyticsSettings>({
     google_analytics_id: '',
-    google_tag_manager_id: ''
+    google_tag_manager_id: '',
+    facebook_pixel_id: ''
   });
 
   useEffect(() => {
@@ -148,41 +150,64 @@ export const SiteSettingsManager = () => {
 
   return (
     <div className="space-y-6">
-      {/* Google Analytics Settings */}
+      {/* Analytics & Tracking Settings */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
-            Google Analytics
+            Analytics & Tracking
           </CardTitle>
           <CardDescription>
-            Add your Google Analytics or Google Tag Manager ID to track website traffic
+            Add your tracking pixels and analytics IDs to monitor website traffic and conversions
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="ga_id">Google Analytics Measurement ID</Label>
-              <Input
-                id="ga_id"
-                value={analyticsSettings.google_analytics_id}
-                onChange={(e) => setAnalyticsSettings({ ...analyticsSettings, google_analytics_id: e.target.value })}
-                placeholder="G-XXXXXXXXXX"
-              />
-              <p className="text-xs text-muted-foreground">
-                Find this in Google Analytics → Admin → Data Streams → Your stream
-              </p>
+        <CardContent className="space-y-6">
+          {/* Google Analytics */}
+          <div className="space-y-4">
+            <h4 className="font-medium text-sm">Google Analytics</h4>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="ga_id">Google Analytics Measurement ID</Label>
+                <Input
+                  id="ga_id"
+                  value={analyticsSettings.google_analytics_id}
+                  onChange={(e) => setAnalyticsSettings({ ...analyticsSettings, google_analytics_id: e.target.value })}
+                  placeholder="G-XXXXXXXXXX"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Find this in Google Analytics → Admin → Data Streams → Your stream
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gtm_id">Google Tag Manager ID (Optional)</Label>
+                <Input
+                  id="gtm_id"
+                  value={analyticsSettings.google_tag_manager_id}
+                  onChange={(e) => setAnalyticsSettings({ ...analyticsSettings, google_tag_manager_id: e.target.value })}
+                  placeholder="GTM-XXXXXXX"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Use this if you prefer managing tags through GTM
+                </p>
+              </div>
             </div>
+          </div>
+
+          <Separator />
+
+          {/* Facebook Pixel */}
+          <div className="space-y-4">
+            <h4 className="font-medium text-sm">Facebook Pixel</h4>
             <div className="space-y-2">
-              <Label htmlFor="gtm_id">Google Tag Manager ID (Optional)</Label>
+              <Label htmlFor="fb_pixel_id">Facebook Pixel ID</Label>
               <Input
-                id="gtm_id"
-                value={analyticsSettings.google_tag_manager_id}
-                onChange={(e) => setAnalyticsSettings({ ...analyticsSettings, google_tag_manager_id: e.target.value })}
-                placeholder="GTM-XXXXXXX"
+                id="fb_pixel_id"
+                value={analyticsSettings.facebook_pixel_id}
+                onChange={(e) => setAnalyticsSettings({ ...analyticsSettings, facebook_pixel_id: e.target.value })}
+                placeholder="XXXXXXXXXXXXXXXX"
               />
               <p className="text-xs text-muted-foreground">
-                Use this if you prefer managing tags through GTM
+                Find this in Meta Events Manager → Data Sources → Your Pixel → Settings
               </p>
             </div>
           </div>

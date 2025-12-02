@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface AnalyticsSettings {
   google_analytics_id: string;
   google_tag_manager_id: string;
+  facebook_pixel_id: string;
 }
 
 const GoogleAnalytics = () => {
@@ -77,6 +78,38 @@ const GoogleAnalytics = () => {
         document.body.insertBefore(noscript, document.body.firstChild);
 
         console.log('Google Tag Manager initialized:', gtmId);
+      }
+    }
+
+    // Inject Facebook Pixel
+    if (settings.facebook_pixel_id && settings.facebook_pixel_id.trim()) {
+      const pixelId = settings.facebook_pixel_id.trim();
+      
+      // Check if FB Pixel script already exists
+      if (!document.querySelector('script[data-fb-pixel]')) {
+        // Create and inject FB Pixel script
+        const script = document.createElement('script');
+        script.setAttribute('data-fb-pixel', 'true');
+        script.innerHTML = `
+          !function(f,b,e,v,n,t,s)
+          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+          n.queue=[];t=b.createElement(e);t.async=!0;
+          t.src=v;s=b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t,s)}(window, document,'script',
+          'https://connect.facebook.net/en_US/fbevents.js');
+          fbq('init', '${pixelId}');
+          fbq('track', 'PageView');
+        `;
+        document.head.appendChild(script);
+
+        // Add noscript fallback
+        const noscript = document.createElement('noscript');
+        noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"/>`;
+        document.body.appendChild(noscript);
+
+        console.log('Facebook Pixel initialized:', pixelId);
       }
     }
   }, [settings]);

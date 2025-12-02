@@ -37,3 +37,6 @@ verify_jwt = false
 
 [functions.content-agent]
 verify_jwt = false
+
+[functions.sitemap]
+verify_jwt = false

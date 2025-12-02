@@ -8,7 +8,7 @@ import SEOHead from "@/components/SEOHead";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-const RSS_FEED_URL = "https://awiytryceqehqapytfgn.supabase.co/functions/v1/rss-feed";
+const RSS_FEED_URL = "https://visas.guide/feed";
 
 const RSSFeed = () => {
   const [copied, setCopied] = useState(false);

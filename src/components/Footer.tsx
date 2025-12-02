@@ -138,7 +138,7 @@ const Footer = () => {
                     <li><Link to="/requirements" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Visa Requirements</Link></li>
                     <li><Link to="/guides" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Application Guides</Link></li>
                     <li><Link to="/processing-times" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Processing Times</Link></li>
-                    <li><a href="https://awiytryceqehqapytfgn.supabase.co/functions/v1/rss-feed" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors inline-flex items-center gap-1">
+                    <li><a href="https://visas.guide/feed" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors inline-flex items-center gap-1">
                       RSS Feed
                       <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z" />

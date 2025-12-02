@@ -30,6 +30,7 @@ interface SocialLinks {
 interface AnalyticsSettings {
   google_analytics_id: string;
   google_tag_manager_id: string;
+  google_adsense_publisher_id: string;
   facebook_pixel_id: string;
   tiktok_pixel_id: string;
   linkedin_insight_tag: string;
@@ -56,6 +57,7 @@ export const SiteSettingsManager = () => {
   const [analyticsSettings, setAnalyticsSettings] = useState<AnalyticsSettings>({
     google_analytics_id: '',
     google_tag_manager_id: '',
+    google_adsense_publisher_id: '',
     facebook_pixel_id: '',
     tiktok_pixel_id: '',
     linkedin_insight_tag: '',
@@ -98,6 +100,7 @@ export const SiteSettingsManager = () => {
         setAnalyticsSettings({
           google_analytics_id: '',
           google_tag_manager_id: '',
+          google_adsense_publisher_id: '',
           facebook_pixel_id: '',
           tiktok_pixel_id: '',
           linkedin_insight_tag: '',
@@ -208,6 +211,27 @@ export const SiteSettingsManager = () => {
                 />
                 <p className="text-xs text-muted-foreground">
                   Use this if you prefer managing tags through GTM
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Google AdSense */}
+          <div className="space-y-4">
+            <h4 className="font-medium text-sm">Google AdSense (Monetization)</h4>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="adsense_id">Google AdSense Publisher ID</Label>
+                <Input
+                  id="adsense_id"
+                  value={analyticsSettings.google_adsense_publisher_id}
+                  onChange={(e) => setAnalyticsSettings({ ...analyticsSettings, google_adsense_publisher_id: e.target.value })}
+                  placeholder="ca-pub-XXXXXXXXXXXXXXXX"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Find this in Google AdSense → Account → Account Information → Publisher ID
                 </p>
               </div>
             </div>

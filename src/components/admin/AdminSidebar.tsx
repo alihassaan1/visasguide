@@ -19,6 +19,7 @@ import {
   MessageSquare,
   Menu as MenuIcon,
   Activity,
+  Bot,
 } from "lucide-react";
 
 const menuItems = [
@@ -93,7 +94,12 @@ const menuItems = [
     href: "/admin/menu",
   },
   {
-    title: "Content Agent Logs",
+    title: "Agent Dashboard",
+    icon: Bot,
+    href: "/admin/agent-dashboard",
+  },
+  {
+    title: "Agent Logs",
     icon: Activity,
     href: "/admin/content-agent-logs",
   },

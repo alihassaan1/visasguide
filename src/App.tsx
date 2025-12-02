@@ -40,6 +40,7 @@ import SiteSettings from "./pages/admin/SiteSettings";
 import MenuManager from "./pages/admin/MenuManager";
 import SiteReviewChat from "./pages/admin/SiteReviewChat";
 import ContentAgentLogs from "./pages/admin/ContentAgentLogs";
+import AgentDashboard from "./pages/admin/AgentDashboard";
 import ContentPage from "./pages/ContentPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -100,6 +101,7 @@ const App = () => (
             <Route path="site-review" element={<SiteReviewChat />} />
             <Route path="newsletter" element={<NewsletterManager />} />
             <Route path="content-agent-logs" element={<ContentAgentLogs />} />
+            <Route path="agent-dashboard" element={<AgentDashboard />} />
           </Route>
           
           {/* Catch-all for content pages - must be last */}

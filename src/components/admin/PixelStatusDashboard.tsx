@@ -16,6 +16,7 @@ import {
 interface AnalyticsSettings {
   google_analytics_id: string;
   google_tag_manager_id: string;
+  google_adsense_publisher_id: string;
   facebook_pixel_id: string;
   tiktok_pixel_id: string;
   linkedin_insight_tag: string;
@@ -49,6 +50,14 @@ const PIXEL_CONFIGS: PixelConfig[] = [
     dashboardUrl: 'https://tagmanager.google.com/',
     category: 'google',
     color: 'bg-blue-500'
+  },
+  {
+    key: 'google_adsense_publisher_id',
+    name: 'Google AdSense',
+    icon: '💰',
+    dashboardUrl: 'https://www.google.com/adsense/',
+    category: 'google',
+    color: 'bg-green-500'
   },
   {
     key: 'facebook_pixel_id',
@@ -120,6 +129,7 @@ export const PixelStatusDashboard = () => {
         setSettings({
           google_analytics_id: '',
           google_tag_manager_id: '',
+          google_adsense_publisher_id: '',
           facebook_pixel_id: '',
           tiktok_pixel_id: '',
           linkedin_insight_tag: '',

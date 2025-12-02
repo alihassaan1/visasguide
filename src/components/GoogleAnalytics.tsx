@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface AnalyticsSettings {
   google_analytics_id: string;
   google_tag_manager_id: string;
+  google_adsense_publisher_id: string;
   facebook_pixel_id: string;
   tiktok_pixel_id: string;
   linkedin_insight_tag: string;
@@ -214,6 +215,21 @@ const GoogleAnalytics = () => {
         `;
         document.head.appendChild(script);
         console.log('Microsoft Clarity initialized:', clarityId);
+      }
+    }
+
+    // Inject Google AdSense Auto-Ads
+    if (settings.google_adsense_publisher_id && settings.google_adsense_publisher_id.startsWith('ca-pub-')) {
+      const publisherId = settings.google_adsense_publisher_id.trim();
+      
+      if (!document.querySelector('script[data-adsense]')) {
+        const script = document.createElement('script');
+        script.async = true;
+        script.setAttribute('data-adsense', 'true');
+        script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${publisherId}`;
+        script.crossOrigin = 'anonymous';
+        document.head.appendChild(script);
+        console.log('Google AdSense initialized:', publisherId);
       }
     }
   }, [settings]);

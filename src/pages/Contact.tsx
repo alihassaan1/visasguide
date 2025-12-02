@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Mail, MapPin, Phone, Printer } from "lucide-react";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -24,15 +25,28 @@ const Contact = () => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate form submission
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.functions.invoke('send-contact-form', {
+        body: formData
+      });
+
+      if (error) throw error;
+
       toast({
         title: "Message sent!",
-        description: "Thank you for contacting us. We'll get back to you soon.",
+        description: "Thank you for contacting us. We'll get back to you within 24-48 hours.",
       });
       setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (error: any) {
+      console.error('Contact form error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again or email us directly.",
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -127,9 +141,11 @@ const Contact = () => {
                     <Mail className="h-5 w-5 text-primary mt-1" />
                     <div>
                       <h3 className="font-semibold mb-1">Email</h3>
-                      <p className="text-muted-foreground">support@visas.guide</p>
+                      <a href="mailto:visasguide2025@gmail.com" className="text-primary hover:underline">
+                        visasguide2025@gmail.com
+                      </a>
                       <p className="text-sm text-muted-foreground mt-1">
-                        We typically respond within 24 hours
+                        We typically respond within 24-48 hours
                       </p>
                     </div>
                   </div>
@@ -138,10 +154,20 @@ const Contact = () => {
                     <Phone className="h-5 w-5 text-primary mt-1" />
                     <div>
                       <h3 className="font-semibold mb-1">Phone</h3>
-                      <p className="text-muted-foreground">+1 (555) 123-4567</p>
+                      <a href="tel:+17372324666" className="text-muted-foreground hover:text-primary">
+                        +1 737 232 4666
+                      </a>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Mon-Fri, 9:00 AM - 6:00 PM EST
+                        Mon-Fri, 9:00 AM - 6:00 PM CST
                       </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Printer className="h-5 w-5 text-primary mt-1" />
+                    <div>
+                      <h3 className="font-semibold mb-1">Fax</h3>
+                      <p className="text-muted-foreground">+1 (737) 843-1222</p>
                     </div>
                   </div>
 
@@ -150,9 +176,9 @@ const Contact = () => {
                     <div>
                       <h3 className="font-semibold mb-1">Office</h3>
                       <p className="text-muted-foreground">
-                        123 Travel Street<br />
-                        Suite 100<br />
-                        New York, NY 10001
+                        5900 Balcones Drive<br />
+                        STE 100<br />
+                        Austin, TX 78731
                       </p>
                     </div>
                   </div>

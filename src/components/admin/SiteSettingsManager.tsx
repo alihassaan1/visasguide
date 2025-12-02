@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Trash2, Save } from 'lucide-react';
+import { Plus, Trash2, Save, BarChart3 } from 'lucide-react';
 
 interface FooterLink {
   label: string;
@@ -27,6 +27,11 @@ interface SocialLinks {
   youtube: string;
 }
 
+interface AnalyticsSettings {
+  google_analytics_id: string;
+  google_tag_manager_id: string;
+}
+
 export const SiteSettingsManager = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -41,6 +46,10 @@ export const SiteSettingsManager = () => {
     instagram: '',
     linkedin: '',
     youtube: ''
+  });
+  const [analyticsSettings, setAnalyticsSettings] = useState<AnalyticsSettings>({
+    google_analytics_id: '',
+    google_tag_manager_id: ''
   });
 
   useEffect(() => {
@@ -61,11 +70,20 @@ export const SiteSettingsManager = () => {
         .eq('setting_key', 'social_links')
         .single();
 
+      const { data: analyticsData } = await supabase
+        .from('site_settings')
+        .select('setting_value')
+        .eq('setting_key', 'analytics_settings')
+        .single();
+
       if (footerData?.setting_value) {
         setFooterLinks(footerData.setting_value as any as FooterLinks);
       }
       if (socialData?.setting_value) {
         setSocialLinks(socialData.setting_value as any as SocialLinks);
+      }
+      if (analyticsData?.setting_value) {
+        setAnalyticsSettings(analyticsData.setting_value as any as AnalyticsSettings);
       }
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -85,7 +103,15 @@ export const SiteSettingsManager = () => {
         .update({ setting_value: socialLinks as any })
         .eq('setting_key', 'social_links');
 
-      if (footerError || socialError) throw footerError || socialError;
+      // Upsert analytics settings
+      const { error: analyticsError } = await supabase
+        .from('site_settings')
+        .upsert({ 
+          setting_key: 'analytics_settings',
+          setting_value: analyticsSettings as any 
+        }, { onConflict: 'setting_key' });
+
+      if (footerError || socialError || analyticsError) throw footerError || socialError || analyticsError;
 
       toast({
         title: "Settings saved",
@@ -122,6 +148,47 @@ export const SiteSettingsManager = () => {
 
   return (
     <div className="space-y-6">
+      {/* Google Analytics Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Google Analytics
+          </CardTitle>
+          <CardDescription>
+            Add your Google Analytics or Google Tag Manager ID to track website traffic
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="ga_id">Google Analytics Measurement ID</Label>
+              <Input
+                id="ga_id"
+                value={analyticsSettings.google_analytics_id}
+                onChange={(e) => setAnalyticsSettings({ ...analyticsSettings, google_analytics_id: e.target.value })}
+                placeholder="G-XXXXXXXXXX"
+              />
+              <p className="text-xs text-muted-foreground">
+                Find this in Google Analytics → Admin → Data Streams → Your stream
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="gtm_id">Google Tag Manager ID (Optional)</Label>
+              <Input
+                id="gtm_id"
+                value={analyticsSettings.google_tag_manager_id}
+                onChange={(e) => setAnalyticsSettings({ ...analyticsSettings, google_tag_manager_id: e.target.value })}
+                placeholder="GTM-XXXXXXX"
+              />
+              <p className="text-xs text-muted-foreground">
+                Use this if you prefer managing tags through GTM
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Social Media Links */}
       <Card>
         <CardHeader>

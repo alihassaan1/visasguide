@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import StickyNewsletterCTA from "@/components/StickyNewsletterCTA";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import Index from "./pages/Index";
 import Countries from "./pages/Countries";
@@ -58,6 +59,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <GoogleAnalytics />
         <StickyNewsletterCTA />
         <Routes>
           <Route path="/" element={<Index />} />

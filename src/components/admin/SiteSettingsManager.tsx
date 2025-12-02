@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Trash2, Save, BarChart3 } from 'lucide-react';
+import { Plus, Trash2, Save, BarChart3, Share2, Eye } from 'lucide-react';
 
 interface FooterLink {
   label: string;
@@ -31,6 +31,11 @@ interface AnalyticsSettings {
   google_analytics_id: string;
   google_tag_manager_id: string;
   facebook_pixel_id: string;
+  tiktok_pixel_id: string;
+  linkedin_insight_tag: string;
+  twitter_pixel_id: string;
+  pinterest_tag_id: string;
+  microsoft_clarity_id: string;
 }
 
 export const SiteSettingsManager = () => {
@@ -51,7 +56,12 @@ export const SiteSettingsManager = () => {
   const [analyticsSettings, setAnalyticsSettings] = useState<AnalyticsSettings>({
     google_analytics_id: '',
     google_tag_manager_id: '',
-    facebook_pixel_id: ''
+    facebook_pixel_id: '',
+    tiktok_pixel_id: '',
+    linkedin_insight_tag: '',
+    twitter_pixel_id: '',
+    pinterest_tag_id: '',
+    microsoft_clarity_id: ''
   });
 
   useEffect(() => {
@@ -85,7 +95,17 @@ export const SiteSettingsManager = () => {
         setSocialLinks(socialData.setting_value as any as SocialLinks);
       }
       if (analyticsData?.setting_value) {
-        setAnalyticsSettings(analyticsData.setting_value as any as AnalyticsSettings);
+        setAnalyticsSettings({
+          google_analytics_id: '',
+          google_tag_manager_id: '',
+          facebook_pixel_id: '',
+          tiktok_pixel_id: '',
+          linkedin_insight_tag: '',
+          twitter_pixel_id: '',
+          pinterest_tag_id: '',
+          microsoft_clarity_id: '',
+          ...(analyticsData.setting_value as any)
+        });
       }
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -117,7 +137,7 @@ export const SiteSettingsManager = () => {
 
       toast({
         title: "Settings saved",
-        description: "Footer and social links have been updated successfully.",
+        description: "All settings have been updated successfully.",
       });
     } catch (error) {
       toast({
@@ -195,20 +215,97 @@ export const SiteSettingsManager = () => {
 
           <Separator />
 
-          {/* Facebook Pixel */}
+          {/* Social Media Pixels */}
           <div className="space-y-4">
-            <h4 className="font-medium text-sm">Facebook Pixel</h4>
-            <div className="space-y-2">
-              <Label htmlFor="fb_pixel_id">Facebook Pixel ID</Label>
-              <Input
-                id="fb_pixel_id"
-                value={analyticsSettings.facebook_pixel_id}
-                onChange={(e) => setAnalyticsSettings({ ...analyticsSettings, facebook_pixel_id: e.target.value })}
-                placeholder="XXXXXXXXXXXXXXXX"
-              />
-              <p className="text-xs text-muted-foreground">
-                Find this in Meta Events Manager → Data Sources → Your Pixel → Settings
-              </p>
+            <h4 className="font-medium text-sm flex items-center gap-2">
+              <Share2 className="h-4 w-4" />
+              Social Media Pixels
+            </h4>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="fb_pixel_id">Facebook Pixel ID</Label>
+                <Input
+                  id="fb_pixel_id"
+                  value={analyticsSettings.facebook_pixel_id}
+                  onChange={(e) => setAnalyticsSettings({ ...analyticsSettings, facebook_pixel_id: e.target.value })}
+                  placeholder="XXXXXXXXXXXXXXXX"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Meta Events Manager → Data Sources → Your Pixel
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tiktok_pixel_id">TikTok Pixel ID</Label>
+                <Input
+                  id="tiktok_pixel_id"
+                  value={analyticsSettings.tiktok_pixel_id}
+                  onChange={(e) => setAnalyticsSettings({ ...analyticsSettings, tiktok_pixel_id: e.target.value })}
+                  placeholder="XXXXXXXXXXXXXXXXXX"
+                />
+                <p className="text-xs text-muted-foreground">
+                  TikTok Ads Manager → Assets → Events → Web Events
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="twitter_pixel_id">Twitter/X Pixel ID</Label>
+                <Input
+                  id="twitter_pixel_id"
+                  value={analyticsSettings.twitter_pixel_id}
+                  onChange={(e) => setAnalyticsSettings({ ...analyticsSettings, twitter_pixel_id: e.target.value })}
+                  placeholder="XXXXX"
+                />
+                <p className="text-xs text-muted-foreground">
+                  X Ads Manager → Tools → Conversion tracking
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="linkedin_insight_tag">LinkedIn Insight Tag</Label>
+                <Input
+                  id="linkedin_insight_tag"
+                  value={analyticsSettings.linkedin_insight_tag}
+                  onChange={(e) => setAnalyticsSettings({ ...analyticsSettings, linkedin_insight_tag: e.target.value })}
+                  placeholder="XXXXXXX"
+                />
+                <p className="text-xs text-muted-foreground">
+                  LinkedIn Campaign Manager → Account Assets → Insight Tag
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pinterest_tag_id">Pinterest Tag ID</Label>
+                <Input
+                  id="pinterest_tag_id"
+                  value={analyticsSettings.pinterest_tag_id}
+                  onChange={(e) => setAnalyticsSettings({ ...analyticsSettings, pinterest_tag_id: e.target.value })}
+                  placeholder="XXXXXXXXXXXXX"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Pinterest Ads → Conversions → Pinterest Tag
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Behavior Analytics */}
+          <div className="space-y-4">
+            <h4 className="font-medium text-sm flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              Behavior Analytics & Heatmaps
+            </h4>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="microsoft_clarity_id">Microsoft Clarity Project ID</Label>
+                <Input
+                  id="microsoft_clarity_id"
+                  value={analyticsSettings.microsoft_clarity_id}
+                  onChange={(e) => setAnalyticsSettings({ ...analyticsSettings, microsoft_clarity_id: e.target.value })}
+                  placeholder="xxxxxxxxxx"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Free heatmaps & session recordings. Get ID from clarity.microsoft.com
+                </p>
+              </div>
             </div>
           </div>
         </CardContent>

@@ -123,14 +123,20 @@ serve(async (req) => {
     // Parse request body for options
     let priorityCountrySlug: string | null = null;
     let bulkCTRMode = false;
-    let batchSize = 3; // Process 3 countries per run to avoid timeouts
+    let visaEnrichmentMode = false;
+    let blogGenerationMode = false;
+    let faqGenerationMode = false;
+    let batchSize = 3;
     
     try {
       const body = await req.json();
       priorityCountrySlug = body?.priorityCountry || null;
       bulkCTRMode = body?.bulkCTR === true;
+      visaEnrichmentMode = body?.visaEnrichment === true;
+      blogGenerationMode = body?.blogGeneration === true;
+      faqGenerationMode = body?.faqGeneration === true;
       batchSize = body?.batchSize || 3;
-      console.log(`Priority country: ${priorityCountrySlug}, Bulk CTR mode: ${bulkCTRMode}, Batch size: ${batchSize}`);
+      console.log(`Modes - Priority: ${priorityCountrySlug}, BulkCTR: ${bulkCTRMode}, VisaEnrich: ${visaEnrichmentMode}, Blog: ${blogGenerationMode}, FAQ: ${faqGenerationMode}, Batch: ${batchSize}`);
     } catch {
       // No body provided, continue with default behavior
     }
@@ -172,10 +178,429 @@ serve(async (req) => {
           status: 'started',
           priorityCountry: priorityCountrySlug,
           bulkCTRMode,
+          visaEnrichmentMode,
+          blogGenerationMode,
+          faqGenerationMode,
           batchSize,
           timestamp: new Date().toISOString()
         }
       });
+
+    // Helper function to call DeepSeek API
+    async function callDeepSeek(systemPrompt: string, userPrompt: string, maxTokens = 2000): Promise<string> {
+      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          temperature: 0.7,
+          max_tokens: maxTokens,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`DeepSeek API error: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      return data.choices[0].message.content;
+    }
+
+    // ============================================
+    // MODE: VISA DATA ENRICHMENT
+    // ============================================
+    if (visaEnrichmentMode) {
+      console.log(`🔍 Visa Enrichment Mode: Processing ${batchSize} records...`);
+
+      // Get visa requirements with missing data
+      const { data: incompleteVisas } = await supabase
+        .from('visa_requirements')
+        .select(`
+          id, requirement_type, fee_usd, processing_time_days, max_stay_days, notes,
+          from_country:countries!visa_requirements_from_country_id_fkey(name, code),
+          to_country:countries!visa_requirements_to_country_id_fkey(name, code)
+        `)
+        .or('fee_usd.is.null,processing_time_days.is.null,max_stay_days.is.null')
+        .limit(batchSize);
+
+      for (const visa of incompleteVisas || []) {
+        try {
+          const fromCountry = (visa.from_country as any)?.name || 'Unknown';
+          const toCountry = (visa.to_country as any)?.name || 'Unknown';
+          
+          console.log(`📝 Enriching visa data: ${fromCountry} → ${toCountry}`);
+
+          // Broadcast processing status
+          await supabase.from('activity_log').insert({
+            action: 'content_agent_status',
+            entity_type: 'visa_enrichment',
+            metadata: {
+              status: 'processing',
+              from_country: fromCountry,
+              to_country: toCountry,
+              timestamp: new Date().toISOString()
+            }
+          });
+
+          const prompt = `Research and provide visa information for travelers from ${fromCountry} visiting ${toCountry}.
+
+Current known info:
+- Visa type: ${visa.requirement_type}
+- Fee: ${visa.fee_usd ? `$${visa.fee_usd}` : 'Unknown'}
+- Processing time: ${visa.processing_time_days ? `${visa.processing_time_days} days` : 'Unknown'}
+- Max stay: ${visa.max_stay_days ? `${visa.max_stay_days} days` : 'Unknown'}
+
+Provide the following in JSON format ONLY (no markdown, no explanation):
+{
+  "fee_usd": <number or null if truly unknown>,
+  "processing_time_days": <number or null>,
+  "max_stay_days": <number or null>,
+  "notes": "<brief notes about visa requirements, max 200 chars>"
+}
+
+Use typical values based on the visa type:
+- visa_free: fee=0, processing=0, max_stay typically 30-90 days
+- visa_on_arrival: fee typically $20-100, processing=0, max_stay 30-90 days
+- e_visa/evisa_required: fee $20-150, processing 3-7 days, max_stay 30-90 days
+- visa_required: fee $50-200, processing 5-15 days, max_stay 30-90 days
+
+Return ONLY valid JSON.`;
+
+          const result = await callDeepSeek(
+            'You are a visa information expert. Return ONLY valid JSON with no markdown formatting.',
+            prompt,
+            500
+          );
+
+          // Parse JSON response
+          let enrichedData;
+          try {
+            // Clean the response - remove markdown code blocks if present
+            const cleanResult = result.replace(/```json\n?|\n?```/g, '').trim();
+            enrichedData = JSON.parse(cleanResult);
+          } catch (parseError) {
+            console.error('JSON parse error:', parseError, 'Raw:', result);
+            continue;
+          }
+
+          // Update visa requirement with enriched data
+          const updates: any = {};
+          if (enrichedData.fee_usd !== null && visa.fee_usd === null) {
+            updates.fee_usd = enrichedData.fee_usd;
+          }
+          if (enrichedData.processing_time_days !== null && visa.processing_time_days === null) {
+            updates.processing_time_days = enrichedData.processing_time_days;
+          }
+          if (enrichedData.max_stay_days !== null && visa.max_stay_days === null) {
+            updates.max_stay_days = enrichedData.max_stay_days;
+          }
+          if (enrichedData.notes && !visa.notes) {
+            updates.notes = enrichedData.notes.substring(0, 200);
+          }
+
+          if (Object.keys(updates).length > 0) {
+            await supabase
+              .from('visa_requirements')
+              .update(updates)
+              .eq('id', visa.id);
+
+            logs.push({
+              entity: `${fromCountry} → ${toCountry}`,
+              type: 'visa_enrichment',
+              status: 'success',
+              fields_updated: Object.keys(updates)
+            });
+            console.log(`✅ Enriched: ${fromCountry} → ${toCountry}`, updates);
+          }
+
+          // Rate limit delay
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        } catch (error) {
+          console.error(`Error enriching visa:`, error);
+          logs.push({
+            entity: `${(visa.from_country as any)?.name} → ${(visa.to_country as any)?.name}`,
+            type: 'visa_enrichment',
+            status: 'error',
+            error: error.message
+          });
+        }
+      }
+
+      // Log remaining count
+      const { count: remaining } = await supabase
+        .from('visa_requirements')
+        .select('id', { count: 'exact', head: true })
+        .or('fee_usd.is.null,processing_time_days.is.null,max_stay_days.is.null');
+      
+      console.log(`📊 ${remaining} visa records still need enrichment`);
+    }
+
+    // ============================================
+    // MODE: BLOG POST GENERATION
+    // ============================================
+    if (blogGenerationMode) {
+      console.log(`📝 Blog Generation Mode: Creating ${batchSize} articles...`);
+
+      // Topics for auto-generation
+      const blogTopics = [
+        { title: "Schengen Visa Guide 2025: Complete Application Process", slug: "schengen-visa-guide-2025", keywords: ["schengen visa", "europe visa", "schengen application"] },
+        { title: "US Tourist Visa (B1/B2): Step-by-Step Guide", slug: "us-tourist-visa-b1-b2-guide", keywords: ["us visa", "b1 b2 visa", "america tourist visa"] },
+        { title: "Dubai Visa Guide: Requirements for All Nationalities", slug: "dubai-visa-guide-requirements", keywords: ["dubai visa", "uae visa", "dubai tourist visa"] },
+        { title: "Canada Visitor Visa 2025: Complete Guide", slug: "canada-visitor-visa-guide-2025", keywords: ["canada visa", "canadian visitor visa", "canada tourism"] },
+        { title: "UK Standard Visitor Visa: Application Process", slug: "uk-visitor-visa-application-guide", keywords: ["uk visa", "british visa", "uk tourist visa"] },
+        { title: "Australia Tourist Visa (Subclass 600): How to Apply", slug: "australia-tourist-visa-subclass-600", keywords: ["australia visa", "subclass 600", "australian tourist visa"] },
+        { title: "Japan Tourist Visa Requirements 2025", slug: "japan-tourist-visa-requirements-2025", keywords: ["japan visa", "japanese visa", "visit japan"] },
+        { title: "Thailand Visa Guide: Visa-Free Entry & Extensions", slug: "thailand-visa-guide-visa-free", keywords: ["thailand visa", "thai visa", "visit thailand"] },
+        { title: "Singapore Visa Requirements for All Countries", slug: "singapore-visa-requirements-guide", keywords: ["singapore visa", "singapore entry", "visit singapore"] },
+        { title: "New Zealand Visitor Visa: Complete Guide", slug: "new-zealand-visitor-visa-guide", keywords: ["new zealand visa", "nz visa", "visit new zealand"] },
+        { title: "South Korea Visa Guide: K-ETA and Tourist Visa", slug: "south-korea-visa-k-eta-guide", keywords: ["korea visa", "k-eta", "south korea tourist visa"] },
+        { title: "Turkey e-Visa: Online Application Guide", slug: "turkey-evisa-application-guide", keywords: ["turkey visa", "turkey e-visa", "turkish visa online"] },
+        { title: "India e-Visa Guide: Tourist, Business & Medical", slug: "india-evisa-guide-tourist-business", keywords: ["india visa", "india e-visa", "indian tourist visa"] },
+        { title: "Egypt Visa on Arrival: Complete Guide", slug: "egypt-visa-on-arrival-guide", keywords: ["egypt visa", "egypt visa on arrival", "visit egypt"] },
+        { title: "Brazil Visa Requirements 2025", slug: "brazil-visa-requirements-2025", keywords: ["brazil visa", "brazilian visa", "visit brazil"] },
+      ];
+
+      // Check which topics don't exist yet
+      const { data: existingPosts } = await supabase
+        .from('content_pages')
+        .select('slug')
+        .like('slug', 'blog/%');
+
+      const existingSlugs = new Set(existingPosts?.map(p => p.slug.replace('blog/', '')) || []);
+      const newTopics = blogTopics.filter(t => !existingSlugs.has(t.slug)).slice(0, batchSize);
+
+      for (const topic of newTopics) {
+        try {
+          console.log(`📝 Generating blog post: ${topic.title}`);
+
+          await supabase.from('activity_log').insert({
+            action: 'content_agent_status',
+            entity_type: 'blog_generation',
+            metadata: {
+              status: 'processing',
+              title: topic.title,
+              timestamp: new Date().toISOString()
+            }
+          });
+
+          const content = await callDeepSeek(
+            `You are an expert travel and visa content writer. Write comprehensive, SEO-optimized articles that rank well on Google.`,
+            `Write a comprehensive 1500+ word article titled "${topic.title}".
+
+Target keywords: ${topic.keywords.join(', ')}
+
+Structure:
+1. Introduction (answer the main query immediately)
+2. Key Requirements Overview
+3. Step-by-Step Application Process
+4. Required Documents Checklist
+5. Processing Time and Fees
+6. Common Mistakes to Avoid
+7. Frequently Asked Questions (5-7 FAQs)
+8. Tips for a Successful Application
+9. Conclusion
+
+Format in clean HTML with h2, h3, p, ul, li tags. Use Tailwind CSS classes for spacing.
+Make it comprehensive, accurate, and helpful for travelers.`,
+            4000
+          );
+
+          const metaDescription = `Complete guide to ${topic.title.toLowerCase()}. Step-by-step application process, required documents, fees, and expert tips. Updated 2025.`;
+
+          // Insert new blog post
+          const { data: newPost, error } = await supabase
+            .from('content_pages')
+            .insert({
+              title: topic.title,
+              slug: `blog/${topic.slug}`,
+              content: content,
+              excerpt: metaDescription,
+              meta_title: `${topic.title} | visas.guide`,
+              meta_description: metaDescription,
+              keywords: topic.keywords,
+              is_published: true,
+              status: 'published',
+              ai_generated: true
+            })
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          logs.push({
+            entity: topic.title,
+            type: 'blog_generation',
+            status: 'success',
+            slug: `blog/${topic.slug}`
+          });
+
+          console.log(`✅ Created blog post: ${topic.title}`);
+
+          // Submit to IndexNow
+          try {
+            await fetch(`${supabaseUrl}/functions/v1/indexnow`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ urls: [`/blog/${topic.slug}`] })
+            });
+          } catch (e) {
+            console.error('IndexNow error:', e);
+          }
+
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } catch (error) {
+          console.error(`Error generating blog:`, error);
+          logs.push({
+            entity: topic.title,
+            type: 'blog_generation',
+            status: 'error',
+            error: error.message
+          });
+        }
+      }
+    }
+
+    // ============================================
+    // MODE: FAQ SCHEMA GENERATION
+    // ============================================
+    if (faqGenerationMode) {
+      console.log(`❓ FAQ Generation Mode: Processing ${batchSize} pages...`);
+
+      // Get country pages that need FAQ enhancement
+      const { data: pagesNeedingFAQ } = await supabase
+        .from('content_pages')
+        .select('id, title, slug, content')
+        .like('slug', 'countries/%')
+        .eq('is_published', true)
+        .limit(batchSize * 2); // Get more to filter
+
+      // Filter pages that don't already have FAQ section
+      const pagesToProcess = (pagesNeedingFAQ || [])
+        .filter(p => !p.content?.includes('faqSchema') && !p.content?.includes('"@type":"FAQPage"'))
+        .slice(0, batchSize);
+
+      for (const page of pagesToProcess) {
+        try {
+          const countryName = page.title.split(' Visa')[0] || page.title;
+          console.log(`❓ Generating FAQ for: ${countryName}`);
+
+          await supabase.from('activity_log').insert({
+            action: 'content_agent_status',
+            entity_type: 'faq_generation',
+            metadata: {
+              status: 'processing',
+              page_title: page.title,
+              timestamp: new Date().toISOString()
+            }
+          });
+
+          const faqContent = await callDeepSeek(
+            'You are a visa information expert. Generate FAQs that match Google "People Also Ask" queries.',
+            `Generate 7 frequently asked questions about ${countryName} visa requirements.
+
+For each FAQ, provide:
+1. A question that matches how people search (e.g., "Do Americans need a visa for ${countryName}?")
+2. A concise, accurate answer (2-3 sentences)
+
+Return in this exact JSON format:
+{
+  "faqs": [
+    {"question": "...", "answer": "..."},
+    {"question": "...", "answer": "..."}
+  ]
+}
+
+Focus on questions like:
+- Do [nationality] need a visa for ${countryName}?
+- How long can I stay in ${countryName} without a visa?
+- What documents do I need for ${countryName} visa?
+- How much does a ${countryName} visa cost?
+- How long does ${countryName} visa take to process?
+- Can I extend my stay in ${countryName}?
+- Is ${countryName} safe for tourists?
+
+Return ONLY valid JSON.`,
+            1500
+          );
+
+          // Parse FAQ JSON
+          let faqData;
+          try {
+            const cleanResult = faqContent.replace(/```json\n?|\n?```/g, '').trim();
+            faqData = JSON.parse(cleanResult);
+          } catch (parseError) {
+            console.error('FAQ JSON parse error:', parseError);
+            continue;
+          }
+
+          // Create FAQ schema HTML to append
+          const faqSchemaScript = `
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    ${faqData.faqs.map((faq: any) => `{
+      "@type": "Question",
+      "name": "${faq.question.replace(/"/g, '\\"')}",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "${faq.answer.replace(/"/g, '\\"')}"
+      }
+    }`).join(',\n    ')}
+  ]
+}
+</script>`;
+
+          // Create visible FAQ section
+          const faqHtml = `
+<h2 class="text-2xl font-bold mt-8 mb-4">Frequently Asked Questions</h2>
+<div class="space-y-4">
+${faqData.faqs.map((faq: any) => `
+  <div class="border-b border-border pb-4">
+    <h3 class="font-semibold text-lg mb-2">${faq.question}</h3>
+    <p class="text-muted-foreground">${faq.answer}</p>
+  </div>
+`).join('')}
+</div>
+${faqSchemaScript}`;
+
+          // Append FAQ to existing content
+          const updatedContent = page.content + faqHtml;
+
+          await supabase
+            .from('content_pages')
+            .update({ content: updatedContent })
+            .eq('id', page.id);
+
+          logs.push({
+            entity: page.title,
+            type: 'faq_generation',
+            status: 'success',
+            faqs_added: faqData.faqs.length
+          });
+
+          console.log(`✅ Added FAQ schema to: ${countryName}`);
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        } catch (error) {
+          console.error(`Error generating FAQ:`, error);
+          logs.push({
+            entity: page.title,
+            type: 'faq_generation',
+            status: 'error',
+            error: error.message
+          });
+        }
+      }
+    }
 
     // Function to process a single country with CTR optimization
     async function processCountryWithCTR(country: { id: string; name: string; slug: string; code: string }) {
@@ -197,42 +622,17 @@ serve(async (req) => {
 
       console.log(`🔄 Processing CTR optimization for ${country.name} (${ctrName})...`);
 
-      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'deepseek-chat',
-          messages: [
-            {
-              role: 'system',
-              content: `You are an expert travel and visa content writer specializing in SEO-optimized, high-CTR content. Your goal is to create content that:
+      const generatedContent = await callDeepSeek(
+        `You are an expert travel and visa content writer specializing in SEO-optimized, high-CTR content. Your goal is to create content that:
 1. Matches exact search queries users type into Google
 2. Answers the main question immediately (no fluff)
 3. Uses power words that drive clicks
 4. Includes target keywords naturally throughout
 5. Provides comprehensive, accurate visa information
-6. Targets US/American travelers as the primary audience`
-            },
-            {
-              role: 'user',
-              content: ctrPrompt
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 4000,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`DeepSeek API error: ${response.status} - ${errorText}`);
-      }
-
-      const data = await response.json();
-      const generatedContent = data.choices[0].message.content;
+6. Targets US/American travelers as the primary audience`,
+        ctrPrompt,
+        4000
+      );
 
       // CTR-optimized meta title and description
       const metaTitle = `${ctrName} Visa Requirements 2025 | Do You Need a Visa for ${ctrName}?`;
@@ -422,7 +822,7 @@ serve(async (req) => {
       }
     }
     // DEFAULT MODE: Process countries without any content page
-    else {
+    else if (!visaEnrichmentMode && !blogGenerationMode && !faqGenerationMode) {
       const { data: countries } = await supabase
         .from('countries')
         .select('id, name, slug, code')
@@ -455,108 +855,8 @@ serve(async (req) => {
       }
     }
 
-    // Process content pages and news articles for missing fields (non-CTR updates)
-    if (!priorityCountrySlug && !bulkCTRMode) {
-      const issues: ContentIssue[] = [];
-
-      // Scan content_pages for missing content
-      const { data: contentPages } = await supabase
-        .from('content_pages')
-        .select('*')
-        .eq('is_published', true)
-        .limit(10);
-
-      if (contentPages) {
-        for (const page of contentPages) {
-          const { data: recentUpdate } = await supabase
-            .from('activity_log')
-            .select('created_at')
-            .eq('action', 'content_agent_update')
-            .eq('entity_id', page.id)
-            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-            .maybeSingle();
-
-          if (recentUpdate) continue;
-
-          const missingFields: string[] = [];
-          if (!page.excerpt || page.excerpt.trim().length < 50) missingFields.push('excerpt');
-          if (!page.meta_description || page.meta_description.trim().length < 50) missingFields.push('meta_description');
-          if (!page.meta_title || page.meta_title.trim().length < 10) missingFields.push('meta_title');
-          if (!page.content || page.content.trim().length < 100) missingFields.push('content');
-
-          if (missingFields.length > 0) {
-            issues.push({ id: page.id, type: 'content_page', title: page.title, missingFields });
-          }
-        }
-      }
-
-      // Process issues
-      for (const issue of issues) {
-        try {
-          const table = issue.type === 'content_page' ? 'content_pages' : 'news_articles';
-          const { data: currentData } = await supabase
-            .from(table)
-            .select('*')
-            .eq('id', issue.id)
-            .single();
-
-          if (!currentData) continue;
-
-          const updates: any = {};
-
-          for (const field of issue.missingFields) {
-            let prompt = '';
-            
-            switch (field) {
-              case 'excerpt':
-                prompt = `Write a compelling 2-3 sentence excerpt for an article titled "${currentData.title}". ${currentData.content ? `Based on this content: ${currentData.content.substring(0, 500)}` : 'Make it engaging about visa requirements.'}`;
-                break;
-              case 'meta_description':
-                prompt = `Write an SEO meta description (150-160 chars) for "${currentData.title}". Include power words and a call to action.`;
-                break;
-              case 'meta_title':
-                prompt = `Write an SEO title (50-60 chars) for "${currentData.title}". Make it compelling with keywords.`;
-                break;
-              case 'content':
-                prompt = `Write a 500-word article about "${currentData.title}" covering visa requirements and travel tips.`;
-                break;
-            }
-
-            const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
-              },
-              body: JSON.stringify({
-                model: 'deepseek-chat',
-                messages: [
-                  { role: 'system', content: 'You are an expert SEO content writer for visa and travel information.' },
-                  { role: 'user', content: prompt }
-                ],
-                temperature: 0.7,
-                max_tokens: 1000,
-              }),
-            });
-
-            if (response.ok) {
-              const data = await response.json();
-              updates[field] = data.choices[0].message.content;
-            }
-          }
-
-          if (Object.keys(updates).length > 0) {
-            await supabase.from(table).update(updates).eq('id', issue.id);
-            logs.push({ entity: issue.title, type: issue.type, fields: Object.keys(updates), status: 'success' });
-          }
-        } catch (error) {
-          logs.push({ entity: issue.title, type: issue.type, status: 'error', error: error.message });
-        }
-      }
-    }
-
     const summary = {
-      mode: priorityCountrySlug ? 'priority' : bulkCTRMode ? 'bulk_ctr' : 'default',
+      mode: priorityCountrySlug ? 'priority' : bulkCTRMode ? 'bulk_ctr' : visaEnrichmentMode ? 'visa_enrichment' : blogGenerationMode ? 'blog_generation' : faqGenerationMode ? 'faq_generation' : 'default',
       priority_country: priorityCountrySlug,
       updates_made: logs.filter(l => l.status === 'success').length,
       errors: logs.filter(l => l.status === 'error').length,

@@ -17,58 +17,139 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    // Fetch dynamic content
-    const [{ data: countries }, { data: guides }, { data: news }] = await Promise.all([
+    const url = new URL(req.url);
+    const submitToIndexNow = url.searchParams.get("indexnow") === "true";
+
+    // Fetch all dynamic content in parallel
+    const [
+      { data: countries },
+      { data: guides },
+      { data: news },
+      { data: contentPages },
+      { data: visaRequirements }
+    ] = await Promise.all([
       supabase.from("countries").select("slug, updated_at"),
       supabase.from("guides").select("slug, updated_at, published_at").not("published_at", "is", null),
       supabase.from("news_articles").select("slug, updated_at, published_at").not("published_at", "is", null),
+      supabase.from("content_pages").select("slug, updated_at").eq("is_published", true),
+      supabase.from("visa_requirements").select(`
+        id, last_updated,
+        from_country:countries!visa_requirements_from_country_id_fkey(slug),
+        to_country:countries!visa_requirements_to_country_id_fkey(slug)
+      `)
     ]);
 
-    // Static routes
-    const staticPaths = [
-      "/",
-      "/countries",
-      "/visa-search",
-      "/guides",
-      "/news",
-      "/passport-rankings",
-      "/processing-times",
-      "/requirements",
-      "/privacy-policy",
-      "/terms-of-service",
-      "/cookie-policy",
-      "/contact",
-      "/visa-types/tourist-visa",
-      "/visa-types/business-visa",
-      "/visa-types/student-visa",
+    // Static routes with priorities
+    const staticRoutes = [
+      { path: "/", priority: "1.0", changefreq: "daily" },
+      { path: "/countries", priority: "0.9", changefreq: "daily" },
+      { path: "/visa-search", priority: "0.9", changefreq: "daily" },
+      { path: "/guides", priority: "0.8", changefreq: "daily" },
+      { path: "/blog", priority: "0.8", changefreq: "hourly" },
+      { path: "/passport-rankings", priority: "0.8", changefreq: "weekly" },
+      { path: "/processing-times", priority: "0.7", changefreq: "weekly" },
+      { path: "/requirements", priority: "0.7", changefreq: "weekly" },
+      { path: "/visa-types/tourist-visa", priority: "0.8", changefreq: "weekly" },
+      { path: "/visa-types/business-visa", priority: "0.8", changefreq: "weekly" },
+      { path: "/visa-types/student-visa", priority: "0.7", changefreq: "weekly" },
+      { path: "/privacy-policy", priority: "0.3", changefreq: "monthly" },
+      { path: "/terms-of-service", priority: "0.3", changefreq: "monthly" },
+      { path: "/cookie-policy", priority: "0.3", changefreq: "monthly" },
+      { path: "/contact", priority: "0.5", changefreq: "monthly" },
     ];
 
     const now = new Date().toISOString().split("T")[0];
-
     const urlEntries: string[] = [];
+    const allUrls: string[] = [];
+
+    // Helper to add URL entry
+    const addUrl = (path: string, lastmod: string, changefreq: string, priority: string) => {
+      const fullUrl = `${BASE_URL}${path}`;
+      allUrls.push(fullUrl);
+      urlEntries.push(`  <url>
+    <loc>${fullUrl}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
+  </url>`);
+    };
 
     // Add static URLs
-    for (const path of staticPaths) {
-      urlEntries.push(`  <url>\n    <loc>${BASE_URL}${path}</loc>\n    <lastmod>${now}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>${path === "/" ? "1.0" : "0.7"}</priority>\n  </url>`);
+    for (const route of staticRoutes) {
+      addUrl(route.path, now, route.changefreq, route.priority);
     }
 
-    // Countries and their visa-free pages
+    // Countries and their sub-pages
     for (const c of countries || []) {
-      urlEntries.push(`  <url>\n    <loc>${BASE_URL}/countries/${c.slug}</loc>\n    <lastmod>${(c.updated_at || now).split("T")[0]}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.9</priority>\n  </url>`);
-      urlEntries.push(`  <url>\n    <loc>${BASE_URL}/countries/${c.slug}/visa-free</loc>\n    <lastmod>${(c.updated_at || now).split("T")[0]}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>`);
+      const lastmod = (c.updated_at || now).split("T")[0];
+      addUrl(`/countries/${c.slug}`, lastmod, "daily", "0.9");
+      addUrl(`/countries/${c.slug}/visa-free`, lastmod, "weekly", "0.7");
     }
 
     // Guides
     for (const g of guides || []) {
-      urlEntries.push(`  <url>\n    <loc>${BASE_URL}/guides/${g.slug}</loc>\n    <lastmod>${(g.updated_at || g.published_at || now).split("T")[0]}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.6</priority>\n  </url>`);
+      const lastmod = (g.updated_at || g.published_at || now).split("T")[0];
+      addUrl(`/guides/${g.slug}`, lastmod, "monthly", "0.7");
     }
 
-    // News
+    // News/Blog articles
     for (const n of news || []) {
-      urlEntries.push(`  <url>\n    <loc>${BASE_URL}/news/${n.slug}</loc>\n    <lastmod>${(n.updated_at || n.published_at || now).split("T")[0]}</lastmod>\n    <changefreq>hourly</changefreq>\n    <priority>0.5</priority>\n  </url>`);
+      const lastmod = (n.updated_at || n.published_at || now).split("T")[0];
+      addUrl(`/blog/${n.slug}`, lastmod, "weekly", "0.6");
     }
 
-    const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urlEntries.join("\n")}\n</urlset>`;
+    // Content pages (AI-generated and manual)
+    for (const cp of contentPages || []) {
+      const lastmod = (cp.updated_at || now).split("T")[0];
+      // Content pages can have various slug formats
+      const slug = cp.slug.startsWith("/") ? cp.slug.slice(1) : cp.slug;
+      addUrl(`/${slug}`, lastmod, "weekly", "0.8");
+    }
+
+    // Visa requirements pages (country-to-country)
+    const addedVisaReqPaths = new Set<string>();
+    for (const vr of visaRequirements || []) {
+      if (vr.from_country?.slug && vr.to_country?.slug) {
+        const path = `/visa-requirements/${vr.from_country.slug}-to-${vr.to_country.slug}`;
+        if (!addedVisaReqPaths.has(path)) {
+          addedVisaReqPaths.add(path);
+          const lastmod = (vr.last_updated || now).split("T")[0];
+          addUrl(path, lastmod, "weekly", "0.7");
+        }
+      }
+    }
+
+    const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urlEntries.join("\n")}
+</urlset>`;
+
+    // Submit to IndexNow if requested
+    if (submitToIndexNow && allUrls.length > 0) {
+      console.log(`Submitting ${allUrls.length} URLs to IndexNow...`);
+      
+      const INDEXNOW_KEY = "4e987242e9884f69b076157c7064eec3";
+      const indexNowPayload = {
+        host: "visas.guide",
+        key: INDEXNOW_KEY,
+        keyLocation: `https://visas.guide/${INDEXNOW_KEY}.txt`,
+        urlList: allUrls.slice(0, 10000) // IndexNow limit
+      };
+
+      try {
+        const indexNowResponse = await fetch("https://api.indexnow.org/indexnow", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(indexNowPayload)
+        });
+        
+        console.log(`IndexNow response: ${indexNowResponse.status}`);
+      } catch (indexError) {
+        console.error("IndexNow submission error:", indexError);
+      }
+    }
+
+    console.log(`Sitemap generated with ${urlEntries.length} URLs`);
 
     return new Response(sitemapXml, {
       headers: { ...corsHeaders, "Content-Type": "application/xml" },

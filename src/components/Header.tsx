@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Search, Menu } from "lucide-react";
+import { Search, Menu, Rss } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.png";
@@ -111,9 +111,16 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Search and Mobile Menu */}
-          <div className="flex items-center space-x-2">
-            <div className="hidden sm:block relative" ref={searchRef}>
+            {/* RSS, Search and Mobile Menu */}
+            <div className="flex items-center space-x-2">
+              <Link 
+                to="/rss" 
+                className="hidden sm:flex items-center justify-center h-9 w-9 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+                title="Subscribe to RSS Feed"
+              >
+                <Rss className="h-4 w-4 text-primary" />
+              </Link>
+              <div className="hidden sm:block relative" ref={searchRef}>
               <div className="flex items-center space-x-2 bg-muted rounded-lg px-3 py-2">
                 <Search className="h-4 w-4 text-muted-foreground" />
                 <Input 

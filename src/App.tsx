@@ -46,6 +46,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import CookiePolicy from "./pages/CookiePolicy";
 import Contact from "./pages/Contact";
+import RSSFeed from "./pages/RSSFeed";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -78,6 +79,7 @@ const App = () => (
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/cookie-policy" element={<CookiePolicy />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/rss" element={<RSSFeed />} />
           <Route path="/admin/auth" element={<AdminAuth />} />
           
           {/* Admin Routes with Layout */}

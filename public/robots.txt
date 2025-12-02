@@ -17,5 +17,6 @@ Allow: /
 Sitemap: https://visas.guide/sitemap.xml
 Sitemap: https://awiytryceqehqapytfgn.supabase.co/functions/v1/sitemap
 
-# RSS Feed
-# https://visas.guide/rss
+# RSS Feed for Feedspot and RSS Readers
+# Feed URL: https://awiytryceqehqapytfgn.supabase.co/functions/v1/rss-feed
+# Subscribe page: https://visas.guide/rss

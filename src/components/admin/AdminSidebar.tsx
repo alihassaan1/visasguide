@@ -20,6 +20,8 @@ import {
   Menu as MenuIcon,
   Activity,
   Bot,
+  Code,
+  FileCode,
 } from "lucide-react";
 
 const menuItems = [
@@ -113,6 +115,16 @@ const menuItems = [
     icon: MessageSquare,
     href: "/admin/site-review",
   },
+  {
+    title: "Developer Agent",
+    icon: Code,
+    href: "/admin/developer-agent",
+  },
+  {
+    title: "Developer Settings",
+    icon: FileCode,
+    href: "/admin/developer-settings",
+  },
 ];
 
 export function AdminSidebar() {
@@ -136,9 +148,10 @@ export function AdminSidebar() {
     setIsAdmin(roles && roles.length > 0);
   };
 
-  // Filter menu items based on admin status
+  // Filter menu items based on admin status (admin-only items)
+  const adminOnlyPaths = ['/admin/site-review', '/admin/developer-agent', '/admin/developer-settings'];
   const visibleMenuItems = menuItems.filter(item => {
-    if (item.href === '/admin/site-review') {
+    if (adminOnlyPaths.includes(item.href)) {
       return isAdmin;
     }
     return true;

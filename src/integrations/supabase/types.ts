@@ -338,6 +338,109 @@ export type Database = {
         }
         Relationships: []
       }
+      developer_agent_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      developer_agent_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "developer_agent_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "developer_agent_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      file_change_history: {
+        Row: {
+          applied_at: string
+          change_description: string | null
+          conversation_id: string | null
+          file_path: string
+          id: string
+          new_content: string
+          original_content: string | null
+          reverted_at: string | null
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string
+          change_description?: string | null
+          conversation_id?: string | null
+          file_path: string
+          id?: string
+          new_content: string
+          original_content?: string | null
+          reverted_at?: string | null
+          user_id: string
+        }
+        Update: {
+          applied_at?: string
+          change_description?: string | null
+          conversation_id?: string | null
+          file_path?: string
+          id?: string
+          new_content?: string
+          original_content?: string | null
+          reverted_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_change_history_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "developer_agent_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guides: {
         Row: {
           content: string

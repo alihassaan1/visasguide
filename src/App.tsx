@@ -43,6 +43,8 @@ import SiteReviewChat from "./pages/admin/SiteReviewChat";
 import ContentAgentLogs from "./pages/admin/ContentAgentLogs";
 import AgentDashboard from "./pages/admin/AgentDashboard";
 import APILogs from "./pages/admin/APILogs";
+import DeveloperAgent from "./pages/admin/DeveloperAgent";
+import DeveloperAPISettings from "./pages/admin/DeveloperAPISettings";
 import ContentPage from "./pages/ContentPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -110,6 +112,8 @@ const App = () => (
             <Route path="content-agent-logs" element={<ContentAgentLogs />} />
             <Route path="agent-dashboard" element={<AgentDashboard />} />
             <Route path="api-logs" element={<APILogs />} />
+            <Route path="developer-agent" element={<DeveloperAgent />} />
+            <Route path="developer-settings" element={<DeveloperAPISettings />} />
           </Route>
           
           {/* Catch-all for content pages - must be last */}

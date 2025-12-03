@@ -17,10 +17,37 @@ async function getOpenAIKey(supabaseClient: any) {
   return openaiSettings?.setting_value?.key || Deno.env.get('OPENAI_API_KEY');
 }
 
+// Helper function to log API calls
+async function logApiCall(
+  supabase: any,
+  provider: string,
+  taskType: string,
+  entityName: string,
+  status: 'success' | 'error' | 'timeout',
+  startTime: number,
+  tokensUsed?: number,
+  errorMessage?: string
+) {
+  const responseTime = Date.now() - startTime;
+  await supabase.from('api_logs').insert({
+    api_provider: provider,
+    endpoint: provider === 'deepseek' ? 'https://api.deepseek.com/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions',
+    task_type: taskType,
+    entity_name: entityName,
+    status,
+    response_time_ms: responseTime,
+    tokens_used: tokensUsed || null,
+    error_message: errorMessage || null,
+    response_summary: { action: taskType }
+  });
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const startTime = Date.now();
 
   try {
     const { prompt, contentType, visaType, country, action = 'generate', provider = 'openai' } = await req.json();
@@ -207,17 +234,20 @@ serve(async (req) => {
         console.error(`${useDeepseek ? 'DeepSeek' : 'OpenAI'} test failed:`, reason);
         const lowered = String(reason).toLowerCase();
         const isInsufficient = lowered.includes('insufficient balance') || lowered.includes('insufficient_quota') || lowered.includes('insufficient');
+        await logApiCall(supabaseClient, useDeepseek ? 'deepseek' : 'openai', 'test_connection', 'api-test', 'error', startTime, undefined, reason);
         return new Response(
           JSON.stringify({ ok: false, reason, code: isInsufficient ? 'insufficient_balance' : 'error' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+      await logApiCall(supabaseClient, useDeepseek ? 'deepseek' : 'openai', 'test_connection', 'api-test', 'success', startTime);
       return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     if (!response.ok) {
       const error = await response.text();
       console.error(`${useDeepseek ? 'DeepSeek' : 'OpenAI'} API error:`, error);
+      await logApiCall(supabaseClient, useDeepseek ? 'deepseek' : 'openai', `content_${action}`, contentType || 'unknown', 'error', startTime, undefined, error);
       return new Response(
         JSON.stringify({ error: `Failed to generate content: ${error}` }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -226,6 +256,10 @@ serve(async (req) => {
 
     const data = await response.json();
     const generatedContent = data.choices[0].message.content;
+    const tokensUsed = data.usage?.total_tokens || 0;
+    
+    // Log successful content generation
+    await logApiCall(supabaseClient, useDeepseek ? 'deepseek' : 'openai', `content_${action}`, contentType || country || visaType || 'content', 'success', startTime, tokensUsed);
 
     // Generate meta description and keywords
     const metaResponse = await fetch('https://api.openai.com/v1/chat/completions', {

@@ -75,7 +75,12 @@ For each bug found, explain:
 Provide updated code blocks that can be directly applied.`
 };
 
-async function callDeepSeek(messages: Message[], model: string, apiKey: string): Promise<string> {
+interface DeepSeekResponse {
+  content: string;
+  tokensUsed: number | null;
+}
+
+async function callDeepSeek(messages: Message[], model: string, apiKey: string): Promise<DeepSeekResponse> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 90000); // 90 second timeout
 
@@ -104,7 +109,13 @@ async function callDeepSeek(messages: Message[], model: string, apiKey: string):
     }
 
     const data = await response.json();
-    return data.choices[0].message.content;
+    const tokensUsed = data.usage?.total_tokens || null;
+    console.log(`DeepSeek API tokens used: ${tokensUsed}`);
+    
+    return {
+      content: data.choices[0].message.content,
+      tokensUsed
+    };
   } catch (error) {
     clearTimeout(timeout);
     if (error.name === 'AbortError') {
@@ -176,6 +187,7 @@ serve(async (req) => {
     }
 
     let response: any = {};
+    let totalTokensUsed = 0;
 
     switch (action) {
       case 'chat': {
@@ -187,13 +199,14 @@ serve(async (req) => {
         const fullMessages = [systemMessage, ...messages];
         
         const aiResponse = await callDeepSeek(fullMessages, model, apiKey);
+        totalTokensUsed = aiResponse.tokensUsed || 0;
         
         // Save to conversation if conversationId provided
         if (conversationId) {
           const userMessage = messages[messages.length - 1];
           await supabase.from('developer_agent_messages').insert([
             { conversation_id: conversationId, role: 'user', content: userMessage.content },
-            { conversation_id: conversationId, role: 'assistant', content: aiResponse }
+            { conversation_id: conversationId, role: 'assistant', content: aiResponse.content }
           ]);
 
           // Update conversation title if first message
@@ -211,7 +224,7 @@ serve(async (req) => {
           }
         }
 
-        response = { content: aiResponse };
+        response = { content: aiResponse.content, tokensUsed: totalTokensUsed };
         break;
       }
 
@@ -226,7 +239,8 @@ serve(async (req) => {
         ];
 
         const aiResponse = await callDeepSeek(reviewMessages, model, apiKey);
-        response = { content: aiResponse };
+        totalTokensUsed = aiResponse.tokensUsed || 0;
+        response = { content: aiResponse.content, tokensUsed: totalTokensUsed };
         break;
       }
 
@@ -241,7 +255,8 @@ serve(async (req) => {
         ];
 
         const aiResponse = await callDeepSeek(bugMessages, model, apiKey);
-        response = { content: aiResponse };
+        totalTokensUsed = aiResponse.tokensUsed || 0;
+        response = { content: aiResponse.content, tokensUsed: totalTokensUsed };
         break;
       }
 
@@ -256,7 +271,8 @@ serve(async (req) => {
         ];
 
         const aiResponse = await callDeepSeek(improveMessages, model, apiKey);
-        response = { content: aiResponse };
+        totalTokensUsed = aiResponse.tokensUsed || 0;
+        response = { content: aiResponse.content, tokensUsed: totalTokensUsed };
         break;
       }
 
@@ -469,16 +485,20 @@ case 'list_files': {
         throw new Error(`Unknown action: ${action}`);
     }
 
-    // Log API call
+    // Log API call with tokens used
     const responseTime = Date.now() - startTime;
     await supabase.from('api_logs').insert({
-      api_provider: 'DeepSeek',
+      api_provider: 'deepseek',
       task_type: `developer_agent_${action}`,
       status: 'success',
       response_time_ms: responseTime,
+      tokens_used: totalTokensUsed || null,
       entity_name: filePath || conversationId || 'developer-agent',
-      endpoint: '/v1/chat/completions'
+      endpoint: 'https://api.deepseek.com/v1/chat/completions',
+      response_summary: { action, tokensUsed: totalTokensUsed }
     });
+    
+    console.log(`Developer Agent ${action} completed - Tokens used: ${totalTokensUsed}`);
 
     return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

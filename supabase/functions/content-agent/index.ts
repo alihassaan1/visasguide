@@ -46,7 +46,7 @@ function getCTROptimizedName(slug: string, name: string): string {
   return name;
 }
 
-// Generate CTR-optimized prompt for a country
+// Generate CTR-optimized prompt for a country (REDUCED to 800 words)
 function generateCTRPrompt(country: { name: string; slug: string }, ctrName: string): string {
   return `Write a comprehensive, CTR-optimized visa guide for ${country.name}. 
 
@@ -54,62 +54,24 @@ CRITICAL: This content must rank for these exact search queries:
 - "${ctrName} visa requirements"
 - "${ctrName.toLowerCase()} visa requirements 2025"
 - "do i need a visa for ${ctrName.toLowerCase()}"
-- "do Americans need a visa for ${ctrName.toLowerCase()}"
-- "do US citizens need a visa for ${ctrName.toLowerCase()}"
 
-TARGET AUDIENCE: Global travelers with emphasis on US/American travelers as primary audience.
+TARGET AUDIENCE: Global travelers with emphasis on US/American travelers.
 
-Start with: "Do you need a visa for ${ctrName}?" and answer the question immediately.
+Start with: "Do you need a visa for ${ctrName}?" and answer immediately.
 
-Structure the content with these sections:
+Structure (keep it concise, 800 words max):
 
-1. **Opening Hook** (Answer the main question immediately - do visitors need a visa?)
-   - State visa-free entry policy upfront if applicable
-   - Mention allowed stay duration
-   - Highlight key nationalities that can enter visa-free
+1. **Opening Hook** - Answer the main question immediately
+2. **Visa-Free Entry Details** - List major countries that can enter visa-free
+3. **Entry Requirements** - Passport, documents, tickets
+4. **Visa Application Process** - For those who need a visa
+5. **For US Citizens** - Specific requirements
+6. **FAQs** (3-4 questions)
+7. **Quick Travel Tips**
 
-2. **Visa-Free Entry Details** for ${country.name}
-   - List major countries that can enter visa-free (US, UK, EU, Canada, Australia, etc.)
-   - Duration of visa-free stay
-   - Passport validity requirements (typically 6 months)
-
-3. **Entry Requirements** (What You Need to Enter ${ctrName})
-   - Valid passport requirements
-   - Proof of accommodation
-   - Return/onward ticket
-   - Sufficient funds
-   - Health insurance requirements
-   - COVID-19 requirements (if any still apply)
-
-4. **Step-by-Step Visa Application Process** (for those who need a visa)
-   - Document checklist
-   - Application steps
-   - Where to apply (embassy, online, on arrival)
-   - Processing times
-   - Fees in USD
-
-5. **For US Citizens & Americans**
-   - Specific requirements for American travelers
-   - Direct flights from US cities (if applicable)
-   - Embassy/consulate information in the US
-
-6. **Frequently Asked Questions** (Target "People Also Ask" on Google)
-   - "Can I extend my stay in ${ctrName}?"
-   - "What documents do I need to visit ${ctrName}?"
-   - "Is ${ctrName} visa-free for Americans?"
-   - "How long can I stay in ${ctrName} without a visa?"
-   - "Is ${ctrName} safe for tourists?"
-
-7. **Travel Tips for ${country.name}**
-   - Best time to visit
-   - Currency and payment methods
-   - Safety tips
-   - Local customs and etiquette
-   - Must-see attractions
-
-Format in clean HTML with h2, h3, p, ul, li tags. Use Tailwind CSS classes for spacing (mb-4, mt-6, etc.).
+Format in clean HTML with h2, h3, p, ul, li tags. Use Tailwind CSS classes for spacing (mb-4, mt-6).
 IMPORTANT: Do NOT use border classes. Keep styling minimal and clean.
-Make it comprehensive (1500+ words) and SEO-optimized with natural keyword placement.`;
+Be concise but comprehensive. SEO-optimized with natural keyword placement.`;
 }
 
 serve(async (req) => {
@@ -242,36 +204,101 @@ serve(async (req) => {
         }
       });
 
-    // Helper function to call DeepSeek API
-    async function callDeepSeek(systemPrompt: string, userPrompt: string, maxTokens = 2000): Promise<string> {
-      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'deepseek-chat',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ],
-          temperature: 0.7,
-          max_tokens: maxTokens,
-        }),
+    // Helper function to log API calls
+    async function logApiCall(
+      taskType: string,
+      entityName: string,
+      status: 'success' | 'error' | 'timeout',
+      startTime: number,
+      tokensUsed?: number,
+      errorMessage?: string,
+      retryCount?: number
+    ) {
+      const responseTime = Date.now() - startTime;
+      await supabase.from('api_logs').insert({
+        api_provider: 'deepseek',
+        endpoint: 'https://api.deepseek.com/v1/chat/completions',
+        task_type: taskType,
+        entity_name: entityName,
+        status,
+        response_time_ms: responseTime,
+        tokens_used: tokensUsed,
+        error_message: errorMessage,
+        retry_count: retryCount || 0,
+        response_summary: { mode: currentMode }
       });
+    }
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`DeepSeek API error: ${response.status} - ${errorText}`);
+    // Helper function to call DeepSeek API with retry logic
+    async function callDeepSeek(systemPrompt: string, userPrompt: string, maxTokens = 2000, entityName = 'unknown'): Promise<string> {
+      const maxRetries = 3;
+      let lastError: Error | null = null;
+      
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        const startTime = Date.now();
+        
+        try {
+          // Add timeout using AbortController
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+          
+          const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+              model: 'deepseek-chat',
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt }
+              ],
+              temperature: 0.7,
+              max_tokens: maxTokens,
+            }),
+            signal: controller.signal,
+          });
+          
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`DeepSeek API error: ${response.status} - ${errorText}`);
+          }
+
+          const data = await response.json();
+          const content = data.choices[0].message.content;
+          const tokensUsed = data.usage?.total_tokens;
+          
+          // Log successful API call
+          await logApiCall(currentMode, entityName, 'success', startTime, tokensUsed, undefined, attempt);
+          
+          return content;
+        } catch (error) {
+          lastError = error as Error;
+          const isTimeout = error.name === 'AbortError' || error.message?.includes('reading a body');
+          const status = isTimeout ? 'timeout' : 'error';
+          
+          console.error(`DeepSeek API attempt ${attempt + 1}/${maxRetries} failed:`, error.message);
+          
+          // Log failed API call
+          await logApiCall(currentMode, entityName, status, startTime, undefined, error.message, attempt);
+          
+          // Wait before retry with exponential backoff
+          if (attempt < maxRetries - 1) {
+            const delay = Math.pow(2, attempt) * 2000; // 2s, 4s, 8s
+            console.log(`Retrying in ${delay/1000}s...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        }
       }
-
-      const data = await response.json();
-      return data.choices[0].message.content;
+      
+      throw lastError || new Error('DeepSeek API failed after retries');
     }
 
     // ============================================
-    // MODE: VISA DATA ENRICHMENT
+    // MODE: VISA DATA ENRICHMENT (Uses DeepSeek, NOT RapidAPI)
     // ============================================
     if (visaEnrichmentMode) {
       console.log(`🔍 Visa Enrichment Mode: Processing ${batchSize} records...`);
@@ -291,8 +318,9 @@ serve(async (req) => {
         try {
           const fromCountry = (visa.from_country as any)?.name || 'Unknown';
           const toCountry = (visa.to_country as any)?.name || 'Unknown';
+          const entityName = `${fromCountry} → ${toCountry}`;
           
-          console.log(`📝 Enriching visa data: ${fromCountry} → ${toCountry}`);
+          console.log(`📝 Enriching visa data: ${entityName}`);
 
           // Broadcast processing status
           await supabase.from('activity_log').insert({
@@ -333,13 +361,13 @@ Return ONLY valid JSON.`;
           const result = await callDeepSeek(
             'You are a visa information expert. Return ONLY valid JSON with no markdown formatting.',
             prompt,
-            500
+            500,
+            entityName
           );
 
           // Parse JSON response
           let enrichedData;
           try {
-            // Clean the response - remove markdown code blocks if present
             const cleanResult = result.replace(/```json\n?|\n?```/g, '').trim();
             enrichedData = JSON.parse(cleanResult);
           } catch (parseError) {
@@ -369,12 +397,12 @@ Return ONLY valid JSON.`;
               .eq('id', visa.id);
 
             logs.push({
-              entity: `${fromCountry} → ${toCountry}`,
+              entity: entityName,
               type: 'visa_enrichment',
               status: 'success',
               fields_updated: Object.keys(updates)
             });
-            console.log(`✅ Enriched: ${fromCountry} → ${toCountry}`, updates);
+            console.log(`✅ Enriched: ${entityName}`, updates);
           }
 
           // Rate limit delay
@@ -400,7 +428,7 @@ Return ONLY valid JSON.`;
     }
 
     // ============================================
-    // MODE: BLOG POST GENERATION
+    // MODE: BLOG POST GENERATION (REDUCED to 800 words)
     // ============================================
     if (blogGenerationMode) {
       console.log(`📝 Blog Generation Mode: Creating ${batchSize} articles...`);
@@ -447,9 +475,10 @@ Return ONLY valid JSON.`;
             }
           });
 
+          // REDUCED prompt - 800 words max
           const content = await callDeepSeek(
-            `You are an expert travel and visa content writer. Write comprehensive, SEO-optimized articles that rank well on Google.`,
-            `Write a comprehensive 1500+ word article titled "${topic.title}".
+            `You are an expert travel and visa content writer. Write SEO-optimized articles.`,
+            `Write a concise 800-word article titled "${topic.title}".
 
 Target keywords: ${topic.keywords.join(', ')}
 
@@ -457,16 +486,15 @@ Structure:
 1. Introduction (answer the main query immediately)
 2. Key Requirements Overview
 3. Step-by-Step Application Process
-4. Required Documents Checklist
+4. Required Documents
 5. Processing Time and Fees
-6. Common Mistakes to Avoid
-7. Frequently Asked Questions (5-7 FAQs)
-8. Tips for a Successful Application
-9. Conclusion
+6. FAQs (3-4 questions)
+7. Quick Tips
 
 Format in clean HTML with h2, h3, p, ul, li tags. Use Tailwind CSS classes for spacing.
-Make it comprehensive, accurate, and helpful for travelers.`,
-            4000
+Keep it concise, accurate, and helpful.`,
+            2500,
+            topic.title
           );
 
           const metaDescription = `Complete guide to ${topic.title.toLowerCase()}. Step-by-step application process, required documents, fees, and expert tips. Updated 2025.`;
@@ -511,7 +539,7 @@ Make it comprehensive, accurate, and helpful for travelers.`,
             console.error('IndexNow error:', e);
           }
 
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          await new Promise(resolve => setTimeout(resolve, 3000)); // Increased delay
         } catch (error) {
           console.error(`Error generating blog:`, error);
           logs.push({
@@ -536,7 +564,7 @@ Make it comprehensive, accurate, and helpful for travelers.`,
         .select('id, title, slug, content')
         .like('slug', 'countries/%')
         .eq('is_published', true)
-        .limit(batchSize * 2); // Get more to filter
+        .limit(batchSize * 2);
 
       // Filter pages that don't already have FAQ section
       const pagesToProcess = (pagesNeedingFAQ || [])
@@ -560,31 +588,22 @@ Make it comprehensive, accurate, and helpful for travelers.`,
 
           const faqContent = await callDeepSeek(
             'You are a visa information expert. Generate FAQs that match Google "People Also Ask" queries.',
-            `Generate 7 frequently asked questions about ${countryName} visa requirements.
+            `Generate 5 frequently asked questions about ${countryName} visa requirements.
 
 For each FAQ, provide:
-1. A question that matches how people search (e.g., "Do Americans need a visa for ${countryName}?")
-2. A concise, accurate answer (2-3 sentences)
+1. A question that matches how people search
+2. A concise answer (2-3 sentences)
 
 Return in this exact JSON format:
 {
   "faqs": [
-    {"question": "...", "answer": "..."},
     {"question": "...", "answer": "..."}
   ]
 }
 
-Focus on questions like:
-- Do [nationality] need a visa for ${countryName}?
-- How long can I stay in ${countryName} without a visa?
-- What documents do I need for ${countryName} visa?
-- How much does a ${countryName} visa cost?
-- How long does ${countryName} visa take to process?
-- Can I extend my stay in ${countryName}?
-- Is ${countryName} safe for tourists?
-
 Return ONLY valid JSON.`,
-            1500
+            1000,
+            countryName
           );
 
           // Parse FAQ JSON
@@ -645,7 +664,7 @@ ${faqSchemaScript}`;
           });
 
           console.log(`✅ Added FAQ schema to: ${countryName}`);
-          await new Promise(resolve => setTimeout(resolve, 1500));
+          await new Promise(resolve => setTimeout(resolve, 2000));
         } catch (error) {
           console.error(`Error generating FAQ:`, error);
           logs.push({
@@ -658,7 +677,7 @@ ${faqSchemaScript}`;
       }
     }
 
-    // Function to process a single country with CTR optimization
+    // Function to process a single country with CTR optimization (REDUCED)
     async function processCountryWithCTR(country: { id: string; name: string; slug: string; code: string }) {
       const ctrName = getCTROptimizedName(country.slug, country.name);
       const ctrPrompt = generateCTRPrompt(country, ctrName);
@@ -679,15 +698,10 @@ ${faqSchemaScript}`;
       console.log(`🔄 Processing CTR optimization for ${country.name} (${ctrName})...`);
 
       const generatedContent = await callDeepSeek(
-        `You are an expert travel and visa content writer specializing in SEO-optimized, high-CTR content. Your goal is to create content that:
-1. Matches exact search queries users type into Google
-2. Answers the main question immediately (no fluff)
-3. Uses power words that drive clicks
-4. Includes target keywords naturally throughout
-5. Provides comprehensive, accurate visa information
-6. Targets US/American travelers as the primary audience`,
+        `You are an expert travel and visa content writer specializing in SEO-optimized, high-CTR content.`,
         ctrPrompt,
-        4000
+        2500, // Reduced from 4000
+        country.name
       );
 
       // CTR-optimized meta title and description
@@ -859,7 +873,7 @@ ${faqSchemaScript}`;
           logs.push(result);
           
           // Add a small delay between API calls to avoid rate limiting
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          await new Promise(resolve => setTimeout(resolve, 3000)); // Increased delay
         } catch (error) {
           console.error(`Error processing ${country.name}:`, error);
           logs.push({
@@ -896,7 +910,7 @@ ${faqSchemaScript}`;
             try {
               const result = await processCountryWithCTR(country);
               logs.push(result);
-              await new Promise(resolve => setTimeout(resolve, 2000));
+              await new Promise(resolve => setTimeout(resolve, 3000));
             } catch (error) {
               console.error(`Error processing ${country.name}:`, error);
               logs.push({

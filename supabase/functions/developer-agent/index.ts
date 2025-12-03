@@ -260,79 +260,207 @@ serve(async (req) => {
         break;
       }
 
-      case 'list_files': {
-        // This requires a file server backend - return placeholder
-        response = {
-          content: `File listing requires the file server backend to be running on EC2.
-          
-To enable this feature:
-1. Deploy the file-server backend to your EC2 instance
-2. Configure the FILE_SERVER_URL in your environment
-3. The agent will then be able to list files from: ${folderPath || '/'}
+case 'list_files': {
+        const fileServerUrl = Deno.env.get('FILE_SERVER_URL');
+        const fileServerSecret = Deno.env.get('FILE_SERVER_SECRET');
+        
+        if (!fileServerUrl || !fileServerSecret) {
+          response = {
+            content: `File server not configured. Please add FILE_SERVER_URL and FILE_SERVER_SECRET to your Supabase secrets.`,
+            requiresFileServer: true
+          };
+          break;
+        }
 
-For now, you can paste code directly into the chat for review.`,
-          requiresFileServer: true
-        };
+        try {
+          const listResponse = await fetch(`${fileServerUrl}/api/files/list?path=${encodeURIComponent(folderPath || '')}`, {
+            headers: { 'Authorization': `Bearer ${fileServerSecret}` }
+          });
+          
+          if (!listResponse.ok) {
+            const error = await listResponse.json();
+            throw new Error(error.error || 'Failed to list files');
+          }
+          
+          const data = await listResponse.json();
+          const fileList = data.files.map((f: any) => `${f.type === 'directory' ? '📁' : '📄'} ${f.name}`).join('\n');
+          
+          response = {
+            content: `**Files in ${folderPath || '/'}:**\n\n\`\`\`\n${fileList}\n\`\`\``,
+            files: data.files
+          };
+        } catch (error) {
+          response = { content: `Error listing files: ${error.message}`, error: true };
+        }
         break;
       }
 
       case 'read_file': {
-        // This requires a file server backend - return placeholder
-        response = {
-          content: `File reading requires the file server backend to be running on EC2.
+        const fileServerUrl = Deno.env.get('FILE_SERVER_URL');
+        const fileServerSecret = Deno.env.get('FILE_SERVER_SECRET');
+        
+        if (!fileServerUrl || !fileServerSecret) {
+          response = {
+            content: `File server not configured. Please add FILE_SERVER_URL and FILE_SERVER_SECRET to your Supabase secrets.`,
+            requiresFileServer: true
+          };
+          break;
+        }
 
-To enable this feature:
-1. Deploy the file-server backend to your EC2 instance
-2. Configure the FILE_SERVER_URL in your environment
-3. The agent will then be able to read: ${filePath}
+        if (!filePath) {
+          throw new Error('File path required');
+        }
 
-For now, you can paste code directly into the chat for review.`,
-          requiresFileServer: true
-        };
+        try {
+          const readResponse = await fetch(`${fileServerUrl}/api/files/read?path=${encodeURIComponent(filePath)}`, {
+            headers: { 'Authorization': `Bearer ${fileServerSecret}` }
+          });
+          
+          if (!readResponse.ok) {
+            const error = await readResponse.json();
+            throw new Error(error.error || 'Failed to read file');
+          }
+          
+          const data = await readResponse.json();
+          const ext = filePath.split('.').pop() || 'txt';
+          
+          response = {
+            content: `**File: ${filePath}**\n\n\`\`\`${ext}\n${data.content}\n\`\`\``,
+            fileContent: data.content,
+            fileInfo: { size: data.size, modified: data.modified }
+          };
+        } catch (error) {
+          response = { content: `Error reading file: ${error.message}`, error: true };
+        }
         break;
       }
 
       case 'search_code': {
-        // This requires a file server backend - return placeholder
-        response = {
-          content: `Code search requires the file server backend to be running on EC2.
+        const fileServerUrl = Deno.env.get('FILE_SERVER_URL');
+        const fileServerSecret = Deno.env.get('FILE_SERVER_SECRET');
+        
+        if (!fileServerUrl || !fileServerSecret) {
+          response = {
+            content: `File server not configured. Please add FILE_SERVER_URL and FILE_SERVER_SECRET to your Supabase secrets.`,
+            requiresFileServer: true
+          };
+          break;
+        }
 
-To enable this feature:
-1. Deploy the file-server backend to your EC2 instance
-2. Configure the FILE_SERVER_URL in your environment
-3. The agent will then be able to search for: "${searchQuery}"
+        if (!searchQuery) {
+          throw new Error('Search query required');
+        }
 
-For now, you can paste code directly into the chat for review.`,
-          requiresFileServer: true
-        };
+        try {
+          const searchResponse = await fetch(`${fileServerUrl}/api/files/search?q=${encodeURIComponent(searchQuery)}&path=${encodeURIComponent(folderPath || '')}`, {
+            headers: { 'Authorization': `Bearer ${fileServerSecret}` }
+          });
+          
+          if (!searchResponse.ok) {
+            const error = await searchResponse.json();
+            throw new Error(error.error || 'Failed to search');
+          }
+          
+          const data = await searchResponse.json();
+          
+          let resultText = `**Search results for "${searchQuery}":**\n\n`;
+          resultText += `Found in ${data.matchedFiles} of ${data.totalFiles} files\n\n`;
+          
+          for (const result of data.results.slice(0, 10)) {
+            resultText += `**${result.file}**\n`;
+            for (const match of result.matches.slice(0, 3)) {
+              resultText += `  Line ${match.line}: \`${match.content}\`\n`;
+            }
+            resultText += '\n';
+          }
+          
+          response = { content: resultText, searchResults: data.results };
+        } catch (error) {
+          response = { content: `Error searching: ${error.message}`, error: true };
+        }
         break;
       }
 
       case 'apply_change': {
-        // Log the change intent
-        if (filePath && newContent) {
-          await supabase.from('file_change_history').insert({
-            user_id: user.id,
-            file_path: filePath,
-            new_content: newContent,
-            change_description: changeDescription || 'No description provided',
-            conversation_id: conversationId
-          });
+        const fileServerUrl = Deno.env.get('FILE_SERVER_URL');
+        const fileServerSecret = Deno.env.get('FILE_SERVER_SECRET');
+        
+        if (!filePath || !newContent) {
+          throw new Error('File path and new content required for apply_change');
+        }
 
+        // Always log the change first
+        const { data: logEntry } = await supabase.from('file_change_history').insert({
+          user_id: user.id,
+          file_path: filePath,
+          new_content: newContent,
+          change_description: changeDescription || 'No description provided',
+          conversation_id: conversationId
+        }).select().single();
+
+        if (!fileServerUrl || !fileServerSecret) {
           response = {
-            content: `File change logged for: ${filePath}
-
-To apply this change:
-1. Deploy the file-server backend to your EC2 instance
-2. Configure the FILE_SERVER_URL in your environment
-3. The change will then be applied automatically
-
-The change has been recorded in the file_change_history table for audit purposes.`,
+            content: `Change logged but file server not configured. The change has been recorded for manual application.\n\nFile: ${filePath}\nLog ID: ${logEntry?.id}`,
             logged: true,
             requiresFileServer: true
           };
-        } else {
-          throw new Error('File path and new content required for apply_change');
+          break;
+        }
+
+        try {
+          // Read current content for backup
+          let originalContent: string | null = null;
+          try {
+            const readResponse = await fetch(`${fileServerUrl}/api/files/read?path=${encodeURIComponent(filePath)}`, {
+              headers: { 'Authorization': `Bearer ${fileServerSecret}` }
+            });
+            if (readResponse.ok) {
+              const data = await readResponse.json();
+              originalContent = data.content;
+            }
+          } catch {
+            // File might not exist
+          }
+
+          // Update the log entry with original content
+          if (originalContent && logEntry) {
+            await supabase.from('file_change_history')
+              .update({ original_content: originalContent })
+              .eq('id', logEntry.id);
+          }
+
+          // Apply the change
+          const writeResponse = await fetch(`${fileServerUrl}/api/files/write`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${fileServerSecret}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              path: filePath,
+              content: newContent,
+              description: changeDescription
+            })
+          });
+
+          if (!writeResponse.ok) {
+            const error = await writeResponse.json();
+            throw new Error(error.error || 'Failed to write file');
+          }
+
+          const result = await writeResponse.json();
+          
+          response = {
+            content: `✅ **File updated successfully!**\n\nFile: ${filePath}\n${result.backedUp ? 'Backup created automatically.' : 'New file created.'}\n\nChange logged with ID: ${logEntry?.id}`,
+            applied: true,
+            backedUp: result.backedUp
+          };
+        } catch (error) {
+          response = {
+            content: `❌ Error applying change: ${error.message}\n\nThe change has been logged (ID: ${logEntry?.id}) for manual review.`,
+            error: true,
+            logged: true
+          };
         }
         break;
       }

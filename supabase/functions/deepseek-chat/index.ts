@@ -6,10 +6,35 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper function to log API calls
+async function logApiCall(
+  supabase: any,
+  taskType: string,
+  status: 'success' | 'error' | 'timeout',
+  startTime: number,
+  tokensUsed?: number,
+  errorMessage?: string
+) {
+  const responseTime = Date.now() - startTime;
+  await supabase.from('api_logs').insert({
+    api_provider: 'deepseek',
+    endpoint: 'https://api.deepseek.com/v1/chat/completions',
+    task_type: taskType,
+    entity_name: 'site-review-chat',
+    status,
+    response_time_ms: responseTime,
+    tokens_used: tokensUsed || null,
+    error_message: errorMessage || null,
+    response_summary: { task: 'site_review' }
+  });
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const startTime = Date.now();
 
   try {
     const { messages } = await req.json();
@@ -66,16 +91,26 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('DeepSeek API error:', response.status, errorText);
+      await logApiCall(supabase, 'site_review_chat', 'error', startTime, undefined, `${response.status}: ${errorText}`);
       throw new Error(`DeepSeek API error: ${response.status}`);
     }
 
     const data = await response.json();
+    const tokensUsed = data.usage?.total_tokens || null;
+    
+    // Log successful API call with tokens
+    await logApiCall(supabase, 'site_review_chat', 'success', startTime, tokensUsed);
+    console.log(`DeepSeek chat tokens used: ${tokensUsed}`);
     
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error in deepseek-chat function:', error);
+    // Log error if not already logged
+    if (!error.message?.includes('DeepSeek API error')) {
+      await logApiCall(supabase, 'site_review_chat', 'error', startTime, undefined, error.message);
+    }
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

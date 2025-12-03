@@ -176,6 +176,54 @@ export type Database = {
           },
         ]
       }
+      api_logs: {
+        Row: {
+          api_provider: string
+          created_at: string
+          endpoint: string | null
+          entity_name: string | null
+          error_message: string | null
+          id: string
+          request_payload: Json | null
+          response_summary: Json | null
+          response_time_ms: number | null
+          retry_count: number | null
+          status: string
+          task_type: string | null
+          tokens_used: number | null
+        }
+        Insert: {
+          api_provider: string
+          created_at?: string
+          endpoint?: string | null
+          entity_name?: string | null
+          error_message?: string | null
+          id?: string
+          request_payload?: Json | null
+          response_summary?: Json | null
+          response_time_ms?: number | null
+          retry_count?: number | null
+          status?: string
+          task_type?: string | null
+          tokens_used?: number | null
+        }
+        Update: {
+          api_provider?: string
+          created_at?: string
+          endpoint?: string | null
+          entity_name?: string | null
+          error_message?: string | null
+          id?: string
+          request_payload?: Json | null
+          response_summary?: Json | null
+          response_time_ms?: number | null
+          retry_count?: number | null
+          status?: string
+          task_type?: string | null
+          tokens_used?: number | null
+        }
+        Relationships: []
+      }
       content_pages: {
         Row: {
           ai_generated: boolean

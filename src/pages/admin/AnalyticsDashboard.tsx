@@ -4,18 +4,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid, BarChart, Bar } from "recharts";
-import { TrendingUp, Users, Search, Globe, Eye, Clock, MousePointer, FileText, MapPin, Monitor, ExternalLink } from "lucide-react";
+import { TrendingUp, Users, Search, Globe, Eye, Clock, MousePointer, FileText, MapPin, Monitor, ExternalLink, Smartphone, Tablet, Laptop, Bot, Mail, Link2 } from "lucide-react";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
-import { format, subDays, startOfDay } from "date-fns";
+import { format, subDays } from "date-fns";
 
 const AnalyticsDashboard = () => {
-  // Fetch analytics summary
+  // Fetch analytics summary with unique visitors and bot traffic
   const { data: analyticsSummary } = useQuery({
     queryKey: ['analytics-summary'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
-        .select('event_type, created_at, session_duration_seconds')
+        .select('event_type, created_at, session_duration_seconds, visitor_ip, is_bot')
         .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
       
       if (error) throw error;
@@ -24,17 +24,247 @@ const AnalyticsDashboard = () => {
       const searches = data.filter(e => e.event_type === 'search').length;
       const searchEngineReferrals = data.filter(e => e.event_type === 'search_engine_referral').length;
       
-      // Calculate real avg session duration
+      const uniqueVisitors = new Set(data.filter(e => e.visitor_ip).map(e => e.visitor_ip)).size;
+      const botTraffic = data.filter(e => e.is_bot === true).length;
+      const botPercentage = data.length > 0 ? Math.round((botTraffic / data.length) * 100) : 0;
+      
       const sessionsWithDuration = data.filter(e => e.session_duration_seconds && e.session_duration_seconds > 0);
       const avgSessionDuration = sessionsWithDuration.length > 0 
         ? Math.round(sessionsWithDuration.reduce((acc, e) => acc + (e.session_duration_seconds || 0), 0) / sessionsWithDuration.length)
         : 0;
       
-      return { pageViews, searches, searchEngineReferrals, total: data.length, avgSessionDuration };
+      return { pageViews, searches, searchEngineReferrals, total: data.length, avgSessionDuration, uniqueVisitors, botPercentage };
     }
   });
 
-  // Daily traffic trend (last 14 days)
+  // Recent visitors (last 10)
+  const { data: recentVisitors } = useQuery({
+    queryKey: ['recent-visitors'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('analytics_events')
+        .select('created_at, page_slug, device_type, device_name, browser_name, visitor_location, is_bot')
+        .eq('event_type', 'page_view')
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      if (error) throw error;
+      return data;
+    },
+    refetchInterval: 30000 // Refresh every 30 seconds
+  });
+
+  // Device type distribution
+  const { data: deviceDistribution } = useQuery({
+    queryKey: ['device-distribution'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('analytics_events')
+        .select('device_type')
+        .not('device_type', 'is', null)
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+      
+      if (error) throw error;
+      
+      const counts: Record<string, number> = {};
+      data.forEach(item => {
+        const type = item.device_type || 'unknown';
+        counts[type] = (counts[type] || 0) + 1;
+      });
+      
+      return Object.entries(counts).map(([name, value]) => ({ name, value }));
+    }
+  });
+
+  // Browser distribution
+  const { data: browserDistribution } = useQuery({
+    queryKey: ['browser-distribution'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('analytics_events')
+        .select('browser_name')
+        .not('browser_name', 'is', null)
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+      
+      if (error) throw error;
+      
+      const counts: Record<string, number> = {};
+      data.forEach(item => {
+        const browser = item.browser_name || 'Unknown';
+        counts[browser] = (counts[browser] || 0) + 1;
+      });
+      
+      return Object.entries(counts)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 6);
+    }
+  });
+
+  // OS distribution
+  const { data: osDistribution } = useQuery({
+    queryKey: ['os-distribution'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('analytics_events')
+        .select('os_name')
+        .not('os_name', 'is', null)
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+      
+      if (error) throw error;
+      
+      const counts: Record<string, number> = {};
+      data.forEach(item => {
+        const os = item.os_name || 'Unknown';
+        counts[os] = (counts[os] || 0) + 1;
+      });
+      
+      return Object.entries(counts).map(([name, value]) => ({ name, value }));
+    }
+  });
+
+  // Screen resolutions
+  const { data: screenResolutions } = useQuery({
+    queryKey: ['screen-resolutions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('analytics_events')
+        .select('screen_width, screen_height')
+        .not('screen_width', 'is', null)
+        .not('screen_height', 'is', null)
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+      
+      if (error) throw error;
+      
+      const counts: Record<string, number> = {};
+      data.forEach(item => {
+        if (item.screen_width && item.screen_height) {
+          const res = `${item.screen_width}x${item.screen_height}`;
+          counts[res] = (counts[res] || 0) + 1;
+        }
+      });
+      
+      return Object.entries(counts)
+        .map(([resolution, count]) => ({ resolution, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+    }
+  });
+
+  // Top device names
+  const { data: topDevices } = useQuery({
+    queryKey: ['top-devices'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('analytics_events')
+        .select('device_name, device_type')
+        .not('device_name', 'is', null)
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+      
+      if (error) throw error;
+      
+      const counts: Record<string, { name: string, type: string, count: number }> = {};
+      data.forEach(item => {
+        const name = item.device_name || 'Unknown';
+        if (!counts[name]) {
+          counts[name] = { name, type: item.device_type || 'unknown', count: 0 };
+        }
+        counts[name].count++;
+      });
+      
+      return Object.values(counts).sort((a, b) => b.count - a.count).slice(0, 10);
+    }
+  });
+
+  // Newsletter conversion stats
+  const { data: newsletterStats } = useQuery({
+    queryKey: ['newsletter-stats'],
+    queryFn: async () => {
+      const { data: subscribers, error: subError } = await supabase
+        .from('newsletter_subscribers')
+        .select('created_at')
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+      
+      const { data: pageViews, error: pvError } = await supabase
+        .from('analytics_events')
+        .select('id')
+        .eq('event_type', 'page_view')
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+      
+      if (subError || pvError) throw subError || pvError;
+      
+      const signups = subscribers?.length || 0;
+      const views = pageViews?.length || 1;
+      const rate = ((signups / views) * 100).toFixed(2);
+      
+      return { signups, rate };
+    }
+  });
+
+  // Affiliate click stats
+  const { data: affiliateStats } = useQuery({
+    queryKey: ['affiliate-stats'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('analytics_events')
+        .select('search_term, page_slug')
+        .eq('event_type', 'affiliate_click')
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+      
+      if (error) throw error;
+      
+      const counts: Record<string, number> = {};
+      data.forEach(item => {
+        const affiliate = item.search_term || 'Unknown';
+        counts[affiliate] = (counts[affiliate] || 0) + 1;
+      });
+      
+      const totalClicks = data.length;
+      const topAffiliates = Object.entries(counts)
+        .map(([name, clicks]) => ({ name, clicks }))
+        .sort((a, b) => b.clicks - a.clicks)
+        .slice(0, 5);
+      
+      return { totalClicks, topAffiliates };
+    }
+  });
+
+  // Bot traffic details
+  const { data: botTrafficDetails } = useQuery({
+    queryKey: ['bot-traffic'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('analytics_events')
+        .select('user_agent, is_bot')
+        .eq('is_bot', true)
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+      
+      if (error) throw error;
+      
+      const botTypes: Record<string, number> = {};
+      data.forEach(item => {
+        let botName = 'Other Bot';
+        const ua = item.user_agent?.toLowerCase() || '';
+        if (ua.includes('googlebot')) botName = 'Googlebot';
+        else if (ua.includes('bingbot')) botName = 'Bingbot';
+        else if (ua.includes('facebookexternalhit')) botName = 'Facebook';
+        else if (ua.includes('twitterbot')) botName = 'Twitter';
+        else if (ua.includes('linkedinbot')) botName = 'LinkedIn';
+        else if (ua.includes('slurp')) botName = 'Yahoo';
+        else if (ua.includes('duckduckbot')) botName = 'DuckDuckGo';
+        else if (ua.includes('yandex')) botName = 'Yandex';
+        else if (ua.includes('baidu')) botName = 'Baidu';
+        
+        botTypes[botName] = (botTypes[botName] || 0) + 1;
+      });
+      
+      return Object.entries(botTypes)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count);
+    }
+  });
+
+  // Daily traffic trend
   const { data: dailyTrend } = useQuery({
     queryKey: ['daily-traffic-trend'],
     queryFn: async () => {
@@ -67,7 +297,7 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // Traffic sources with search engine breakdown
+  // Traffic sources
   const { data: trafficSources } = useQuery({
     queryKey: ['traffic-sources'],
     queryFn: async () => {
@@ -81,119 +311,69 @@ const AnalyticsDashboard = () => {
       const sources: Record<string, number> = {};
       data.forEach(item => {
         const source = item.referrer_source || 'direct';
-        sources[source] = (sources[source] || 0) + 1;
+        const normalizedSource = normalizeSource(source);
+        sources[normalizedSource] = (sources[normalizedSource] || 0) + 1;
       });
       
       return Object.entries(sources)
-        .map(([name, value]) => ({ 
-          name: getSearchEngineName(name), 
-          originalName: name,
-          value 
-        }))
+        .map(([name, value]) => ({ name: getSearchEngineName(name), originalName: name, value }))
         .sort((a, b) => b.value - a.value);
     }
   });
 
-  // Full referring URLs (actual URLs, not just domains)
+  // Referring URLs
   const { data: referringUrls } = useQuery({
     queryKey: ['referring-urls'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
-        .select('referrer_source, page_slug, created_at')
+        .select('referrer_source')
         .not('referrer_source', 'is', null)
         .not('referrer_source', 'eq', 'direct')
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-        .order('created_at', { ascending: false });
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
       
       if (error) throw error;
       
-      // Group by referrer and count
       const urlCounts: Record<string, { url: string, count: number, searchEngine: string | null }> = {};
       data.forEach(item => {
         const url = item.referrer_source || '';
         if (!urlCounts[url]) {
-          urlCounts[url] = { 
-            url, 
-            count: 0, 
-            searchEngine: detectSearchEngine(url)
-          };
+          urlCounts[url] = { url, count: 0, searchEngine: detectSearchEngine(url) };
         }
         urlCounts[url].count++;
       });
       
-      return Object.values(urlCounts)
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 20);
+      return Object.values(urlCounts).sort((a, b) => b.count - a.count).slice(0, 15);
     }
   });
 
-  // Search engine keywords with engine name
+  // Search engine keywords
   const { data: searchEngineQueries } = useQuery({
     queryKey: ['search-engine-queries'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
-        .select('search_engine_query, referrer_source, created_at')
+        .select('search_engine_query, referrer_source')
         .not('search_engine_query', 'is', null)
         .order('created_at', { ascending: false })
         .limit(100);
       
       if (error) throw error;
       
-      // Count frequency with search engine identification
       const queryCounts: Record<string, { query: string, searchEngine: string, count: number }> = {};
       data.forEach(item => {
         const key = `${item.search_engine_query}_${item.referrer_source}`;
         if (!queryCounts[key]) {
-          queryCounts[key] = { 
-            query: item.search_engine_query!, 
-            searchEngine: getSearchEngineName(item.referrer_source),
-            count: 0 
-          };
+          queryCounts[key] = { query: item.search_engine_query!, searchEngine: getSearchEngineName(item.referrer_source), count: 0 };
         }
         queryCounts[key].count++;
       });
       
-      return Object.values(queryCounts).sort((a, b) => b.count - a.count).slice(0, 20);
+      return Object.values(queryCounts).sort((a, b) => b.count - a.count).slice(0, 15);
     }
   });
 
-  // Most viewed country pages
-  const { data: topCountryPages } = useQuery({
-    queryKey: ['top-country-pages'],
-    queryFn: async () => {
-      const { data: countries } = await supabase
-        .from('countries')
-        .select('*');
-      
-      const { data: analyticsEvents } = await supabase
-        .from('analytics_events')
-        .select('page_slug, event_type')
-        .eq('event_type', 'page_view');
-      
-      if (!countries || !analyticsEvents) return [];
-      
-      const countryPageViews: Record<string, number> = {};
-      analyticsEvents.forEach(event => {
-        if (event.page_slug?.startsWith('/country/')) {
-          const slug = event.page_slug.replace('/country/', '');
-          countryPageViews[slug] = (countryPageViews[slug] || 0) + 1;
-        }
-      });
-      
-      return countries
-        .map(country => ({
-          country,
-          page_views: countryPageViews[country.slug] || 0,
-        }))
-        .filter(item => item.page_views > 0)
-        .sort((a, b) => b.page_views - a.page_views)
-        .slice(0, 10);
-    }
-  });
-
-  // Top pages by views (all pages)
+  // Top pages
   const { data: topPages } = useQuery({
     queryKey: ['top-pages'],
     queryFn: async () => {
@@ -244,7 +424,7 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // Real page performance metrics
+  // Page performance
   const { data: pagePerformance } = useQuery({
     queryKey: ['page-performance'],
     queryFn: async () => {
@@ -255,21 +435,14 @@ const AnalyticsDashboard = () => {
       
       if (error) throw error;
       
-      // Avg time on page
       const sessionsWithDuration = data.filter(e => e.session_duration_seconds && e.session_duration_seconds > 0);
       const avgTimeOnPage = sessionsWithDuration.length > 0 
         ? Math.round(sessionsWithDuration.reduce((acc, e) => acc + (e.session_duration_seconds || 0), 0) / sessionsWithDuration.length)
         : 0;
       
-      // Unique page slugs per "session" approximation
-      const uniquePages = new Set(data.filter(e => e.event_type === 'page_view').map(e => e.page_slug)).size;
       const totalPageViews = data.filter(e => e.event_type === 'page_view').length;
-      
-      // Bounce rate approximation (sessions with only 1 page view)
       const singlePageSessions = data.filter(e => e.session_duration_seconds && e.session_duration_seconds < 10).length;
       const bounceRate = totalPageViews > 0 ? Math.round((singlePageSessions / totalPageViews) * 100) : 0;
-      
-      // Pages per session
       const pagesPerSession = sessionsWithDuration.length > 0 
         ? (totalPageViews / Math.max(sessionsWithDuration.length, 1)).toFixed(1)
         : '0';
@@ -278,7 +451,7 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // Top visa searches (moved to bottom as requested)
+  // Top visa searches
   const { data: topSearches } = useQuery({
     queryKey: ['top-searches'],
     queryFn: async () => {
@@ -287,8 +460,8 @@ const AnalyticsDashboard = () => {
         .select(`
           from_country_id,
           to_country_id,
-          from_country:countries!analytics_events_from_country_id_fkey(name, code, flag_emoji, slug),
-          to_country:countries!analytics_events_to_country_id_fkey(name, code, flag_emoji, slug)
+          from_country:countries!analytics_events_from_country_id_fkey(name, code, flag_emoji),
+          to_country:countries!analytics_events_to_country_id_fkey(name, code, flag_emoji)
         `)
         .eq('event_type', 'search')
         .limit(100);
@@ -309,6 +482,7 @@ const AnalyticsDashboard = () => {
   });
 
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', '#FFBB28', '#FF8042', '#8884D8', '#82ca9d', '#ffc658'];
+  const DEVICE_COLORS = { desktop: '#3b82f6', mobile: '#22c55e', tablet: '#f59e0b', unknown: '#6b7280' };
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -316,81 +490,149 @@ const AnalyticsDashboard = () => {
     return `${mins}m ${secs}s`;
   };
 
+  const getDeviceIcon = (type: string) => {
+    switch (type) {
+      case 'mobile': return <Smartphone className="h-4 w-4" />;
+      case 'tablet': return <Tablet className="h-4 w-4" />;
+      default: return <Laptop className="h-4 w-4" />;
+    }
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6 p-3 sm:p-0">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold">Analytics Dashboard</h1>
-        <p className="text-sm sm:text-base text-muted-foreground">Track visitor behavior, searches, and traffic sources</p>
+        <p className="text-sm sm:text-base text-muted-foreground">Comprehensive visitor behavior and site performance tracking</p>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      {/* Summary Cards - 6 columns */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Page Views</CardTitle>
+            <CardTitle className="text-xs font-medium">Page Views</CardTitle>
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsSummary?.pageViews.toLocaleString() || 0}</div>
-            <p className="text-xs text-muted-foreground">Last 30 days</p>
+            <div className="text-xl font-bold">{analyticsSummary?.pageViews.toLocaleString() || 0}</div>
+            <p className="text-xs text-muted-foreground">30 days</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Visa Searches</CardTitle>
+            <CardTitle className="text-xs font-medium">Unique Visitors</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold">{analyticsSummary?.uniqueVisitors.toLocaleString() || 0}</div>
+            <p className="text-xs text-muted-foreground">By IP</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-medium">Visa Searches</CardTitle>
             <Search className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsSummary?.searches.toLocaleString() || 0}</div>
-            <p className="text-xs text-muted-foreground">Last 30 days</p>
+            <div className="text-xl font-bold">{analyticsSummary?.searches.toLocaleString() || 0}</div>
+            <p className="text-xs text-muted-foreground">30 days</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Search Engine Visitors</CardTitle>
+            <CardTitle className="text-xs font-medium">Search Visitors</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsSummary?.searchEngineReferrals.toLocaleString() || 0}</div>
-            <p className="text-xs text-muted-foreground">Google, Bing, etc.</p>
+            <div className="text-xl font-bold">{analyticsSummary?.searchEngineReferrals.toLocaleString() || 0}</div>
+            <p className="text-xs text-muted-foreground">Google, Bing</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Session</CardTitle>
+            <CardTitle className="text-xs font-medium">Avg. Session</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatDuration(analyticsSummary?.avgSessionDuration || 0)}</div>
+            <div className="text-xl font-bold">{formatDuration(analyticsSummary?.avgSessionDuration || 0)}</div>
             <p className="text-xs text-muted-foreground">Time on site</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-medium">Bot Traffic</CardTitle>
+            <Bot className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold">{analyticsSummary?.botPercentage || 0}%</div>
+            <p className="text-xs text-muted-foreground">Crawlers</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Daily Traffic Trend */}
+      {/* Recent Visitors - Real-time */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Users className="h-5 w-5" />
+            Recent Visitors
+            <Badge variant="outline" className="ml-2 text-xs">Live</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-xs">Time</TableHead>
+                <TableHead className="text-xs">Page</TableHead>
+                <TableHead className="text-xs">Device</TableHead>
+                <TableHead className="text-xs">Browser</TableHead>
+                <TableHead className="text-xs">Location</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {recentVisitors?.map((visitor, idx) => (
+                <TableRow key={idx}>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {format(new Date(visitor.created_at), 'HH:mm:ss')}
+                  </TableCell>
+                  <TableCell className="text-xs font-mono truncate max-w-[150px]">{visitor.page_slug || '/'}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1 text-xs">
+                      {getDeviceIcon(visitor.device_type || 'desktop')}
+                      <span className="truncate max-w-[80px]">{visitor.device_name || '-'}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-xs">{visitor.browser_name || '-'}</TableCell>
+                  <TableCell className="text-xs">
+                    {(visitor.visitor_location as any)?.country || '-'}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Traffic Trend */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            Traffic Trend (Last 14 Days)
+            Traffic Trend (14 Days)
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={280}>
             <LineChart data={dailyTrend}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis dataKey="date" className="text-xs" />
               <YAxis className="text-xs" />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'hsl(var(--card))', 
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px'
-                }} 
-              />
+              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
               <Line type="monotone" dataKey="pageViews" stroke="hsl(var(--primary))" strokeWidth={2} name="Page Views" />
               <Line type="monotone" dataKey="searches" stroke="hsl(var(--secondary))" strokeWidth={2} name="Searches" />
             </LineChart>
@@ -398,14 +640,248 @@ const AnalyticsDashboard = () => {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Traffic Sources Pie Chart */}
+      {/* Device/Browser/OS Analytics - 3 columns */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Device Type */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg sm:text-xl">Traffic Sources</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Smartphone className="h-5 w-5" />
+              Device Types
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie
+                  data={deviceDistribution}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={40}
+                  outerRadius={70}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                >
+                  {deviceDistribution?.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={DEVICE_COLORS[entry.name as keyof typeof DEVICE_COLORS] || COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Browser Distribution */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Globe className="h-5 w-5" />
+              Browsers
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={browserDistribution} layout="vertical">
+                <XAxis type="number" className="text-xs" />
+                <YAxis dataKey="name" type="category" width={60} className="text-xs" />
+                <Tooltip />
+                <Bar dataKey="value" fill="hsl(var(--primary))" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* OS Distribution */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Monitor className="h-5 w-5" />
+              Operating Systems
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie
+                  data={osDistribution}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={40}
+                  outerRadius={70}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                >
+                  {osDistribution?.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Screen Resolutions & Device Names - 2 columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Screen Resolutions */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Monitor className="h-5 w-5" />
+              Screen Resolutions
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">Resolution</TableHead>
+                  <TableHead className="text-right text-xs">Count</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {screenResolutions?.map((item, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell className="text-xs font-mono">{item.resolution}</TableCell>
+                    <TableCell className="text-right">
+                      <Badge variant="secondary">{item.count}</Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {(!screenResolutions || screenResolutions.length === 0) && (
+                  <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground py-4 text-sm">No data yet</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        {/* Top Device Names */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Smartphone className="h-5 w-5" />
+              Top Devices
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">Device</TableHead>
+                  <TableHead className="text-xs">Type</TableHead>
+                  <TableHead className="text-right text-xs">Count</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {topDevices?.map((item, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell className="text-xs font-medium">{item.name}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        {getDeviceIcon(item.type)}
+                        <span className="text-xs capitalize">{item.type}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Badge variant="secondary">{item.count}</Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {(!topDevices || topDevices.length === 0) && (
+                  <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-4 text-sm">No data yet</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Conversion & Affiliate Stats - 3 columns */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Newsletter Stats */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Mail className="h-5 w-5" />
+              Newsletter
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="p-3 border rounded-lg bg-muted/30">
+                <div className="text-xs text-muted-foreground">Signups (30d)</div>
+                <div className="text-2xl font-bold">{newsletterStats?.signups || 0}</div>
+              </div>
+              <div className="p-3 border rounded-lg bg-muted/30">
+                <div className="text-xs text-muted-foreground">Conversion Rate</div>
+                <div className="text-2xl font-bold">{newsletterStats?.rate || 0}%</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Affiliate Clicks */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Link2 className="h-5 w-5" />
+              Affiliate Clicks
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="p-3 border rounded-lg bg-muted/30 mb-3">
+              <div className="text-xs text-muted-foreground">Total Clicks (30d)</div>
+              <div className="text-2xl font-bold">{affiliateStats?.totalClicks || 0}</div>
+            </div>
+            <div className="space-y-2">
+              {affiliateStats?.topAffiliates.map((item, idx) => (
+                <div key={idx} className="flex justify-between text-sm">
+                  <span className="truncate">{item.name}</span>
+                  <Badge variant="secondary">{item.clicks}</Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Bot Traffic */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Bot className="h-5 w-5" />
+              Bot Traffic
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {botTrafficDetails?.map((item, idx) => (
+                <div key={idx} className="flex justify-between items-center text-sm">
+                  <span>{item.name}</span>
+                  <Badge variant="outline">{item.count}</Badge>
+                </div>
+              ))}
+              {(!botTrafficDetails || botTrafficDetails.length === 0) && (
+                <p className="text-sm text-muted-foreground text-center py-4">No bot traffic detected</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Page Performance & Traffic Sources */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Traffic Sources */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Traffic Sources</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie
                   data={trafficSources}
@@ -413,7 +889,7 @@ const AnalyticsDashboard = () => {
                   cy="50%"
                   labelLine={false}
                   label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={90}
+                  outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
                 >
@@ -427,50 +903,47 @@ const AnalyticsDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Page Performance Metrics - NOW REAL DATA */}
+        {/* Page Performance */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <Monitor className="h-5 w-5" />
               Page Performance
             </CardTitle>
-            <p className="text-xs text-muted-foreground">Real metrics from analytics data</p>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-3">
               <div className="p-4 border rounded-lg bg-muted/30">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
                   <Clock className="h-4 w-4" />
-                  <span className="text-xs sm:text-sm">Avg. Time on Page</span>
+                  <span className="text-xs">Avg. Time on Page</span>
                 </div>
-                <div className="text-xl sm:text-2xl font-bold">
-                  {formatDuration(pagePerformance?.avgTimeOnPage || 0)}
-                </div>
+                <div className="text-2xl font-bold">{formatDuration(pagePerformance?.avgTimeOnPage || 0)}</div>
               </div>
               <div className="p-4 border rounded-lg bg-muted/30">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
                   <MousePointer className="h-4 w-4" />
-                  <span className="text-xs sm:text-sm">Bounce Rate</span>
+                  <span className="text-xs">Bounce Rate</span>
                 </div>
-                <div className="text-xl sm:text-2xl font-bold">{pagePerformance?.bounceRate || 0}%</div>
+                <div className="text-2xl font-bold">{pagePerformance?.bounceRate || 0}%</div>
               </div>
               <div className="p-4 border rounded-lg bg-muted/30">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
                   <FileText className="h-4 w-4" />
-                  <span className="text-xs sm:text-sm">Pages per Session</span>
+                  <span className="text-xs">Pages per Session</span>
                 </div>
-                <div className="text-xl sm:text-2xl font-bold">{pagePerformance?.pagesPerSession || '0'}</div>
+                <div className="text-2xl font-bold">{pagePerformance?.pagesPerSession || '0'}</div>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Top Pages */}
+      {/* Top Pages & Locations */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <FileText className="h-5 w-5" />
               Top Pages
             </CardTitle>
@@ -479,35 +952,28 @@ const AnalyticsDashboard = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs sm:text-sm">Page</TableHead>
-                  <TableHead className="text-right text-xs sm:text-sm">Views</TableHead>
+                  <TableHead className="text-xs">Page</TableHead>
+                  <TableHead className="text-right text-xs">Views</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {topPages?.map((item, idx) => (
                   <TableRow key={idx}>
-                    <TableCell className="text-xs sm:text-sm font-mono truncate max-w-[200px]">
-                      {item.page || '/'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant="secondary">{item.views}</Badge>
-                    </TableCell>
+                    <TableCell className="text-xs font-mono truncate max-w-[200px]">{item.page || '/'}</TableCell>
+                    <TableCell className="text-right"><Badge variant="secondary">{item.views}</Badge></TableCell>
                   </TableRow>
                 ))}
                 {(!topPages || topPages.length === 0) && (
-                  <TableRow>
-                    <TableCell colSpan={2} className="text-center text-muted-foreground py-4">No data yet</TableCell>
-                  </TableRow>
+                  <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground py-4">No data</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
 
-        {/* Visitor Locations */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <MapPin className="h-5 w-5" />
               Visitor Locations
             </CardTitle>
@@ -516,23 +982,19 @@ const AnalyticsDashboard = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs sm:text-sm">Country</TableHead>
-                  <TableHead className="text-right text-xs sm:text-sm">Visitors</TableHead>
+                  <TableHead className="text-xs">Country</TableHead>
+                  <TableHead className="text-right text-xs">Visitors</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {visitorLocations?.map((item, idx) => (
                   <TableRow key={idx}>
-                    <TableCell className="text-xs sm:text-sm font-medium">{item.country}</TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant="secondary">{item.count}</Badge>
-                    </TableCell>
+                    <TableCell className="text-xs font-medium">{item.country}</TableCell>
+                    <TableCell className="text-right"><Badge variant="secondary">{item.count}</Badge></TableCell>
                   </TableRow>
                 ))}
                 {(!visitorLocations || visitorLocations.length === 0) && (
-                  <TableRow>
-                    <TableCell colSpan={2} className="text-center text-muted-foreground py-4">No location data</TableCell>
-                  </TableRow>
+                  <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground py-4">No data</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
@@ -540,84 +1002,37 @@ const AnalyticsDashboard = () => {
         </Card>
       </div>
 
-      {/* Most Viewed Country Pages */}
+      {/* Search Engine Keywords */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-            <Globe className="h-5 w-5" />
-            Most Viewed Country Pages
-          </CardTitle>
+          <CardTitle className="text-lg">Search Engine Keywords</CardTitle>
+          <p className="text-xs text-muted-foreground">Keywords with search engine identification</p>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-xs sm:text-sm">Country</TableHead>
-                <TableHead className="text-right text-xs sm:text-sm">Page Views</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {topCountryPages?.map((item, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg sm:text-xl" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
-                        {item.country?.flag_emoji || countryCodeToFlagEmoji(item.country?.code) || '🏳️'}
-                      </span>
-                      <span className="font-medium text-xs sm:text-sm">{item.country?.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Badge variant="secondary">{item.page_views}</Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {(!topCountryPages || topCountryPages.length === 0) && (
-                <TableRow>
-                  <TableCell colSpan={2} className="text-center text-muted-foreground py-4">No country page views yet</TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      {/* Search Engine Keywords with Engine Name */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg sm:text-xl">Search Engine Keywords</CardTitle>
-          <p className="text-xs sm:text-sm text-muted-foreground">Keywords with search engine identification</p>
-        </CardHeader>
-        <CardContent className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-xs sm:text-sm">Keyword</TableHead>
-                <TableHead className="text-xs sm:text-sm">Search Engine</TableHead>
-                <TableHead className="text-right text-xs sm:text-sm">Count</TableHead>
+                <TableHead className="text-xs">Keyword</TableHead>
+                <TableHead className="text-xs">Search Engine</TableHead>
+                <TableHead className="text-right text-xs">Count</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {searchEngineQueries?.map((item, idx) => (
                 <TableRow key={idx}>
-                  <TableCell className="font-medium text-xs sm:text-sm">{item.query}</TableCell>
+                  <TableCell className="font-medium text-xs">{item.query}</TableCell>
                   <TableCell>
-                    <Badge 
-                      variant="outline" 
-                      className={`text-xs ${getSearchEngineBadgeClass(item.searchEngine)}`}
-                    >
+                    <Badge variant="outline" className={`text-xs ${getSearchEngineBadgeClass(item.searchEngine)}`}>
                       {item.searchEngine}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <Badge>{item.count}</Badge>
-                  </TableCell>
+                  <TableCell className="text-right"><Badge>{item.count}</Badge></TableCell>
                 </TableRow>
               ))}
               {(!searchEngineQueries || searchEngineQueries.length === 0) && (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground py-4">
-                    No search engine keywords captured yet. Keywords are captured from referrer URLs when available.
+                  <TableCell colSpan={3} className="text-center text-muted-foreground py-4 text-sm">
+                    No search engine keywords captured yet
                   </TableCell>
                 </TableRow>
               )}
@@ -626,22 +1041,21 @@ const AnalyticsDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Referring URLs - NOW WITH ACTUAL URLs */}
+      {/* Referring URLs */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <ExternalLink className="h-5 w-5" />
             Top Referring URLs
           </CardTitle>
-          <p className="text-xs sm:text-sm text-muted-foreground">External sites driving traffic to your site</p>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-xs sm:text-sm">Referring URL / Source</TableHead>
-                <TableHead className="text-xs sm:text-sm">Type</TableHead>
-                <TableHead className="text-right text-xs sm:text-sm">Visits</TableHead>
+                <TableHead className="text-xs">Referring URL</TableHead>
+                <TableHead className="text-xs">Type</TableHead>
+                <TableHead className="text-right text-xs">Visits</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -649,45 +1063,32 @@ const AnalyticsDashboard = () => {
                 <TableRow key={idx}>
                   <TableCell>
                     {item.url.startsWith('http') ? (
-                      <a 
-                        href={item.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline text-xs sm:text-sm break-all max-w-[300px] truncate block"
-                      >
+                      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs break-all max-w-[300px] truncate block">
                         {item.url}
                       </a>
                     ) : (
-                      <span className="text-xs sm:text-sm">{item.url}</span>
+                      <span className="text-xs">{item.url}</span>
                     )}
                   </TableCell>
                   <TableCell>
                     {item.searchEngine ? (
-                      <Badge variant="outline" className={`text-xs ${getSearchEngineBadgeClass(item.searchEngine)}`}>
-                        {item.searchEngine}
-                      </Badge>
+                      <Badge variant="outline" className={`text-xs ${getSearchEngineBadgeClass(item.searchEngine)}`}>{item.searchEngine}</Badge>
                     ) : (
                       <Badge variant="secondary" className="text-xs">Referral</Badge>
                     )}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <Badge>{item.count}</Badge>
-                  </TableCell>
+                  <TableCell className="text-right"><Badge>{item.count}</Badge></TableCell>
                 </TableRow>
               ))}
               {(!referringUrls || referringUrls.length === 0) && (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground py-4">
-                    No external referrers yet
-                  </TableCell>
-                </TableRow>
+                <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-4">No referrers</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
-      {/* Top Visa Searches - NOW AT BOTTOM */}
+      {/* Top Visa Searches - BOTTOM */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -701,7 +1102,7 @@ const AnalyticsDashboard = () => {
               <TableRow>
                 <TableHead>From Country</TableHead>
                 <TableHead>To Country</TableHead>
-                <TableHead className="text-right">Search Count</TableHead>
+                <TableHead className="text-right">Count</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -709,7 +1110,7 @@ const AnalyticsDashboard = () => {
                 <TableRow key={idx}>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <span style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
+                      <span style={{ fontFamily: "'Segoe UI Emoji', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
                         {item.from?.flag_emoji || countryCodeToFlagEmoji(item.from?.code) || '🏳️'}
                       </span>
                       <span className="font-medium">{item.from?.name || 'Unknown'}</span>
@@ -717,23 +1118,17 @@ const AnalyticsDashboard = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <span style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
+                      <span style={{ fontFamily: "'Segoe UI Emoji', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
                         {item.to?.flag_emoji || countryCodeToFlagEmoji(item.to?.code) || '🏳️'}
                       </span>
                       <span className="font-medium">{item.to?.name || 'Unknown'}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <Badge>{item.count}</Badge>
-                  </TableCell>
+                  <TableCell className="text-right"><Badge>{item.count}</Badge></TableCell>
                 </TableRow>
               ))}
               {(!topSearches || topSearches.length === 0) && (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground py-4">
-                    No visa searches recorded yet
-                  </TableCell>
-                </TableRow>
+                <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-4">No visa searches</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
@@ -744,28 +1139,41 @@ const AnalyticsDashboard = () => {
 };
 
 // Helper functions
+function normalizeSource(source: string): string {
+  if (!source) return 'direct';
+  const lower = source.toLowerCase();
+  if (lower.includes('google.')) return 'google';
+  if (lower.includes('bing.')) return 'bing';
+  if (lower.includes('yahoo.')) return 'yahoo';
+  if (lower.includes('duckduckgo.')) return 'duckduckgo';
+  if (lower.includes('baidu.')) return 'baidu';
+  if (lower.includes('yandex.')) return 'yandex';
+  if (lower === 'direct') return 'direct';
+  return 'referral';
+}
+
 function getSearchEngineName(source: string | null): string {
   if (!source) return 'Direct';
-  const lowerSource = source.toLowerCase();
-  if (lowerSource.includes('google')) return 'Google';
-  if (lowerSource.includes('bing')) return 'Bing';
-  if (lowerSource.includes('yahoo')) return 'Yahoo';
-  if (lowerSource.includes('duckduckgo')) return 'DuckDuckGo';
-  if (lowerSource.includes('baidu')) return 'Baidu';
-  if (lowerSource.includes('yandex')) return 'Yandex';
-  if (lowerSource === 'direct') return 'Direct';
-  if (lowerSource === 'referral') return 'Referral';
+  const lower = source.toLowerCase();
+  if (lower.includes('google')) return 'Google';
+  if (lower.includes('bing')) return 'Bing';
+  if (lower.includes('yahoo')) return 'Yahoo';
+  if (lower.includes('duckduckgo')) return 'DuckDuckGo';
+  if (lower.includes('baidu')) return 'Baidu';
+  if (lower.includes('yandex')) return 'Yandex';
+  if (lower === 'direct') return 'Direct';
+  if (lower === 'referral') return 'Referral';
   return source;
 }
 
 function detectSearchEngine(url: string): string | null {
-  const lowerUrl = url.toLowerCase();
-  if (lowerUrl.includes('google.')) return 'Google';
-  if (lowerUrl.includes('bing.')) return 'Bing';
-  if (lowerUrl.includes('yahoo.')) return 'Yahoo';
-  if (lowerUrl.includes('duckduckgo.')) return 'DuckDuckGo';
-  if (lowerUrl.includes('baidu.')) return 'Baidu';
-  if (lowerUrl.includes('yandex.')) return 'Yandex';
+  const lower = url.toLowerCase();
+  if (lower.includes('google.')) return 'Google';
+  if (lower.includes('bing.')) return 'Bing';
+  if (lower.includes('yahoo.')) return 'Yahoo';
+  if (lower.includes('duckduckgo.')) return 'DuckDuckGo';
+  if (lower.includes('baidu.')) return 'Baidu';
+  if (lower.includes('yandex.')) return 'Yandex';
   return null;
 }
 

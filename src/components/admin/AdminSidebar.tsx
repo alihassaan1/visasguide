@@ -3,29 +3,53 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   LayoutDashboard,
   FileText,
-  Newspaper,
   Settings,
   Users,
-  DollarSign,
   Sparkles,
   Database,
   Key,
-  Rss,
   TrendingUp,
-  Globe,
   Download,
-  MessageSquare,
   Menu as MenuIcon,
   Activity,
   Bot,
   Code,
   FileCode,
   ScrollText,
+  ChevronRight,
+  Megaphone,
+  Mail,
+  DollarSign,
+  Globe,
+  ClipboardList,
 } from "lucide-react";
 
-const menuItems = [
+interface MenuItem {
+  title: string;
+  icon: any;
+  href: string;
+}
+
+interface MenuGroup {
+  title: string;
+  icon: any;
+  children: MenuItem[];
+}
+
+type MenuItemOrGroup = MenuItem | MenuGroup;
+
+const isMenuGroup = (item: MenuItemOrGroup): item is MenuGroup => {
+  return 'children' in item;
+};
+
+const menuStructure: MenuItemOrGroup[] = [
   {
     title: "Dashboard",
     icon: LayoutDashboard,
@@ -37,90 +61,58 @@ const menuItems = [
     href: "/admin/analytics",
   },
   {
-    title: "Content Manager",
+    title: "Content",
     icon: FileText,
-    href: "/admin/content",
+    children: [
+      { title: "All Pages", icon: FileText, href: "/admin/content" },
+      { title: "Create New", icon: Sparkles, href: "/admin/ai-content-studio" },
+    ],
   },
   {
-    title: "AI Content Studio",
-    icon: Sparkles,
-    href: "/admin/ai-content-studio",
+    title: "AI Agent",
+    icon: Bot,
+    children: [
+      { title: "Dashboard", icon: Bot, href: "/admin/agent-dashboard" },
+      { title: "Agent Logs", icon: Activity, href: "/admin/content-agent-logs" },
+      { title: "API Logs", icon: ScrollText, href: "/admin/api-logs" },
+      { title: "Country Updater", icon: Globe, href: "/admin/country-content-updater" },
+      { title: "Visa Updater", icon: ClipboardList, href: "/admin/visa-requirements-content-updater" },
+    ],
   },
   {
-    title: "Country Content Updater",
-    icon: Globe,
-    href: "/admin/country-content-updater",
+    title: "Marketing",
+    icon: Megaphone,
+    children: [
+      { title: "Newsletter", icon: Mail, href: "/admin/newsletter" },
+      { title: "Ads & Affiliates", icon: DollarSign, href: "/admin/monetization" },
+    ],
   },
   {
-    title: "Visa Requirements Updater",
-    icon: Sparkles,
-    href: "/admin/visa-requirements-content-updater",
-  },
-  {
-    title: "Newsletter",
-    icon: Newspaper,
-    href: "/admin/newsletter",
-  },
-  {
-    title: "User Management",
+    title: "Users",
     icon: Users,
     href: "/admin/users",
   },
   {
-    title: "Monetization",
-    icon: DollarSign,
-    href: "/admin/monetization",
-  },
-  {
-    title: "Data Manager",
+    title: "Data",
     icon: Database,
-    href: "/admin/data",
+    children: [
+      { title: "Data Manager", icon: Database, href: "/admin/data" },
+      { title: "Visa Requirements", icon: ClipboardList, href: "/admin/visa-requirements" },
+      { title: "Import Data", icon: Download, href: "/admin/data-import" },
+    ],
   },
   {
-    title: "Visa Requirements",
-    icon: Rss,
-    href: "/admin/visa-requirements",
-  },
-  {
-    title: "Import Visa Data",
-    icon: Download,
-    href: "/admin/data-import",
-  },
-  {
-    title: "API Settings",
-    icon: Key,
-    href: "/admin/api-settings",
-  },
-  {
-    title: "Menu Manager",
-    icon: MenuIcon,
-    href: "/admin/menu",
-  },
-  {
-    title: "Agent Dashboard",
-    icon: Bot,
-    href: "/admin/agent-dashboard",
-  },
-  {
-    title: "Agent Logs",
-    icon: Activity,
-    href: "/admin/content-agent-logs",
-  },
-  {
-    title: "API Logs",
-    icon: ScrollText,
-    href: "/admin/api-logs",
-  },
-  {
-    title: "Site Settings",
+    title: "Settings",
     icon: Settings,
-    href: "/admin/settings",
+    children: [
+      { title: "Site Settings", icon: Settings, href: "/admin/settings" },
+      { title: "API Keys", icon: Key, href: "/admin/api-settings" },
+      { title: "Menu Manager", icon: MenuIcon, href: "/admin/menu" },
+    ],
   },
-  {
-    title: "DeepSeek Chat",
-    icon: MessageSquare,
-    href: "/admin/site-review",
-  },
+];
+
+const adminOnlyItems: MenuItem[] = [
   {
     title: "Developer Agent",
     icon: Code,
@@ -136,10 +128,24 @@ const menuItems = [
 export function AdminSidebar() {
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [openGroups, setOpenGroups] = useState<string[]>([]);
 
   useEffect(() => {
     checkAdminRole();
   }, []);
+
+  // Auto-expand group containing active route
+  useEffect(() => {
+    const currentPath = location.pathname;
+    menuStructure.forEach((item) => {
+      if (isMenuGroup(item)) {
+        const hasActiveChild = item.children.some(child => currentPath === child.href);
+        if (hasActiveChild && !openGroups.includes(item.title)) {
+          setOpenGroups(prev => [...prev, item.title]);
+        }
+      }
+    });
+  }, [location.pathname]);
 
   const checkAdminRole = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -154,14 +160,94 @@ export function AdminSidebar() {
     setIsAdmin(roles && roles.length > 0);
   };
 
-  // Filter menu items based on admin status (admin-only items)
-  const adminOnlyPaths = ['/admin/site-review', '/admin/developer-agent', '/admin/developer-settings'];
-  const visibleMenuItems = menuItems.filter(item => {
-    if (adminOnlyPaths.includes(item.href)) {
-      return isAdmin;
-    }
-    return true;
-  });
+  const toggleGroup = (title: string) => {
+    setOpenGroups(prev => 
+      prev.includes(title) 
+        ? prev.filter(t => t !== title)
+        : [...prev, title]
+    );
+  };
+
+  const isActiveRoute = (href: string) => location.pathname === href;
+
+  const isGroupActive = (group: MenuGroup) => {
+    return group.children.some(child => location.pathname === child.href);
+  };
+
+  const renderMenuItem = (item: MenuItem) => {
+    const Icon = item.icon;
+    const isActive = isActiveRoute(item.href);
+    
+    return (
+      <Link
+        key={item.href}
+        to={item.href}
+        className={cn(
+          "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+          isActive
+            ? "bg-primary text-primary-foreground"
+            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+        )}
+      >
+        <Icon className="h-4 w-4" />
+        {item.title}
+      </Link>
+    );
+  };
+
+  const renderMenuGroup = (group: MenuGroup) => {
+    const Icon = group.icon;
+    const isOpen = openGroups.includes(group.title);
+    const hasActiveChild = isGroupActive(group);
+
+    return (
+      <Collapsible
+        key={group.title}
+        open={isOpen}
+        onOpenChange={() => toggleGroup(group.title)}
+      >
+        <CollapsibleTrigger
+          className={cn(
+            "flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+            hasActiveChild
+              ? "bg-muted text-foreground"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          )}
+        >
+          <div className="flex items-center gap-3">
+            <Icon className="h-4 w-4" />
+            {group.title}
+          </div>
+          <ChevronRight className={cn(
+            "h-4 w-4 transition-transform duration-200",
+            isOpen && "rotate-90"
+          )} />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pl-4 mt-1 space-y-1">
+          {group.children.map((child) => {
+            const ChildIcon = child.icon;
+            const isActive = isActiveRoute(child.href);
+            
+            return (
+              <Link
+                key={child.href}
+                to={child.href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <ChildIcon className="h-3.5 w-3.5" />
+                {child.title}
+              </Link>
+            );
+          })}
+        </CollapsibleContent>
+      </Collapsible>
+    );
+  };
 
   return (
     <div className="w-64 bg-card border-r min-h-screen p-4">
@@ -171,26 +257,21 @@ export function AdminSidebar() {
       </div>
 
       <nav className="space-y-1">
-        {visibleMenuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = location.pathname === item.href;
-          
-          return (
-            <Link
-              key={item.href}
-              to={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {item.title}
-            </Link>
-          );
-        })}
+        {menuStructure.map((item) => 
+          isMenuGroup(item) ? renderMenuGroup(item) : renderMenuItem(item)
+        )}
+
+        {/* Admin-only section */}
+        {isAdmin && (
+          <>
+            <div className="pt-4 mt-4 border-t">
+              <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                Admin Only
+              </p>
+              {adminOnlyItems.map(renderMenuItem)}
+            </div>
+          </>
+        )}
       </nav>
     </div>
   );

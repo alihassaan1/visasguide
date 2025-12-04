@@ -131,29 +131,37 @@ export const trackPageView = async (pageSlug: string) => {
   const deviceInfo = parseUserAgent(userAgent);
   const screenInfo = getScreenInfo();
   
+  // Check for UTM parameters (newsletter tracking)
+  const urlParams = new URLSearchParams(window.location.search);
+  const utmSource = urlParams.get('utm_source');
+  const utmCampaign = urlParams.get('utm_campaign');
+  
   // Detect search engine referrals
   let referrerSource = 'direct';
   let searchEngineQuery = null;
   
-  if (referrer) {
+  // If UTM source is newsletter, use that as referrer
+  if (utmSource === 'newsletter') {
+    referrerSource = utmCampaign ? `newsletter:${utmCampaign}` : 'newsletter';
+  } else if (referrer) {
     try {
       if (referrer.includes('google.')) {
-        referrerSource = 'google';
+        referrerSource = referrer;
         searchEngineQuery = new URL(referrer).searchParams.get('q');
       } else if (referrer.includes('bing.')) {
-        referrerSource = 'bing';
+        referrerSource = referrer;
         searchEngineQuery = new URL(referrer).searchParams.get('q');
       } else if (referrer.includes('yahoo.')) {
-        referrerSource = 'yahoo';
+        referrerSource = referrer;
         searchEngineQuery = new URL(referrer).searchParams.get('p');
       } else if (referrer.includes('duckduckgo.')) {
-        referrerSource = 'duckduckgo';
+        referrerSource = referrer;
         searchEngineQuery = new URL(referrer).searchParams.get('q');
       } else if (referrer.includes('yandex.')) {
-        referrerSource = 'yandex';
+        referrerSource = referrer;
         searchEngineQuery = new URL(referrer).searchParams.get('text');
       } else if (referrer.includes('baidu.')) {
-        referrerSource = 'baidu';
+        referrerSource = referrer;
         searchEngineQuery = new URL(referrer).searchParams.get('wd');
       } else {
         referrerSource = referrer; // Store full referrer URL

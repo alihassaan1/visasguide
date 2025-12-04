@@ -124,14 +124,14 @@ const AnalyticsDashboard = () => {
         const dailyCounts: Record<string, { date: string, pageViews: number, searches: number }> = {};
         
         for (let i = days - 1; i >= 0; i--) {
-          const date = format(subDays(new Date(), i), trendPeriod === '1y' ? 'MMM' : 'MMM dd');
+          const date = format(subDays(new Date(), i), trendPeriod === '1y' ? 'MMM yyyy' : 'MMM dd');
           if (!dailyCounts[date]) {
             dailyCounts[date] = { date, pageViews: 0, searches: 0 };
           }
         }
         
         data.forEach(event => {
-          const date = format(new Date(event.created_at), trendPeriod === '1y' ? 'MMM' : 'MMM dd');
+          const date = format(new Date(event.created_at), trendPeriod === '1y' ? 'MMM yyyy' : 'MMM dd');
           if (dailyCounts[date]) {
             if (event.event_type === 'page_view') {
               dailyCounts[date].pageViews++;

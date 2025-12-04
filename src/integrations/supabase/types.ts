@@ -424,6 +424,112 @@ export type Database = {
           },
         ]
       }
+      email_campaigns: {
+        Row: {
+          clicked_count: number | null
+          content: string | null
+          created_at: string | null
+          id: string
+          opened_count: number | null
+          sent_at: string | null
+          sent_count: number | null
+          subject: string
+        }
+        Insert: {
+          clicked_count?: number | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          opened_count?: number | null
+          sent_at?: string | null
+          sent_count?: number | null
+          subject: string
+        }
+        Update: {
+          clicked_count?: number | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          opened_count?: number | null
+          sent_at?: string | null
+          sent_count?: number | null
+          subject?: string
+        }
+        Relationships: []
+      }
+      email_clicks: {
+        Row: {
+          campaign_id: string | null
+          clicked_at: string | null
+          id: string
+          ip_address: string | null
+          link_url: string | null
+          subscriber_email: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          clicked_at?: string | null
+          id?: string
+          ip_address?: string | null
+          link_url?: string | null
+          subscriber_email?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          clicked_at?: string | null
+          id?: string
+          ip_address?: string | null
+          link_url?: string | null
+          subscriber_email?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_clicks_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_opens: {
+        Row: {
+          campaign_id: string | null
+          id: string
+          ip_address: string | null
+          opened_at: string | null
+          subscriber_email: string
+          user_agent: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          id?: string
+          ip_address?: string | null
+          opened_at?: string | null
+          subscriber_email: string
+          user_agent?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          id?: string
+          ip_address?: string | null
+          opened_at?: string | null
+          subscriber_email?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_opens_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       file_change_history: {
         Row: {
           applied_at: string

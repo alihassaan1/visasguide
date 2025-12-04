@@ -29,6 +29,27 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Create campaign record first
+    const { data: campaign, error: campaignError } = await supabase
+      .from("email_campaigns")
+      .insert({
+        subject,
+        content,
+        sent_count: 0,
+        opened_count: 0,
+        clicked_count: 0,
+      })
+      .select()
+      .single();
+
+    if (campaignError) {
+      console.error("Error creating campaign:", campaignError);
+      throw campaignError;
+    }
+
+    const campaignId = campaign.id;
+    console.log(`Campaign created with ID: ${campaignId}`);
+
     // Get all active subscribers
     const { data: subscribers, error } = await supabase
       .from('newsletter_subscribers')
@@ -39,13 +60,24 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!subscribers || subscribers.length === 0) {
       return new Response(
-        JSON.stringify({ message: "No active subscribers found" }),
+        JSON.stringify({ message: "No active subscribers found", campaignId }),
         {
           status: 200,
           headers: { "Content-Type": "application/json", ...corsHeaders },
         }
       );
     }
+
+    // Add UTM parameters to links in content
+    const addUtmToLinks = (html: string, cid: string): string => {
+      return html.replace(
+        /href="(https?:\/\/visas\.guide[^"]*)"/gi,
+        (match, url) => {
+          const separator = url.includes('?') ? '&' : '?';
+          return `href="${url}${separator}utm_source=newsletter&utm_medium=email&utm_campaign=${cid}"`;
+        }
+      );
+    };
 
     // Send emails in batches to avoid rate limits
     const batchSize = 50;
@@ -56,7 +88,11 @@ const handler = async (req: Request): Promise<Response> => {
       
       const batchPromises = batch.map(async (subscriber) => {
         try {
-          const personalizedContent = content.replace(/\{name\}/g, subscriber.name);
+          let personalizedContent = content.replace(/\{name\}/g, subscriber.name);
+          personalizedContent = addUtmToLinks(personalizedContent, campaignId);
+          
+          // Build tracking pixel URL
+          const trackingPixelUrl = `${supabaseUrl}/functions/v1/track-email-open?cid=${campaignId}&email=${encodeURIComponent(subscriber.email)}`;
           
           const emailResponse = await resend.emails.send({
             from: `${from_name} <onboarding@resend.dev>`,
@@ -88,13 +124,15 @@ const handler = async (req: Request): Promise<Response> => {
                     <div class="footer">
                       <p>You're receiving this because you subscribed to Visas.Guide newsletter.</p>
                       <p>
-                        <a href="https://visas.guide">Visit Website</a> | 
-                        <a href="https://visas.guide/contact">Contact Us</a> | 
-                        <a href="https://visas.guide/privacy-policy">Privacy Policy</a>
+                        <a href="https://visas.guide?utm_source=newsletter&utm_medium=email&utm_campaign=${campaignId}">Visit Website</a> | 
+                        <a href="https://visas.guide/contact?utm_source=newsletter&utm_medium=email&utm_campaign=${campaignId}">Contact Us</a> | 
+                        <a href="https://visas.guide/privacy-policy?utm_source=newsletter&utm_medium=email&utm_campaign=${campaignId}">Privacy Policy</a>
                       </p>
                       <p style="margin-top: 20px;">© 2025 Visas.Guide. All rights reserved.</p>
                     </div>
                   </div>
+                  <!-- Tracking Pixel -->
+                  <img src="${trackingPixelUrl}" width="1" height="1" alt="" style="display:none;" />
                 </body>
               </html>
             `,
@@ -118,11 +156,18 @@ const handler = async (req: Request): Promise<Response> => {
     const successCount = results.filter(r => r.status === 'sent').length;
     const failureCount = results.filter(r => r.status === 'failed').length;
 
-    console.log(`Campaign sent: ${successCount} successful, ${failureCount} failed`);
+    // Update campaign with sent count
+    await supabase
+      .from("email_campaigns")
+      .update({ sent_count: successCount, sent_at: new Date().toISOString() })
+      .eq("id", campaignId);
+
+    console.log(`Campaign ${campaignId} sent: ${successCount} successful, ${failureCount} failed`);
 
     return new Response(
       JSON.stringify({
         message: "Campaign sent successfully",
+        campaignId,
         total: subscribers.length,
         successful: successCount,
         failed: failureCount,

@@ -46,3 +46,9 @@ verify_jwt = false
 
 [functions.developer-agent]
 verify_jwt = true
+
+[functions.track-email-open]
+verify_jwt = false
+
+[functions.send-campaign-email]
+verify_jwt = false

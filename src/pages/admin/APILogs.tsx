@@ -7,8 +7,45 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { RefreshCw, Search, AlertCircle, CheckCircle, Clock, Filter } from "lucide-react";
+import { RefreshCw, Search, AlertCircle, CheckCircle, Clock, Filter, DollarSign } from "lucide-react";
 import { format } from "date-fns";
+
+// DeepSeek API pricing (per 1M tokens)
+const DEEPSEEK_INPUT_PRICE = 0.56;  // $0.56 per 1M input tokens
+const DEEPSEEK_OUTPUT_PRICE = 1.68; // $1.68 per 1M output tokens (cache miss)
+const DEEPSEEK_BLENDED_PRICE = 1.46; // Weighted average for legacy data (~20% input, 80% output)
+
+// OpenAI pricing (gpt-4o-mini)
+const OPENAI_INPUT_PRICE = 0.15;   // $0.15 per 1M input tokens
+const OPENAI_OUTPUT_PRICE = 0.60;  // $0.60 per 1M output tokens
+
+// Calculate cost for a single log entry
+const calculateCost = (log: any): number => {
+  const isDeepSeek = log.api_provider === 'deepseek';
+  const inputPrice = isDeepSeek ? DEEPSEEK_INPUT_PRICE : OPENAI_INPUT_PRICE;
+  const outputPrice = isDeepSeek ? DEEPSEEK_OUTPUT_PRICE : OPENAI_OUTPUT_PRICE;
+  const blendedPrice = isDeepSeek ? DEEPSEEK_BLENDED_PRICE : (OPENAI_INPUT_PRICE * 0.2 + OPENAI_OUTPUT_PRICE * 0.8);
+  
+  // If we have input/output breakdown, use precise calculation
+  if (log.input_tokens && log.output_tokens) {
+    return (log.input_tokens * inputPrice / 1000000) + (log.output_tokens * outputPrice / 1000000);
+  }
+  
+  // Fall back to blended estimate for legacy data
+  if (log.tokens_used) {
+    return log.tokens_used * blendedPrice / 1000000;
+  }
+  
+  return 0;
+};
+
+// Format cost for display
+const formatCost = (cost: number): string => {
+  if (cost === 0) return '-';
+  if (cost < 0.0001) return '<$0.0001';
+  if (cost < 0.01) return `$${cost.toFixed(4)}`;
+  return `$${cost.toFixed(3)}`;
+};
 
 const APILogs = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -45,6 +82,7 @@ const APILogs = () => {
       const now = new Date();
       const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
       
+      // Get counts
       const [total, success, errors, timeouts] = await Promise.all([
         supabase.from('api_logs').select('id', { count: 'exact', head: true }).gte('created_at', last24h),
         supabase.from('api_logs').select('id', { count: 'exact', head: true }).eq('status', 'success').gte('created_at', last24h),
@@ -52,11 +90,35 @@ const APILogs = () => {
         supabase.from('api_logs').select('id', { count: 'exact', head: true }).eq('status', 'timeout').gte('created_at', last24h),
       ]);
 
+      // Get token data for cost calculation
+      const { data: tokenData } = await supabase
+        .from('api_logs')
+        .select('tokens_used, input_tokens, output_tokens, api_provider')
+        .gte('created_at', last24h)
+        .eq('status', 'success');
+
+      let totalCost = 0;
+      let totalTokens = 0;
+      let totalInputTokens = 0;
+      let totalOutputTokens = 0;
+
+      tokenData?.forEach(log => {
+        totalCost += calculateCost(log);
+        totalTokens += log.tokens_used || 0;
+        totalInputTokens += log.input_tokens || 0;
+        totalOutputTokens += log.output_tokens || 0;
+      });
+
       return {
         total: total.count || 0,
         success: success.count || 0,
         errors: errors.count || 0,
         timeouts: timeouts.count || 0,
+        totalCost,
+        totalTokens,
+        totalInputTokens,
+        totalOutputTokens,
+        avgCostPerCall: (success.count || 0) > 0 ? totalCost / (success.count || 1) : 0,
       };
     },
   });
@@ -97,7 +159,7 @@ const APILogs = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold">API Logs</h1>
-          <p className="text-muted-foreground">Monitor all API calls and their status</p>
+          <p className="text-muted-foreground">Monitor all API calls, tokens, and costs</p>
         </div>
         <Button onClick={() => refetch()} variant="outline" size="sm">
           <RefreshCw className="h-4 w-4 mr-2" />
@@ -105,7 +167,7 @@ const APILogs = () => {
         </Button>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards - Row 1 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -137,6 +199,53 @@ const APILogs = () => {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-yellow-500">{stats?.timeouts || 0}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Stats Cards - Row 2: Cost & Tokens */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="border-primary/20 bg-primary/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-1">
+              <DollarSign className="h-4 w-4" />
+              Est. Cost (24h)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-primary">
+              ${(stats?.totalCost || 0).toFixed(4)}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Avg Cost/Call</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">
+              {formatCost(stats?.avgCostPerCall || 0)}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-blue-500">Input Tokens</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-blue-500">
+              {((stats?.totalInputTokens || 0) / 1000).toFixed(1)}K
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-purple-500">Output Tokens</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-purple-500">
+              {((stats?.totalOutputTokens || 0) / 1000).toFixed(1)}K
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -205,51 +314,64 @@ const APILogs = () => {
                   <TableHead>Task</TableHead>
                   <TableHead>Entity</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Response Time</TableHead>
-                  <TableHead>Retries</TableHead>
+                  <TableHead>Tokens</TableHead>
+                  <TableHead>Cost</TableHead>
+                  <TableHead>Response</TableHead>
                   <TableHead>Error</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
+                    <TableCell colSpan={9} className="text-center py-8">
                       <RefreshCw className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
                     </TableCell>
                   </TableRow>
                 ) : filteredLogs?.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                       No logs found
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredLogs?.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell className="whitespace-nowrap">
-                        {format(new Date(log.created_at), 'MMM dd, HH:mm:ss')}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{log.api_provider}</Badge>
-                      </TableCell>
-                      <TableCell>{getTaskBadge(log.task_type || 'unknown')}</TableCell>
-                      <TableCell className="max-w-[200px] truncate" title={log.entity_name || ''}>
-                        {log.entity_name || '-'}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(log.status)}</TableCell>
-                      <TableCell>
-                        {log.response_time_ms ? `${(log.response_time_ms / 1000).toFixed(1)}s` : '-'}
-                      </TableCell>
-                      <TableCell>
-                        {(log.retry_count ?? 0) > 0 ? (
-                          <Badge variant="secondary">{log.retry_count}</Badge>
-                        ) : '-'}
-                      </TableCell>
-                      <TableCell className="max-w-[250px] truncate text-red-500" title={log.error_message || ''}>
-                        {log.error_message || '-'}
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  filteredLogs?.map((log) => {
+                    const cost = calculateCost(log);
+                    return (
+                      <TableRow key={log.id}>
+                        <TableCell className="whitespace-nowrap">
+                          {format(new Date(log.created_at), 'MMM dd, HH:mm:ss')}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{log.api_provider}</Badge>
+                        </TableCell>
+                        <TableCell>{getTaskBadge(log.task_type || 'unknown')}</TableCell>
+                        <TableCell className="max-w-[150px] truncate" title={log.entity_name || ''}>
+                          {log.entity_name || '-'}
+                        </TableCell>
+                        <TableCell>{getStatusBadge(log.status)}</TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {log.input_tokens && log.output_tokens ? (
+                            <span className="text-xs">
+                              <span className="text-blue-500">{log.input_tokens}</span>
+                              {' / '}
+                              <span className="text-purple-500">{log.output_tokens}</span>
+                            </span>
+                          ) : log.tokens_used ? (
+                            <span className="text-muted-foreground">{log.tokens_used}</span>
+                          ) : '-'}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap font-mono text-xs">
+                          {formatCost(cost)}
+                        </TableCell>
+                        <TableCell>
+                          {log.response_time_ms ? `${(log.response_time_ms / 1000).toFixed(1)}s` : '-'}
+                        </TableCell>
+                        <TableCell className="max-w-[200px] truncate text-red-500" title={log.error_message || ''}>
+                          {log.error_message || '-'}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>

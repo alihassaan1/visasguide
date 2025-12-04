@@ -211,6 +211,8 @@ export type Database = {
           entity_name: string | null
           error_message: string | null
           id: string
+          input_tokens: number | null
+          output_tokens: number | null
           request_payload: Json | null
           response_summary: Json | null
           response_time_ms: number | null
@@ -226,6 +228,8 @@ export type Database = {
           entity_name?: string | null
           error_message?: string | null
           id?: string
+          input_tokens?: number | null
+          output_tokens?: number | null
           request_payload?: Json | null
           response_summary?: Json | null
           response_time_ms?: number | null
@@ -241,6 +245,8 @@ export type Database = {
           entity_name?: string | null
           error_message?: string | null
           id?: string
+          input_tokens?: number | null
+          output_tokens?: number | null
           request_payload?: Json | null
           response_summary?: Json | null
           response_time_ms?: number | null

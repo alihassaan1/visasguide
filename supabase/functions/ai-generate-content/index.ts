@@ -17,7 +17,7 @@ async function getOpenAIKey(supabaseClient: any) {
   return openaiSettings?.setting_value?.key || Deno.env.get('OPENAI_API_KEY');
 }
 
-// Helper function to log API calls
+// Helper function to log API calls with token breakdown
 async function logApiCall(
   supabase: any,
   provider: string,
@@ -26,7 +26,9 @@ async function logApiCall(
   status: 'success' | 'error' | 'timeout',
   startTime: number,
   tokensUsed?: number,
-  errorMessage?: string
+  errorMessage?: string,
+  inputTokens?: number,
+  outputTokens?: number
 ) {
   const responseTime = Date.now() - startTime;
   await supabase.from('api_logs').insert({
@@ -37,6 +39,8 @@ async function logApiCall(
     status,
     response_time_ms: responseTime,
     tokens_used: tokensUsed || null,
+    input_tokens: inputTokens || null,
+    output_tokens: outputTokens || null,
     error_message: errorMessage || null,
     response_summary: { action: taskType }
   });
@@ -257,9 +261,11 @@ serve(async (req) => {
     const data = await response.json();
     const generatedContent = data.choices[0].message.content;
     const tokensUsed = data.usage?.total_tokens || 0;
+    const inputTokens = data.usage?.prompt_tokens;
+    const outputTokens = data.usage?.completion_tokens;
     
-    // Log successful content generation
-    await logApiCall(supabaseClient, useDeepseek ? 'deepseek' : 'openai', `content_${action}`, contentType || country || visaType || 'content', 'success', startTime, tokensUsed);
+    // Log successful content generation with token breakdown
+    await logApiCall(supabaseClient, useDeepseek ? 'deepseek' : 'openai', `content_${action}`, contentType || country || visaType || 'content', 'success', startTime, tokensUsed, undefined, inputTokens, outputTokens);
 
     // Generate meta description and keywords
     const metaResponse = await fetch('https://api.openai.com/v1/chat/completions', {

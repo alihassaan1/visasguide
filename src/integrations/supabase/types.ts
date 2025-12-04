@@ -115,12 +115,21 @@ export type Database = {
       }
       analytics_events: {
         Row: {
+          browser_name: string | null
+          browser_version: string | null
           created_at: string
+          device_name: string | null
+          device_type: string | null
           event_type: string
           from_country_id: string | null
           id: string
+          is_bot: boolean | null
+          os_name: string | null
+          os_version: string | null
           page_slug: string | null
           referrer_source: string | null
+          screen_height: number | null
+          screen_width: number | null
           search_engine_query: string | null
           search_term: string | null
           session_duration_seconds: number | null
@@ -130,12 +139,21 @@ export type Database = {
           visitor_location: Json | null
         }
         Insert: {
+          browser_name?: string | null
+          browser_version?: string | null
           created_at?: string
+          device_name?: string | null
+          device_type?: string | null
           event_type: string
           from_country_id?: string | null
           id?: string
+          is_bot?: boolean | null
+          os_name?: string | null
+          os_version?: string | null
           page_slug?: string | null
           referrer_source?: string | null
+          screen_height?: number | null
+          screen_width?: number | null
           search_engine_query?: string | null
           search_term?: string | null
           session_duration_seconds?: number | null
@@ -145,12 +163,21 @@ export type Database = {
           visitor_location?: Json | null
         }
         Update: {
+          browser_name?: string | null
+          browser_version?: string | null
           created_at?: string
+          device_name?: string | null
+          device_type?: string | null
           event_type?: string
           from_country_id?: string | null
           id?: string
+          is_bot?: boolean | null
+          os_name?: string | null
+          os_version?: string | null
           page_slug?: string | null
           referrer_source?: string | null
+          screen_height?: number | null
+          screen_width?: number | null
           search_engine_query?: string | null
           search_term?: string | null
           session_duration_seconds?: number | null

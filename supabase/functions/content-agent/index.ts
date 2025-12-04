@@ -204,7 +204,7 @@ serve(async (req) => {
         }
       });
 
-    // Helper function to log API calls
+    // Helper function to log API calls with token breakdown
     async function logApiCall(
       taskType: string,
       entityName: string,
@@ -212,7 +212,9 @@ serve(async (req) => {
       startTime: number,
       tokensUsed?: number,
       errorMessage?: string,
-      retryCount?: number
+      retryCount?: number,
+      inputTokens?: number,
+      outputTokens?: number
     ) {
       const responseTime = Date.now() - startTime;
       await supabase.from('api_logs').insert({
@@ -223,6 +225,8 @@ serve(async (req) => {
         status,
         response_time_ms: responseTime,
         tokens_used: tokensUsed,
+        input_tokens: inputTokens,
+        output_tokens: outputTokens,
         error_message: errorMessage,
         retry_count: retryCount || 0,
         response_summary: { mode: currentMode }
@@ -270,9 +274,11 @@ serve(async (req) => {
           const data = await response.json();
           const content = data.choices[0].message.content;
           const tokensUsed = data.usage?.total_tokens;
+          const inputTokens = data.usage?.prompt_tokens;
+          const outputTokens = data.usage?.completion_tokens;
           
-          // Log successful API call
-          await logApiCall(currentMode, entityName, 'success', startTime, tokensUsed, undefined, attempt);
+          // Log successful API call with token breakdown
+          await logApiCall(currentMode, entityName, 'success', startTime, tokensUsed, undefined, attempt, inputTokens, outputTokens);
           
           return content;
         } catch (error) {

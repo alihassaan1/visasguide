@@ -22,6 +22,7 @@ import {
   Bot,
   Code,
   FileCode,
+  ScrollText,
 } from "lucide-react";
 
 const menuItems = [
@@ -104,6 +105,11 @@ const menuItems = [
     title: "Agent Logs",
     icon: Activity,
     href: "/admin/content-agent-logs",
+  },
+  {
+    title: "API Logs",
+    icon: ScrollText,
+    href: "/admin/api-logs",
   },
   {
     title: "Site Settings",

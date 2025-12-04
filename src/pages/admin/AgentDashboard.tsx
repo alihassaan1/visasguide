@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { 
   RefreshCw, Activity, CheckCircle, Clock, Loader2, 
   Play, Settings, Globe, FileText, HelpCircle, CreditCard,
-  Bot, Zap, Calendar, TrendingUp, AlertCircle, Save, Timer
+  Bot, Zap, Calendar, TrendingUp, AlertCircle, Save, Timer,
+  ScrollText, AlertTriangle, DollarSign, Coins, XCircle
 } from "lucide-react";
 import { formatDistanceToNow, addHours, addDays } from "date-fns";
 import { toast } from "sonner";
@@ -18,6 +19,7 @@ import { useState, useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Link } from "react-router-dom";
 
 interface TaskConfig {
   enabled: boolean;
@@ -102,7 +104,7 @@ const AgentDashboard = () => {
     },
   });
 
-  // Fetch recent activity logs
+  // Fetch recent activity logs - expanded action types
   const { data: recentActivity, refetch: refetchActivity } = useQuery({
     queryKey: ["agent-recent-activity"],
     queryFn: async () => {
@@ -112,7 +114,10 @@ const AgentDashboard = () => {
         .in("action", [
           "content_agent_ctr_optimization",
           "content_agent_status",
-          "content_agent_update"
+          "content_agent_update",
+          "visa_enrichment_complete",
+          "blog_generation_complete",
+          "faq_generation_complete"
         ])
         .order("created_at", { ascending: false })
         .limit(50);
@@ -146,6 +151,87 @@ const AgentDashboard = () => {
       };
     },
     refetchInterval: 30000,
+  });
+
+  // Fetch API usage stats
+  const { data: apiStats } = useQuery({
+    queryKey: ["agent-api-stats"],
+    queryFn: async () => {
+      const now = new Date();
+      const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const last30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      const [stats24h, stats7d, stats30d, recentErrors] = await Promise.all([
+        supabase
+          .from("api_logs")
+          .select("status, tokens_used, response_time_ms")
+          .gte("created_at", last24h.toISOString()),
+        supabase
+          .from("api_logs")
+          .select("status, tokens_used")
+          .gte("created_at", last7d.toISOString()),
+        supabase
+          .from("api_logs")
+          .select("status, tokens_used")
+          .gte("created_at", last30d.toISOString()),
+        supabase
+          .from("api_logs")
+          .select("*")
+          .in("status", ["error", "timeout"])
+          .order("created_at", { ascending: false })
+          .limit(5),
+      ]);
+
+      const calc24h = stats24h.data || [];
+      const calc7d = stats7d.data || [];
+      const calc30d = stats30d.data || [];
+
+      const tokens24h = calc24h.reduce((sum, log) => sum + (log.tokens_used || 0), 0);
+      const tokens7d = calc7d.reduce((sum, log) => sum + (log.tokens_used || 0), 0);
+      const tokens30d = calc30d.reduce((sum, log) => sum + (log.tokens_used || 0), 0);
+
+      const calls24h = calc24h.length;
+      const success24h = calc24h.filter(l => l.status === "success").length;
+      const errors24h = calc24h.filter(l => l.status === "error" || l.status === "timeout").length;
+      const avgResponseTime = calls24h > 0 
+        ? Math.round(calc24h.reduce((sum, log) => sum + (log.response_time_ms || 0), 0) / calls24h)
+        : 0;
+
+      return {
+        tokens24h,
+        tokens7d,
+        tokens30d,
+        calls24h,
+        success24h,
+        errors24h,
+        avgResponseTime,
+        successRate: calls24h > 0 ? Math.round((success24h / calls24h) * 100) : 100,
+        recentErrors: recentErrors.data || [],
+      };
+    },
+    refetchInterval: 30000,
+  });
+
+  // Fetch visa enrichment breakdown
+  const { data: visaBreakdown } = useQuery({
+    queryKey: ["visa-enrichment-breakdown"],
+    queryFn: async () => {
+      const [missingFee, missingProcessing, missingStay, missingNotes] = await Promise.all([
+        supabase.from("visa_requirements").select("id", { count: "exact", head: true }).is("fee_usd", null),
+        supabase.from("visa_requirements").select("id", { count: "exact", head: true }).is("processing_time_days", null),
+        supabase.from("visa_requirements").select("id", { count: "exact", head: true }).is("max_stay_days", null),
+        supabase.from("visa_requirements").select("id", { count: "exact", head: true }).is("notes", null),
+      ]);
+
+      return {
+        missingFee: missingFee.count || 0,
+        missingProcessing: missingProcessing.count || 0,
+        missingStay: missingStay.count || 0,
+        missingNotes: missingNotes.count || 0,
+      };
+    },
+    refetchInterval: 60000,
   });
 
   // Real-time subscription for live updates
@@ -342,9 +428,10 @@ const AgentDashboard = () => {
     },
   ];
 
+  // Fixed: Count all agent actions, not just CTR
   const completedToday = recentActivity?.filter(
     (log) => new Date(log.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000) && 
-    log.action === 'content_agent_ctr_optimization'
+    ["content_agent_ctr_optimization", "content_agent_update", "visa_enrichment_complete", "blog_generation_complete", "faq_generation_complete"].includes(log.action)
   ).length || 0;
 
   return (
@@ -382,6 +469,85 @@ const AgentDashboard = () => {
           <AlertDescription className="ml-6">
             <span className="font-semibold">{getModeLabel(activeTask.mode)}</span>: Processing{' '}
             <span className="font-medium">{activeTask.entity}</span>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* API Usage Stats - NEW */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 border-blue-500/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">API Calls (24h)</CardTitle>
+            <ScrollText className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{apiStats?.calls24h || 0}</div>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-500/20">
+                {apiStats?.successRate || 100}% success
+              </Badge>
+              {(apiStats?.errors24h || 0) > 0 && (
+                <Badge variant="outline" className="text-xs bg-red-500/10 text-red-600 border-red-500/20">
+                  {apiStats?.errors24h} errors
+                </Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-amber-500/5 to-amber-500/10 border-amber-500/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Tokens Used</CardTitle>
+            <Coins className="h-4 w-4 text-amber-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{(apiStats?.tokens24h || 0).toLocaleString()}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              7d: {(apiStats?.tokens7d || 0).toLocaleString()} • 30d: {(apiStats?.tokens30d || 0).toLocaleString()}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-500/5 to-purple-500/10 border-purple-500/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg Response Time</CardTitle>
+            <Clock className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{apiStats?.avgResponseTime || 0}ms</div>
+            <p className="text-xs text-muted-foreground mt-1">Last 24 hours average</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-green-500/5 to-green-500/10 border-green-500/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Today's Updates</CardTitle>
+            <Zap className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{completedToday}</div>
+            <p className="text-xs text-muted-foreground mt-1">All agent tasks combined</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Error Alert - NEW */}
+      {apiStats?.recentErrors && apiStats.recentErrors.length > 0 && (
+        <Alert variant="destructive" className="bg-red-500/10 border-red-500/30">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Recent API Errors ({apiStats.recentErrors.length})</AlertTitle>
+          <AlertDescription>
+            <div className="mt-2 space-y-1">
+              {apiStats.recentErrors.slice(0, 3).map((error: any) => (
+                <div key={error.id} className="text-sm flex items-center justify-between">
+                  <span className="truncate max-w-md">{error.entity_name || error.task_type}: {error.error_message?.slice(0, 50)}...</span>
+                  <span className="text-xs opacity-70">{formatDistanceToNow(new Date(error.created_at), { addSuffix: true })}</span>
+                </div>
+              ))}
+            </div>
+            <Button variant="link" className="p-0 h-auto mt-2 text-red-600" asChild>
+              <Link to="/admin/api-logs">View all API logs →</Link>
+            </Button>
           </AlertDescription>
         </Alert>
       )}
@@ -473,12 +639,13 @@ const AgentDashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Updates</CardTitle>
-            <Zap className="h-4 w-4 text-yellow-500" />
+            <CardTitle className="text-sm font-medium">FAQ Coverage</CardTitle>
+            <HelpCircle className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{completedToday}</div>
-            <p className="text-xs text-muted-foreground mt-1">Pages processed</p>
+            <div className="text-2xl font-bold">{(stats?.countriesWithContent || 0) - (stats?.pagesNeedingFAQ || 0)}/{stats?.countriesWithContent || 0}</div>
+            <Progress value={((stats?.countriesWithContent || 0) - (stats?.pagesNeedingFAQ || 0)) / (stats?.countriesWithContent || 1) * 100} className="mt-2 h-1" />
+            <p className="text-xs text-muted-foreground mt-1">{stats?.pagesNeedingFAQ || 0} pages need FAQ</p>
           </CardContent>
         </Card>
 
@@ -495,6 +662,51 @@ const AgentDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Visa Enrichment Breakdown - NEW */}
+      {visaBreakdown && (visaBreakdown.missingFee > 0 || visaBreakdown.missingProcessing > 0 || visaBreakdown.missingStay > 0) && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-green-500" />
+              Visa Data Enrichment Breakdown
+            </CardTitle>
+            <CardDescription>Missing fields that need to be populated</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 md:grid-cols-4">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-amber-500" />
+                  <span className="text-sm">Fee (USD)</span>
+                </div>
+                <Badge variant="secondary">{visaBreakdown.missingFee}</Badge>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm">Processing Time</span>
+                </div>
+                <Badge variant="secondary">{visaBreakdown.missingProcessing}</Badge>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-purple-500" />
+                  <span className="text-sm">Max Stay Days</span>
+                </div>
+                <Badge variant="secondary">{visaBreakdown.missingStay}</Badge>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-cyan-500" />
+                  <span className="text-sm">Notes</span>
+                </div>
+                <Badge variant="secondary">{visaBreakdown.missingNotes}</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs defaultValue="tasks" className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">

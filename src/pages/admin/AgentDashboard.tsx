@@ -153,6 +153,18 @@ const AgentDashboard = () => {
     refetchInterval: 30000,
   });
 
+  // DeepSeek API pricing (per 1M tokens)
+  const DEEPSEEK_INPUT_PRICE = 0.56;
+  const DEEPSEEK_OUTPUT_PRICE = 1.68;
+  const DEEPSEEK_BLENDED_PRICE = 1.46; // For historical data without breakdown
+
+  const calculateCost = (inputTokens: number, outputTokens: number, totalTokens: number) => {
+    if (inputTokens > 0 || outputTokens > 0) {
+      return (inputTokens * DEEPSEEK_INPUT_PRICE / 1000000) + (outputTokens * DEEPSEEK_OUTPUT_PRICE / 1000000);
+    }
+    return totalTokens * DEEPSEEK_BLENDED_PRICE / 1000000;
+  };
+
   // Fetch API usage stats
   const { data: apiStats } = useQuery({
     queryKey: ["agent-api-stats"],
@@ -165,15 +177,15 @@ const AgentDashboard = () => {
       const [stats24h, stats7d, stats30d, recentErrors] = await Promise.all([
         supabase
           .from("api_logs")
-          .select("status, tokens_used, response_time_ms")
+          .select("status, tokens_used, response_time_ms, input_tokens, output_tokens")
           .gte("created_at", last24h.toISOString()),
         supabase
           .from("api_logs")
-          .select("status, tokens_used")
+          .select("status, tokens_used, input_tokens, output_tokens")
           .gte("created_at", last7d.toISOString()),
         supabase
           .from("api_logs")
-          .select("status, tokens_used")
+          .select("status, tokens_used, input_tokens, output_tokens")
           .gte("created_at", last30d.toISOString()),
         supabase
           .from("api_logs")
@@ -191,6 +203,14 @@ const AgentDashboard = () => {
       const tokens7d = calc7d.reduce((sum, log) => sum + (log.tokens_used || 0), 0);
       const tokens30d = calc30d.reduce((sum, log) => sum + (log.tokens_used || 0), 0);
 
+      // Calculate costs
+      const cost24h = calc24h.reduce((sum, log) => 
+        sum + calculateCost(log.input_tokens || 0, log.output_tokens || 0, log.tokens_used || 0), 0);
+      const cost7d = calc7d.reduce((sum, log) => 
+        sum + calculateCost(log.input_tokens || 0, log.output_tokens || 0, log.tokens_used || 0), 0);
+      const cost30d = calc30d.reduce((sum, log) => 
+        sum + calculateCost(log.input_tokens || 0, log.output_tokens || 0, log.tokens_used || 0), 0);
+
       const calls24h = calc24h.length;
       const success24h = calc24h.filter(l => l.status === "success").length;
       const errors24h = calc24h.filter(l => l.status === "error" || l.status === "timeout").length;
@@ -202,6 +222,9 @@ const AgentDashboard = () => {
         tokens24h,
         tokens7d,
         tokens30d,
+        cost24h,
+        cost7d,
+        cost30d,
         calls24h,
         success24h,
         errors24h,
@@ -473,7 +496,7 @@ const AgentDashboard = () => {
         </Alert>
       )}
 
-      {/* API Usage Stats - NEW */}
+      {/* API Usage Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 border-blue-500/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -508,14 +531,16 @@ const AgentDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500/5 to-purple-500/10 border-purple-500/20">
+        <Card className="bg-gradient-to-br from-emerald-500/5 to-emerald-500/10 border-emerald-500/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Response Time</CardTitle>
-            <Clock className="h-4 w-4 text-purple-500" />
+            <CardTitle className="text-sm font-medium">API Cost (24h)</CardTitle>
+            <DollarSign className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{apiStats?.avgResponseTime || 0}ms</div>
-            <p className="text-xs text-muted-foreground mt-1">Last 24 hours average</p>
+            <div className="text-2xl font-bold">${(apiStats?.cost24h || 0).toFixed(4)}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              7d: ${(apiStats?.cost7d || 0).toFixed(2)} • 30d: ${(apiStats?.cost30d || 0).toFixed(2)}
+            </div>
           </CardContent>
         </Card>
 
@@ -527,6 +552,46 @@ const AgentDashboard = () => {
           <CardContent>
             <div className="text-2xl font-bold">{completedToday}</div>
             <p className="text-xs text-muted-foreground mt-1">All agent tasks combined</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Additional Stats Row */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg Response Time</CardTitle>
+            <Clock className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{apiStats?.avgResponseTime || 0}ms</div>
+            <p className="text-xs text-muted-foreground mt-1">Last 24 hours average</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg Cost/Call</CardTitle>
+            <DollarSign className="h-4 w-4 text-amber-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${apiStats?.calls24h ? ((apiStats?.cost24h || 0) / apiStats.calls24h).toFixed(5) : '0.00000'}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Per API request</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Monthly Projection</CardTitle>
+            <TrendingUp className="h-4 w-4 text-cyan-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${((apiStats?.cost24h || 0) * 30).toFixed(2)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Based on 24h usage</p>
           </CardContent>
         </Card>
       </div>

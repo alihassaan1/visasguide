@@ -11,10 +11,11 @@ import {
   RefreshCw, Activity, CheckCircle, Clock, Loader2, 
   Play, Settings, Globe, FileText, HelpCircle, CreditCard,
   Bot, Zap, Calendar, TrendingUp, AlertCircle, Save, Timer,
-  ScrollText, AlertTriangle, DollarSign, Coins, XCircle
+  ScrollText, AlertTriangle, DollarSign, Coins, XCircle, ArrowUp, ArrowDown, ChevronDown
 } from "lucide-react";
-import { formatDistanceToNow, addHours, addDays } from "date-fns";
+import { formatDistanceToNow, addHours, addDays, format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
@@ -50,6 +51,7 @@ const AgentDashboard = () => {
   const [activeTask, setActiveTask] = useState<{ mode: string; entity: string; type: string } | null>(null);
   const [localSettings, setLocalSettings] = useState<AgentSettings>(defaultSettings);
   const [hasChanges, setHasChanges] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'yyyy-MM'));
 
   // Fetch saved settings from database
   const { data: savedSettings, isLoading: loadingSettings } = useQuery({
@@ -176,24 +178,45 @@ const AgentDashboard = () => {
     return totalTokens * DEEPSEEK_BLENDED_PRICE / 1000000;
   };
 
-  // Fetch API usage stats
+  // Fetch API usage stats with comparison data
   const { data: apiStats } = useQuery({
     queryKey: ["agent-api-stats"],
     queryFn: async () => {
       const now = new Date();
       const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const previous24hStart = new Date(now.getTime() - 48 * 60 * 60 * 1000);
       const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const previous7dStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
       const last30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-      const [stats24h, stats7d, stats30d, recentErrors] = await Promise.all([
+      // Current month boundaries
+      const currentMonthStart = startOfMonth(now);
+      const currentMonthEnd = endOfMonth(now);
+      
+      // Previous month boundaries
+      const prevMonthDate = subMonths(now, 1);
+      const prevMonthStart = startOfMonth(prevMonthDate);
+      const prevMonthEnd = endOfMonth(prevMonthDate);
+
+      const [stats24h, statsPrev24h, stats7d, statsPrev7d, stats30d, recentErrors, currentMonthStats, prevMonthStats, allTimeStats] = await Promise.all([
         supabase
           .from("api_logs")
-          .select("status, tokens_used, response_time_ms, input_tokens, output_tokens")
+          .select("status, tokens_used, response_time_ms, input_tokens, output_tokens, task_type")
           .gte("created_at", last24h.toISOString()),
         supabase
           .from("api_logs")
           .select("status, tokens_used, input_tokens, output_tokens")
+          .gte("created_at", previous24hStart.toISOString())
+          .lt("created_at", last24h.toISOString()),
+        supabase
+          .from("api_logs")
+          .select("status, tokens_used, input_tokens, output_tokens")
           .gte("created_at", last7d.toISOString()),
+        supabase
+          .from("api_logs")
+          .select("status, tokens_used, input_tokens, output_tokens")
+          .gte("created_at", previous7dStart.toISOString())
+          .lt("created_at", last7d.toISOString()),
         supabase
           .from("api_logs")
           .select("status, tokens_used, input_tokens, output_tokens")
@@ -204,11 +227,29 @@ const AgentDashboard = () => {
           .in("status", ["error", "timeout"])
           .order("created_at", { ascending: false })
           .limit(5),
+        supabase
+          .from("api_logs")
+          .select("status, tokens_used, input_tokens, output_tokens, task_type")
+          .gte("created_at", currentMonthStart.toISOString())
+          .lte("created_at", currentMonthEnd.toISOString()),
+        supabase
+          .from("api_logs")
+          .select("status, tokens_used, input_tokens, output_tokens")
+          .gte("created_at", prevMonthStart.toISOString())
+          .lte("created_at", prevMonthEnd.toISOString()),
+        supabase
+          .from("api_logs")
+          .select("status, tokens_used, input_tokens, output_tokens"),
       ]);
 
       const calc24h = stats24h.data || [];
+      const calcPrev24h = statsPrev24h.data || [];
       const calc7d = stats7d.data || [];
+      const calcPrev7d = statsPrev7d.data || [];
       const calc30d = stats30d.data || [];
+      const calcCurrentMonth = currentMonthStats.data || [];
+      const calcPrevMonth = prevMonthStats.data || [];
+      const calcAllTime = allTimeStats.data || [];
 
       const tokens24h = calc24h.reduce((sum, log) => sum + (log.tokens_used || 0), 0);
       const tokens7d = calc7d.reduce((sum, log) => sum + (log.tokens_used || 0), 0);
@@ -217,10 +258,31 @@ const AgentDashboard = () => {
       // Calculate costs
       const cost24h = calc24h.reduce((sum, log) => 
         sum + calculateCost(log.input_tokens || 0, log.output_tokens || 0, log.tokens_used || 0), 0);
+      const costPrev24h = calcPrev24h.reduce((sum, log) => 
+        sum + calculateCost(log.input_tokens || 0, log.output_tokens || 0, log.tokens_used || 0), 0);
       const cost7d = calc7d.reduce((sum, log) => 
+        sum + calculateCost(log.input_tokens || 0, log.output_tokens || 0, log.tokens_used || 0), 0);
+      const costPrev7d = calcPrev7d.reduce((sum, log) => 
         sum + calculateCost(log.input_tokens || 0, log.output_tokens || 0, log.tokens_used || 0), 0);
       const cost30d = calc30d.reduce((sum, log) => 
         sum + calculateCost(log.input_tokens || 0, log.output_tokens || 0, log.tokens_used || 0), 0);
+      const costCurrentMonth = calcCurrentMonth.reduce((sum, log) => 
+        sum + calculateCost(log.input_tokens || 0, log.output_tokens || 0, log.tokens_used || 0), 0);
+      const costPrevMonth = calcPrevMonth.reduce((sum, log) => 
+        sum + calculateCost(log.input_tokens || 0, log.output_tokens || 0, log.tokens_used || 0), 0);
+      const costAllTime = calcAllTime.reduce((sum, log) => 
+        sum + calculateCost(log.input_tokens || 0, log.output_tokens || 0, log.tokens_used || 0), 0);
+
+      // Calculate cost by task type for smart projection
+      const costByTaskType: Record<string, { cost: number; calls: number }> = {};
+      calc24h.forEach(log => {
+        const taskType = log.task_type || 'unknown';
+        if (!costByTaskType[taskType]) {
+          costByTaskType[taskType] = { cost: 0, calls: 0 };
+        }
+        costByTaskType[taskType].cost += calculateCost(log.input_tokens || 0, log.output_tokens || 0, log.tokens_used || 0);
+        costByTaskType[taskType].calls += 1;
+      });
 
       const calls24h = calc24h.length;
       const success24h = calc24h.filter(l => l.status === "success").length;
@@ -229,23 +291,170 @@ const AgentDashboard = () => {
         ? Math.round(calc24h.reduce((sum, log) => sum + (log.response_time_ms || 0), 0) / calls24h)
         : 0;
 
+      // Calculate percentage changes
+      const change24h = costPrev24h > 0 ? ((cost24h - costPrev24h) / costPrev24h) * 100 : 0;
+      const change7d = costPrev7d > 0 ? ((cost7d - costPrev7d) / costPrev7d) * 100 : 0;
+      const changeMonth = costPrevMonth > 0 ? ((costCurrentMonth - costPrevMonth) / costPrevMonth) * 100 : 0;
+
       return {
         tokens24h,
         tokens7d,
         tokens30d,
         cost24h,
+        costPrev24h,
         cost7d,
+        costPrev7d,
         cost30d,
+        costCurrentMonth,
+        costPrevMonth,
+        costAllTime,
+        change24h,
+        change7d,
+        changeMonth,
+        costByTaskType,
         calls24h,
+        callsCurrentMonth: calcCurrentMonth.length,
         success24h,
         errors24h,
         avgResponseTime,
         successRate: calls24h > 0 ? Math.round((success24h / calls24h) * 100) : 100,
         recentErrors: recentErrors.data || [],
+        currentMonthName: format(now, 'MMMM yyyy'),
+        prevMonthName: format(prevMonthDate, 'MMMM yyyy'),
       };
     },
     refetchInterval: 30000,
   });
+
+  // Fetch historical month data
+  const { data: historicalMonthData } = useQuery({
+    queryKey: ["agent-historical-month", selectedMonth],
+    queryFn: async () => {
+      const [year, month] = selectedMonth.split('-').map(Number);
+      const monthDate = new Date(year, month - 1, 1);
+      const monthStart = startOfMonth(monthDate);
+      const monthEnd = endOfMonth(monthDate);
+
+      const { data } = await supabase
+        .from("api_logs")
+        .select("status, tokens_used, input_tokens, output_tokens, task_type")
+        .gte("created_at", monthStart.toISOString())
+        .lte("created_at", monthEnd.toISOString());
+
+      const logs = data || [];
+      const cost = logs.reduce((sum, log) => 
+        sum + calculateCost(log.input_tokens || 0, log.output_tokens || 0, log.tokens_used || 0), 0);
+      const tokens = logs.reduce((sum, log) => sum + (log.tokens_used || 0), 0);
+
+      return {
+        cost,
+        tokens,
+        calls: logs.length,
+        monthName: format(monthDate, 'MMMM yyyy'),
+      };
+    },
+  });
+
+  // Calculate smart projection based on agent schedules
+  const calculateSmartProjection = () => {
+    const avgCostPerCall = apiStats?.calls24h ? (apiStats.cost24h / apiStats.calls24h) : 0.001;
+    const taskCosts = apiStats?.costByTaskType || {};
+
+    // Get average cost per task type from actual data, or use estimated defaults
+    const getTaskAvgCost = (taskType: string, defaultCost: number) => {
+      const taskData = taskCosts[taskType];
+      return taskData && taskData.calls > 0 ? taskData.cost / taskData.calls : defaultCost;
+    };
+
+    const projections: { taskName: string; dailyCost: number; monthlyCost: number; runsPerDay: number }[] = [];
+
+    // Visa Requirements Content: every 30 min = 48 runs/day
+    if (localSettings.visaRequirementsContent.enabled) {
+      const avgCost = getTaskAvgCost('visa_requirements_content', 0.0013);
+      const runsPerDay = 48;
+      const dailyCost = localSettings.visaRequirementsContent.batchSize * runsPerDay * avgCost;
+      projections.push({ taskName: 'Visa Req Content', dailyCost, monthlyCost: dailyCost * 30, runsPerDay });
+    }
+
+    // CTR Optimization: every hour = 24 runs/day
+    if (localSettings.ctr.enabled) {
+      const avgCost = getTaskAvgCost('ctr_optimization', 0.0015);
+      const runsPerDay = 24;
+      const dailyCost = localSettings.ctr.batchSize * runsPerDay * avgCost;
+      projections.push({ taskName: 'CTR Optimization', dailyCost, monthlyCost: dailyCost * 30, runsPerDay });
+    }
+
+    // Content Creation: every hour = 24 runs/day
+    if (localSettings.create.enabled) {
+      const avgCost = getTaskAvgCost('content_creation', 0.0012);
+      const runsPerDay = 24;
+      const dailyCost = localSettings.create.batchSize * runsPerDay * avgCost;
+      projections.push({ taskName: 'Content Creation', dailyCost, monthlyCost: dailyCost * 30, runsPerDay });
+    }
+
+    // Visa Enrichment: every 2 hours = 12 runs/day
+    if (localSettings.visaEnrichment.enabled) {
+      const avgCost = getTaskAvgCost('visa_enrichment', 0.0003);
+      const runsPerDay = 12;
+      const dailyCost = localSettings.visaEnrichment.batchSize * runsPerDay * avgCost;
+      projections.push({ taskName: 'Visa Enrichment', dailyCost, monthlyCost: dailyCost * 30, runsPerDay });
+    }
+
+    // Blog Generation: daily = 1 run/day
+    if (localSettings.blogGeneration.enabled) {
+      const avgCost = getTaskAvgCost('blog_generation', 0.0016);
+      const runsPerDay = 1;
+      const dailyCost = localSettings.blogGeneration.batchSize * runsPerDay * avgCost;
+      projections.push({ taskName: 'Blog Generation', dailyCost, monthlyCost: dailyCost * 30, runsPerDay });
+    }
+
+    // FAQ Generation: daily = 1 run/day
+    if (localSettings.faqGeneration.enabled) {
+      const avgCost = getTaskAvgCost('faq_generation', 0.0004);
+      const runsPerDay = 1;
+      const dailyCost = localSettings.faqGeneration.batchSize * runsPerDay * avgCost;
+      projections.push({ taskName: 'FAQ Generation', dailyCost, monthlyCost: dailyCost * 30, runsPerDay });
+    }
+
+    const totalDaily = projections.reduce((sum, p) => sum + p.dailyCost, 0);
+    const totalMonthly = projections.reduce((sum, p) => sum + p.monthlyCost, 0);
+    const simpleProjection = (apiStats?.cost24h || 0) * 30;
+
+    return {
+      projections,
+      totalDaily,
+      totalMonthly,
+      simpleProjection,
+    };
+  };
+
+  const smartProjection = calculateSmartProjection();
+
+  // Generate month options for selector (last 6 months)
+  const monthOptions = Array.from({ length: 6 }, (_, i) => {
+    const date = subMonths(new Date(), i);
+    return {
+      value: format(date, 'yyyy-MM'),
+      label: format(date, 'MMMM yyyy'),
+    };
+  });
+
+  // Cost change indicator component
+  const CostChangeIndicator = ({ change, size = 'sm' }: { change: number; size?: 'sm' | 'lg' }) => {
+    if (change === 0) return null;
+    const isDecrease = change < 0;
+    const absChange = Math.abs(change);
+    const Icon = isDecrease ? ArrowDown : ArrowUp;
+    const colorClass = isDecrease ? 'text-green-500' : 'text-red-500';
+    const bgClass = isDecrease ? 'bg-green-500/10' : 'bg-red-500/10';
+    
+    return (
+      <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium ${bgClass} ${colorClass}`}>
+        <Icon className={size === 'sm' ? 'h-3 w-3' : 'h-4 w-4'} />
+        {absChange.toFixed(1)}%
+      </span>
+    );
+  };
 
   // Fetch visa enrichment breakdown
   const { data: visaBreakdown } = useQuery({
@@ -557,13 +766,16 @@ const AgentDashboard = () => {
 
         <Card className="bg-gradient-to-br from-emerald-500/5 to-emerald-500/10 border-emerald-500/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">API Cost (24h)</CardTitle>
+            <CardTitle className="text-sm font-medium">Cost (24h)</CardTitle>
             <DollarSign className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${(apiStats?.cost24h || 0).toFixed(4)}</div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold">${(apiStats?.cost24h || 0).toFixed(4)}</span>
+              <CostChangeIndicator change={apiStats?.change24h || 0} />
+            </div>
             <div className="text-xs text-muted-foreground mt-1">
-              7d: ${(apiStats?.cost7d || 0).toFixed(2)} • 30d: ${(apiStats?.cost30d || 0).toFixed(2)}
+              vs yesterday: ${(apiStats?.costPrev24h || 0).toFixed(4)}
             </div>
           </CardContent>
         </Card>
@@ -576,6 +788,156 @@ const AgentDashboard = () => {
           <CardContent>
             <div className="text-2xl font-bold">{completedToday}</div>
             <p className="text-xs text-muted-foreground mt-1">All agent tasks combined</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Enhanced Cost Tracking Section */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Cost (7d)</CardTitle>
+            <DollarSign className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold">${(apiStats?.cost7d || 0).toFixed(2)}</span>
+              <CostChangeIndicator change={apiStats?.change7d || 0} />
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              vs prev 7d: ${(apiStats?.costPrev7d || 0).toFixed(2)}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{apiStats?.currentMonthName || 'Current Month'}</CardTitle>
+            <Calendar className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold">${(apiStats?.costCurrentMonth || 0).toFixed(2)}</span>
+              <CostChangeIndicator change={apiStats?.changeMonth || 0} />
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              {apiStats?.callsCurrentMonth || 0} API calls
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{apiStats?.prevMonthName || 'Previous Month'}</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${(apiStats?.costPrevMonth || 0).toFixed(2)}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Baseline for comparison
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total All-Time</CardTitle>
+            <Coins className="h-4 w-4 text-amber-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${(apiStats?.costAllTime || 0).toFixed(2)}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Since tracking started
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Smart Projection & Historical Section */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Smart Projection Card */}
+        <Card className="bg-gradient-to-br from-cyan-500/5 to-cyan-500/10 border-cyan-500/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-cyan-500" />
+              Smart Monthly Projection
+            </CardTitle>
+            <CardDescription>Based on agent batch schedules & settings</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-baseline gap-3 mb-4">
+              <span className="text-3xl font-bold">${smartProjection.totalMonthly.toFixed(2)}</span>
+              <span className="text-sm text-muted-foreground">
+                (Simple: ${smartProjection.simpleProjection.toFixed(2)})
+              </span>
+            </div>
+            <div className="space-y-2">
+              {smartProjection.projections.map((proj) => {
+                const percentage = smartProjection.totalMonthly > 0 
+                  ? (proj.monthlyCost / smartProjection.totalMonthly) * 100 
+                  : 0;
+                return (
+                  <div key={proj.taskName} className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">{proj.taskName}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">${proj.monthlyCost.toFixed(2)}</span>
+                      <Badge variant="outline" className="text-xs">
+                        {percentage.toFixed(0)}%
+                      </Badge>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <Separator className="my-3" />
+            <div className="text-xs text-muted-foreground">
+              Daily estimate: ${smartProjection.totalDaily.toFixed(4)}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Historical Month Selector */}
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Historical Costs
+              </CardTitle>
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select month" />
+                </SelectTrigger>
+                <SelectContent>
+                  {monthOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-baseline gap-3">
+                <span className="text-3xl font-bold">${(historicalMonthData?.cost || 0).toFixed(2)}</span>
+                <span className="text-sm text-muted-foreground">{historicalMonthData?.monthName}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground">API Calls</p>
+                  <p className="text-xl font-bold">{(historicalMonthData?.calls || 0).toLocaleString()}</p>
+                </div>
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground">Tokens Used</p>
+                  <p className="text-xl font-bold">{(historicalMonthData?.tokens || 0).toLocaleString()}</p>
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Avg/day: ${historicalMonthData?.calls ? (historicalMonthData.cost / 30).toFixed(4) : '0.0000'}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -608,14 +970,14 @@ const AgentDashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Projection</CardTitle>
+            <CardTitle className="text-sm font-medium">30d Running Cost</CardTitle>
             <TrendingUp className="h-4 w-4 text-cyan-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${((apiStats?.cost24h || 0) * 30).toFixed(2)}
+              ${(apiStats?.cost30d || 0).toFixed(2)}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Based on 24h usage</p>
+            <p className="text-xs text-muted-foreground mt-1">Rolling 30-day total</p>
           </CardContent>
         </Card>
       </div>

@@ -37,6 +37,10 @@ const COUNTRY_ABBREVIATIONS: Record<string, string[]> = {
   'sao-tome-and-principe': ['Sao Tome', 'São Tomé'],
 };
 
+// Priority countries for visa requirement content generation
+const PRIORITY_ORIGINS = ['united-states', 'united-kingdom', 'india', 'germany', 'united-arab-emirates', 'canada', 'australia', 'china', 'pakistan', 'philippines', 'nigeria', 'brazil', 'mexico', 'france', 'italy'];
+const PRIORITY_DESTINATIONS = ['united-states', 'united-kingdom', 'united-arab-emirates', 'thailand', 'singapore', 'japan', 'australia', 'germany', 'france', 'italy', 'canada', 'spain', 'turkey', 'indonesia', 'malaysia'];
+
 // Get CTR-optimized country display name
 function getCTROptimizedName(slug: string, name: string): string {
   const abbrevs = COUNTRY_ABBREVIATIONS[slug];
@@ -74,6 +78,67 @@ IMPORTANT: Do NOT use border classes. Keep styling minimal and clean.
 Be concise but comprehensive. SEO-optimized with natural keyword placement.`;
 }
 
+// Human-style prompt for visa requirements content (country-to-country)
+function generateVisaRequirementsPrompt(
+  fromCountry: { name: string; slug: string },
+  toCountry: { name: string; slug: string },
+  visaData: { requirement_type: string; fee_usd?: number; processing_time_days?: number; max_stay_days?: number; notes?: string } | null
+): string {
+  const fromCTR = getCTROptimizedName(fromCountry.slug, fromCountry.name);
+  const toCTR = getCTROptimizedName(toCountry.slug, toCountry.name);
+  
+  const visaType = visaData?.requirement_type?.replace(/_/g, ' ') || 'visa required';
+  const fee = visaData?.fee_usd ? `$${visaData.fee_usd}` : 'varies';
+  const processing = visaData?.processing_time_days ? `${visaData.processing_time_days} days` : 'varies';
+  const maxStay = visaData?.max_stay_days ? `${visaData.max_stay_days} days` : 'varies';
+
+  return `You're a friendly travel advisor helping a friend plan their trip. Write about ${toCTR} visa requirements for ${fromCTR} citizens.
+
+WRITING STYLE - CRITICAL (must feel human, NOT AI):
+- Write like you're chatting with a friend planning their trip
+- Use contractions naturally: "you'll need", "don't worry", "it's pretty straightforward"
+- NEVER use these AI phrases: "It is important to note", "In conclusion", "Furthermore", "Additionally", "It should be noted"
+- Start with a direct answer - "Good news!" or "Here's the deal" or "Short answer:"
+- Include practical, experience-based tips like a friend would share
+- Vary sentence length - mix short punchy sentences with longer explanations
+- Use "you" and "your" constantly - speak directly to the reader
+- Add personality: "Pro tip:", "Here's what most people don't know:", "Trust me on this one:"
+- Be conversational but accurate
+
+KNOWN VISA INFO:
+- Visa Type: ${visaType}
+- Fee: ${fee}
+- Processing: ${processing}
+- Max Stay: ${maxStay}
+${visaData?.notes ? `- Notes: ${visaData.notes}` : ''}
+
+STRUCTURE (800-1000 words total):
+
+1. **Quick Answer** (2-3 sentences) - Do ${fromCTR} citizens need a visa for ${toCTR}? Answer IMMEDIATELY in your opening line.
+
+2. **The Basics** - What type of visa/entry is available, how long can you stay
+
+3. **What You'll Actually Need** - Documents in practical terms, not bureaucratic language
+
+4. **How to Get It** - Step-by-step process, written conversationally
+
+5. **Money Talk** - Costs, payment methods, any hidden fees to watch for
+
+6. **Timeline** - How long it takes, when to apply
+
+7. **Pro Tips** - 3-4 practical tips from "experience"
+
+8. **Common Questions** - 3 FAQs people actually ask
+
+KEYWORDS TO WEAVE IN NATURALLY:
+- "${toCTR} visa for ${fromCTR} citizens"
+- "${fromCTR} citizens ${toCTR} visa requirements"
+- "do ${fromCTR} citizens need visa for ${toCTR}"
+- "${fromCTR} to ${toCTR} visa 2025"
+
+OUTPUT: Clean HTML with h2, h3, p, ul tags. Use Tailwind classes for spacing (mb-4, mt-6). NO border classes.`;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -88,6 +153,7 @@ serve(async (req) => {
     let visaEnrichmentMode = false;
     let blogGenerationMode = false;
     let faqGenerationMode = false;
+    let visaRequirementsContentMode = false;
     let batchSize = 3;
     
     try {
@@ -97,8 +163,9 @@ serve(async (req) => {
       visaEnrichmentMode = body?.visaEnrichment === true;
       blogGenerationMode = body?.blogGeneration === true;
       faqGenerationMode = body?.faqGeneration === true;
+      visaRequirementsContentMode = body?.visaRequirementsContent === true;
       batchSize = body?.batchSize || 3;
-      console.log(`Modes - Priority: ${priorityCountrySlug}, BulkCTR: ${bulkCTRMode}, VisaEnrich: ${visaEnrichmentMode}, Blog: ${blogGenerationMode}, FAQ: ${faqGenerationMode}, Batch: ${batchSize}`);
+      console.log(`Modes - Priority: ${priorityCountrySlug}, BulkCTR: ${bulkCTRMode}, VisaEnrich: ${visaEnrichmentMode}, Blog: ${blogGenerationMode}, FAQ: ${faqGenerationMode}, VisaReqContent: ${visaRequirementsContentMode}, Batch: ${batchSize}`);
     } catch {
       // No body provided, continue with default behavior
     }
@@ -141,6 +208,7 @@ serve(async (req) => {
       visaEnrichment: { enabled: true, batchSize: 10 },
       blogGeneration: { enabled: true, batchSize: 3 },
       faqGeneration: { enabled: true, batchSize: 5 },
+      visaRequirementsContent: { enabled: true, batchSize: 25 },
     };
 
     // Override batch size from settings if not provided in request
@@ -149,6 +217,7 @@ serve(async (req) => {
       else if (visaEnrichmentMode && taskConfig.visaEnrichment) batchSize = taskConfig.visaEnrichment.batchSize;
       else if (blogGenerationMode && taskConfig.blogGeneration) batchSize = taskConfig.blogGeneration.batchSize;
       else if (faqGenerationMode && taskConfig.faqGeneration) batchSize = taskConfig.faqGeneration.batchSize;
+      else if (visaRequirementsContentMode && taskConfig.visaRequirementsContent) batchSize = taskConfig.visaRequirementsContent.batchSize;
       else if (taskConfig.create) batchSize = taskConfig.create.batchSize;
     }
 
@@ -158,6 +227,7 @@ serve(async (req) => {
       if (mode === 'visaEnrichment') return taskConfig.visaEnrichment?.enabled !== false;
       if (mode === 'blogGeneration') return taskConfig.blogGeneration?.enabled !== false;
       if (mode === 'faqGeneration') return taskConfig.faqGeneration?.enabled !== false;
+      if (mode === 'visaRequirementsContent') return taskConfig.visaRequirementsContent?.enabled !== false;
       return taskConfig.create?.enabled !== false;
     };
 
@@ -167,6 +237,7 @@ serve(async (req) => {
     else if (visaEnrichmentMode) currentMode = 'visaEnrichment';
     else if (blogGenerationMode) currentMode = 'blogGeneration';
     else if (faqGenerationMode) currentMode = 'faqGeneration';
+    else if (visaRequirementsContentMode) currentMode = 'visaRequirementsContent';
 
     if (!isTaskEnabled(currentMode) && !priorityCountrySlug) {
       console.log(`Task ${currentMode} is disabled in settings. Skipping.`);
@@ -199,6 +270,7 @@ serve(async (req) => {
           visaEnrichmentMode,
           blogGenerationMode,
           faqGenerationMode,
+          visaRequirementsContentMode,
           batchSize,
           timestamp: new Date().toISOString()
         }
@@ -258,7 +330,7 @@ serve(async (req) => {
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: userPrompt }
               ],
-              temperature: 0.7,
+              temperature: 0.8, // Slightly higher for more natural writing
               max_tokens: maxTokens,
             }),
             signal: controller.signal,
@@ -301,6 +373,248 @@ serve(async (req) => {
       }
       
       throw lastError || new Error('DeepSeek API failed after retries');
+    }
+
+    // Helper function to submit URLs to IndexNow
+    async function submitToIndexNow(urls: string[]) {
+      try {
+        await fetch(`${supabaseUrl}/functions/v1/indexnow`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify({ urls })
+        });
+        console.log(`📡 Submitted ${urls.length} URLs to IndexNow`);
+      } catch (indexError) {
+        console.error('IndexNow submission error:', indexError);
+      }
+    }
+
+    // ============================================
+    // MODE: VISA REQUIREMENTS CONTENT GENERATION (NEW)
+    // ============================================
+    if (visaRequirementsContentMode) {
+      console.log(`🌍 Visa Requirements Content Mode: Processing ${batchSize} country combinations...`);
+
+      // Get all countries
+      const { data: allCountries } = await supabase
+        .from('countries')
+        .select('id, name, slug, code')
+        .order('name');
+
+      if (!allCountries || allCountries.length === 0) {
+        throw new Error('No countries found in database');
+      }
+
+      // Get existing content pages for visa requirements
+      const { data: existingPages } = await supabase
+        .from('content_pages')
+        .select('slug')
+        .like('slug', '%-to-%-visa-requirements');
+
+      const existingSlugs = new Set(existingPages?.map(p => p.slug) || []);
+
+      // Get all visa requirements data for lookup
+      const { data: visaRequirements } = await supabase
+        .from('visa_requirements')
+        .select(`
+          id, requirement_type, fee_usd, processing_time_days, max_stay_days, notes,
+          from_country_id, to_country_id
+        `);
+
+      // Create a map for quick lookup
+      const visaDataMap = new Map<string, any>();
+      for (const vr of visaRequirements || []) {
+        const key = `${vr.from_country_id}-${vr.to_country_id}`;
+        visaDataMap.set(key, vr);
+      }
+
+      // Create country ID to country map
+      const countryById = new Map(allCountries.map(c => [c.id, c]));
+
+      // Generate combinations with priority ordering
+      const combinations: { from: typeof allCountries[0]; to: typeof allCountries[0]; priority: number }[] = [];
+      
+      for (const fromCountry of allCountries) {
+        for (const toCountry of allCountries) {
+          if (fromCountry.id === toCountry.id) continue;
+          
+          const slug = `${fromCountry.slug}-to-${toCountry.slug}-visa-requirements`;
+          if (existingSlugs.has(slug)) continue;
+
+          // Calculate priority score
+          let priority = 0;
+          if (PRIORITY_ORIGINS.includes(fromCountry.slug)) priority += 10;
+          if (PRIORITY_DESTINATIONS.includes(toCountry.slug)) priority += 10;
+          
+          combinations.push({ from: fromCountry, to: toCountry, priority });
+        }
+      }
+
+      // Sort by priority (highest first) and take batch
+      combinations.sort((a, b) => b.priority - a.priority);
+      const batch = combinations.slice(0, batchSize);
+
+      console.log(`Found ${combinations.length} combinations needing content, processing ${batch.length} (priority sorted)...`);
+
+      // Broadcast status
+      await supabase.from('activity_log').insert({
+        action: 'content_agent_status',
+        entity_type: 'visa_requirements_content',
+        metadata: {
+          status: 'started',
+          total_remaining: combinations.length,
+          batch_size: batch.length,
+          timestamp: new Date().toISOString()
+        }
+      });
+
+      const generatedUrls: string[] = [];
+
+      for (const combo of batch) {
+        try {
+          const fromCTR = getCTROptimizedName(combo.from.slug, combo.from.name);
+          const toCTR = getCTROptimizedName(combo.to.slug, combo.to.name);
+          const entityName = `${fromCTR} → ${toCTR}`;
+          
+          console.log(`📝 Generating visa content: ${entityName}`);
+
+          // Broadcast processing status
+          await supabase.from('activity_log').insert({
+            action: 'content_agent_status',
+            entity_type: 'visa_requirements_content',
+            metadata: {
+              status: 'processing',
+              from_country: combo.from.name,
+              to_country: combo.to.name,
+              timestamp: new Date().toISOString()
+            }
+          });
+
+          // Get visa data if available
+          const visaDataKey = `${combo.from.id}-${combo.to.id}`;
+          const visaData = visaDataMap.get(visaDataKey);
+
+          // Generate human-style content
+          const prompt = generateVisaRequirementsPrompt(combo.from, combo.to, visaData);
+          const content = await callDeepSeek(
+            `You're a friendly, experienced travel advisor who's helped thousands of travelers. Write naturally, like you're giving advice to a good friend. Be helpful, practical, and conversational.`,
+            prompt,
+            2500,
+            entityName
+          );
+
+          // Create SEO-optimized metadata
+          const slug = `${combo.from.slug}-to-${combo.to.slug}-visa-requirements`;
+          const title = `${toCTR} Visa Requirements for ${fromCTR} Citizens 2025`;
+          const metaTitle = `${toCTR} Visa for ${fromCTR} Citizens | Requirements & How to Apply`;
+          const metaDescription = `Do ${fromCTR} citizens need a visa for ${toCTR}? ✓ Complete guide to ${combo.to.name} visa requirements ✓ Application process ✓ Fees & processing times. Updated 2025.`;
+          
+          const keywords = [
+            `${toCTR.toLowerCase()} visa for ${fromCTR.toLowerCase()} citizens`,
+            `${combo.from.name.toLowerCase()} to ${combo.to.name.toLowerCase()} visa`,
+            `do ${fromCTR.toLowerCase()} citizens need visa for ${toCTR.toLowerCase()}`,
+            `${combo.to.name.toLowerCase()} visa requirements`,
+            `${fromCTR.toLowerCase()} passport ${toCTR.toLowerCase()}`,
+            `${combo.from.slug} ${combo.to.slug} visa 2025`
+          ];
+
+          // Create JSON-LD structured data
+          const jsonLdScript = `
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "${title}",
+  "description": "${metaDescription}",
+  "datePublished": "${new Date().toISOString()}",
+  "dateModified": "${new Date().toISOString()}",
+  "author": {
+    "@type": "Organization",
+    "name": "visas.guide"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "visas.guide",
+    "url": "https://visas.guide"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://visas.guide/visa-requirements/${slug}"
+  }
+}
+</script>`;
+
+          const fullContent = content + jsonLdScript;
+
+          // Insert content page
+          const { data: newPage, error: insertError } = await supabase
+            .from('content_pages')
+            .insert({
+              slug: slug,
+              title: title,
+              content: fullContent,
+              excerpt: metaDescription,
+              meta_title: metaTitle,
+              meta_description: metaDescription,
+              keywords: keywords,
+              is_published: true,
+              status: 'published',
+              ai_generated: true
+            })
+            .select()
+            .single();
+
+          if (insertError) throw insertError;
+
+          generatedUrls.push(`/visa-requirements/${slug}`);
+
+          logs.push({
+            entity: entityName,
+            type: 'visa_requirements_content',
+            status: 'success',
+            slug: slug,
+            page_id: newPage.id
+          });
+
+          console.log(`✅ Created: ${entityName}`);
+
+          // Reduced delay for aggressive batching (1.5s instead of 3s)
+          await new Promise(resolve => setTimeout(resolve, 1500));
+
+        } catch (error) {
+          console.error(`Error generating visa content:`, error);
+          logs.push({
+            entity: `${combo.from.name} → ${combo.to.name}`,
+            type: 'visa_requirements_content',
+            status: 'error',
+            error: error.message
+          });
+        }
+      }
+
+      // Batch submit all generated URLs to IndexNow
+      if (generatedUrls.length > 0) {
+        await submitToIndexNow(generatedUrls);
+      }
+
+      // Log remaining count
+      const remainingCount = combinations.length - batch.length;
+      console.log(`📊 ${remainingCount} country combinations still need content`);
+
+      // Broadcast completion with stats
+      await supabase.from('activity_log').insert({
+        action: 'content_agent_status',
+        entity_type: 'visa_requirements_content',
+        metadata: {
+          status: 'batch_complete',
+          generated: generatedUrls.length,
+          remaining: remainingCount,
+          timestamp: new Date().toISOString()
+        }
+      });
     }
 
     // ============================================
@@ -535,15 +849,7 @@ Keep it concise, accurate, and helpful.`,
           console.log(`✅ Created blog post: ${topic.title}`);
 
           // Submit to IndexNow
-          try {
-            await fetch(`${supabaseUrl}/functions/v1/indexnow`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ urls: [`/blog/${topic.slug}`] })
-            });
-          } catch (e) {
-            console.error('IndexNow error:', e);
-          }
+          await submitToIndexNow([`/blog/${topic.slug}`]);
 
           await new Promise(resolve => setTimeout(resolve, 3000)); // Increased delay
         } catch (error) {
@@ -794,21 +1100,7 @@ ${faqSchemaScript}`;
       });
 
       // Submit to IndexNow for faster re-indexing
-      try {
-        await fetch(`${supabaseUrl}/functions/v1/indexnow`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabaseKey}`,
-          },
-          body: JSON.stringify({
-            urls: [`/countries/${country.slug}`]
-          })
-        });
-        console.log(`📡 Submitted ${country.slug} to IndexNow`);
-      } catch (indexError) {
-        console.error('IndexNow submission error:', indexError);
-      }
+      await submitToIndexNow([`/countries/${country.slug}`]);
 
       return {
         entity: `${country.name} (${ctrName})`,
@@ -898,7 +1190,7 @@ ${faqSchemaScript}`;
       }
     }
     // DEFAULT MODE: Process countries without any content page
-    else if (!visaEnrichmentMode && !blogGenerationMode && !faqGenerationMode) {
+    else if (!visaEnrichmentMode && !blogGenerationMode && !faqGenerationMode && !visaRequirementsContentMode) {
       const { data: countries } = await supabase
         .from('countries')
         .select('id, name, slug, code')
@@ -932,7 +1224,7 @@ ${faqSchemaScript}`;
     }
 
     const summary = {
-      mode: priorityCountrySlug ? 'priority' : bulkCTRMode ? 'bulk_ctr' : visaEnrichmentMode ? 'visa_enrichment' : blogGenerationMode ? 'blog_generation' : faqGenerationMode ? 'faq_generation' : 'default',
+      mode: priorityCountrySlug ? 'priority' : bulkCTRMode ? 'bulk_ctr' : visaEnrichmentMode ? 'visa_enrichment' : blogGenerationMode ? 'blog_generation' : faqGenerationMode ? 'faq_generation' : visaRequirementsContentMode ? 'visa_requirements_content' : 'default',
       priority_country: priorityCountrySlug,
       updates_made: logs.filter(l => l.status === 'success').length,
       errors: logs.filter(l => l.status === 'error').length,

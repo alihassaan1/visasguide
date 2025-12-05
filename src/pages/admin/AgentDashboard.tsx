@@ -33,6 +33,7 @@ interface AgentSettings {
   visaEnrichment: TaskConfig;
   blogGeneration: TaskConfig;
   faqGeneration: TaskConfig;
+  visaRequirementsContent: TaskConfig;
 }
 
 const defaultSettings: AgentSettings = {
@@ -41,6 +42,7 @@ const defaultSettings: AgentSettings = {
   visaEnrichment: { enabled: true, batchSize: 10, schedule: "15 */2 * * *" },
   blogGeneration: { enabled: true, batchSize: 3, schedule: "0 3 * * *" },
   faqGeneration: { enabled: true, batchSize: 5, schedule: "0 4 * * *" },
+  visaRequirementsContent: { enabled: true, batchSize: 25, schedule: "*/30 * * * *" },
 };
 
 const AgentDashboard = () => {
@@ -132,22 +134,31 @@ const AgentDashboard = () => {
   const { data: stats, refetch: refetchStats } = useQuery({
     queryKey: ["agent-stats"],
     queryFn: async () => {
-      const [countriesRes, contentRes, visaRes, visaTotalRes, blogRes, faqRes] = await Promise.all([
+      const [countriesRes, contentRes, visaRes, visaTotalRes, blogRes, faqRes, visaReqContentRes] = await Promise.all([
         supabase.from("countries").select("id", { count: "exact", head: true }),
         supabase.from("content_pages").select("id", { count: "exact", head: true }).like("slug", "countries/%"),
         supabase.from("visa_requirements").select("id", { count: "exact", head: true }).or("fee_usd.is.null,processing_time_days.is.null"),
         supabase.from("visa_requirements").select("id", { count: "exact", head: true }),
         supabase.from("content_pages").select("id", { count: "exact", head: true }).like("slug", "blog/%"),
         supabase.from("content_pages").select("id, content", { count: "exact" }).like("slug", "countries/%").not("content", "ilike", "%FAQPage%"),
+        supabase.from("content_pages").select("id", { count: "exact", head: true }).like("slug", "%-to-%-visa-requirements"),
       ]);
 
+      // Calculate total possible combinations (n * (n-1) where n = total countries)
+      const totalCountries = countriesRes.count || 0;
+      const totalCombinations = totalCountries * (totalCountries - 1);
+      const visaReqContentCount = visaReqContentRes.count || 0;
+
       return {
-        totalCountries: countriesRes.count || 0,
+        totalCountries,
         countriesWithContent: contentRes.count || 0,
         visaNeedingEnrichment: visaRes.count || 0,
         visaTotal: visaTotalRes.count || 0,
         blogPosts: blogRes.count || 0,
         pagesNeedingFAQ: faqRes.count || 0,
+        visaReqContentCount,
+        visaReqTotalCombinations: totalCombinations,
+        visaReqRemaining: totalCombinations - visaReqContentCount,
       };
     },
     refetchInterval: 30000,
@@ -322,6 +333,7 @@ const AgentDashboard = () => {
       else if (mode === 'visaEnrichment') body.visaEnrichment = true;
       else if (mode === 'blogGeneration') body.blogGeneration = true;
       else if (mode === 'faqGeneration') body.faqGeneration = true;
+      else if (mode === 'visaRequirementsContent') body.visaRequirementsContent = true;
 
       const { data, error } = await supabase.functions.invoke("content-agent", { body });
 
@@ -398,6 +410,18 @@ const AgentDashboard = () => {
   };
 
   const tasks = [
+    {
+      id: 'visaRequirementsContent' as const,
+      name: 'Visa Requirements Content',
+      mode: 'visaRequirementsContent',
+      description: 'Generate human-style content for country-to-country visa pages (25-30/batch)',
+      icon: <Globe className="h-5 w-5 text-emerald-500" />,
+      scheduleLabel: 'Every 30 min (aggressive)',
+      remaining: stats?.visaReqRemaining,
+      total: stats?.visaReqTotalCombinations,
+      completed: stats?.visaReqContentCount,
+      status: activeTask?.mode === 'visa_requirements_content' ? 'running' : 'idle',
+    },
     {
       id: 'ctr' as const,
       name: 'CTR Optimization',

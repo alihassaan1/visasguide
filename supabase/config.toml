@@ -52,3 +52,15 @@ verify_jwt = false
 
 [functions.send-campaign-email]
 verify_jwt = false
+
+[functions.social-content-publisher]
+verify_jwt = false
+
+[functions.social-image-generator]
+verify_jwt = false
+
+[functions.social-click-tracker]
+verify_jwt = false
+
+[functions.social-insights-fetcher]
+verify_jwt = false

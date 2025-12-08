@@ -44,6 +44,9 @@ import AgentDashboard from "./pages/admin/AgentDashboard";
 import APILogs from "./pages/admin/APILogs";
 import DeveloperAgent from "./pages/admin/DeveloperAgent";
 import DeveloperAPISettings from "./pages/admin/DeveloperAPISettings";
+import SocialMediaDashboard from "./pages/admin/SocialMediaDashboard";
+import SocialPostsList from "./pages/admin/SocialPostsList";
+import PlatformSettings from "./pages/admin/PlatformSettings";
 import ContentPage from "./pages/ContentPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -112,6 +115,9 @@ const App = () => (
             <Route path="api-logs" element={<APILogs />} />
             <Route path="developer-agent" element={<DeveloperAgent />} />
             <Route path="developer-settings" element={<DeveloperAPISettings />} />
+            <Route path="marketing/social" element={<SocialMediaDashboard />} />
+            <Route path="marketing/posts" element={<SocialPostsList />} />
+            <Route path="marketing/platforms" element={<PlatformSettings />} />
           </Route>
           
           {/* Catch-all for content pages - must be last */}

@@ -257,6 +257,72 @@ export type Database = {
         }
         Relationships: []
       }
+      content_events: {
+        Row: {
+          content_page_id: string | null
+          content_type: string
+          created_at: string
+          error_message: string | null
+          event_type: string
+          featured_image_url: string | null
+          id: string
+          news_article_id: string | null
+          processed: boolean
+          processed_at: string | null
+          processing_started_at: string | null
+          slug: string
+          social_post_ids: string[] | null
+          title: string
+        }
+        Insert: {
+          content_page_id?: string | null
+          content_type: string
+          created_at?: string
+          error_message?: string | null
+          event_type: string
+          featured_image_url?: string | null
+          id?: string
+          news_article_id?: string | null
+          processed?: boolean
+          processed_at?: string | null
+          processing_started_at?: string | null
+          slug: string
+          social_post_ids?: string[] | null
+          title: string
+        }
+        Update: {
+          content_page_id?: string | null
+          content_type?: string
+          created_at?: string
+          error_message?: string | null
+          event_type?: string
+          featured_image_url?: string | null
+          id?: string
+          news_article_id?: string | null
+          processed?: boolean
+          processed_at?: string | null
+          processing_started_at?: string | null
+          slug?: string
+          social_post_ids?: string[] | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_events_content_page_id_fkey"
+            columns: ["content_page_id"]
+            isOneToOne: false
+            referencedRelation: "content_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_events_news_article_id_fkey"
+            columns: ["news_article_id"]
+            isOneToOne: false
+            referencedRelation: "news_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_pages: {
         Row: {
           ai_generated: boolean
@@ -645,6 +711,59 @@ export type Database = {
           },
         ]
       }
+      marketing_clicks: {
+        Row: {
+          city: string | null
+          clicked_at: string
+          content_slug: string | null
+          country: string | null
+          id: string
+          ip_address: string | null
+          referrer: string | null
+          social_post_id: string | null
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          city?: string | null
+          clicked_at?: string
+          content_slug?: string | null
+          country?: string | null
+          id?: string
+          ip_address?: string | null
+          referrer?: string | null
+          social_post_id?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          city?: string | null
+          clicked_at?: string
+          content_slug?: string | null
+          country?: string | null
+          id?: string
+          ip_address?: string | null
+          referrer?: string | null
+          social_post_id?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_clicks_social_post_id_fkey"
+            columns: ["social_post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       news_articles: {
         Row: {
           ai_generated: boolean
@@ -758,6 +877,45 @@ export type Database = {
           is_active?: boolean
           name?: string
           subscribed_at?: string
+        }
+        Relationships: []
+      }
+      platform_accounts: {
+        Row: {
+          access_token_encrypted: string | null
+          account_id: string | null
+          account_name: string
+          created_at: string
+          id: string
+          is_active: boolean
+          platform: string
+          settings: Json | null
+          token_expires_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_token_encrypted?: string | null
+          account_id?: string | null
+          account_name: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          platform: string
+          settings?: Json | null
+          token_expires_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_token_encrypted?: string | null
+          account_id?: string | null
+          account_name?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          platform?: string
+          settings?: Json | null
+          token_expires_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -935,6 +1093,109 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      social_posts: {
+        Row: {
+          caption: string
+          content_page_id: string | null
+          content_type: string
+          cooldown_until: string | null
+          created_at: string
+          engagement_count: number | null
+          error_message: string | null
+          hashtags: string[] | null
+          id: string
+          image_url: string | null
+          impressions: number | null
+          link_clicks: number | null
+          news_article_id: string | null
+          platform: string
+          platform_account_id: string | null
+          post_id: string | null
+          published_at: string | null
+          reach: number | null
+          retry_count: number
+          scheduled_at: string | null
+          short_url: string | null
+          status: string
+          tracked_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          caption: string
+          content_page_id?: string | null
+          content_type: string
+          cooldown_until?: string | null
+          created_at?: string
+          engagement_count?: number | null
+          error_message?: string | null
+          hashtags?: string[] | null
+          id?: string
+          image_url?: string | null
+          impressions?: number | null
+          link_clicks?: number | null
+          news_article_id?: string | null
+          platform: string
+          platform_account_id?: string | null
+          post_id?: string | null
+          published_at?: string | null
+          reach?: number | null
+          retry_count?: number
+          scheduled_at?: string | null
+          short_url?: string | null
+          status?: string
+          tracked_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          caption?: string
+          content_page_id?: string | null
+          content_type?: string
+          cooldown_until?: string | null
+          created_at?: string
+          engagement_count?: number | null
+          error_message?: string | null
+          hashtags?: string[] | null
+          id?: string
+          image_url?: string | null
+          impressions?: number | null
+          link_clicks?: number | null
+          news_article_id?: string | null
+          platform?: string
+          platform_account_id?: string | null
+          post_id?: string | null
+          published_at?: string | null
+          reach?: number | null
+          retry_count?: number
+          scheduled_at?: string | null
+          short_url?: string | null
+          status?: string
+          tracked_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_posts_content_page_id_fkey"
+            columns: ["content_page_id"]
+            isOneToOne: false
+            referencedRelation: "content_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_posts_news_article_id_fkey"
+            columns: ["news_article_id"]
+            isOneToOne: false
+            referencedRelation: "news_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_posts_platform_account_id_fkey"
+            columns: ["platform_account_id"]
+            isOneToOne: false
+            referencedRelation: "platform_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

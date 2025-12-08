@@ -83,6 +83,9 @@ const menuStructure: MenuItemOrGroup[] = [
     title: "Marketing",
     icon: Megaphone,
     children: [
+      { title: "Social Dashboard", icon: Megaphone, href: "/admin/marketing/social" },
+      { title: "Social Posts", icon: FileText, href: "/admin/marketing/posts" },
+      { title: "Platform Settings", icon: Settings, href: "/admin/marketing/platforms" },
       { title: "Newsletter", icon: Mail, href: "/admin/newsletter" },
       { title: "Ads & Affiliates", icon: DollarSign, href: "/admin/monetization" },
     ],

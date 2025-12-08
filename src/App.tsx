@@ -47,6 +47,8 @@ import DeveloperAPISettings from "./pages/admin/DeveloperAPISettings";
 import SocialMediaDashboard from "./pages/admin/SocialMediaDashboard";
 import SocialPostsList from "./pages/admin/SocialPostsList";
 import PlatformSettings from "./pages/admin/PlatformSettings";
+import RSSFeedManager from "./pages/admin/RSSFeedManager";
+import RSSMonitoringDashboard from "./pages/admin/RSSMonitoringDashboard";
 import ContentPage from "./pages/ContentPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -118,6 +120,8 @@ const App = () => (
             <Route path="marketing/social" element={<SocialMediaDashboard />} />
             <Route path="marketing/posts" element={<SocialPostsList />} />
             <Route path="marketing/platforms" element={<PlatformSettings />} />
+            <Route path="rss-feeds" element={<RSSFeedManager />} />
+            <Route path="rss-monitoring" element={<RSSMonitoringDashboard />} />
           </Route>
           
           {/* Catch-all for content pages - must be last */}

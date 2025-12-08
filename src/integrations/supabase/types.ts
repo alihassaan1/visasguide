@@ -957,32 +957,146 @@ export type Database = {
           },
         ]
       }
+      rss_article_queue: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          excerpt: string | null
+          extracted_country: string | null
+          extracted_tags: string[] | null
+          extracted_visa_type: string | null
+          generated_image_url: string | null
+          id: string
+          news_article_id: string | null
+          original_content: string | null
+          original_image_url: string | null
+          original_pub_date: string | null
+          original_title: string
+          original_url: string
+          processed_at: string | null
+          published_at: string | null
+          retry_count: number | null
+          rewritten_content: string | null
+          rewritten_title: string | null
+          rss_feed_id: string | null
+          seo_description: string | null
+          seo_title: string | null
+          similarity_score: number | null
+          source_author: string | null
+          source_name: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          excerpt?: string | null
+          extracted_country?: string | null
+          extracted_tags?: string[] | null
+          extracted_visa_type?: string | null
+          generated_image_url?: string | null
+          id?: string
+          news_article_id?: string | null
+          original_content?: string | null
+          original_image_url?: string | null
+          original_pub_date?: string | null
+          original_title: string
+          original_url: string
+          processed_at?: string | null
+          published_at?: string | null
+          retry_count?: number | null
+          rewritten_content?: string | null
+          rewritten_title?: string | null
+          rss_feed_id?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          similarity_score?: number | null
+          source_author?: string | null
+          source_name?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          excerpt?: string | null
+          extracted_country?: string | null
+          extracted_tags?: string[] | null
+          extracted_visa_type?: string | null
+          generated_image_url?: string | null
+          id?: string
+          news_article_id?: string | null
+          original_content?: string | null
+          original_image_url?: string | null
+          original_pub_date?: string | null
+          original_title?: string
+          original_url?: string
+          processed_at?: string | null
+          published_at?: string | null
+          retry_count?: number | null
+          rewritten_content?: string | null
+          rewritten_title?: string | null
+          rss_feed_id?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          similarity_score?: number | null
+          source_author?: string | null
+          source_name?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rss_article_queue_news_article_id_fkey"
+            columns: ["news_article_id"]
+            isOneToOne: false
+            referencedRelation: "news_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rss_article_queue_rss_feed_id_fkey"
+            columns: ["rss_feed_id"]
+            isOneToOne: false
+            referencedRelation: "rss_feeds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rss_feeds: {
         Row: {
+          articles_fetched: number | null
+          auto_publish: boolean | null
           category: string | null
           created_at: string
+          fetch_interval_minutes: number | null
           id: string
           is_active: boolean
+          last_error: string | null
           last_fetched: string | null
           name: string
           updated_at: string
           url: string
         }
         Insert: {
+          articles_fetched?: number | null
+          auto_publish?: boolean | null
           category?: string | null
           created_at?: string
+          fetch_interval_minutes?: number | null
           id?: string
           is_active?: boolean
+          last_error?: string | null
           last_fetched?: string | null
           name: string
           updated_at?: string
           url: string
         }
         Update: {
+          articles_fetched?: number | null
+          auto_publish?: boolean | null
           category?: string | null
           created_at?: string
+          fetch_interval_minutes?: number | null
           id?: string
           is_active?: boolean
+          last_error?: string | null
           last_fetched?: string | null
           name?: string
           updated_at?: string

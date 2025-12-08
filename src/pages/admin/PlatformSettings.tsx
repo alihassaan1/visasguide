@@ -169,13 +169,13 @@ export default function PlatformSettings() {
       if (existing) {
         const { error } = await supabase
           .from('site_settings')
-          .update({ setting_value: postingRules as unknown as Record<string, unknown> })
+          .update({ setting_value: JSON.parse(JSON.stringify(postingRules)) })
           .eq('setting_key', 'social_posting_rules');
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('site_settings')
-          .insert({ setting_key: 'social_posting_rules', setting_value: postingRules as unknown as Record<string, unknown> });
+          .insert([{ setting_key: 'social_posting_rules', setting_value: JSON.parse(JSON.stringify(postingRules)) }]);
         if (error) throw error;
       }
       toast.success('Posting rules saved');

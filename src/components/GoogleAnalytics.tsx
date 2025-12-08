@@ -199,23 +199,21 @@ const GoogleAnalytics = () => {
       }
     }
 
-    // Inject Microsoft Clarity
-    if (settings.microsoft_clarity_id && settings.microsoft_clarity_id.trim()) {
-      const clarityId = settings.microsoft_clarity_id.trim();
-      
-      if (!document.querySelector('script[data-clarity]')) {
-        const script = document.createElement('script');
-        script.setAttribute('data-clarity', 'true');
-        script.innerHTML = `
-          (function(c,l,a,r,i,t,y){
-            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-          })(window, document, "clarity", "script", "${clarityId}");
-        `;
-        document.head.appendChild(script);
-        console.log('Microsoft Clarity initialized:', clarityId);
-      }
+    // Inject Microsoft Clarity - always use hardcoded ID as primary, fallback to settings
+    const clarityId = settings.microsoft_clarity_id?.trim() || 'ug4ihlhgw9';
+    
+    if (!document.querySelector('script[data-clarity]')) {
+      const script = document.createElement('script');
+      script.setAttribute('data-clarity', 'true');
+      script.innerHTML = `
+        (function(c,l,a,r,i,t,y){
+          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "${clarityId}");
+      `;
+      document.head.appendChild(script);
+      console.log('Microsoft Clarity initialized:', clarityId);
     }
 
     // Inject Google AdSense Auto-Ads

@@ -110,15 +110,17 @@ const NewsletterSignup = ({ variant = "default" }: NewsletterSignupProps) => {
   }
 
   return (
-    <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 py-16">
-      <div className="container mx-auto px-4 max-w-2xl text-center">
-        <Mail className="h-12 w-12 text-primary mx-auto mb-4" />
-        <h2 className="text-3xl font-bold mb-4">Stay Updated on Visa News</h2>
-        <p className="text-muted-foreground mb-8">
-          Subscribe to receive weekly visa updates, travel tips, and important immigration news.
+    <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-primary/10 rounded-2xl border border-border/50 py-10 px-6">
+      <div className="max-w-md mx-auto text-center">
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mb-4">
+          <Mail className="h-7 w-7 text-primary" />
+        </div>
+        <h2 className="text-2xl font-bold mb-2">Stay Updated on Visa News</h2>
+        <p className="text-muted-foreground text-sm mb-6">
+          Get weekly visa updates, travel tips, and immigration news.
         </p>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid md:grid-cols-3 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <Input
               type="text"
               placeholder="Your Name"
@@ -135,15 +137,8 @@ const NewsletterSignup = ({ variant = "default" }: NewsletterSignupProps) => {
               required
               className="bg-background"
             />
-            <Input
-              type="text"
-              placeholder="Country (optional)"
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              className="bg-background"
-            />
           </div>
-          <Button type="submit" size="lg" disabled={loading} className="px-8">
+          <Button type="submit" size="lg" disabled={loading} className="w-full sm:w-auto px-8">
             {loading ? "Subscribing..." : "Subscribe Now"}
           </Button>
         </form>

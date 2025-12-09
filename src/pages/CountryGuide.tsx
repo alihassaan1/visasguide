@@ -13,6 +13,7 @@ import SEOHead from "@/components/SEOHead";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { usePageTracking } from "@/hooks/useAnalytics";
+import CountryHero from "@/components/CountryHero";
 
 const CountryGuide = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
@@ -286,16 +287,8 @@ const CountryGuide = () => {
           </BreadcrumbList>
         </Breadcrumb>
 
-        {/* Country Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <span className="text-6xl" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>{country.flag_emoji || countryCodeToFlagEmoji(country.code) || '🏳️'}</span>
-            <div>
-              <h1 className="text-4xl font-bold mb-2">{country.name}</h1>
-              <p className="text-xl text-muted-foreground">Complete Visa & Travel Information</p>
-            </div>
-          </div>
-        </div>
+        {/* Country Hero Image */}
+        <CountryHero country={country} />
 
         {/* Country Overview Stats */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">

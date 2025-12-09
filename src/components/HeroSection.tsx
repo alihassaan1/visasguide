@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Search, Globe, Shield, Clock, ArrowRight } from "lucide-react";
+import { Search, Globe, Shield, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/home-hero-visa-approved.jpg";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +13,6 @@ const HeroSection = () => {
   const [toCountry, setToCountry] = useState("");
   const navigate = useNavigate();
 
-  // Fetch all countries for dropdowns
   const { data: countries = [] } = useQuery({
     queryKey: ['countries-hero'],
     queryFn: async () => {
@@ -27,107 +26,98 @@ const HeroSection = () => {
   });
 
   const handleSearch = () => {
-    if (!fromCountry || !toCountry) {
-      return;
-    }
+    if (!fromCountry || !toCountry) return;
 
-    // Find slugs for navigation
     const fromSlug = countries.find(c => c.id === fromCountry)?.slug;
     const toSlug = countries.find(c => c.id === toCountry)?.slug;
     
-    if (!fromSlug || !toSlug) {
-      console.error('Country slugs not found');
-      return;
-    }
+    if (!fromSlug || !toSlug) return;
 
-    // Track the visa search (don't await to avoid blocking navigation)
     trackVisaSearch(fromCountry, toCountry).catch(console.error);
-    
-    // Navigate to SEO-friendly visa requirements page
     navigate(`/visa-requirements/${fromSlug}-to-${toSlug}`);
   };
 
   return (
-    <section className="relative min-h-[600px] flex items-center bg-gradient-to-br from-primary/5 via-background to-accent/5">
-      <div className="container mx-auto px-4 py-20">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Content */}
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
-                Your Complete Guide to{" "}
-                <span className="text-transparent bg-gradient-to-r from-primary to-accent bg-clip-text">
-                  Travel Visas
-                </span>
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-lg">
-                Visas.Guide helps travelers navigate visa requirements for 200+ countries with up-to-date visa-free lists, eVisa details, and travel documentation tips.
-              </p>
-            </div>
+    <section className="relative min-h-[500px] md:min-h-[600px] flex items-center overflow-hidden">
+      {/* Full-width background image */}
+      <div className="absolute inset-0">
+        <img 
+          src={heroImage} 
+          alt="Visa approved stamp with passports – visa requirements guide"
+          className="w-full h-full object-cover"
+          loading="eager"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
+      </div>
 
-            {/* Visa Search Box */}
-            <div className="bg-card rounded-xl p-6 shadow-lg border max-w-md">
-              <div className="space-y-4">
-                <h3 className="font-semibold text-foreground">Check Visa Requirements</h3>
-                <p className="text-sm text-muted-foreground">Select your passport country and destination</p>
-                
-                <div className="space-y-3">
-                  <CountryCombobox
-                    countries={countries}
-                    value={fromCountry}
-                    onValueChange={setFromCountry}
-                    label="From (Your Passport)"
-                    placeholder="Select your country..."
-                  />
+      <div className="container mx-auto px-4 py-16 md:py-24 relative z-10">
+        <div className="max-w-2xl">
+          {/* Main heading */}
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-4">
+            Your Complete Guide to{" "}
+            <span className="text-transparent bg-gradient-to-r from-primary to-accent bg-clip-text">
+              Travel Visas
+            </span>
+          </h1>
+          <p className="text-base md:text-lg text-muted-foreground mb-8 max-w-lg">
+            Navigate visa requirements for 200+ countries with up-to-date visa-free lists, eVisa details, and travel documentation tips.
+          </p>
 
-                  <CountryCombobox
-                    countries={countries}
-                    value={toCountry}
-                    onValueChange={setToCountry}
-                    label="To (Destination)"
-                    placeholder="Select destination..."
-                  />
+          {/* Floating Search Box - Pill shaped */}
+          <div className="bg-card/95 backdrop-blur-sm rounded-2xl p-4 md:p-6 shadow-2xl border border-border/50 max-w-xl">
+            <div className="flex flex-col md:flex-row gap-3 md:gap-2 md:items-end">
+              <div className="flex-1">
+                <CountryCombobox
+                  countries={countries}
+                  value={fromCountry}
+                  onValueChange={setFromCountry}
+                  label="From"
+                  placeholder="Your passport..."
+                />
+              </div>
+              
+              <div className="flex-1">
+                <CountryCombobox
+                  countries={countries}
+                  value={toCountry}
+                  onValueChange={setToCountry}
+                  label="To"
+                  placeholder="Destination..."
+                />
+              </div>
 
-                  <Button 
-                    onClick={handleSearch}
-                    className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
-                    disabled={!fromCountry || !toCountry}
-                  >
-                    <Search className="h-4 w-4 mr-2" />
-                    Search Visa Requirements
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
-              <div className="flex items-center space-x-2">
-                <Globe className="h-4 w-4 text-visa-info" />
-                <span>190+ Countries</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Shield className="h-4 w-4 text-visa-success" />
-                <span>Trusted by 2M+ Travelers</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Clock className="h-4 w-4 text-visa-warning" />
-                <span>Updated Daily</span>
-              </div>
+              <Button 
+                onClick={handleSearch}
+                size="lg"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl px-6 md:px-8 h-11 shadow-lg hover:shadow-xl transition-all duration-300"
+                disabled={!fromCountry || !toCountry}
+              >
+                <Search className="h-5 w-5 md:mr-2" />
+                <span className="hidden md:inline">Search</span>
+              </Button>
             </div>
           </div>
 
-          {/* Hero Image */}
-          <div className="relative">
-            <div className="relative overflow-hidden rounded-2xl shadow-2xl">
-              <img 
-                src={heroImage} 
-                alt="Visa approved stamp with passports and application form – visa requirements and travel documentation guide"
-                className="w-full h-[500px] object-cover"
-                loading="eager"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
+          {/* Trust Indicators */}
+          <div className="flex flex-wrap gap-4 md:gap-8 mt-8 text-sm">
+            <div className="flex items-center gap-2 text-foreground/80">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <Globe className="h-4 w-4 text-primary" />
+              </div>
+              <span className="font-medium">190+ Countries</span>
+            </div>
+            <div className="flex items-center gap-2 text-foreground/80">
+              <div className="w-8 h-8 rounded-full bg-visa-success/10 flex items-center justify-center">
+                <Shield className="h-4 w-4 text-visa-success" />
+              </div>
+              <span className="font-medium">2M+ Travelers</span>
+            </div>
+            <div className="flex items-center gap-2 text-foreground/80">
+              <div className="w-8 h-8 rounded-full bg-visa-warning/10 flex items-center justify-center">
+                <Clock className="h-4 w-4 text-visa-warning" />
+              </div>
+              <span className="font-medium">Updated Daily</span>
             </div>
           </div>
         </div>

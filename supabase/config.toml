@@ -67,3 +67,6 @@ verify_jwt = false
 
 [functions.social-insights-fetcher]
 verify_jwt = false
+
+[functions.generate-visa-content]
+verify_jwt = false

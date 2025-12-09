@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { CheckCircle, XCircle, AlertCircle, Clock, DollarSign, FileText, Globe, Plane, Plus } from "lucide-react";
+import { CheckCircle, XCircle, AlertCircle, Clock, DollarSign, FileText, Globe, Plane, Plus, MapPin, Info } from "lucide-react";
+import RelatedVisaLinks from "@/components/RelatedVisaLinks";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
 import { usePageTracking } from "@/hooks/useAnalytics";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -148,20 +149,40 @@ const VisaRequirements = () => {
     enabled: !!fromCountry && !!toCountry
   });
 
-  // Fetch AI-generated content page if visa data doesn't exist
-  const contentSlug = `${fromSlug}-to-${toSlug}-visa-requirements`;
+  // Fetch AI-generated content page if visa data doesn't exist - try multiple slug formats
   const { data: contentPage, isLoading: contentLoading } = useQuery({
-    queryKey: ['visa-content-page', contentSlug],
+    queryKey: ['visa-content-page', fromSlug, toSlug],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Try multiple slug formats for compatibility
+      const slugFormats = [
+        `${fromSlug}-to-${toSlug}-visa-requirements`,
+        `visa-requirements/${fromSlug}-to-${toSlug}`,
+        `${fromSlug}-to-${toSlug}`,
+      ];
+      
+      for (const slugFormat of slugFormats) {
+        const { data, error } = await supabase
+          .from('content_pages')
+          .select('*')
+          .eq('slug', slugFormat)
+          .eq('is_published', true)
+          .maybeSingle();
+        
+        if (data && !error) return data;
+      }
+      
+      // Also search with ILIKE for partial matches
+      const { data: iLikeData, error: iLikeError } = await supabase
         .from('content_pages')
         .select('*')
-        .eq('slug', contentSlug)
+        .ilike('slug', `%${fromSlug}%${toSlug}%visa%`)
         .eq('is_published', true)
+        .limit(1)
         .maybeSingle();
       
-      if (error) throw error;
-      return data;
+      if (iLikeData && !iLikeError) return iLikeData;
+      
+      return null;
     },
     enabled: !!fromSlug && !!toSlug && !visaRequirement
   });
@@ -389,139 +410,167 @@ const VisaRequirements = () => {
             </Card>
           </div>
         ) : (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <AlertCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold mb-2">No Visa Information Available</h3>
-              <p className="text-muted-foreground mb-6">
-                We don't have visa requirement information for this country combination yet.
-              </p>
-              
-              {isAdmin && (
-                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="mb-4">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Visa Data
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>Add Visa Requirement</DialogTitle>
-                      <DialogDescription>
-                        Add visa requirement information for {fromCountry.name} → {toCountry.name}
-                      </DialogDescription>
-                    </DialogHeader>
+          <div className="space-y-6">
+            {/* Enhanced Fallback Content */}
+            <Card className="border-dashed border-2">
+              <CardContent className="py-8">
+                <div className="flex flex-col md:flex-row items-start gap-6">
+                  {/* Country flags display */}
+                  <div className="flex items-center gap-4 text-6xl">
+                    <span style={{ fontFamily: "'Segoe UI Emoji', 'Noto Color Emoji', sans-serif" }}>
+                      {fromCountry.flag_emoji || countryCodeToFlagEmoji(fromCountry.code) || '🏳️'}
+                    </span>
+                    <span className="text-2xl text-muted-foreground">→</span>
+                    <span style={{ fontFamily: "'Segoe UI Emoji', 'Noto Color Emoji', sans-serif" }}>
+                      {toCountry.flag_emoji || countryCodeToFlagEmoji(toCountry.code) || '🏳️'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex-1">
+                    <div className="flex items-start gap-3 mb-4">
+                      <Info className="h-6 w-6 text-visa-info mt-1 shrink-0" />
+                      <div>
+                        <h3 className="text-xl font-semibold mb-2">Visa Information Coming Soon</h3>
+                        <p className="text-muted-foreground">
+                          We're working on gathering detailed visa information for {fromCountry.name} citizens traveling to {toCountry.name}. 
+                          In the meantime, here's what we recommend:
+                        </p>
+                      </div>
+                    </div>
                     
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Requirement Type</Label>
-                        <Select value={formData.requirement_type} onValueChange={(value) => setFormData({...formData, requirement_type: value})}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="visa_free">Visa Free</SelectItem>
-                            <SelectItem value="visa_on_arrival">Visa on Arrival</SelectItem>
-                            <SelectItem value="e_visa">eVisa</SelectItem>
-                            <SelectItem value="visa_required">Visa Required</SelectItem>
-                          </SelectContent>
-                        </Select>
+                    <div className="grid gap-4 sm:grid-cols-2 mt-6">
+                      <div className="p-4 rounded-lg bg-muted/50">
+                        <h4 className="font-medium mb-2 flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-primary" />
+                          Check Embassy Information
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          Contact the {toCountry.name} embassy or consulate in {fromCountry.name} for official visa requirements.
+                        </p>
                       </div>
-
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                          <Label>Max Stay (days)</Label>
-                          <Input
-                            type="number"
-                            value={formData.max_stay_days}
-                            onChange={(e) => setFormData({...formData, max_stay_days: e.target.value})}
-                            placeholder="90"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label>Processing Time (days)</Label>
-                          <Input
-                            type="number"
-                            value={formData.processing_time_days}
-                            onChange={(e) => setFormData({...formData, processing_time_days: e.target.value})}
-                            placeholder="15"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label>Fee (USD)</Label>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={formData.fee_usd}
-                            onChange={(e) => setFormData({...formData, fee_usd: e.target.value})}
-                            placeholder="80"
-                          />
-                        </div>
+                      
+                      <div className="p-4 rounded-lg bg-muted/50">
+                        <h4 className="font-medium mb-2 flex items-center gap-2">
+                          <Globe className="h-4 w-4 text-primary" />
+                          General Travel Tips
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          Ensure your passport is valid for at least 6 months beyond your travel dates.
+                        </p>
                       </div>
+                    </div>
+                    
+                    {isAdmin && (
+                      <div className="mt-6">
+                        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button>
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add Visa Data
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle>Add Visa Requirement</DialogTitle>
+                              <DialogDescription>
+                                Add visa requirement information for {fromCountry.name} → {toCountry.name}
+                              </DialogDescription>
+                            </DialogHeader>
+                            
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                              <div className="space-y-2">
+                                <Label>Requirement Type</Label>
+                                <Select value={formData.requirement_type} onValueChange={(value) => setFormData({...formData, requirement_type: value})}>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="visa_free">Visa Free</SelectItem>
+                                    <SelectItem value="visa_on_arrival">Visa on Arrival</SelectItem>
+                                    <SelectItem value="e_visa">eVisa</SelectItem>
+                                    <SelectItem value="visa_required">Visa Required</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
 
-                      <div className="space-y-2">
-                        <Label>Requirements (comma-separated)</Label>
-                        <Textarea
-                          value={formData.requirements}
-                          onChange={(e) => setFormData({...formData, requirements: e.target.value})}
-                          placeholder="Valid passport, Travel insurance, Hotel booking"
-                          rows={3}
-                        />
+                              <div className="grid grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                  <Label>Max Stay (days)</Label>
+                                  <Input
+                                    type="number"
+                                    value={formData.max_stay_days}
+                                    onChange={(e) => setFormData({...formData, max_stay_days: e.target.value})}
+                                    placeholder="90"
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label>Processing Time (days)</Label>
+                                  <Input
+                                    type="number"
+                                    value={formData.processing_time_days}
+                                    onChange={(e) => setFormData({...formData, processing_time_days: e.target.value})}
+                                    placeholder="15"
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label>Fee (USD)</Label>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    value={formData.fee_usd}
+                                    onChange={(e) => setFormData({...formData, fee_usd: e.target.value})}
+                                    placeholder="80"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label>Requirements (comma-separated)</Label>
+                                <Textarea
+                                  value={formData.requirements}
+                                  onChange={(e) => setFormData({...formData, requirements: e.target.value})}
+                                  placeholder="Valid passport, Travel insurance, Hotel booking"
+                                  rows={3}
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label>Notes</Label>
+                                <Textarea
+                                  value={formData.notes}
+                                  onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                                  placeholder="Additional information..."
+                                  rows={3}
+                                />
+                              </div>
+
+                              <div className="flex gap-2 justify-end">
+                                <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                                  Cancel
+                                </Button>
+                                <Button type="submit" disabled={addMutation.isPending}>
+                                  {addMutation.isPending ? 'Adding...' : 'Add Requirement'}
+                                </Button>
+                              </div>
+                            </form>
+                          </DialogContent>
+                        </Dialog>
                       </div>
-
-                      <div className="space-y-2">
-                        <Label>Notes</Label>
-                        <Textarea
-                          value={formData.notes}
-                          onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                          placeholder="Additional information..."
-                          rows={3}
-                        />
-                      </div>
-
-                      <div className="flex gap-2 justify-end">
-                        <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button type="submit" disabled={addMutation.isPending}>
-                          {addMutation.isPending ? 'Adding...' : 'Add Requirement'}
-                        </Button>
-                      </div>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              )}
-
-              <Link 
-                to={`/countries/${toCountry.slug}`}
-                className="text-primary hover:underline"
-              >
-                View general information about {toCountry.name} →
-              </Link>
-            </CardContent>
-          </Card>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
-        {/* Related Links */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Related Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Link to={`/countries/${fromCountry.slug}`} className="block text-primary hover:underline">
-              → View {fromCountry.name} passport information
-            </Link>
-            <Link to={`/countries/${toCountry.slug}`} className="block text-primary hover:underline">
-              → View {toCountry.name} visa requirements
-            </Link>
-            <Link to="/visa-search" className="block text-primary hover:underline">
-              → Search other visa requirements
-            </Link>
-          </CardContent>
-        </Card>
+        {/* Dynamic Related Links Section */}
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold mb-6">Related Information</h2>
+          <RelatedVisaLinks fromCountry={fromCountry} toCountry={toCountry} />
+        </div>
       </main>
 
       <Footer />

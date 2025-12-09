@@ -1,17 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
+import { ArrowRight } from "lucide-react";
 
-// Country landmark images - using reliable placeholder images
+// Country landmark images
 const countryImages: Record<string, string> = {
   "united-states": "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=400&h=500&fit=crop",
   "united-kingdom": "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400&h=500&fit=crop",
@@ -101,63 +93,52 @@ const DestinationCarousel = () => {
           </Link>
         </div>
 
-        <Carousel
-          opts={{
-            align: "start",
-            loop: true,
-          }}
-          className="w-full"
-        >
-          <CarouselContent className="-ml-2 md:-ml-4">
-            {destinations.map((destination) => (
-              <CarouselItem key={destination.id} className="pl-2 md:pl-4 basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
-                <Link to={`/countries/${destination.slug}`} className="block group">
-                  <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-lg">
-                    {/* Background Image */}
-                    <img
-                      src={destination.image}
-                      alt={`${destination.name} travel destination`}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      loading="lazy"
-                    />
-                    
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                    
-                    {/* Country Name Badge - Top Left */}
-                    <div className="absolute top-3 left-3">
-                      <span className="text-2xl">{destination.flag_emoji}</span>
-                    </div>
-                    
-                    {/* Visa Free Count Badge - Top Right */}
-                    {destination.visa_free_destinations && (
-                      <div className="absolute top-3 right-3">
-                        <span className="bg-visa-success/90 text-white text-xs font-bold px-2 py-1 rounded-full">
-                          {destination.visa_free_destinations} visa-free
-                        </span>
-                      </div>
-                    )}
-                    
-                    {/* Content - Bottom */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <h3 className="text-white font-bold text-lg leading-tight mb-1 group-hover:text-primary-light transition-colors">
-                        {destination.name}
-                      </h3>
-                      <p className="text-white/70 text-sm">
-                        {destination.totalActivity > 0 
-                          ? `${destination.totalActivity.toLocaleString()} searches`
-                          : "Explore visa info"
-                        }
-                      </p>
-                    </div>
+        {/* Grid-based layout instead of carousel */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
+          {destinations.slice(0, 12).map((destination) => (
+            <Link key={destination.id} to={`/countries/${destination.slug}`} className="block group">
+              <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+                {/* Background Image */}
+                <img
+                  src={destination.image}
+                  alt={`${destination.name} travel destination`}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  loading="lazy"
+                />
+                
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                
+                {/* Country Flag - Top Left */}
+                <div className="absolute top-3 left-3">
+                  <span className="text-2xl drop-shadow-lg">{destination.flag_emoji}</span>
+                </div>
+                
+                {/* Visa Free Badge - Top Right */}
+                {destination.visa_free_destinations && (
+                  <div className="absolute top-3 right-3">
+                    <span className="bg-visa-success/90 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                      {destination.visa_free_destinations} visa-free
+                    </span>
                   </div>
-                </Link>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="hidden md:flex -left-4 bg-background/90 border-border hover:bg-background" />
-          <CarouselNext className="hidden md:flex -right-4 bg-background/90 border-border hover:bg-background" />
-        </Carousel>
+                )}
+                
+                {/* Content - Bottom */}
+                <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4">
+                  <h3 className="text-white font-bold text-sm md:text-lg leading-tight mb-1 group-hover:text-primary-light transition-colors">
+                    {destination.name}
+                  </h3>
+                  <p className="text-white/70 text-xs md:text-sm">
+                    {destination.totalActivity > 0 
+                      ? `${destination.totalActivity.toLocaleString()} searches`
+                      : "Explore visa info"
+                    }
+                  </p>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
 
         <Link
           to="/countries"

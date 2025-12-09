@@ -408,116 +408,143 @@ const CountryGuide = () => {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Visa Requirements */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Visa Requirements for {country.name}</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Countries that can travel to {country.name}
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {visaRequirements?.slice(0, 10).map((req) => (
-                  <div key={req.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>{req.from_country?.flag_emoji || countryCodeToFlagEmoji(req.from_country?.code) || '🏳️'}</span>
-                      <span className="font-medium">{req.from_country?.name}</span>
-                    </div>
-                    <Badge className={getRequirementColor(req.requirement_type)}>
-                      {formatRequirementType(req.requirement_type)}
-                    </Badge>
-                  </div>
-                )) || (
-                  <p className="text-muted-foreground">No visa requirement data available.</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Processing Times */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Processing Times
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Current visa processing times for {country.name}
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {processingTimes?.map((time) => (
-                  <div key={time.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{time.visa_type}</p>
-                      {time.embassy_location && (
-                        <p className="text-sm text-muted-foreground">{time.embassy_location}</p>
-                      )}
-                    </div>
-                    <Badge variant="outline">
-                      {time.processing_time_days} days
-                    </Badge>
-                  </div>
-                )) || (
-                  <p className="text-muted-foreground">No processing time data available.</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Visa-Free Countries Link */}
-        <Card className="mt-8 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
+        {/* Check YOUR Visa Requirements Widget */}
+        <Card className="mb-8 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
           <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex-1">
-                <h3 className="text-xl font-bold mb-2">
-                  Visa-Free Countries for {country.name} Passport Holders
+                <h3 className="text-xl font-bold mb-1 flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  Check If YOU Need a Visa for {country.name}
                 </h3>
-                <p className="text-muted-foreground">
-                  Discover all countries you can visit with a {country.name} passport - visa-free, visa on arrival, e-visa, and more
+                <p className="text-muted-foreground text-sm">
+                  Select your passport country to see exact visa requirements
                 </p>
               </div>
-              <Link 
-                to={`/countries/${country.slug}/visa-free`}
-                className="w-full sm:w-auto"
-              >
-                <button className="w-full sm:w-auto px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors whitespace-nowrap">
-                  View All Destinations →
+              <Link to="/visa-requirements" className="shrink-0">
+                <button className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors whitespace-nowrap">
+                  Check Requirements →
                 </button>
               </Link>
             </div>
           </CardContent>
         </Card>
 
-        {/* Travel Tips Section */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Essential Travel Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="font-semibold mb-2">Before You Travel</h3>
-                <ul className="text-sm space-y-1 text-muted-foreground">
-                  <li>• Check passport validity (6+ months remaining)</li>
-                  <li>• Verify visa requirements for your nationality</li>
-                  <li>• Review vaccination requirements</li>
-                  <li>• Purchase travel insurance</li>
-                </ul>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Who Can Visit - Visa Requirements */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Who Can Visit {country.name}</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Visa requirements by passport nationality
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {visaRequirements && visaRequirements.length > 0 ? (
+                  visaRequirements.slice(0, 8).map((req) => (
+                    <div key={req.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>{req.from_country?.flag_emoji || countryCodeToFlagEmoji(req.from_country?.code) || '🏳️'}</span>
+                        <span className="font-medium text-sm">{req.from_country?.name}</span>
+                      </div>
+                      <Badge className={getRequirementColor(req.requirement_type)}>
+                        {formatRequirementType(req.requirement_type)}
+                      </Badge>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground text-sm">Visa requirement data coming soon.</p>
+                )}
+                {visaRequirements && visaRequirements.length > 8 && (
+                  <p className="text-sm text-muted-foreground text-center pt-2">
+                    +{visaRequirements.length - 8} more countries
+                  </p>
+                )}
               </div>
-              <div>
-                <h3 className="font-semibold mb-2">Documentation</h3>
-                <ul className="text-sm space-y-1 text-muted-foreground">
-                  <li>• Valid passport</li>
-                  <li>• Visa (if required)</li>
-                  <li>• Return/onward ticket proof</li>
-                  <li>• Accommodation confirmation</li>
-                </ul>
+            </CardContent>
+          </Card>
+
+          {/* Processing Times - Only show if data exists */}
+          {processingTimes && processingTimes.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Processing Times
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Estimated visa processing times for {country.name}
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {processingTimes.map((time) => (
+                    <div key={time.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium text-sm">{time.visa_type}</p>
+                        {time.embassy_location && (
+                          <p className="text-xs text-muted-foreground">{time.embassy_location}</p>
+                        )}
+                      </div>
+                      <Badge variant="outline">
+                        {time.processing_time_days} days
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* If no processing times, show travel tips instead */}
+          {(!processingTimes || processingTimes.length === 0) && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Travel Tips</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-sm mb-2">Before You Go</h4>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li>• Check passport validity (6+ months)</li>
+                    <li>• Verify visa requirements for your nationality</li>
+                    <li>• Review vaccination requirements</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm mb-2">Essential Documents</h4>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li>• Valid passport</li>
+                    <li>• Visa (if required)</li>
+                    <li>• Return/onward ticket proof</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Visa-Free Countries Link */}
+        <Card className="mt-8 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
+          <CardContent className="p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex-1">
+                <h3 className="text-lg font-bold mb-1">
+                  Where Can {country.name} Passport Holders Travel?
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Visa-free destinations, visa on arrival, and eVisa options
+                </p>
               </div>
+              <Link 
+                to={`/countries/${country.slug}/visa-free`}
+                className="shrink-0"
+              >
+                <button className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-sm whitespace-nowrap">
+                  View Destinations →
+                </button>
+              </Link>
             </div>
           </CardContent>
         </Card>

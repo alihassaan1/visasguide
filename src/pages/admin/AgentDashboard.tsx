@@ -198,7 +198,10 @@ const AgentDashboard = () => {
       const prevMonthStart = startOfMonth(prevMonthDate);
       const prevMonthEnd = endOfMonth(prevMonthDate);
 
-      const [stats24h, statsPrev24h, stats7d, statsPrev7d, stats30d, recentErrors, currentMonthStats, prevMonthStats, allTimeStats] = await Promise.all([
+      // Today's updates - start of today
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      const [stats24h, statsPrev24h, stats7d, statsPrev7d, stats30d, recentErrors, currentMonthStats, prevMonthStats, allTimeStats, todayUpdates] = await Promise.all([
         supabase
           .from("api_logs")
           .select("status, tokens_used, response_time_ms, input_tokens, output_tokens, task_type")
@@ -240,6 +243,12 @@ const AgentDashboard = () => {
         supabase
           .from("api_logs")
           .select("status, tokens_used, input_tokens, output_tokens"),
+        // Today's successful updates count
+        supabase
+          .from("api_logs")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "success")
+          .gte("created_at", todayStart.toISOString()),
       ]);
 
       const calc24h = stats24h.data || [];
@@ -321,6 +330,7 @@ const AgentDashboard = () => {
         recentErrors: recentErrors.data || [],
         currentMonthName: format(now, 'MMMM yyyy'),
         prevMonthName: format(prevMonthDate, 'MMMM yyyy'),
+        todayUpdates: todayUpdates.count || 0,
       };
     },
     refetchInterval: 30000,
@@ -684,11 +694,7 @@ const AgentDashboard = () => {
     },
   ];
 
-  // Fixed: Count all agent actions, not just CTR
-  const completedToday = recentActivity?.filter(
-    (log) => new Date(log.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000) && 
-    ["content_agent_ctr_optimization", "content_agent_update", "visa_enrichment_complete", "blog_generation_complete", "faq_generation_complete"].includes(log.action)
-  ).length || 0;
+  // Note: Today's updates now comes from apiStats.todayUpdates (from api_logs table)
 
   return (
     <div className="space-y-6">
@@ -786,8 +792,8 @@ const AgentDashboard = () => {
             <Zap className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{completedToday}</div>
-            <p className="text-xs text-muted-foreground mt-1">All agent tasks combined</p>
+            <div className="text-2xl font-bold">{apiStats?.todayUpdates || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Successful API calls today</p>
           </CardContent>
         </Card>
       </div>

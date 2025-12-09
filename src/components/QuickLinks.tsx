@@ -15,14 +15,6 @@ const QuickLinks = () => {
     },
     {
       image: null,
-      emoji: "🗺️",
-      title: "Visa-Free Countries",
-      description: "Find where you can travel without a visa based on your passport",
-      link: "/visa-free-countries",
-      gradient: "from-green-500/20 to-emerald-500/20",
-    },
-    {
-      image: null,
       emoji: "🏆",
       title: "Passport Rankings",
       description: "Global passport power index and mobility scores",
@@ -30,10 +22,18 @@ const QuickLinks = () => {
       gradient: "from-amber-500/20 to-orange-500/20",
     },
     {
+      image: null,
+      emoji: "🔍",
+      title: "Visa Search",
+      description: "Check visa requirements between any two countries",
+      link: "/visa-search",
+      gradient: "from-green-500/20 to-emerald-500/20",
+    },
+    {
       image: passportStamps,
       title: "Tourist Visa",
       description: "Tourism & leisure travel visa requirements worldwide",
-      link: "/visa-types/tourist-visa",
+      link: "/visa-types/tourist",
       gradient: "from-rose-500/20 to-pink-500/20",
     },
     {
@@ -41,14 +41,14 @@ const QuickLinks = () => {
       emoji: "💼",
       title: "Business Visa",
       description: "Business travel and work permit requirements",
-      link: "/visa-types/business-visa",
+      link: "/visa-types/business",
       gradient: "from-purple-500/20 to-violet-500/20",
     },
     {
       image: studentGlobal,
       title: "Student Visa",
       description: "Study abroad visa requirements for international students",
-      link: "/visa-types/student-visa",
+      link: "/visa-types/student",
       gradient: "from-indigo-500/20 to-blue-500/20",
     },
   ];

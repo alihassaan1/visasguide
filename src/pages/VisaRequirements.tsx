@@ -6,27 +6,21 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { CheckCircle, XCircle, AlertCircle, Clock, DollarSign, FileText, Globe, Plane, Plus, MapPin, Info } from "lucide-react";
+import { CheckCircle, XCircle, AlertCircle, Clock, DollarSign, FileText, Globe, Plane, MapPin, Info, Loader2 } from "lucide-react";
 import RelatedVisaLinks from "@/components/RelatedVisaLinks";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
 import { usePageTracking } from "@/hooks/useAnalytics";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const VisaRequirements = () => {
   const { slug } = useParams<{ slug: string }>();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedContent, setGeneratedContent] = useState<string | null>(null);
   
   // Parse slug to get from and to country slugs (format: "india-to-uae")
   const slugParts = slug?.split("-to-");
@@ -34,35 +28,6 @@ const VisaRequirements = () => {
   const toSlug = slugParts?.[1];
 
   usePageTracking(`visa-requirements-${slug}`);
-
-  // Check if user is admin or freelancer
-  useEffect(() => {
-    const checkUserRole = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setIsAdmin(false);
-        return;
-      }
-      
-      const { data: roles } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id);
-      
-      setIsAdmin(roles && roles.some(r => r.role === 'admin' || r.role === 'moderator'));
-    };
-    checkUserRole();
-  }, []);
-
-  // Form state
-  const [formData, setFormData] = useState({
-    requirement_type: "visa_required",
-    max_stay_days: "",
-    processing_time_days: "",
-    fee_usd: "",
-    notes: "",
-    requirements: ""
-  });
 
   // Fetch countries
   const { data: countries = [] } = useQuery({
@@ -79,56 +44,6 @@ const VisaRequirements = () => {
 
   const fromCountry = countries.find(c => c.slug === fromSlug);
   const toCountry = countries.find(c => c.slug === toSlug);
-
-  // Add visa requirement mutation
-  const addMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const payload = {
-        from_country_id: fromCountry?.id,
-        to_country_id: toCountry?.id,
-        requirement_type: data.requirement_type,
-        max_stay_days: data.max_stay_days ? parseInt(data.max_stay_days) : null,
-        processing_time_days: data.processing_time_days ? parseInt(data.processing_time_days) : null,
-        fee_usd: data.fee_usd ? parseFloat(data.fee_usd) : null,
-        notes: data.notes || null,
-        requirements: data.requirements ? data.requirements.split(',').map((r: string) => r.trim()) : []
-      };
-
-      const { error } = await supabase
-        .from('visa_requirements')
-        .insert(payload);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['visa-requirement', fromCountry?.id, toCountry?.id] });
-      toast({
-        title: "Success",
-        description: "Visa requirement added successfully."
-      });
-      setIsAddDialogOpen(false);
-      setFormData({
-        requirement_type: "visa_required",
-        max_stay_days: "",
-        processing_time_days: "",
-        fee_usd: "",
-        notes: "",
-        requirements: ""
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    addMutation.mutate(formData);
-  };
 
   // Fetch visa requirement
   const { data: visaRequirement, isLoading } = useQuery({
@@ -187,6 +102,50 @@ const VisaRequirements = () => {
     enabled: !!fromSlug && !!toSlug && !visaRequirement
   });
 
+  // Auto-generate content when no data exists
+  useEffect(() => {
+    const generateContent = async () => {
+      // Don't generate if we already have data, content, or are already generating
+      if (visaRequirement || contentPage || isGenerating || generatedContent) return;
+      // Don't generate if still loading
+      if (isLoading || contentLoading) return;
+      // Don't generate if we don't have country data
+      if (!fromCountry || !toCountry) return;
+
+      setIsGenerating(true);
+      
+      try {
+        console.log(`Auto-generating visa content for ${fromSlug} → ${toSlug}`);
+        
+        const { data, error } = await supabase.functions.invoke('generate-visa-content', {
+          body: { fromSlug, toSlug }
+        });
+
+        if (error) throw error;
+
+        if (data?.success && data?.content) {
+          setGeneratedContent(data.content);
+          // Invalidate the content page query to pick up the newly saved content
+          queryClient.invalidateQueries({ queryKey: ['visa-content-page', fromSlug, toSlug] });
+          
+          if (!data.cached) {
+            toast({
+              title: "Content Generated",
+              description: "Visa information has been generated for this route."
+            });
+          }
+        }
+      } catch (error: any) {
+        console.error('Error generating visa content:', error);
+        // Don't show error toast for every failed generation
+      } finally {
+        setIsGenerating(false);
+      }
+    };
+
+    generateContent();
+  }, [visaRequirement, contentPage, isLoading, contentLoading, fromCountry, toCountry, fromSlug, toSlug, isGenerating, generatedContent, queryClient, toast]);
+
   const getRequirementBadge = (type: string) => {
     switch (type?.toLowerCase()) {
       case 'visa free':
@@ -221,6 +180,9 @@ const VisaRequirements = () => {
 
   const pageTitle = `${toCountry.name} Visa Requirements for ${fromCountry.name} Citizens`;
   const metaDescription = `Complete visa requirements guide for ${fromCountry.name} passport holders traveling to ${toCountry.name}. Get up-to-date information on visa types, processing times, fees, and required documents.`;
+
+  // Determine which content to display
+  const displayContent = generatedContent || contentPage?.content;
 
   return (
     <div className="min-h-screen bg-background">
@@ -390,10 +352,10 @@ const VisaRequirements = () => {
               </Card>
             )}
           </div>
-        ) : contentPage ? (
-          // Display AI-generated content if available
+        ) : displayContent ? (
+          // Display AI-generated content (either newly generated or from database)
           <div className="space-y-6">
-            {contentPage.featured_image_url && (
+            {contentPage?.featured_image_url && (
               <div className="rounded-lg overflow-hidden mb-6">
                 <img 
                   src={contentPage.featured_image_url} 
@@ -405,13 +367,27 @@ const VisaRequirements = () => {
             
             <Card>
               <CardContent className="prose prose-slate max-w-none pt-6">
-                <div dangerouslySetInnerHTML={{ __html: contentPage.content }} />
+                <div dangerouslySetInnerHTML={{ __html: displayContent }} />
               </CardContent>
             </Card>
           </div>
+        ) : isGenerating ? (
+          // Show generating state
+          <Card className="border-dashed border-2">
+            <CardContent className="py-12">
+              <div className="flex flex-col items-center justify-center text-center">
+                <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Generating Visa Information</h3>
+                <p className="text-muted-foreground max-w-md">
+                  We're gathering detailed visa information for {fromCountry.name} citizens traveling to {toCountry.name}. 
+                  This will only take a moment...
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-6">
-            {/* Enhanced Fallback Content */}
+            {/* Fallback Content - shown if generation fails */}
             <Card className="border-dashed border-2">
               <CardContent className="py-8">
                 <div className="flex flex-col md:flex-row items-start gap-6">
@@ -459,106 +435,6 @@ const VisaRequirements = () => {
                         </p>
                       </div>
                     </div>
-                    
-                    {isAdmin && (
-                      <div className="mt-6">
-                        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button>
-                              <Plus className="h-4 w-4 mr-2" />
-                              Add Visa Data
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                            <DialogHeader>
-                              <DialogTitle>Add Visa Requirement</DialogTitle>
-                              <DialogDescription>
-                                Add visa requirement information for {fromCountry.name} → {toCountry.name}
-                              </DialogDescription>
-                            </DialogHeader>
-                            
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                              <div className="space-y-2">
-                                <Label>Requirement Type</Label>
-                                <Select value={formData.requirement_type} onValueChange={(value) => setFormData({...formData, requirement_type: value})}>
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="visa_free">Visa Free</SelectItem>
-                                    <SelectItem value="visa_on_arrival">Visa on Arrival</SelectItem>
-                                    <SelectItem value="e_visa">eVisa</SelectItem>
-                                    <SelectItem value="visa_required">Visa Required</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-
-                              <div className="grid grid-cols-3 gap-4">
-                                <div className="space-y-2">
-                                  <Label>Max Stay (days)</Label>
-                                  <Input
-                                    type="number"
-                                    value={formData.max_stay_days}
-                                    onChange={(e) => setFormData({...formData, max_stay_days: e.target.value})}
-                                    placeholder="90"
-                                  />
-                                </div>
-
-                                <div className="space-y-2">
-                                  <Label>Processing Time (days)</Label>
-                                  <Input
-                                    type="number"
-                                    value={formData.processing_time_days}
-                                    onChange={(e) => setFormData({...formData, processing_time_days: e.target.value})}
-                                    placeholder="15"
-                                  />
-                                </div>
-
-                                <div className="space-y-2">
-                                  <Label>Fee (USD)</Label>
-                                  <Input
-                                    type="number"
-                                    step="0.01"
-                                    value={formData.fee_usd}
-                                    onChange={(e) => setFormData({...formData, fee_usd: e.target.value})}
-                                    placeholder="80"
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="space-y-2">
-                                <Label>Requirements (comma-separated)</Label>
-                                <Textarea
-                                  value={formData.requirements}
-                                  onChange={(e) => setFormData({...formData, requirements: e.target.value})}
-                                  placeholder="Valid passport, Travel insurance, Hotel booking"
-                                  rows={3}
-                                />
-                              </div>
-
-                              <div className="space-y-2">
-                                <Label>Notes</Label>
-                                <Textarea
-                                  value={formData.notes}
-                                  onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                                  placeholder="Additional information..."
-                                  rows={3}
-                                />
-                              </div>
-
-                              <div className="flex gap-2 justify-end">
-                                <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                                  Cancel
-                                </Button>
-                                <Button type="submit" disabled={addMutation.isPending}>
-                                  {addMutation.isPending ? 'Adding...' : 'Add Requirement'}
-                                </Button>
-                              </div>
-                            </form>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    )}
                   </div>
                 </div>
               </CardContent>

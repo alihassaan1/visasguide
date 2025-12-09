@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Search, Globe, Shield, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import heroImage from "@/assets/home-hero-visa-approved.jpg";
+import heroImage from "@/assets/hero-travel-visa.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { trackVisaSearch } from "@/hooks/useAnalytics";

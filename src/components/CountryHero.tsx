@@ -13,6 +13,7 @@ import southSudanImg from "@/assets/destinations/south-sudan.jpg";
 import ivoryCoastImg from "@/assets/destinations/ivory-coast.jpg";
 import japanImg from "@/assets/destinations/japan.jpg";
 import canadaImg from "@/assets/destinations/canada.jpg";
+import pakistanImg from "@/assets/destinations/pakistan.jpg";
 
 // Country hero images mapping
 const countryHeroImages: Record<string, string> = {
@@ -31,6 +32,7 @@ const countryHeroImages: Record<string, string> = {
   "cote-d-ivoire": ivoryCoastImg,
   "japan": japanImg,
   "canada": canadaImg,
+  "pakistan": pakistanImg,
   // Reliable Unsplash URLs for other destinations
   "united-states": "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=1200&h=400&fit=crop&q=80",
   "united-kingdom": "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&h=400&fit=crop&q=80",

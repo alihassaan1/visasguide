@@ -690,39 +690,50 @@ Return ONLY valid JSON.`;
           try {
             const cleanResult = result.replace(/```json\n?|\n?```/g, '').trim();
             enrichedData = JSON.parse(cleanResult);
+            console.log(`📋 DeepSeek response for ${entityName}:`, JSON.stringify(enrichedData));
           } catch (parseError) {
             console.error('JSON parse error:', parseError, 'Raw:', result);
             continue;
           }
 
-          // Update visa requirement with enriched data
+          // Update visa requirement with enriched data (use != null to catch undefined too)
           const updates: any = {};
-          if (enrichedData.fee_usd !== null && visa.fee_usd === null) {
-            updates.fee_usd = enrichedData.fee_usd;
+          if (enrichedData.fee_usd != null && visa.fee_usd === null) {
+            updates.fee_usd = Number(enrichedData.fee_usd);
           }
-          if (enrichedData.processing_time_days !== null && visa.processing_time_days === null) {
-            updates.processing_time_days = enrichedData.processing_time_days;
+          if (enrichedData.processing_time_days != null && visa.processing_time_days === null) {
+            updates.processing_time_days = Number(enrichedData.processing_time_days);
           }
-          if (enrichedData.max_stay_days !== null && visa.max_stay_days === null) {
-            updates.max_stay_days = enrichedData.max_stay_days;
+          if (enrichedData.max_stay_days != null && visa.max_stay_days === null) {
+            updates.max_stay_days = Number(enrichedData.max_stay_days);
           }
           if (enrichedData.notes && !visa.notes) {
-            updates.notes = enrichedData.notes.substring(0, 200);
+            updates.notes = String(enrichedData.notes).substring(0, 200);
           }
 
+          // Also update last_updated timestamp
           if (Object.keys(updates).length > 0) {
-            await supabase
+            updates.last_updated = new Date().toISOString();
+            
+            const { error: updateError } = await supabase
               .from('visa_requirements')
               .update(updates)
               .eq('id', visa.id);
 
-            logs.push({
-              entity: entityName,
-              type: 'visa_enrichment',
-              status: 'success',
-              fields_updated: Object.keys(updates)
-            });
-            console.log(`✅ Enriched: ${entityName}`, updates);
+            if (updateError) {
+              console.error(`❌ Update failed for ${entityName}:`, updateError);
+              logs.push({ entity: entityName, type: 'visa_enrichment', status: 'error', error: updateError.message });
+            } else {
+              logs.push({
+                entity: entityName,
+                type: 'visa_enrichment',
+                status: 'success',
+                fields_updated: Object.keys(updates)
+              });
+              console.log(`✅ Enriched: ${entityName}`, updates);
+            }
+          } else {
+            console.log(`⚠️ No updates for ${entityName} - DeepSeek returned: fee=${enrichedData.fee_usd}, proc=${enrichedData.processing_time_days}, stay=${enrichedData.max_stay_days}`);
           }
 
           // Rate limit delay

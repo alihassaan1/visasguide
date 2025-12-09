@@ -13,6 +13,38 @@ import { supabase } from "@/integrations/supabase/client";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
 import { useState } from "react";
 
+// Import country images
+import angolaImg from "@/assets/destinations/angola.jpg";
+import polandImg from "@/assets/destinations/poland.jpg";
+import hungaryImg from "@/assets/destinations/hungary.jpg";
+import slovakiaImg from "@/assets/destinations/slovakia.jpg";
+import lithuaniaImg from "@/assets/destinations/lithuania.jpg";
+import sloveniaImg from "@/assets/destinations/slovenia.jpg";
+import southKoreaImg from "@/assets/destinations/south-korea.jpg";
+import icelandImg from "@/assets/destinations/iceland.jpg";
+import southSudanImg from "@/assets/destinations/south-sudan.jpg";
+import ivoryCoastImg from "@/assets/destinations/ivory-coast.jpg";
+import japanImg from "@/assets/destinations/japan.jpg";
+import canadaImg from "@/assets/destinations/canada.jpg";
+import pakistanImg from "@/assets/destinations/pakistan.jpg";
+import defaultImg from "@/assets/hero-travel.jpg";
+
+const countryImages: Record<string, string> = {
+  'angola': angolaImg,
+  'poland': polandImg,
+  'hungary': hungaryImg,
+  'slovakia': slovakiaImg,
+  'lithuania': lithuaniaImg,
+  'slovenia': sloveniaImg,
+  'south-korea': southKoreaImg,
+  'iceland': icelandImg,
+  'south-sudan': southSudanImg,
+  'ivory-coast': ivoryCoastImg,
+  'japan': japanImg,
+  'canada': canadaImg,
+  'pakistan': pakistanImg,
+};
+
 const regions = [
   { name: "All", label: "All Regions", icon: "🌍" },
   { name: "Europe", label: "Europe", icon: "🇪🇺" },
@@ -31,16 +63,12 @@ const Countries = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"map" | "list">("map");
 
-  // Fetch countries with search stats
   const { data: countries = [], isLoading } = useQuery({
     queryKey: ["countries-list", selectedRegion, searchQuery],
     queryFn: async () => {
       let query = supabase
         .from("countries")
-        .select(`
-          *,
-          search_stats(search_count, page_view_count)
-        `)
+        .select(`*, search_stats(search_count, page_view_count)`)
         .order("name");
 
       if (selectedRegion !== "All") {
@@ -69,7 +97,10 @@ const Countries = () => {
     navigate(`/countries/${country.slug}`);
   };
 
-  // Calculate total stats
+  const getCountryImage = (slug: string) => {
+    return countryImages[slug] || defaultImg;
+  };
+
   const totalSearches = countries.reduce(
     (sum, c) => sum + (c.search_stats?.[0]?.search_count || 0),
     0
@@ -86,7 +117,6 @@ const Countries = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-8">
-        {/* SEO Header */}
         <div className="text-center space-y-4 mb-8">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground">
             Visa Requirements by Country
@@ -96,7 +126,6 @@ const Countries = () => {
           </p>
         </div>
 
-        {/* View Toggle */}
         <div className="flex justify-center mb-6">
           <div className="inline-flex items-center gap-2 p-1 bg-muted rounded-lg">
             <Button
@@ -135,7 +164,6 @@ const Countries = () => {
           </div>
         ) : (
           <>
-            {/* Search */}
             <div className="max-w-2xl mx-auto mb-8">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -148,7 +176,6 @@ const Countries = () => {
               </div>
             </div>
 
-            {/* Region Filter Chips */}
             <div className="mb-12">
               <div className="flex flex-wrap items-center gap-3 justify-center">
                 <span className="text-sm text-muted-foreground font-medium">Filter by Region:</span>
@@ -162,7 +189,7 @@ const Countries = () => {
                         : "bg-card text-foreground border-border hover:border-primary hover:shadow-sm"
                     }`}
                   >
-                    <span className="text-lg" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>{region.icon}</span>
+                    <span className="text-lg">{region.icon}</span>
                     <span className="text-sm font-medium">{region.label}</span>
                     {selectedRegion === region.name && region.name !== "All" && (
                       <X className="h-3 w-3" />
@@ -172,13 +199,10 @@ const Countries = () => {
               </div>
             </div>
 
-            {/* Countries List */}
             <section className="mb-16">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-3xl font-bold text-foreground">
-                  {selectedRegion === "All"
-                    ? "All Countries"
-                    : `${selectedRegion} Countries`}
+                  {selectedRegion === "All" ? "All Countries" : `${selectedRegion} Countries`}
                 </h2>
                 <div className="text-sm text-muted-foreground">
                   {countries.length} {countries.length === 1 ? "country" : "countries"} found
@@ -188,9 +212,11 @@ const Countries = () => {
               {isLoading ? (
                 <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-6">
                   {[...Array(9)].map((_, i) => (
-                    <Card key={i} className="animate-pulse">
-                      <CardContent className="p-6">
-                        <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <Card key={i} className="animate-pulse overflow-hidden">
+                      <div className="h-40 bg-muted" />
+                      <CardContent className="p-4">
+                        <div className="h-6 bg-muted rounded mb-2" />
+                        <div className="h-4 bg-muted rounded w-2/3" />
                       </CardContent>
                     </Card>
                   ))}
@@ -199,41 +225,50 @@ const Countries = () => {
                 <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-6">
                   {countries.map((country) => (
                     <Link key={country.id} to={`/countries/${country.slug}`}>
-                      <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-card hover:-translate-y-1 h-full">
-                        <CardContent className="p-6">
-                          <div className="flex items-center gap-4 mb-3">
-                            <span className="text-5xl" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
-                              {country.flag_emoji || countryCodeToFlagEmoji(country.code) || "🏳️"}
-                            </span>
-                            <div className="flex-1">
-                              <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
+                      <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-card hover:-translate-y-1 h-full overflow-hidden">
+                        <div className="relative h-40 overflow-hidden">
+                          <img
+                            src={getCountryImage(country.slug)}
+                            alt={`${country.name} destination`}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = defaultImg;
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                          <div className="absolute bottom-3 left-3 right-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-3xl" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>
+                                {country.flag_emoji || countryCodeToFlagEmoji(country.code) || "🏳️"}
+                              </span>
+                              <h3 className="text-lg font-bold text-white drop-shadow-lg">
                                 {country.name}
                               </h3>
-                              <p className="text-sm text-muted-foreground">{country.region}</p>
                             </div>
                           </div>
+                        </div>
+                        <CardContent className="p-4">
                           <div className="space-y-2 text-sm">
+                            <p className="text-muted-foreground">{country.region}</p>
                             {country.capital && (
                               <div className="flex items-center gap-2">
                                 <MapPin className="h-3 w-3 text-muted-foreground" />
                                 <span className="text-muted-foreground">Capital: {country.capital}</span>
                               </div>
                             )}
-                            {country.search_stats?.[0]?.page_view_count > 0 && (
-                              <div className="flex items-center gap-2">
-                                <Users className="h-3 w-3 text-accent" />
-                                <span className="text-muted-foreground">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {country.search_stats?.[0]?.page_view_count > 0 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  <Users className="h-3 w-3 mr-1" />
                                   {country.search_stats[0].page_view_count.toLocaleString()} views
-                                </span>
-                              </div>
-                            )}
-                            {country.visa_free_destinations && (
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="text-xs">
-                                  {country.visa_free_destinations} visa-free destinations
                                 </Badge>
-                              </div>
-                            )}
+                              )}
+                              {country.visa_free_destinations && (
+                                <Badge variant="outline" className="text-xs">
+                                  {country.visa_free_destinations} visa-free
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -244,11 +279,7 @@ const Countries = () => {
                 <div className="text-center py-12">
                   <p className="text-muted-foreground text-lg">No countries found.</p>
                   {searchQuery && (
-                    <Button
-                      variant="outline"
-                      className="mt-4"
-                      onClick={() => setSearchQuery("")}
-                    >
+                    <Button variant="outline" className="mt-4" onClick={() => setSearchQuery("")}>
                       Clear search
                     </Button>
                   )}
@@ -258,7 +289,6 @@ const Countries = () => {
           </>
         )}
 
-        {/* Quick Stats */}
         <section>
           <Card className="bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
             <CardContent className="p-8">

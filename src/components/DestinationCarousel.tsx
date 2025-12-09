@@ -3,27 +3,77 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 
-// Country landmark images
+// Import local destination images
+import angolaImg from "@/assets/destinations/angola.jpg";
+import polandImg from "@/assets/destinations/poland.jpg";
+import hungaryImg from "@/assets/destinations/hungary.jpg";
+import slovakiaImg from "@/assets/destinations/slovakia.jpg";
+import lithuaniaImg from "@/assets/destinations/lithuania.jpg";
+import sloveniaImg from "@/assets/destinations/slovenia.jpg";
+import southKoreaImg from "@/assets/destinations/south-korea.jpg";
+import icelandImg from "@/assets/destinations/iceland.jpg";
+import southSudanImg from "@/assets/destinations/south-sudan.jpg";
+import ivoryCoastImg from "@/assets/destinations/ivory-coast.jpg";
+import japanImg from "@/assets/destinations/japan.jpg";
+import canadaImg from "@/assets/destinations/canada.jpg";
+
+// Country landmark images - local imports for generated images, Unsplash for common ones
 const countryImages: Record<string, string> = {
-  "united-states": "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=400&h=500&fit=crop",
-  "united-kingdom": "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400&h=500&fit=crop",
-  "united-arab-emirates": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400&h=500&fit=crop",
-  "france": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&h=500&fit=crop",
-  "germany": "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=400&h=500&fit=crop",
-  "japan": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400&h=500&fit=crop",
-  "australia": "https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?w=400&h=500&fit=crop",
-  "canada": "https://images.unsplash.com/photo-1517935706615-2717063c2225?w=400&h=500&fit=crop",
-  "italy": "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?w=400&h=500&fit=crop",
-  "spain": "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=400&h=500&fit=crop",
-  "thailand": "https://images.unsplash.com/photo-1528181304800-259b08848526?w=400&h=500&fit=crop",
-  "singapore": "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=400&h=500&fit=crop",
-  "india": "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=400&h=500&fit=crop",
-  "china": "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=400&h=500&fit=crop",
-  "brazil": "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=400&h=500&fit=crop",
-  "mexico": "https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?w=400&h=500&fit=crop",
+  // Generated local images
+  "angola": angolaImg,
+  "poland": polandImg,
+  "hungary": hungaryImg,
+  "slovakia": slovakiaImg,
+  "lithuania": lithuaniaImg,
+  "slovenia": sloveniaImg,
+  "south-korea": southKoreaImg,
+  "korea-south": southKoreaImg,
+  "iceland": icelandImg,
+  "south-sudan": southSudanImg,
+  "ivory-coast": ivoryCoastImg,
+  "cote-d-ivoire": ivoryCoastImg,
+  "japan": japanImg,
+  "canada": canadaImg,
+  // Reliable Unsplash URLs for other popular destinations
+  "united-states": "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=400&h=500&fit=crop&q=80",
+  "united-kingdom": "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400&h=500&fit=crop&q=80",
+  "united-arab-emirates": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400&h=500&fit=crop&q=80",
+  "france": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&h=500&fit=crop&q=80",
+  "germany": "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=400&h=500&fit=crop&q=80",
+  "australia": "https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?w=400&h=500&fit=crop&q=80",
+  "italy": "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?w=400&h=500&fit=crop&q=80",
+  "spain": "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=400&h=500&fit=crop&q=80",
+  "thailand": "https://images.unsplash.com/photo-1528181304800-259b08848526?w=400&h=500&fit=crop&q=80",
+  "singapore": "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=400&h=500&fit=crop&q=80",
+  "india": "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=400&h=500&fit=crop&q=80",
+  "china": "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=400&h=500&fit=crop&q=80",
+  "brazil": "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=400&h=500&fit=crop&q=80",
+  "mexico": "https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?w=400&h=500&fit=crop&q=80",
+  "netherlands": "https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=400&h=500&fit=crop&q=80",
+  "switzerland": "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?w=400&h=500&fit=crop&q=80",
+  "portugal": "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=400&h=500&fit=crop&q=80",
+  "greece": "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=400&h=500&fit=crop&q=80",
+  "turkey": "https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?w=400&h=500&fit=crop&q=80",
+  "egypt": "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=400&h=500&fit=crop&q=80",
+  "south-africa": "https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=400&h=500&fit=crop&q=80",
+  "new-zealand": "https://images.unsplash.com/photo-1469521669194-babb45599def?w=400&h=500&fit=crop&q=80",
+  "russia": "https://images.unsplash.com/photo-1513326738677-b964603b136d?w=400&h=500&fit=crop&q=80",
+  "austria": "https://images.unsplash.com/photo-1516550893923-42d28e5677af?w=400&h=500&fit=crop&q=80",
+  "belgium": "https://images.unsplash.com/photo-1491557345352-5929e343eb89?w=400&h=500&fit=crop&q=80",
+  "ireland": "https://images.unsplash.com/photo-1590089415225-401ed6f9db8e?w=400&h=500&fit=crop&q=80",
+  "sweden": "https://images.unsplash.com/photo-1509356843151-3e7d96241e11?w=400&h=500&fit=crop&q=80",
+  "norway": "https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=400&h=500&fit=crop&q=80",
+  "denmark": "https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=400&h=500&fit=crop&q=80",
+  "finland": "https://images.unsplash.com/photo-1538332576228-eb5b4c4de6f5?w=400&h=500&fit=crop&q=80",
+  "czech-republic": "https://images.unsplash.com/photo-1541849546-216549ae216d?w=400&h=500&fit=crop&q=80",
+  "malaysia": "https://images.unsplash.com/photo-1508062878650-88b52897f298?w=400&h=500&fit=crop&q=80",
+  "vietnam": "https://images.unsplash.com/photo-1557750255-c76072a7aad1?w=400&h=500&fit=crop&q=80",
+  "indonesia": "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&h=500&fit=crop&q=80",
+  "philippines": "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=400&h=500&fit=crop&q=80",
 };
 
-const defaultImage = "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=500&fit=crop";
+// Default travel image
+const defaultImage = "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=500&fit=crop&q=80";
 
 const DestinationCarousel = () => {
   const { data: destinations = [], isLoading } = useQuery({
@@ -93,7 +143,7 @@ const DestinationCarousel = () => {
           </Link>
         </div>
 
-        {/* Grid-based layout instead of carousel */}
+        {/* Grid-based layout */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
           {destinations.slice(0, 12).map((destination) => (
             <Link key={destination.id} to={`/countries/${destination.slug}`} className="block group">
@@ -104,14 +154,20 @@ const DestinationCarousel = () => {
                   alt={`${destination.name} travel destination`}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   loading="lazy"
+                  onError={(e) => {
+                    // Fallback to default image on error
+                    (e.target as HTMLImageElement).src = defaultImage;
+                  }}
                 />
                 
                 {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 
-                {/* Country Flag - Top Left */}
+                {/* Country Code - Top Left */}
                 <div className="absolute top-3 left-3">
-                  <span className="text-2xl drop-shadow-lg">{destination.flag_emoji}</span>
+                  <span className="bg-black/40 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded">
+                    {destination.code}
+                  </span>
                 </div>
                 
                 {/* Visa Free Badge - Top Right */}
@@ -129,10 +185,7 @@ const DestinationCarousel = () => {
                     {destination.name}
                   </h3>
                   <p className="text-white/70 text-xs md:text-sm">
-                    {destination.totalActivity > 0 
-                      ? `${destination.totalActivity.toLocaleString()} searches`
-                      : "Explore visa info"
-                    }
+                    Explore visa info
                   </p>
                 </div>
               </div>

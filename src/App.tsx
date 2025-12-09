@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import StickyNewsletterCTA from "@/components/StickyNewsletterCTA";
+import ScrollToTop from "@/components/ScrollToTop";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import Index from "./pages/Index";
@@ -67,6 +68,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <GoogleAnalytics />
         <StickyNewsletterCTA />
         <Routes>

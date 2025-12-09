@@ -421,7 +421,7 @@ const CountryGuide = () => {
                   Select your passport country to see exact visa requirements
                 </p>
               </div>
-              <Link to="/visa-requirements" className="shrink-0">
+              <Link to="/visa-search" className="shrink-0">
                 <button className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors whitespace-nowrap">
                   Check Requirements →
                 </button>

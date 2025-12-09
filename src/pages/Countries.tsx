@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Users, X, Globe, List, Map as MapIcon } from "lucide-react";
+import { Search, MapPin, Users, X, List, Map as MapIcon } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
@@ -11,7 +11,7 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const regions = [
   { name: "All", label: "All Regions", icon: "🌍" },
@@ -30,21 +30,6 @@ const Countries = () => {
   const selectedRegion = searchParams.get("region") || "All";
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"map" | "list">("map");
-  const [mapboxToken, setMapboxToken] = useState<string>("");
-
-  // Load Mapbox token from localStorage
-  useEffect(() => {
-    const savedToken = localStorage.getItem("mapbox_token");
-    if (savedToken) {
-      setMapboxToken(savedToken);
-    }
-  }, []);
-
-  // Save Mapbox token to localStorage
-  const handleTokenSave = (token: string) => {
-    localStorage.setItem("mapbox_token", token);
-    setMapboxToken(token);
-  };
 
   // Fetch countries with search stats
   const { data: countries = [], isLoading } = useQuery({
@@ -136,59 +121,18 @@ const Countries = () => {
         </div>
 
         {viewMode === "map" ? (
-          <>
-            {/* Mapbox Token Input (if not set) */}
-            {!mapboxToken ? (
-              <Card className="mb-8">
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center text-center space-y-4">
-                    <Globe className="h-12 w-12 text-muted-foreground" />
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Enable Interactive Map</h3>
-                      <p className="text-muted-foreground text-sm mb-4 max-w-md">
-                        To view the interactive world map, please enter your Mapbox public token. 
-                        You can get one free at <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">mapbox.com</a>
-                      </p>
-                    </div>
-                    <div className="flex gap-2 w-full max-w-md">
-                      <Input
-                        type="text"
-                        placeholder="Enter your Mapbox public token..."
-                        id="mapbox-token"
-                        className="flex-1"
-                      />
-                      <Button onClick={() => {
-                        const input = document.getElementById("mapbox-token") as HTMLInputElement;
-                        if (input?.value) {
-                          handleTokenSave(input.value);
-                        }
-                      }}>
-                        Enable Map
-                      </Button>
-                    </div>
-                    <Button variant="link" size="sm" onClick={() => setViewMode("list")}>
-                      Or browse countries in list view →
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              /* Interactive Map */
-              <div className="mb-8">
-                <WorldVisaMap
-                  countries={countries.map(c => ({
-                    id: c.id,
-                    name: c.name,
-                    code: c.code,
-                    slug: c.slug,
-                    flag_emoji: c.flag_emoji || countryCodeToFlagEmoji(c.code) || "🏳️",
-                  }))}
-                  onCountryClick={handleCountryClick}
-                  apiKey={mapboxToken}
-                />
-              </div>
-            )}
-          </>
+          <div className="mb-8">
+            <WorldVisaMap
+              countries={countries.map(c => ({
+                id: c.id,
+                name: c.name,
+                code: c.code,
+                slug: c.slug,
+                flag_emoji: c.flag_emoji || countryCodeToFlagEmoji(c.code) || "🏳️",
+              }))}
+              onCountryClick={handleCountryClick}
+            />
+          </div>
         ) : (
           <>
             {/* Search */}

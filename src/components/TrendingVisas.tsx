@@ -41,82 +41,58 @@ const TrendingVisas = () => {
   if (isLoading || trending.length === 0) return null;
 
   return (
-    <section className="py-12 bg-gradient-to-br from-accent/5 via-background to-primary/5">
+    <section className="py-12 bg-muted/30">
       <div className="container mx-auto px-4">
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 text-accent border border-accent/20 mb-4">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="inline-flex items-center gap-2 text-primary mb-2">
               <TrendingUp className="h-4 w-4" />
               <span className="text-sm font-semibold">Trending Now</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
-              Most Searched Visa Guides
+            <h2 className="text-2xl font-bold text-foreground">
+              Most Searched Destinations
             </h2>
-            <p className="text-lg text-muted-foreground">
-              Popular destinations travelers are researching right now
-            </p>
           </div>
-
-          {/* Trending Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {trending.map((country, index) => (
-              <Link
-                key={country.id}
-                to={`/countries/${country.slug}`}
-                className="group relative"
-              >
-                <div className="relative overflow-hidden rounded-xl border border-border bg-card p-6 hover:shadow-xl hover:border-primary transition-all duration-300 hover:-translate-y-1">
-                  {/* Rank Badge */}
-                  <div className="absolute top-3 right-3">
-                    <div className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold">
-                      #{index + 1}
-                    </div>
-                  </div>
-
-                  {/* Flag */}
-                  <div className="flex justify-center mb-4">
-                    <span className="text-6xl font-emoji group-hover:scale-110 transition-transform duration-300">
-                      {country.flag_emoji || countryCodeToFlagEmoji(country.code) || "🏳️"}
-                    </span>
-                  </div>
-
-                  {/* Country Name */}
-                  <h3 className="text-center font-semibold text-foreground group-hover:text-primary transition-colors mb-2">
-                    {country.name}
-                  </h3>
-
-                  {/* Activity Stats */}
-                  {country.search_stats?.[0] && (
-                    <div className="text-center text-xs text-muted-foreground">
-                      {(
-                        country.search_stats[0].search_count +
-                        country.search_stats[0].page_view_count
-                      ).toLocaleString()}{" "}
-                      searches
-                    </div>
-                  )}
-
-                  {/* Hover Arrow */}
-                  <div className="flex justify-center mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ArrowRight className="h-4 w-4 text-primary" />
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {/* View All Link */}
-          <div className="text-center mt-8">
-            <Link
-              to="/countries"
-              className="inline-flex items-center text-primary hover:text-primary-dark font-medium text-base group"
-            >
-              Explore all countries
-              <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
+          <Link
+            to="/countries"
+            className="hidden sm:flex items-center text-primary hover:text-primary/80 font-medium text-sm group"
+          >
+            View All
+            <ArrowRight className="ml-1 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
         </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          {trending.map((country, index) => (
+            <Link
+              key={country.id}
+              to={`/countries/${country.slug}`}
+              className="group"
+            >
+              <div className="relative rounded-xl border border-border bg-card p-4 hover:shadow-lg hover:border-primary/50 transition-all duration-200 text-center">
+                <div className="absolute top-2 right-2">
+                  <span className="text-xs font-bold text-muted-foreground">#{index + 1}</span>
+                </div>
+
+                <span className="text-4xl mb-2 block group-hover:scale-110 transition-transform duration-200">
+                  {country.flag_emoji || countryCodeToFlagEmoji(country.code) || "🏳️"}
+                </span>
+
+                <h3 className="font-semibold text-foreground text-sm group-hover:text-primary transition-colors">
+                  {country.name}
+                </h3>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        <Link
+          to="/countries"
+          className="sm:hidden flex items-center justify-center text-primary hover:text-primary/80 font-medium text-sm mt-4 group"
+        >
+          View All Countries
+          <ArrowRight className="ml-1 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+        </Link>
       </div>
     </section>
   );

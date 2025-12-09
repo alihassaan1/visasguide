@@ -4,9 +4,8 @@ import Footer from "@/components/Footer";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import SEOHead from "@/components/SEOHead";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
-import LatestBlogPosts from "@/components/LatestBlogPosts";
-import CountryGuidesGrid from "@/components/CountryGuidesGrid";
-import SEOKeywordsSection from "@/components/SEOKeywordsSection";
+import TrendingVisas from "@/components/TrendingVisas";
+import QuickLinks from "@/components/QuickLinks";
 
 const Index = () => {
   return (
@@ -50,11 +49,10 @@ const Index = () => {
       
       <main>
         <HeroSection />
+        <TrendingVisas />
         
         <div className="container mx-auto px-4">
-          <LatestBlogPosts />
-          <CountryGuidesGrid />
-          <SEOKeywordsSection />
+          <QuickLinks />
           
           <div className="py-12">
             <NewsletterSignup variant="default" />

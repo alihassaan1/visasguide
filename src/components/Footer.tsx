@@ -93,7 +93,10 @@ const Footer = () => {
                   <>
                     <li><Link to="/countries/united-states" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">United States</Link></li>
                     <li><Link to="/countries/united-kingdom" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">United Kingdom</Link></li>
-                    <li><Link to="/countries/schengen" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Schengen Countries</Link></li>
+                    <li><Link to="/schengen-visa-guide" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Schengen Countries</Link></li>
+                    <li><Link to="/countries/germany" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Germany</Link></li>
+                    <li><Link to="/countries/united-arab-emirates" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">UAE</Link></li>
+                    <li><Link to="/countries/canada" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Canada</Link></li>
                   </>
                 )}
               </ul>
@@ -136,8 +139,8 @@ const Footer = () => {
                 ) : (
                   <>
                     <li><Link to="/requirements" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Visa Requirements</Link></li>
-                    <li><Link to="/guides" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Application Guides</Link></li>
-                    <li><Link to="/processing-times" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Processing Times</Link></li>
+                    <li><Link to="/blog" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Travel Blog</Link></li>
+                    <li><Link to="/passport-index" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Passport Rankings</Link></li>
                     <li><a href="https://visas.guide/feed" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors inline-flex items-center gap-1">
                       RSS Feed
                       <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

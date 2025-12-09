@@ -73,14 +73,14 @@ const TabbedLinksSection = () => {
                 to={`/countries/${country.slug}`}
                 className="group bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-3 hover:border-primary/50 hover:bg-card hover:shadow-lg transition-all duration-300"
               >
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2">
                   <span className="text-xl">{country.flag_emoji || "🏳️"}</span>
                   <span className="font-medium text-foreground text-sm truncate group-hover:text-primary transition-colors">
                     {country.name}
                   </span>
                 </div>
-                {country.visa_free_destinations && (
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                {country.visa_free_destinations && country.visa_free_destinations > 0 && (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
                       {country.visa_free_destinations} visa-free
                     </span>

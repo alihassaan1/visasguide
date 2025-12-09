@@ -171,7 +171,7 @@ const DestinationCarousel = () => {
                 </div>
                 
                 {/* Visa Free Badge - Top Right */}
-                {destination.visa_free_destinations && (
+                {destination.visa_free_destinations && destination.visa_free_destinations > 0 && (
                   <div className="absolute top-3 right-3">
                     <span className="bg-visa-success/90 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
                       {destination.visa_free_destinations} visa-free

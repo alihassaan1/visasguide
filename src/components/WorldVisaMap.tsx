@@ -15,13 +15,15 @@ interface Country {
   flag_emoji: string;
 }
 
+// Default Mapbox public token - free tier usage only
+const DEFAULT_MAPBOX_TOKEN = 'pk.eyJ1IjoiaW1ha2UiLCJhIjoiY21peXFwbGR6MGY1djNjczRoY3M5N3NhaiJ9.6Rl3YK4qRdutrx7jzpptXQ';
+
 interface WorldVisaMapProps {
   countries: Country[];
   onCountryClick?: (country: Country) => void;
-  apiKey?: string;
 }
 
-const WorldVisaMap: React.FC<WorldVisaMapProps> = ({ countries, onCountryClick, apiKey }) => {
+const WorldVisaMap: React.FC<WorldVisaMapProps> = ({ countries, onCountryClick }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const popup = useRef<mapboxgl.Popup | null>(null);
@@ -29,9 +31,9 @@ const WorldVisaMap: React.FC<WorldVisaMapProps> = ({ countries, onCountryClick, 
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!mapContainer.current || !apiKey) return;
+    if (!mapContainer.current) return;
 
-    mapboxgl.accessToken = apiKey;
+    mapboxgl.accessToken = DEFAULT_MAPBOX_TOKEN;
     
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -188,7 +190,7 @@ const WorldVisaMap: React.FC<WorldVisaMapProps> = ({ countries, onCountryClick, 
     return () => {
       map.current?.remove();
     };
-  }, [countries, onCountryClick, apiKey]);
+  }, [countries, onCountryClick]);
 
   return (
     <div className="relative w-full h-[600px] sm:h-[700px] lg:h-[800px]">

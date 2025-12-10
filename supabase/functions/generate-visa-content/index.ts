@@ -21,6 +21,12 @@ const COUNTRY_ABBREVIATIONS: Record<string, string[]> = {
   'antigua-and-barbuda': ['Antigua', 'Antigua and Barbuda'],
 };
 
+interface Author {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 function getCTROptimizedName(slug: string, name: string): string {
   const abbrevs = COUNTRY_ABBREVIATIONS[slug];
   if (abbrevs && abbrevs.length > 0) {
@@ -32,7 +38,8 @@ function getCTROptimizedName(slug: string, name: string): string {
 function generateVisaRequirementsPrompt(
   fromCountry: { name: string; slug: string },
   toCountry: { name: string; slug: string },
-  visaData: { requirement_type?: string; fee_usd?: number; processing_time_days?: number; max_stay_days?: number; notes?: string } | null
+  visaData: { requirement_type?: string; fee_usd?: number; processing_time_days?: number; max_stay_days?: number; notes?: string } | null,
+  authorName: string
 ): string {
   const fromCTR = getCTROptimizedName(fromCountry.slug, fromCountry.name);
   const toCTR = getCTROptimizedName(toCountry.slug, toCountry.name);
@@ -42,36 +49,21 @@ function generateVisaRequirementsPrompt(
   const processing = visaData?.processing_time_days ? `${visaData.processing_time_days} days` : 'varies';
   const maxStay = visaData?.max_stay_days ? `${visaData.max_stay_days} days` : 'varies';
 
-  // Use varied opening phrases to avoid repetition
-  const openings = [
-    "So you're planning a trip",
-    "Thinking about visiting",
-    "Got your heart set on",
-    "Ready to explore",
-    "Planning your adventure to"
-  ];
-  const randomOpening = openings[Math.floor(Math.random() * openings.length)];
+  return `You are ${authorName}, a travel journalist writing about ${toCTR} visa requirements for ${fromCTR} citizens.
 
-  return `You're writing for a travel blog read by real travelers. Write about ${toCTR} visa requirements for ${fromCTR} citizens.
-
-CRITICAL - HUMAN WRITING RULES (Google will penalize AI-sounding content):
-- Write like a travel blogger sharing personal experience, not an encyclopedia
-- Use contractions ALWAYS: "you'll", "don't", "it's", "can't", "won't", "there's"
-- Start sentences with "And", "But", "So", "Plus" occasionally - humans do this
-- Include slight imperfections - use dashes, parenthetical asides (like this), ellipses...
-- Vary paragraph length dramatically - some 1 sentence, some 4-5 sentences
-- Use informal phrases: "honestly", "to be fair", "here's the thing", "quick heads up"
-- Add specific details that feel researched: embassy addresses, exact fees, real timelines
-- Include first-person touches: "I've seen travelers...", "What works best is...", "A lot of people miss this..."
-- NEVER use: "It is important to note", "Furthermore", "Additionally", "In conclusion", "One should", "It is recommended"
-- NEVER start paragraphs with "When" or "If" repeatedly
-- Avoid passive voice - say "You need" not "It is required"
-
-SENTENCE VARIETY (mix these):
-- Short punchy: "Simple enough."
-- Questions: "Sound complicated? It's really not."
-- Commands: "Make sure you..."
-- Fragments: "The good news? No visa needed."
+CRITICAL ANTI-AI DETECTION (Google penalizes AI content):
+- Write in YOUR personal voice - "I've researched...", "What I've found...", "In my experience covering visa policies..."
+- Use contractions naturally: you'll, don't, it's, can't, we're, there's, that's, won't
+- Start some sentences with And, But, So, Plus, Now - real writers do this
+- Include parenthetical asides (readers find these helpful) and em-dashes for emphasis—like this
+- Vary paragraph lengths dramatically: some very short, others 4-5 sentences
+- AVOID bullet point lists - weave information into flowing prose instead
+- Ask rhetorical questions: "So what does this actually mean for you?"
+- Add personal observations: "Here's what caught my attention...", "The interesting part..."
+- Use specific numbers and details (not rounded estimates)
+- FORBIDDEN phrases: "It is important to note", "Furthermore", "Additionally", "In conclusion", "One should", "It should be noted", "Moving forward", "It is worth mentioning"
+- Never start consecutive paragraphs with the same word or structure
+- Mix sentence rhythm: Short and punchy. Then medium length. Occasionally a longer, more complex sentence that builds on the previous ideas.
 
 KNOWN VISA INFO:
 - Visa Type: ${visaType}
@@ -80,30 +72,20 @@ KNOWN VISA INFO:
 - Max Stay: ${maxStay}
 ${visaData?.notes ? `- Notes: ${visaData.notes}` : ''}
 
-STRUCTURE (600-800 words):
+CONTENT STRUCTURE (600-800 words, flowing prose):
+1. Hook - Answer the main question immediately (do they need a visa?)
+2. The Details - Entry type, stay duration, written conversationally in paragraphs
+3. What You'll Need - Documents, written like explaining to a friend (NO bullet lists)
+4. The Process - Application steps woven into flowing paragraphs
+5. Costs - Fees, payment info, hidden costs to watch for
+6. Insider Tips - 3-4 practical tips embedded in prose
+7. Common Questions - 2-3 FAQs in Q&A format at the end
 
-1. **Hook** - ${randomOpening} ${toCTR}? Let's break down what ${fromCTR} passport holders need.
-
-2. **Quick Answer** (2-3 sentences) - Do ${fromCTR} citizens need a visa? Answer immediately.
-
-3. **What You're Looking At** - Entry type, stay duration, written conversationally
-
-4. **The Paperwork** - Documents needed, written like you're telling a friend
-
-5. **Step by Step** - Application process in casual language
-
-6. **What It'll Cost** - Fees, payment methods, hidden costs to watch for
-
-7. **Pro Tips** - 3-4 insider tips that feel like real experience
-
-8. **Quick FAQs** - 3 questions in Q&A format
-
-TARGET KEYWORDS (weave naturally, don't force):
+TARGET KEYWORDS (weave naturally):
 - "${toCTR} visa for ${fromCTR} citizens"
 - "${fromCTR} passport ${toCTR} entry requirements"
-- "do ${fromCTR} citizens need visa for ${toCTR}"
 
-OUTPUT: Clean HTML with h2, h3, p, ul tags. Use Tailwind classes for spacing (mb-4, mt-6). NO border classes.`;
+OUTPUT: Clean HTML with <h2> (sparingly), <h3>, <p> tags. Minimize <ul>/<li> lists. Use Tailwind spacing classes (mb-4, mt-6).`;
 }
 
 serve(async (req) => {
@@ -143,6 +125,19 @@ serve(async (req) => {
     if (!apiKey) {
       throw new Error('DeepSeek API key not configured');
     }
+
+    // Fetch all active authors for random assignment
+    const { data: authors } = await supabase
+      .from('authors')
+      .select('id, name, slug')
+      .eq('is_active', true);
+
+    const authorsList: Author[] = authors || [];
+    const randomAuthor = authorsList.length > 0 
+      ? authorsList[Math.floor(Math.random() * authorsList.length)]
+      : { id: null, name: 'Visas.Guide Editorial', slug: 'editorial' };
+
+    console.log(`📝 Content will be written by: ${randomAuthor.name}`);
 
     // Get country data
     const { data: countries } = await supabase
@@ -196,24 +191,10 @@ serve(async (req) => {
       try {
         console.log('Generating destination image for', toCountry.name);
         
-        const imagePrompt = `Create a stunning, high-quality travel photograph of ${toCountry.name}'s most iconic landmark or scenic destination. 
-The image should:
-- Feature the most famous tourist attraction or natural wonder of ${toCountry.name}
-- Have golden hour or blue hour lighting for maximum visual appeal
-- Be landscape orientation suitable for a hero banner
-- Look like a professional travel magazine cover photo
-- Include architectural details, nature, or cityscape that instantly identifies ${toCountry.name}
-- Be ultra high resolution, photorealistic quality
-- Evoke wanderlust and inspire travel to ${toCountry.name}
-
-Examples of landmarks by country:
-- France: Eiffel Tower, Provence lavender fields
-- Japan: Mount Fuji, Tokyo skyline, Kyoto temples
-- Italy: Colosseum, Venice canals, Amalfi coast
-- UAE: Burj Khalifa, Dubai Marina
-- India: Taj Mahal, Jaipur palaces
-
-Create the most visually stunning image representing ${toCountry.name}.`;
+        const imagePrompt = `Create a stunning travel photograph of ${toCountry.name}'s most iconic landmark.
+Style: Professional travel magazine cover, golden hour lighting, photorealistic, landscape orientation.
+Feature: The most famous tourist attraction that instantly identifies ${toCountry.name}.
+Quality: Ultra high resolution, suitable for hero banner.`;
 
         const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
@@ -233,19 +214,16 @@ Create the most visually stunning image representing ${toCountry.name}.`;
           featuredImageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
           
           if (featuredImageUrl) {
-            console.log('✅ Destination image generated successfully');
+            console.log('✅ Destination image generated');
           }
-        } else {
-          console.log('Image generation failed:', await imageResponse.text());
         }
       } catch (imageError) {
         console.error('Image generation error:', imageError);
-        // Continue without image - content is more important
       }
     }
 
-    // Generate content using DeepSeek
-    const prompt = generateVisaRequirementsPrompt(fromCountry, toCountry, visaData);
+    // Generate content using DeepSeek with author's voice
+    const prompt = generateVisaRequirementsPrompt(fromCountry, toCountry, visaData, randomAuthor.name);
     
     console.log('Calling DeepSeek API...');
     const startTime = Date.now();
@@ -262,10 +240,10 @@ Create the most visually stunning image representing ${toCountry.name}.`;
       body: JSON.stringify({
         model: 'deepseek-chat',
         messages: [
-          { role: 'system', content: 'You are a veteran travel blogger who has visited 50+ countries. Your writing is casual, helpful, and based on real travel experience. You write like you are talking to a friend over coffee - natural, occasionally imperfect, but always genuinely useful. Never sound like a corporate FAQ or AI assistant.' },
+          { role: 'system', content: `You are ${randomAuthor.name}, an experienced travel journalist with 10+ years covering visa and immigration topics. Your writing is conversational, insightful, and reads like it was written by a real person sharing their expertise. You never sound like AI or a corporate FAQ. You avoid bullet point lists and prefer flowing prose.` },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.8,
+        temperature: 0.85,
         max_tokens: 2000,
       }),
       signal: controller.signal,
@@ -285,7 +263,7 @@ Create the most visually stunning image representing ${toCountry.name}.`;
 
     console.log(`Content generated in ${responseTime}ms, tokens: ${tokensUsed}`);
 
-    // Save the content to database
+    // Save the content to database with author
     const fromCTR = getCTROptimizedName(fromCountry.slug, fromCountry.name);
     const toCTR = getCTROptimizedName(toCountry.slug, toCountry.name);
     const title = `${toCTR} Visa Requirements for ${fromCTR} Citizens`;
@@ -304,6 +282,7 @@ Create the most visually stunning image representing ${toCountry.name}.`;
         is_published: true,
         ai_generated: true,
         status: 'published',
+        writer_id: randomAuthor.id || null,
         keywords: [
           `${toCountry.name} visa`,
           `${toCountry.name} visa for ${fromCountry.name}`,
@@ -352,7 +331,8 @@ Create the most visually stunning image representing ${toCountry.name}.`;
       content: generatedContent,
       cached: false,
       tokensUsed,
-      responseTime
+      responseTime,
+      author: randomAuthor.name
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

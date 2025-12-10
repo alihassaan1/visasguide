@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Clock, ExternalLink, ArrowLeft, Share2 } from "lucide-react";
+import { Calendar, Clock, ExternalLink, ArrowLeft } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -14,6 +14,7 @@ import { formatArticleContent } from "@/lib/contentFormatter";
 import AuthorBio from "@/components/AuthorBio";
 import ArticleSchema from "@/components/ArticleSchema";
 import RelatedContent from "@/components/RelatedContent";
+import SocialShareButtons from "@/components/SocialShareButtons";
 
 const NewsArticle = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -226,24 +227,11 @@ const NewsArticle = () => {
                 )}
               </div>
               
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={handleShare}>
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share
-                </Button>
-                {article.source_url && (
-                  <a 
-                    href={article.source_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Button variant="outline" size="sm">
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Original Source
-                    </Button>
-                  </a>
-                )}
-              </div>
+              <SocialShareButtons
+                url={`https://visas.guide/blog/${article.slug}`}
+                title={article.title}
+                description={article.excerpt || undefined}
+              />
             </div>
           </header>
 
@@ -283,7 +271,7 @@ const NewsArticle = () => {
           )}
 
           {/* Author Bio - E-E-A-T Signal */}
-          <AuthorBio />
+          <AuthorBio writerId={article.writer_id} />
 
           {/* Related Content - Internal Linking */}
           <RelatedContent

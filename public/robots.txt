@@ -1,8 +1,13 @@
+# Visas.Guide - Robots.txt
+# Last updated: 2025-12-10
+
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Twitterbot
 Allow: /
@@ -10,13 +15,21 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
+User-agent: LinkedInBot
 Allow: /
 
-# Sitemaps and Feeds
-Sitemap: https://visas.guide/sitemap.xml
-Sitemap: https://awiytryceqehqapytfgn.supabase.co/functions/v1/sitemap
+User-agent: *
+Allow: /
+Crawl-delay: 2
 
-# RSS Feed for Feedspot and RSS Readers
-# Feed URL: https://visas.guide/feed
-# Subscribe page: https://visas.guide/rss
+# Disallow admin pages
+Disallow: /admin
+Disallow: /admin/*
+
+# Sitemaps - Dynamic sitemap includes all pages
+Sitemap: https://awiytryceqehqapytfgn.supabase.co/functions/v1/sitemap
+Sitemap: https://visas.guide/sitemap.xml
+
+# RSS Feeds for content discovery
+# Main RSS Feed: https://visas.guide/feed
+# Subscribe: https://visas.guide/rss

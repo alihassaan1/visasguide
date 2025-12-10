@@ -11,6 +11,9 @@ import SEOHead from "@/components/SEOHead";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { formatArticleContent } from "@/lib/contentFormatter";
+import AuthorBio from "@/components/AuthorBio";
+import ArticleSchema from "@/components/ArticleSchema";
+import RelatedContent from "@/components/RelatedContent";
 
 const NewsArticle = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -136,29 +139,17 @@ const NewsArticle = () => {
         keywords={[...(article.tags || []), ...(article.categories || []), "visa news", "travel news", "immigration updates"]}
       />
       
-      {/* SEO Meta Tags */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "NewsArticle",
-            "headline": article.title,
-            "description": article.excerpt,
-            "url": `https://visas.guide/blog/${article.slug}`,
-            "datePublished": article.published_at,
-            "dateModified": article.updated_at,
-            "author": {
-              "@type": "Organization",
-              "name": article.author || "Visas Guide"
-            },
-            "publisher": {
-              "@type": "Organization",
-              "name": "Visas Guide",
-              "url": "https://visas.guide"
-            }
-          })
-        }}
+      {/* Article Schema for SEO */}
+      <ArticleSchema
+        title={article.title}
+        description={metaDescription}
+        url={`https://visas.guide/blog/${article.slug}`}
+        imageUrl={article.featured_image_url || undefined}
+        datePublished={article.published_at || undefined}
+        dateModified={article.updated_at}
+        authorName={article.author || "Visas.Guide Editorial Team"}
+        keywords={[...(article.tags || []), ...(article.categories || [])]}
+        wordCount={article.content?.split(/\s+/).length}
       />
 
       <Header />
@@ -290,6 +281,16 @@ const NewsArticle = () => {
               </div>
             </div>
           )}
+
+          {/* Author Bio - E-E-A-T Signal */}
+          <AuthorBio />
+
+          {/* Related Content - Internal Linking */}
+          <RelatedContent
+            currentSlug={article.slug}
+            contentType="blog"
+            country={article.categories?.[0]}
+          />
         </article>
 
         {/* Newsletter Signup */}

@@ -70,3 +70,6 @@ verify_jwt = false
 
 [functions.generate-visa-content]
 verify_jwt = false
+
+[functions.generate-author-avatar]
+verify_jwt = true

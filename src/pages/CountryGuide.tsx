@@ -17,6 +17,7 @@ import CountryHero from "@/components/CountryHero";
 import AuthorBio from "@/components/AuthorBio";
 import RelatedContent from "@/components/RelatedContent";
 import ArticleSchema from "@/components/ArticleSchema";
+import SocialShareButtons from "@/components/SocialShareButtons";
 
 const CountryGuide = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
@@ -552,8 +553,17 @@ const CountryGuide = () => {
           country={country.slug}
         />
 
+        {/* Social Share Buttons */}
+        <div className="mt-8">
+          <SocialShareButtons
+            url={`https://visas.guide/countries/${country.slug}`}
+            title={`${country.name} Visa Guide`}
+            description={`Complete visa requirements and travel guide for ${country.name}`}
+          />
+        </div>
+
         {/* Author Bio - E-E-A-T Signal */}
-        <AuthorBio />
+        <AuthorBio writerId={guideContent?.writer_id} />
 
         {/* Article Schema */}
         <ArticleSchema

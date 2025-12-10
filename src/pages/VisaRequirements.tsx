@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import AuthorBio from "@/components/AuthorBio";
 import ArticleSchema from "@/components/ArticleSchema";
 import BreadcrumbSchema from "@/components/BreadcrumbSchema";
+import SocialShareButtons from "@/components/SocialShareButtons";
 
 const VisaRequirements = () => {
   const { slug } = useParams<{ slug: string }>();

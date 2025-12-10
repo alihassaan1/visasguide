@@ -58,6 +58,7 @@ import Contact from "./pages/Contact";
 import RSSFeed from "./pages/RSSFeed";
 import Feed from "./pages/Feed";
 import SchengenVisaGuide from "./pages/SchengenVisaGuide";
+import AuthorPage from "./pages/AuthorPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -95,6 +96,7 @@ const App = () => (
           <Route path="/schengen-visa-guide" element={<SchengenVisaGuide />} />
           <Route path="/rss" element={<RSSFeed />} />
           <Route path="/feed" element={<Feed />} />
+          <Route path="/author/:slug" element={<AuthorPage />} />
           <Route path="/admin/auth" element={<AdminAuth />} />
           
           {/* Admin Routes with Layout */}

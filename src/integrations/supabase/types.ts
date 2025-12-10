@@ -257,6 +257,51 @@ export type Database = {
         }
         Relationships: []
       }
+      authors: {
+        Row: {
+          articles_count: number | null
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          expertise: string[] | null
+          id: string
+          is_active: boolean | null
+          name: string
+          role: string | null
+          slug: string
+          social_links: Json | null
+          updated_at: string
+        }
+        Insert: {
+          articles_count?: number | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          expertise?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          role?: string | null
+          slug: string
+          social_links?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          articles_count?: number | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          expertise?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          role?: string | null
+          slug?: string
+          social_links?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       content_events: {
         Row: {
           content_page_id: string | null
@@ -341,6 +386,7 @@ export type Database = {
           title: string
           updated_at: string
           view_count: number | null
+          writer_id: string | null
         }
         Insert: {
           ai_generated?: boolean
@@ -359,6 +405,7 @@ export type Database = {
           title: string
           updated_at?: string
           view_count?: number | null
+          writer_id?: string | null
         }
         Update: {
           ai_generated?: boolean
@@ -377,8 +424,17 @@ export type Database = {
           title?: string
           updated_at?: string
           view_count?: number | null
+          writer_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "content_pages_writer_id_fkey"
+            columns: ["writer_id"]
+            isOneToOne: false
+            referencedRelation: "authors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       countries: {
         Row: {
@@ -789,6 +845,7 @@ export type Database = {
           tags: string[] | null
           title: string
           updated_at: string
+          writer_id: string | null
         }
         Insert: {
           ai_generated?: boolean
@@ -814,6 +871,7 @@ export type Database = {
           tags?: string[] | null
           title: string
           updated_at?: string
+          writer_id?: string | null
         }
         Update: {
           ai_generated?: boolean
@@ -839,6 +897,7 @@ export type Database = {
           tags?: string[] | null
           title?: string
           updated_at?: string
+          writer_id?: string | null
         }
         Relationships: [
           {
@@ -846,6 +905,13 @@ export type Database = {
             columns: ["rss_feed_id"]
             isOneToOne: false
             referencedRelation: "rss_feeds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "news_articles_writer_id_fkey"
+            columns: ["writer_id"]
+            isOneToOne: false
+            referencedRelation: "authors"
             referencedColumns: ["id"]
           },
         ]

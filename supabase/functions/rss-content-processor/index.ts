@@ -24,6 +24,12 @@ interface QueueItem {
   retry_count: number;
 }
 
+interface Author {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -53,6 +59,15 @@ serve(async (req) => {
   try {
     console.log("[RSS Processor] Starting content processing...");
 
+    // Fetch all active authors for random assignment
+    const { data: authors } = await supabase
+      .from("authors")
+      .select("id, name, slug")
+      .eq("is_active", true);
+
+    const authorsList: Author[] = authors || [];
+    console.log(`[RSS Processor] Found ${authorsList.length} authors for assignment`);
+
     // Fetch pending items
     const { data: pendingItems, error: fetchError } = await supabase
       .from("rss_article_queue")
@@ -80,7 +95,12 @@ serve(async (req) => {
 
     for (const item of pendingItems as QueueItem[]) {
       try {
-        console.log(`[RSS Processor] Processing: ${item.original_title.substring(0, 50)}...`);
+        // Randomly select an author
+        const randomAuthor = authorsList.length > 0 
+          ? authorsList[Math.floor(Math.random() * authorsList.length)]
+          : null;
+
+        console.log(`[RSS Processor] Processing: ${item.original_title.substring(0, 50)}... by ${randomAuthor?.name || 'Editorial'}`);
 
         // Update status to processing
         await supabase
@@ -88,11 +108,12 @@ serve(async (req) => {
           .update({ status: "rewriting", processed_at: new Date().toISOString() })
           .eq("id", item.id);
 
-        // Rewrite content with DeepSeek
+        // Rewrite content with DeepSeek - pass author name for personalized style
         const rewriteResult = await rewriteWithDeepSeek(
           item.original_title,
           item.original_content || "",
           item.source_name || "Unknown",
+          randomAuthor?.name || "Editorial Team",
           deepseekApiKey as string
         );
 
@@ -128,7 +149,6 @@ serve(async (req) => {
             );
           } catch (imgError: any) {
             console.error("[RSS Processor] Image generation failed:", imgError.message);
-            // Continue without image
           }
         }
 
@@ -144,7 +164,7 @@ serve(async (req) => {
 
         const finalSlug = existingSlug ? `${slug}-${Date.now()}` : slug;
 
-        // Create news article
+        // Create news article with random author
         const { data: article, error: articleError } = await supabase
           .from("news_articles")
           .insert({
@@ -164,6 +184,8 @@ serve(async (req) => {
             status: "published",
             published_at: new Date().toISOString(),
             source_type: "rss",
+            writer_id: randomAuthor?.id || null,
+            author: randomAuthor?.name || "Visas.Guide Editorial",
           })
           .select()
           .single();
@@ -210,7 +232,6 @@ serve(async (req) => {
           })
           .eq("id", item.id);
 
-        // Log failed API call
         await supabase.from("api_logs").insert({
           api_provider: "deepseek",
           task_type: "rss_content_rewrite",
@@ -249,6 +270,7 @@ async function rewriteWithDeepSeek(
   title: string,
   content: string,
   sourceName: string,
+  authorName: string,
   apiKey: string
 ): Promise<{
   title: string;
@@ -260,48 +282,53 @@ async function rewriteWithDeepSeek(
   country: string | null;
   visa_type: string | null;
 } | null> {
-  const systemPrompt = `You are a veteran visa and immigration journalist for Visas.Guide with 10+ years of experience.
+  const systemPrompt = `You are ${authorName}, a veteran travel and immigration journalist writing for Visas.Guide.
 
-TASK: Completely rewrite this article to be 100% original and human-written.
+TASK: Rewrite this article in YOUR unique voice. Make it 100% original and undetectable as AI.
 
-ANTI-AI DETECTION RULES (Critical):
-- Write like an experienced journalist, not an AI
-- Use contractions ALWAYS: you'll, don't, it's, can't, won't, there's
-- Start some sentences with And, But, So, Plus - natural writers do this
-- Include parenthetical asides (like this) and dashes for conversational tone
-- Vary paragraph lengths dramatically - some 1 sentence, some 4-5 sentences
-- Use journalistic phrases: "sources say", "according to officials", "what this means for travelers"
-- Add analysis and context a human journalist would provide
-- FORBIDDEN: "It is important to note", "Furthermore", "Additionally", "In conclusion", "One should", "It should be noted"
-- Never start 2+ consecutive paragraphs with the same word pattern
-- Include specific quotes or data points when possible
-- Use rhetorical questions to engage readers
+CRITICAL ANTI-AI DETECTION RULES:
+- Write as if YOU personally researched and wrote this - use "I've found...", "In my experience...", "What I've noticed..."
+- Use contractions naturally: you'll, don't, it's, can't, we're, there's, that's
+- Start sentences with And, But, So, Plus, Now - real writers do this
+- Include conversational asides in parentheses (readers love these touches)
+- Mix paragraph lengths: some very short (1-2 sentences), others longer (4-5 sentences)
+- Use em-dashes for emphasis—like this—instead of formal punctuation
+- Ask rhetorical questions to engage readers: "So what does this mean for you?"
+- Add personal observations: "Here's what caught my attention...", "The interesting part is..."
+- Use specific details and numbers (not rounded estimates)
+- AVOID bullet point lists - use flowing prose with embedded information instead
+- NEVER use: "It is important to note", "Furthermore", "Additionally", "In conclusion", "One should", "It is worth mentioning", "It should be noted that", "Moving forward"
+- Never start consecutive paragraphs with the same structure
+- Vary sentence rhythm: short. Medium length ones. Then occasionally a longer, more complex sentence with multiple clauses.
 
-STRUCTURE:
-- Strong headline that hooks readers
-- Lead paragraph that answers who/what/when/where
-- Body with context and implications
-- Practical takeaways for travelers
-- Length: 600-800 words
+CONTENT STRUCTURE (prose style, minimal headers):
+- Hook with a compelling lead (answer the key question immediately)
+- Context and background woven into flowing paragraphs
+- Analysis and implications (what this means for travelers)
+- Practical advice embedded naturally
+- Strong close with actionable takeaway
+- 600-800 words total
 
-OUTPUT FORMAT (JSON only, no markdown):
+OUTPUT FORMAT (JSON only):
 {
-  "title": "Engaging headline (max 60 chars)",
-  "content": "Full HTML article with <h2>, <h3>, <p>, <ul> tags and Tailwind spacing",
+  "title": "Compelling headline (max 60 chars)",
+  "content": "Full HTML article - use <h2> sparingly, mostly <p> paragraphs, avoid <ul>/<li> lists",
   "seo_title": "SEO title (max 60 chars)",
   "seo_description": "Meta description (max 160 chars)",
-  "excerpt": "2-3 sentence summary",
-  "tags": ["tag1", "tag2", "tag3"],
+  "excerpt": "2-3 sentence hook summary",
+  "tags": ["tag1", "tag2"],
   "country": "Country name or null",
   "visa_type": "Visa type or null"
 }`;
 
-  const userPrompt = `ORIGINAL ARTICLE:
+  const userPrompt = `Rewrite this article completely in the voice of ${authorName}:
+
+ORIGINAL:
 Title: ${title}
 Source: ${sourceName}
 Content: ${content.substring(0, 4000)}
 
-Rewrite this article completely. Return ONLY valid JSON.`;
+Remember: NO bullet points, write in flowing prose, make it sound like a real journalist wrote it. Return ONLY valid JSON.`;
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
@@ -317,7 +344,7 @@ Rewrite this article completely. Return ONLY valid JSON.`;
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },
           ],
-          temperature: 0.7,
+          temperature: 0.8,
           max_tokens: 3000,
         }),
       });
@@ -334,7 +361,6 @@ Rewrite this article completely. Return ONLY valid JSON.`;
         throw new Error("Empty response from DeepSeek");
       }
 
-      // Parse JSON from response
       const jsonMatch = responseContent.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error("No JSON found in response");
@@ -368,18 +394,13 @@ async function generateImage(
   visaType: string,
   apiKey: string
 ): Promise<string | null> {
-  const prompt = `Create a professional news article featured image for a visa/immigration news story.
+  const prompt = `Create a professional news article featured image for a visa/immigration story.
 
-Article title: ${title}
+Article: ${title}
 ${country ? `Country: ${country}` : ""}
 ${visaType ? `Visa type: ${visaType}` : ""}
 
-Requirements:
-- Modern, clean design suitable for news website
-- Include subtle travel/visa imagery (passport, stamps, landmarks)
-- Use professional color palette (blues, whites, teals)
-- Style: Professional news media, photorealistic
-- DO NOT include any text overlay`;
+Style: Clean editorial photo suitable for news website, subtle travel imagery, professional blues and whites, NO text overlay`;
 
   try {
     const response = await fetch(LOVABLE_AI_GATEWAY, {
@@ -401,9 +422,7 @@ Requirements:
     }
 
     const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
-    return imageUrl || null;
+    return data.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
 
   } catch (error: any) {
     console.error("[RSS Processor] Image generation error:", error.message);

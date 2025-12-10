@@ -42,18 +42,36 @@ function generateVisaRequirementsPrompt(
   const processing = visaData?.processing_time_days ? `${visaData.processing_time_days} days` : 'varies';
   const maxStay = visaData?.max_stay_days ? `${visaData.max_stay_days} days` : 'varies';
 
-  return `You're a friendly travel advisor helping a friend plan their trip. Write about ${toCTR} visa requirements for ${fromCTR} citizens.
+  // Use varied opening phrases to avoid repetition
+  const openings = [
+    "So you're planning a trip",
+    "Thinking about visiting",
+    "Got your heart set on",
+    "Ready to explore",
+    "Planning your adventure to"
+  ];
+  const randomOpening = openings[Math.floor(Math.random() * openings.length)];
 
-WRITING STYLE - CRITICAL (must feel human, NOT AI):
-- Write like you're chatting with a friend planning their trip
-- Use contractions naturally: "you'll need", "don't worry", "it's pretty straightforward"
-- NEVER use these AI phrases: "It is important to note", "In conclusion", "Furthermore", "Additionally", "It should be noted"
-- Start with a direct answer - "Good news!" or "Here's the deal" or "Short answer:"
-- Include practical, experience-based tips like a friend would share
-- Vary sentence length - mix short punchy sentences with longer explanations
-- Use "you" and "your" constantly - speak directly to the reader
-- Add personality: "Pro tip:", "Here's what most people don't know:", "Trust me on this one:"
-- Be conversational but accurate
+  return `You're writing for a travel blog read by real travelers. Write about ${toCTR} visa requirements for ${fromCTR} citizens.
+
+CRITICAL - HUMAN WRITING RULES (Google will penalize AI-sounding content):
+- Write like a travel blogger sharing personal experience, not an encyclopedia
+- Use contractions ALWAYS: "you'll", "don't", "it's", "can't", "won't", "there's"
+- Start sentences with "And", "But", "So", "Plus" occasionally - humans do this
+- Include slight imperfections - use dashes, parenthetical asides (like this), ellipses...
+- Vary paragraph length dramatically - some 1 sentence, some 4-5 sentences
+- Use informal phrases: "honestly", "to be fair", "here's the thing", "quick heads up"
+- Add specific details that feel researched: embassy addresses, exact fees, real timelines
+- Include first-person touches: "I've seen travelers...", "What works best is...", "A lot of people miss this..."
+- NEVER use: "It is important to note", "Furthermore", "Additionally", "In conclusion", "One should", "It is recommended"
+- NEVER start paragraphs with "When" or "If" repeatedly
+- Avoid passive voice - say "You need" not "It is required"
+
+SENTENCE VARIETY (mix these):
+- Short punchy: "Simple enough."
+- Questions: "Sound complicated? It's really not."
+- Commands: "Make sure you..."
+- Fragments: "The good news? No visa needed."
 
 KNOWN VISA INFO:
 - Visa Type: ${visaType}
@@ -62,25 +80,27 @@ KNOWN VISA INFO:
 - Max Stay: ${maxStay}
 ${visaData?.notes ? `- Notes: ${visaData.notes}` : ''}
 
-STRUCTURE (600-800 words total):
+STRUCTURE (600-800 words):
 
-1. **Quick Answer** (2-3 sentences) - Do ${fromCTR} citizens need a visa for ${toCTR}? Answer IMMEDIATELY in your opening line.
+1. **Hook** - ${randomOpening} ${toCTR}? Let's break down what ${fromCTR} passport holders need.
 
-2. **The Basics** - What type of visa/entry is available, how long can you stay
+2. **Quick Answer** (2-3 sentences) - Do ${fromCTR} citizens need a visa? Answer immediately.
 
-3. **What You'll Actually Need** - Documents in practical terms, not bureaucratic language
+3. **What You're Looking At** - Entry type, stay duration, written conversationally
 
-4. **How to Get It** - Step-by-step process, written conversationally
+4. **The Paperwork** - Documents needed, written like you're telling a friend
 
-5. **Money Talk** - Costs, payment methods, any hidden fees to watch for
+5. **Step by Step** - Application process in casual language
 
-6. **Pro Tips** - 3-4 practical tips from "experience"
+6. **What It'll Cost** - Fees, payment methods, hidden costs to watch for
 
-7. **Common Questions** - 3 FAQs people actually ask
+7. **Pro Tips** - 3-4 insider tips that feel like real experience
 
-KEYWORDS TO WEAVE IN NATURALLY:
+8. **Quick FAQs** - 3 questions in Q&A format
+
+TARGET KEYWORDS (weave naturally, don't force):
 - "${toCTR} visa for ${fromCTR} citizens"
-- "${fromCTR} citizens ${toCTR} visa requirements"
+- "${fromCTR} passport ${toCTR} entry requirements"
 - "do ${fromCTR} citizens need visa for ${toCTR}"
 
 OUTPUT: Clean HTML with h2, h3, p, ul tags. Use Tailwind classes for spacing (mb-4, mt-6). NO border classes.`;
@@ -186,7 +206,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'deepseek-chat',
         messages: [
-          { role: 'system', content: 'You are a helpful travel advisor who writes engaging, human-like content about visa requirements. Your writing should feel natural, friendly, and helpful - never robotic or AI-like.' },
+          { role: 'system', content: 'You are a veteran travel blogger who has visited 50+ countries. Your writing is casual, helpful, and based on real travel experience. You write like you are talking to a friend over coffee - natural, occasionally imperfect, but always genuinely useful. Never sound like a corporate FAQ or AI assistant.' },
           { role: 'user', content: prompt }
         ],
         temperature: 0.8,

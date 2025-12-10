@@ -9,6 +9,8 @@ interface SEOHeadProps {
   articlePublishedTime?: string;
   articleModifiedTime?: string;
   keywords?: string[];
+  author?: string;
+  noIndex?: boolean;
 }
 
 const SEOHead = ({
@@ -19,7 +21,9 @@ const SEOHead = ({
   ogType = "website",
   articlePublishedTime,
   articleModifiedTime,
-  keywords = []
+  keywords = [],
+  author = "Visas.Guide Editorial Team",
+  noIndex = false
 }: SEOHeadProps) => {
   useEffect(() => {
     // Update document title
@@ -43,6 +47,16 @@ const SEOHead = ({
     updateMetaTag('description', description);
     if (keywords.length > 0) {
       updateMetaTag('keywords', keywords.join(', '));
+    }
+    
+    // Author meta tag (E-E-A-T signal)
+    updateMetaTag('author', author);
+    
+    // Robots meta tag
+    if (noIndex) {
+      updateMetaTag('robots', 'noindex, nofollow');
+    } else {
+      updateMetaTag('robots', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
     }
 
     // Open Graph tags
@@ -80,7 +94,7 @@ const SEOHead = ({
       }
       canonicalTag.setAttribute('href', canonical);
     }
-  }, [title, description, canonical, ogImage, ogType, articlePublishedTime, articleModifiedTime, keywords]);
+  }, [title, description, canonical, ogImage, ogType, articlePublishedTime, articleModifiedTime, keywords, author, noIndex]);
 
   return null;
 };

@@ -188,6 +188,62 @@ serve(async (req) => {
       .eq('to_country_id', toCountry.id)
       .maybeSingle();
 
+    // Generate destination image using Lovable AI
+    let featuredImageUrl: string | null = null;
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    
+    if (lovableApiKey) {
+      try {
+        console.log('Generating destination image for', toCountry.name);
+        
+        const imagePrompt = `Create a stunning, high-quality travel photograph of ${toCountry.name}'s most iconic landmark or scenic destination. 
+The image should:
+- Feature the most famous tourist attraction or natural wonder of ${toCountry.name}
+- Have golden hour or blue hour lighting for maximum visual appeal
+- Be landscape orientation suitable for a hero banner
+- Look like a professional travel magazine cover photo
+- Include architectural details, nature, or cityscape that instantly identifies ${toCountry.name}
+- Be ultra high resolution, photorealistic quality
+- Evoke wanderlust and inspire travel to ${toCountry.name}
+
+Examples of landmarks by country:
+- France: Eiffel Tower, Provence lavender fields
+- Japan: Mount Fuji, Tokyo skyline, Kyoto temples
+- Italy: Colosseum, Venice canals, Amalfi coast
+- UAE: Burj Khalifa, Dubai Marina
+- India: Taj Mahal, Jaipur palaces
+
+Create the most visually stunning image representing ${toCountry.name}.`;
+
+        const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${lovableApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash-image-preview',
+            messages: [{ role: 'user', content: imagePrompt }],
+            modalities: ['image', 'text'],
+          }),
+        });
+
+        if (imageResponse.ok) {
+          const imageData = await imageResponse.json();
+          featuredImageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+          
+          if (featuredImageUrl) {
+            console.log('✅ Destination image generated successfully');
+          }
+        } else {
+          console.log('Image generation failed:', await imageResponse.text());
+        }
+      } catch (imageError) {
+        console.error('Image generation error:', imageError);
+        // Continue without image - content is more important
+      }
+    }
+
     // Generate content using DeepSeek
     const prompt = generateVisaRequirementsPrompt(fromCountry, toCountry, visaData);
     
@@ -244,6 +300,7 @@ serve(async (req) => {
         meta_title: `${toCTR} Visa for ${fromCTR} Citizens 2025 | Visas Guide`,
         meta_description: metaDescription,
         excerpt: metaDescription,
+        featured_image_url: featuredImageUrl,
         is_published: true,
         ai_generated: true,
         status: 'published',

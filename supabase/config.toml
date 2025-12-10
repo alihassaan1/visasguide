@@ -73,3 +73,6 @@ verify_jwt = false
 
 [functions.generate-author-avatar]
 verify_jwt = true
+
+[functions.send-newsletter-template]
+verify_jwt = false

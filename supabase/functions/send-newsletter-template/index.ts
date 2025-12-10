@@ -116,13 +116,13 @@ serve(async (req) => {
 
     console.log("Template rendered successfully");
 
-    // Send the email from verified domain
+    // Send the email from verified domain - using personal name format to avoid promotions tab
     const { data: emailData, error: emailError } = await resend.emails.send({
-      from: "Visas.Guide <newsletter@visas.guide>",
+      from: "Visas Guide <newsletter@visas.guide>",
       to: [email],
       subject: isTest 
-        ? "🧪 [TEST] Your Weekly Visa Updates from Visas.Guide" 
-        : "🌍 Your Weekly Visa Updates from Visas.Guide",
+        ? `${name}, your visa updates are here`
+        : `${name}, your weekly visa updates are here`,
       html,
     });
 

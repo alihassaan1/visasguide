@@ -11,7 +11,6 @@ import {
   Text,
   Row,
   Column,
-  Hr,
   Button,
 } from 'npm:@react-email/components@0.0.22'
 import * as React from 'npm:react@18.3.1'
@@ -64,86 +63,82 @@ export const NewsletterEmail = ({
 
   return (
     <Html>
-      <Head>
-        <meta name="color-scheme" content="light dark" />
-        <meta name="supported-color-schemes" content="light dark" />
-      </Head>
-      <Preview>✈️ {subscriberName}, your weekly visa intel is here</Preview>
+      <Head />
+      <Preview>Hey {subscriberName}, discover visa-free destinations this week</Preview>
       <Body style={main}>
         <Container style={container}>
           
-          {/* Minimal Header */}
+          {/* Simple Header */}
           <Section style={header}>
-            <Row>
-              <Column>
-                <Img
-                  src="https://visas.guide/logo.png"
-                  width="140"
-                  height="auto"
-                  alt="Visas.Guide"
-                />
-              </Column>
-              <Column style={{ textAlign: 'right' }}>
-                <Text style={dateText}>Weekly Update</Text>
-              </Column>
-            </Row>
+            <Img
+              src="https://visas.guide/logo.png"
+              width="120"
+              alt="Visas Guide"
+              style={{ display: 'block', margin: '0 auto' }}
+            />
           </Section>
 
-          {/* Hero Section */}
-          <Section style={heroSection}>
-            <Text style={heroEmoji}>🌍</Text>
-            <Heading style={heroTitle}>
-              Hey {subscriberName}
+          {/* Personal Greeting */}
+          <Section style={greetingSection}>
+            <Heading style={greetingTitle}>
+              Hi {subscriberName} 👋
             </Heading>
-            <Text style={heroSubtitle}>
-              Your passport to global visa insights awaits
+            <Text style={greetingText}>
+              Ready to plan your next adventure? Here are this week's top visa updates and destination guides curated just for you.
             </Text>
           </Section>
 
-          {/* Featured Article - Large Card */}
+          {/* Featured Story - Large Image Card */}
           {blogPosts.length > 0 && (
-            <Section style={contentSection}>
-              <Text style={sectionTag}>FEATURED</Text>
-              
+            <Section style={section}>
               <Link 
                 href={trackUrl(`https://visas.guide/blog/${blogPosts[0].slug}`, `featured_${blogPosts[0].slug}`)}
                 style={{ textDecoration: 'none' }}
               >
                 <Section style={featuredCard}>
-                  {blogPosts[0].featured_image_url && (
+                  {blogPosts[0].featured_image_url ? (
                     <Img
                       src={blogPosts[0].featured_image_url}
                       width="100%"
-                      height="200"
+                      height="220"
                       alt={blogPosts[0].title}
-                      style={featuredImage}
+                      style={featuredImg}
                     />
+                  ) : (
+                    <Section style={placeholderImg}>
+                      <Text style={placeholderEmoji}>✈️</Text>
+                    </Section>
                   )}
-                  <Section style={featuredContent}>
-                    <Text style={featuredTitle}>{blogPosts[0].title}</Text>
+                  <Section style={featuredBody}>
+                    <Text style={featuredLabel}>Featured Story</Text>
+                    <Heading style={featuredTitle}>{blogPosts[0].title}</Heading>
                     <Text style={featuredExcerpt}>
-                      {blogPosts[0].excerpt?.substring(0, 120)}...
+                      {blogPosts[0].excerpt?.substring(0, 100)}...
                     </Text>
-                    <Text style={readLink}>Read article →</Text>
+                    <Text style={readMoreBtn}>Read more →</Text>
                   </Section>
                 </Section>
               </Link>
+            </Section>
+          )}
 
-              {/* Other Articles - Minimal List */}
-              {blogPosts.slice(1).map((post, index) => (
+          {/* More Articles - Simple List */}
+          {blogPosts.length > 1 && (
+            <Section style={section}>
+              <Heading style={sectionHeading}>More to explore</Heading>
+              {blogPosts.slice(1, 3).map((post, index) => (
                 <Link 
                   key={index}
-                  href={trackUrl(`https://visas.guide/blog/${post.slug}`, `blog_${post.slug}`)}
+                  href={trackUrl(`https://visas.guide/blog/${post.slug}`, `article_${post.slug}`)}
                   style={{ textDecoration: 'none' }}
                 >
-                  <Section style={articleRow}>
+                  <Section style={articleItem}>
                     <Row>
-                      <Column style={{ width: '70%' }}>
+                      <Column style={{ width: '75%', verticalAlign: 'middle' }}>
                         <Text style={articleTitle}>{post.title}</Text>
-                        <Text style={articleMeta}>5 min read</Text>
                       </Column>
-                      <Column style={{ width: '30%', textAlign: 'right', verticalAlign: 'middle' }}>
-                        <Text style={arrowIcon}>→</Text>
+                      <Column style={{ width: '25%', textAlign: 'right', verticalAlign: 'middle' }}>
+                        <Text style={articleArrow}>→</Text>
                       </Column>
                     </Row>
                   </Section>
@@ -152,91 +147,85 @@ export const NewsletterEmail = ({
             </Section>
           )}
 
-          {/* Destinations Grid */}
+          {/* Destinations - Image Grid */}
           {countryGuides.length > 0 && (
-            <Section style={destinationsSection}>
-              <Text style={sectionTagDark}>TRENDING DESTINATIONS</Text>
-              <Heading style={sectionTitleWhite}>Where to next?</Heading>
+            <Section style={destinationSection}>
+              <Heading style={sectionHeadingWhite}>Popular destinations</Heading>
+              <Text style={sectionSubWhite}>Explore visa requirements for trending countries</Text>
               
               <Row>
                 {countryGuides.slice(0, 2).map((country, index) => (
-                  <Column key={index} style={{ width: '50%', padding: '6px' }}>
+                  <Column key={index} style={{ width: '50%', padding: '8px' }}>
                     <Link 
-                      href={trackUrl(`https://visas.guide/countries/${country.slug}`, `country_${country.slug}`)}
+                      href={trackUrl(`https://visas.guide/countries/${country.slug}`, `dest_${country.slug}`)}
                       style={{ textDecoration: 'none' }}
                     >
-                      <Section style={destinationCard}>
-                        <Text style={destinationFlag}>{country.flag_emoji}</Text>
-                        <Text style={destinationName}>{country.name}</Text>
+                      <Section style={destCard}>
+                        <Text style={destFlag}>{country.flag_emoji}</Text>
+                        <Text style={destName}>{country.name}</Text>
                         {country.visa_free_destinations && country.visa_free_destinations > 0 && (
-                          <Text style={destinationBadge}>
-                            {country.visa_free_destinations} destinations
-                          </Text>
+                          <Text style={destMeta}>{country.visa_free_destinations} visa-free</Text>
                         )}
                       </Section>
                     </Link>
                   </Column>
                 ))}
               </Row>
-              <Row>
-                {countryGuides.slice(2, 4).map((country, index) => (
-                  <Column key={index} style={{ width: '50%', padding: '6px' }}>
-                    <Link 
-                      href={trackUrl(`https://visas.guide/countries/${country.slug}`, `country_${country.slug}`)}
-                      style={{ textDecoration: 'none' }}
-                    >
-                      <Section style={destinationCard}>
-                        <Text style={destinationFlag}>{country.flag_emoji}</Text>
-                        <Text style={destinationName}>{country.name}</Text>
-                        {country.visa_free_destinations && country.visa_free_destinations > 0 && (
-                          <Text style={destinationBadge}>
-                            {country.visa_free_destinations} destinations
-                          </Text>
-                        )}
-                      </Section>
-                    </Link>
-                  </Column>
-                ))}
-              </Row>
-
+              {countryGuides.length > 2 && (
+                <Row>
+                  {countryGuides.slice(2, 4).map((country, index) => (
+                    <Column key={index} style={{ width: '50%', padding: '8px' }}>
+                      <Link 
+                        href={trackUrl(`https://visas.guide/countries/${country.slug}`, `dest_${country.slug}`)}
+                        style={{ textDecoration: 'none' }}
+                      >
+                        <Section style={destCard}>
+                          <Text style={destFlag}>{country.flag_emoji}</Text>
+                          <Text style={destName}>{country.name}</Text>
+                          {country.visa_free_destinations && country.visa_free_destinations > 0 && (
+                            <Text style={destMeta}>{country.visa_free_destinations} visa-free</Text>
+                          )}
+                        </Section>
+                      </Link>
+                    </Column>
+                  ))}
+                </Row>
+              )}
+              
               <Button 
-                style={exploreBtn}
-                href={trackUrl("https://visas.guide/countries", "explore_all")}
+                style={primaryBtn}
+                href={trackUrl("https://visas.guide/countries", "all_countries")}
               >
-                Explore all countries
+                View all countries
               </Button>
             </Section>
           )}
 
-          {/* Deals Section - Clean Cards */}
+          {/* Deals Section */}
           {affiliates.length > 0 && (
-            <Section style={contentSection}>
-              <Text style={sectionTag}>EXCLUSIVE DEALS</Text>
-              <Heading style={sectionTitle}>Travel essentials</Heading>
+            <Section style={section}>
+              <Heading style={sectionHeading}>Travel essentials</Heading>
               
               {affiliates.map((affiliate, index) => (
                 <Link 
                   key={index}
-                  href={trackUrl(affiliate.target_url, `deal_${affiliate.name}`)}
+                  href={trackUrl(affiliate.target_url, `affiliate_${affiliate.name}`)}
                   style={{ textDecoration: 'none' }}
                 >
-                  <Section style={dealCard}>
+                  <Section style={dealItem}>
                     <Row>
-                      <Column style={{ width: '60px' }}>
+                      <Column style={{ width: '56px', verticalAlign: 'middle' }}>
                         <Img
                           src={affiliate.image_url}
                           width="48"
                           height="48"
                           alt={affiliate.name}
-                          style={dealIcon}
+                          style={dealImg}
                         />
                       </Column>
-                      <Column style={{ paddingLeft: '12px' }}>
+                      <Column style={{ paddingLeft: '16px', verticalAlign: 'middle' }}>
                         <Text style={dealName}>{affiliate.name}</Text>
                         <Text style={dealDesc}>{affiliate.description}</Text>
-                      </Column>
-                      <Column style={{ width: '60px', textAlign: 'right', verticalAlign: 'middle' }}>
-                        <Text style={dealArrow}>→</Text>
                       </Column>
                     </Row>
                   </Section>
@@ -245,83 +234,61 @@ export const NewsletterEmail = ({
             </Section>
           )}
 
-          {/* Quick Links - Pills */}
-          <Section style={quickSection}>
+          {/* Quick Tools */}
+          <Section style={toolsSection}>
+            <Heading style={toolsTitle}>Quick tools</Heading>
             <Row>
-              <Column align="center">
-                <Link href={trackUrl("https://visas.guide/visa-search", "quick_search")} style={pillLink}>
-                  🔍 Visa Finder
+              <Column style={{ width: '33%', textAlign: 'center', padding: '8px' }}>
+                <Link href={trackUrl("https://visas.guide/visa-search", "tool_finder")} style={{ textDecoration: 'none' }}>
+                  <Text style={toolEmoji}>🔍</Text>
+                  <Text style={toolLabel}>Visa Finder</Text>
                 </Link>
-                <Link href={trackUrl("https://visas.guide/passport-index", "quick_passport")} style={pillLink}>
-                  📊 Rankings
+              </Column>
+              <Column style={{ width: '33%', textAlign: 'center', padding: '8px' }}>
+                <Link href={trackUrl("https://visas.guide/passport-index", "tool_passport")} style={{ textDecoration: 'none' }}>
+                  <Text style={toolEmoji}>📊</Text>
+                  <Text style={toolLabel}>Rankings</Text>
                 </Link>
-                <Link href={trackUrl("https://visas.guide/schengen-visa-guide", "quick_schengen")} style={pillLink}>
-                  🇪🇺 Schengen
+              </Column>
+              <Column style={{ width: '33%', textAlign: 'center', padding: '8px' }}>
+                <Link href={trackUrl("https://visas.guide/schengen-visa-guide", "tool_schengen")} style={{ textDecoration: 'none' }}>
+                  <Text style={toolEmoji}>🇪🇺</Text>
+                  <Text style={toolLabel}>Schengen</Text>
                 </Link>
               </Column>
             </Row>
           </Section>
 
-          <Hr style={divider} />
-
-          {/* Social Section */}
-          <Section style={socialSection}>
-            <Text style={socialTitle}>Follow our journey</Text>
-            <Row>
-              <Column align="center">
-                <Link href={trackUrl("https://facebook.com/visasguide", "social_fb")} style={socialLink}>
-                  <Img 
-                    src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/facebook.svg" 
-                    width="20" 
-                    height="20" 
-                    alt="Facebook"
-                    style={socialIcon}
-                  />
-                </Link>
-                <Link href={trackUrl("https://instagram.com/visasguide", "social_ig")} style={socialLink}>
-                  <Img 
-                    src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/instagram.svg" 
-                    width="20" 
-                    height="20" 
-                    alt="Instagram"
-                    style={socialIcon}
-                  />
-                </Link>
-                <Link href={trackUrl("https://twitter.com/visasguide", "social_tw")} style={socialLink}>
-                  <Img 
-                    src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/x.svg" 
-                    width="20" 
-                    height="20" 
-                    alt="X"
-                    style={socialIcon}
-                  />
-                </Link>
-              </Column>
-            </Row>
-          </Section>
-
-          {/* Minimal Footer */}
+          {/* Footer */}
           <Section style={footer}>
-            <Img
-              src="https://visas.guide/favicon.png"
-              width="32"
-              height="32"
-              alt="V"
-              style={{ margin: '0 auto 16px' }}
-            />
+            <Text style={socialLabel}>Connect with us</Text>
+            <Row>
+              <Column align="center">
+                <Link href={trackUrl("https://facebook.com/visasguide", "fb")} style={socialIconLink}>
+                  <Text style={socialIconText}>f</Text>
+                </Link>
+                <Link href={trackUrl("https://instagram.com/visasguide", "ig")} style={socialIconLink}>
+                  <Text style={socialIconText}>📷</Text>
+                </Link>
+                <Link href={trackUrl("https://twitter.com/visasguide", "tw")} style={socialIconLink}>
+                  <Text style={socialIconText}>𝕏</Text>
+                </Link>
+              </Column>
+            </Row>
+            
             <Text style={footerText}>
-              You received this because you subscribed to Visas.Guide
+              You are receiving this email because you signed up at visas.guide
             </Text>
             <Text style={footerAddress}>
               5900 Balcones Drive, STE 100, Austin, TX 78731
             </Text>
-            <Link href={unsubscribeUrl} style={unsubLink}>
+            <Link href={unsubscribeUrl} style={unsubscribeLink}>
               Unsubscribe
             </Link>
-            <Text style={copyright}>© 2025 Visas.Guide</Text>
+            <Text style={copyright}>© 2025 Visas Guide</Text>
           </Section>
 
-          {/* Tracking Pixel */}
+          {/* Tracking */}
           <Img src={trackingPixelUrl} width="1" height="1" alt="" style={{ display: 'none' }} />
         </Container>
       </Body>
@@ -331,222 +298,207 @@ export const NewsletterEmail = ({
 
 export default NewsletterEmail
 
-// 2024/2025 Trendy Minimal Styles
+// GetYourGuide-inspired clean styles
 const main = {
-  backgroundColor: '#f8f9fa',
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif',
+  backgroundColor: '#ffffff',
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
 }
 
 const container = {
   backgroundColor: '#ffffff',
   margin: '0 auto',
-  maxWidth: '520px',
+  maxWidth: '600px',
 }
 
 const header = {
-  padding: '32px 24px 24px',
-  borderBottom: '1px solid #f0f0f0',
+  padding: '32px 24px',
+  backgroundColor: '#ffffff',
 }
 
-const dateText = {
-  fontSize: '12px',
-  color: '#8c8c8c',
-  margin: '0',
-  fontWeight: '500',
-  letterSpacing: '0.5px',
+const greetingSection = {
+  padding: '0 24px 32px',
 }
 
-const heroSection = {
-  padding: '48px 24px',
-  textAlign: 'center' as const,
-  backgroundColor: '#fafafa',
-}
-
-const heroEmoji = {
-  fontSize: '48px',
-  margin: '0 0 16px',
-}
-
-const heroTitle = {
-  fontSize: '32px',
+const greetingTitle = {
+  fontSize: '28px',
   fontWeight: '700',
   color: '#1a1a1a',
-  margin: '0 0 8px',
+  margin: '0 0 12px',
   lineHeight: '1.2',
 }
 
-const heroSubtitle = {
+const greetingText = {
   fontSize: '16px',
-  color: '#666666',
+  color: '#4a4a4a',
   margin: '0',
-  fontWeight: '400',
+  lineHeight: '1.6',
 }
 
-const contentSection = {
-  padding: '32px 24px',
+const section = {
+  padding: '0 24px 32px',
 }
 
-const sectionTag = {
-  fontSize: '11px',
-  fontWeight: '600',
-  color: '#c9a227',
-  letterSpacing: '1.5px',
-  margin: '0 0 8px',
-  textTransform: 'uppercase' as const,
-}
-
-const sectionTitle = {
-  fontSize: '24px',
+const sectionHeading = {
+  fontSize: '20px',
   fontWeight: '700',
   color: '#1a1a1a',
-  margin: '0 0 24px',
-  lineHeight: '1.3',
+  margin: '0 0 16px',
 }
 
 const featuredCard = {
   borderRadius: '16px',
   overflow: 'hidden',
-  backgroundColor: '#f5f5f5',
-  marginBottom: '24px',
+  backgroundColor: '#f7f7f7',
 }
 
-const featuredImage = {
-  width: '100%',
-  height: '200px',
-  objectFit: 'cover' as const,
+const featuredImg = {
   display: 'block',
+  width: '100%',
+  objectFit: 'cover' as const,
 }
 
-const featuredContent = {
-  padding: '20px',
+const placeholderImg = {
+  backgroundColor: '#ff5533',
+  height: '180px',
+  textAlign: 'center' as const,
+  paddingTop: '60px',
+}
+
+const placeholderEmoji = {
+  fontSize: '64px',
+  margin: '0',
+}
+
+const featuredBody = {
+  padding: '24px',
+}
+
+const featuredLabel = {
+  fontSize: '12px',
+  fontWeight: '600',
+  color: '#ff5533',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.5px',
+  margin: '0 0 8px',
 }
 
 const featuredTitle = {
-  fontSize: '18px',
-  fontWeight: '600',
+  fontSize: '22px',
+  fontWeight: '700',
   color: '#1a1a1a',
-  margin: '0 0 8px',
-  lineHeight: '1.4',
+  margin: '0 0 12px',
+  lineHeight: '1.3',
 }
 
 const featuredExcerpt = {
-  fontSize: '14px',
+  fontSize: '15px',
   color: '#666666',
-  margin: '0 0 12px',
-  lineHeight: '1.6',
+  margin: '0 0 16px',
+  lineHeight: '1.5',
 }
 
-const readLink = {
-  fontSize: '14px',
+const readMoreBtn = {
+  fontSize: '15px',
   fontWeight: '600',
-  color: '#c9a227',
+  color: '#ff5533',
   margin: '0',
 }
 
-const articleRow = {
+const articleItem = {
   padding: '16px 0',
-  borderBottom: '1px solid #f0f0f0',
+  borderBottom: '1px solid #eeeeee',
 }
 
 const articleTitle = {
-  fontSize: '15px',
+  fontSize: '16px',
   fontWeight: '500',
   color: '#1a1a1a',
-  margin: '0 0 4px',
+  margin: '0',
   lineHeight: '1.4',
 }
 
-const articleMeta = {
-  fontSize: '12px',
-  color: '#999999',
-  margin: '0',
-}
-
-const arrowIcon = {
+const articleArrow = {
   fontSize: '20px',
-  color: '#c9a227',
+  color: '#ff5533',
   margin: '0',
+  fontWeight: '300',
 }
 
-const destinationsSection = {
-  padding: '32px 18px',
-  backgroundColor: '#1a1a2e',
+const destinationSection = {
+  padding: '32px 16px',
+  backgroundColor: '#1a1a1a',
 }
 
-const sectionTagDark = {
-  fontSize: '11px',
-  fontWeight: '600',
-  color: '#c9a227',
-  letterSpacing: '1.5px',
-  margin: '0 0 8px',
-  textTransform: 'uppercase' as const,
-  textAlign: 'center' as const,
-}
-
-const sectionTitleWhite = {
-  fontSize: '24px',
+const sectionHeadingWhite = {
+  fontSize: '22px',
   fontWeight: '700',
   color: '#ffffff',
+  margin: '0 0 8px',
+  textAlign: 'center' as const,
+}
+
+const sectionSubWhite = {
+  fontSize: '15px',
+  color: '#aaaaaa',
   margin: '0 0 24px',
-  lineHeight: '1.3',
   textAlign: 'center' as const,
 }
 
-const destinationCard = {
-  backgroundColor: 'rgba(255,255,255,0.08)',
+const destCard = {
+  backgroundColor: '#2a2a2a',
   borderRadius: '12px',
-  padding: '20px 16px',
+  padding: '24px 16px',
   textAlign: 'center' as const,
 }
 
-const destinationFlag = {
-  fontSize: '32px',
+const destFlag = {
+  fontSize: '36px',
   margin: '0 0 8px',
 }
 
-const destinationName = {
-  fontSize: '14px',
+const destName = {
+  fontSize: '15px',
   fontWeight: '600',
   color: '#ffffff',
   margin: '0 0 4px',
 }
 
-const destinationBadge = {
-  fontSize: '11px',
-  color: 'rgba(255,255,255,0.6)',
+const destMeta = {
+  fontSize: '12px',
+  color: '#888888',
   margin: '0',
 }
 
-const exploreBtn = {
-  backgroundColor: '#c9a227',
-  borderRadius: '100px',
-  color: '#1a1a2e',
-  fontSize: '14px',
+const primaryBtn = {
+  backgroundColor: '#ff5533',
+  borderRadius: '8px',
+  color: '#ffffff',
+  fontSize: '16px',
   fontWeight: '600',
   textDecoration: 'none',
-  padding: '14px 28px',
+  padding: '16px 32px',
   display: 'block',
   textAlign: 'center' as const,
   margin: '24px auto 0',
-  maxWidth: '200px',
+  maxWidth: '220px',
 }
 
-const dealCard = {
+const dealItem = {
   padding: '16px',
-  backgroundColor: '#fafafa',
+  backgroundColor: '#f9f9f9',
   borderRadius: '12px',
   marginBottom: '12px',
 }
 
-const dealIcon = {
-  borderRadius: '10px',
+const dealImg = {
+  borderRadius: '8px',
 }
 
 const dealName = {
   fontSize: '15px',
   fontWeight: '600',
   color: '#1a1a1a',
-  margin: '0 0 2px',
+  margin: '0 0 4px',
 }
 
 const dealDesc = {
@@ -555,87 +507,83 @@ const dealDesc = {
   margin: '0',
 }
 
-const dealArrow = {
-  fontSize: '18px',
-  color: '#c9a227',
-  margin: '0',
-}
-
-const quickSection = {
-  padding: '24px',
+const toolsSection = {
+  padding: '32px 24px',
+  backgroundColor: '#f7f7f7',
   textAlign: 'center' as const,
-  backgroundColor: '#fafafa',
 }
 
-const pillLink = {
-  display: 'inline-block',
-  backgroundColor: '#1a1a2e',
-  color: '#ffffff',
-  fontSize: '12px',
+const toolsTitle = {
+  fontSize: '18px',
+  fontWeight: '700',
+  color: '#1a1a1a',
+  margin: '0 0 20px',
+}
+
+const toolEmoji = {
+  fontSize: '28px',
+  margin: '0 0 8px',
+}
+
+const toolLabel = {
+  fontSize: '13px',
   fontWeight: '500',
-  padding: '10px 16px',
-  borderRadius: '100px',
-  textDecoration: 'none',
-  margin: '4px',
-}
-
-const divider = {
-  borderColor: '#f0f0f0',
+  color: '#1a1a1a',
   margin: '0',
 }
 
-const socialSection = {
+const footer = {
   padding: '32px 24px',
   textAlign: 'center' as const,
+  backgroundColor: '#ffffff',
 }
 
-const socialTitle = {
+const socialLabel = {
   fontSize: '14px',
   fontWeight: '500',
   color: '#666666',
   margin: '0 0 16px',
 }
 
-const socialLink = {
+const socialIconLink = {
   display: 'inline-block',
-  margin: '0 8px',
-  padding: '12px',
-  backgroundColor: '#f5f5f5',
+  width: '40px',
+  height: '40px',
+  backgroundColor: '#f0f0f0',
   borderRadius: '50%',
-}
-
-const socialIcon = {
-  display: 'block',
-  filter: 'brightness(0)',
-  opacity: 0.6,
-}
-
-const footer = {
-  padding: '32px 24px',
+  margin: '0 6px',
+  textDecoration: 'none',
+  lineHeight: '40px',
   textAlign: 'center' as const,
-  backgroundColor: '#fafafa',
+}
+
+const socialIconText = {
+  fontSize: '16px',
+  color: '#1a1a1a',
+  margin: '0',
+  lineHeight: '40px',
 }
 
 const footerText = {
-  fontSize: '12px',
+  fontSize: '13px',
   color: '#999999',
-  margin: '0 0 4px',
+  margin: '24px 0 4px',
 }
 
 const footerAddress = {
-  fontSize: '11px',
+  fontSize: '12px',
   color: '#bbbbbb',
   margin: '0 0 16px',
 }
 
-const unsubLink = {
-  fontSize: '12px',
+const unsubscribeLink = {
+  fontSize: '13px',
   color: '#666666',
   textDecoration: 'underline',
 }
 
 const copyright = {
-  fontSize: '11px',
+  fontSize: '12px',
   color: '#cccccc',
   margin: '16px 0 0',
 }

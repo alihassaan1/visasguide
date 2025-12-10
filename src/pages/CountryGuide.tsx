@@ -14,6 +14,9 @@ import NewsletterSignup from "@/components/NewsletterSignup";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { usePageTracking } from "@/hooks/useAnalytics";
 import CountryHero from "@/components/CountryHero";
+import AuthorBio from "@/components/AuthorBio";
+import RelatedContent from "@/components/RelatedContent";
+import ArticleSchema from "@/components/ArticleSchema";
 
 const CountryGuide = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
@@ -541,6 +544,29 @@ const CountryGuide = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Related Content - Internal Linking */}
+        <RelatedContent
+          currentSlug={country.slug}
+          contentType="country"
+          country={country.slug}
+        />
+
+        {/* Author Bio - E-E-A-T Signal */}
+        <AuthorBio />
+
+        {/* Article Schema */}
+        <ArticleSchema
+          title={`${country.name} Visa Guide`}
+          description={`Complete visa requirements and travel guide for ${country.name}. Entry requirements, visa types, and travel tips.`}
+          url={`https://visas.guide/countries/${country.slug}`}
+          keywords={[
+            `${country.name} visa`,
+            `${country.name} travel guide`,
+            "visa requirements",
+            country.continent || ""
+          ].filter(Boolean)}
+        />
 
         {/* Newsletter Signup */}
         <div className="mt-12">

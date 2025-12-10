@@ -14,6 +14,9 @@ import { usePageTracking } from "@/hooks/useAnalytics";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import AuthorBio from "@/components/AuthorBio";
+import ArticleSchema from "@/components/ArticleSchema";
+import BreadcrumbSchema from "@/components/BreadcrumbSchema";
 
 const VisaRequirements = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -447,6 +450,34 @@ const VisaRequirements = () => {
           <h2 className="text-2xl font-bold mb-6">Related Information</h2>
           <RelatedVisaLinks fromCountry={fromCountry} toCountry={toCountry} />
         </div>
+
+        {/* Author Bio - E-E-A-T Signal */}
+        <div className="mt-8">
+          <AuthorBio />
+        </div>
+
+        {/* Article Schema for SEO */}
+        <ArticleSchema
+          title={`${toCountry?.name} Visa Requirements for ${fromCountry?.name} Citizens`}
+          description={`Complete visa guide for ${fromCountry?.name} passport holders visiting ${toCountry?.name}. Requirements, fees, processing times, and application process.`}
+          url={`https://visas.guide/visa-requirements/${slug}`}
+          keywords={[
+            `${toCountry?.name} visa`,
+            `${fromCountry?.name} to ${toCountry?.name}`,
+            "visa requirements",
+            "travel documentation"
+          ]}
+        />
+
+        {/* Breadcrumb Schema for SEO */}
+        <BreadcrumbSchema
+          items={[
+            { name: "Visa Requirements", url: "/visa-search" },
+            { name: fromCountry?.name || "", url: `/countries/${fromSlug}` },
+            { name: `${fromCountry?.name} to ${toCountry?.name}`, url: `/visa-requirements/${slug}` },
+          ]}
+          showVisual={false}
+        />
       </main>
 
       <Footer />

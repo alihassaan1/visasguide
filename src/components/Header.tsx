@@ -93,7 +93,7 @@ const Header = () => {
             <img 
               src={logo} 
               alt="Visas.Guide - Complete Visa Requirements and Travel Information" 
-              className="h-10 sm:h-14 md:h-16 lg:h-20 w-auto max-w-[120px] sm:max-w-[160px] md:max-w-[200px] lg:max-w-none object-contain"
+              className="h-8 sm:h-9 md:h-10 w-auto object-contain"
               title="visas.guide"
             />
           </Link>

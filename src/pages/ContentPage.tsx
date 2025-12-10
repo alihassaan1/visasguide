@@ -9,6 +9,8 @@ import { Eye } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import NewsletterSignup from '@/components/NewsletterSignup';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import SocialShareButtons from '@/components/SocialShareButtons';
+import AuthorBio from '@/components/AuthorBio';
 
 export default function ContentPage() {
   const { slug } = useParams();
@@ -187,6 +189,20 @@ export default function ContentPage() {
             className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground prose-ul:text-muted-foreground prose-ol:text-muted-foreground"
             dangerouslySetInnerHTML={{ __html: page.content }}
           />
+
+          {/* Social Share Buttons */}
+          <div className="mt-8 pt-6 border-t">
+            <SocialShareButtons
+              url={`https://visas.guide/${page.slug}`}
+              title={page.title}
+              description={page.excerpt || page.meta_description}
+            />
+          </div>
+
+          {/* Author Bio */}
+          <div className="mt-8">
+            <AuthorBio writerId={page.writer_id} />
+          </div>
 
           {/* Keywords */}
           {page.keywords && page.keywords.length > 0 && (

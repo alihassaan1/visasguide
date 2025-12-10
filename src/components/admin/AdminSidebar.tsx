@@ -95,7 +95,10 @@ const menuStructure: MenuItemOrGroup[] = [
   {
     title: "Users",
     icon: Users,
-    href: "/admin/users",
+    children: [
+      { title: "User Management", icon: Users, href: "/admin/users" },
+      { title: "Authors", icon: Users, href: "/admin/authors" },
+    ],
   },
   {
     title: "Data",

@@ -16,6 +16,7 @@ interface SendNewsletterRequest {
   email: string;
   name?: string;
   isTest?: boolean;
+  campaignId?: string;
 }
 
 serve(async (req) => {
@@ -24,7 +25,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, name = "Traveler", isTest = false }: SendNewsletterRequest = await req.json();
+    const { email, name = "Traveler", isTest = false, campaignId }: SendNewsletterRequest = await req.json();
 
     if (!email) {
       throw new Error("Email is required");
@@ -36,6 +37,29 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Generate or use existing campaign ID
+    let activeCampaignId = campaignId;
+    if (!activeCampaignId) {
+      // Create a new campaign
+      const { data: campaignData, error: campaignError } = await supabase
+        .from('email_campaigns')
+        .insert({
+          subject: isTest ? '[TEST] Weekly Visa Updates' : 'Weekly Visa Updates from Visas.Guide',
+          content: 'Newsletter campaign',
+          sent_count: 0,
+          opened_count: 0,
+          clicked_count: 0,
+        })
+        .select('id')
+        .single();
+
+      if (campaignError) {
+        console.error("Error creating campaign:", campaignError);
+      } else {
+        activeCampaignId = campaignData.id;
+      }
+    }
 
     // Fetch latest blog posts
     const { data: blogPosts } = await supabase
@@ -81,6 +105,8 @@ serve(async (req) => {
         target_url: aff.target_url,
       })),
       unsubscribeUrl: `https://visas.guide/unsubscribe?email=${encodeURIComponent(email)}`,
+      campaignId: activeCampaignId || '',
+      subscriberEmail: email,
     };
 
     // Render the React email template
@@ -90,9 +116,9 @@ serve(async (req) => {
 
     console.log("Template rendered successfully");
 
-    // Send the email
+    // Send the email from verified domain
     const { data: emailData, error: emailError } = await resend.emails.send({
-      from: "Visas.Guide <onboarding@resend.dev>",
+      from: "Visas.Guide <newsletter@visas.guide>",
       to: [email],
       subject: isTest 
         ? "🧪 [TEST] Your Weekly Visa Updates from Visas.Guide" 
@@ -105,13 +131,25 @@ serve(async (req) => {
       throw new Error(emailError.message);
     }
 
+    // Update campaign sent count
+    if (activeCampaignId) {
+      await supabase
+        .from('email_campaigns')
+        .update({ 
+          sent_count: 1,
+          sent_at: new Date().toISOString()
+        })
+        .eq('id', activeCampaignId);
+    }
+
     console.log("Email sent successfully:", emailData);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: `Newsletter sent to ${email}`,
-        emailId: emailData?.id 
+        emailId: emailData?.id,
+        campaignId: activeCampaignId
       }),
       {
         status: 200,

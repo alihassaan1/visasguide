@@ -1464,6 +1464,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_email_clicks: {
+        Args: { p_campaign_id: string }
+        Returns: undefined
+      }
+      increment_email_opens: {
+        Args: { p_campaign_id: string }
+        Returns: undefined
+      }
       increment_page_view_count: {
         Args: { p_country_id: string }
         Returns: undefined

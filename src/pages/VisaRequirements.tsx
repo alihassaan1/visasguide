@@ -358,13 +358,26 @@ const VisaRequirements = () => {
         ) : displayContent ? (
           // Display AI-generated content (either newly generated or from database)
           <div className="space-y-6">
+            {/* Hero Destination Image */}
             {contentPage?.featured_image_url && (
-              <div className="rounded-lg overflow-hidden mb-6">
+              <div className="relative rounded-xl overflow-hidden shadow-lg -mx-4 md:mx-0">
                 <img 
                   src={contentPage.featured_image_url} 
-                  alt={contentPage.title}
-                  className="w-full h-64 object-cover"
+                  alt={`${toCountry.name} destination - visa requirements guide`}
+                  className="w-full h-48 md:h-72 lg:h-80 object-cover"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
+                  <div className="flex items-center gap-3 text-white">
+                    <span className="text-3xl md:text-4xl" style={{ fontFamily: "'Segoe UI Emoji', 'Noto Color Emoji', sans-serif" }}>
+                      {toCountry.flag_emoji || countryCodeToFlagEmoji(toCountry.code) || '🏳️'}
+                    </span>
+                    <div>
+                      <p className="text-sm text-white/80">Destination Guide</p>
+                      <p className="text-lg md:text-xl font-semibold">{toCountry.name}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
             

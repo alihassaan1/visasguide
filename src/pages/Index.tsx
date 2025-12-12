@@ -5,7 +5,7 @@ import NewsletterSignup from "@/components/NewsletterSignup";
 import SEOHead from "@/components/SEOHead";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import DestinationCarousel from "@/components/DestinationCarousel";
-import TabbedLinksSection from "@/components/TabbedLinksSection";
+
 import QuickLinks from "@/components/QuickLinks";
 
 const Index = () => {
@@ -51,7 +51,7 @@ const Index = () => {
       <main>
         <HeroSection />
         <DestinationCarousel />
-        <TabbedLinksSection />
+        
         
         <div className="container mx-auto px-4">
           <QuickLinks />

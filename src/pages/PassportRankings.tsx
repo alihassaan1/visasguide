@@ -213,12 +213,12 @@ const PassportRankings = () => {
                           </Badge>
                         </TableCell>
                         <TableCell>{country.visa_free_destinations || 0}</TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell>-</TableCell>
+                        <TableCell>{(country as any).eta_destinations || 0}</TableCell>
+                        <TableCell>{(country as any).passport_free_destinations || 0}</TableCell>
+                        <TableCell>{(country as any).voa_destinations || 0}</TableCell>
+                        <TableCell>{(country as any).evisa_destinations || 0}</TableCell>
+                        <TableCell>{(country as any).visa_required_destinations || 0}</TableCell>
+                        <TableCell>{(country as any).entry_ban_destinations || 0}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

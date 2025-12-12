@@ -17,14 +17,13 @@ serve(async (req) => {
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     
-    // Get DeepSeek API key from site_settings (same pattern as other working functions)
+    // Get DeepSeek API key from site_settings
     const { data: settingsData } = await supabase
       .from("site_settings")
       .select("setting_value")
       .eq("setting_key", "deepseek_api_key")
       .single();
 
-    // Handle both formats: string or {key: "..."} object
     const settingValue = settingsData?.setting_value;
     const deepseekApiKey = typeof settingValue === 'object' && settingValue?.key 
       ? settingValue.key 
@@ -36,15 +35,21 @@ serve(async (req) => {
     
     console.log("DeepSeek API key retrieved successfully");
 
-    const { batchSize = 10 } = await req.json().catch(() => ({}));
+    const { batchSize = 10, enrichAll = false } = await req.json().catch(() => ({}));
 
-    // Fetch countries missing passport data
-    const { data: countries, error: fetchError } = await supabase
+    // Fetch countries - prioritize by passport rank
+    let query = supabase
       .from("countries")
-      .select("id, name, code, passport_rank, passport_score, visa_free_destinations")
-      .or("passport_rank.is.null,visa_free_destinations.is.null,visa_free_destinations.eq.0")
-      .order("name")
-      .limit(batchSize);
+      .select("id, name, code, passport_rank, passport_score, visa_free_destinations, eta_destinations, voa_destinations, evisa_destinations, visa_required_destinations, entry_ban_destinations, passport_free_destinations")
+      .not("passport_rank", "is", null)
+      .order("passport_rank", { ascending: true });
+    
+    if (!enrichAll) {
+      // Only get countries where extended data hasn't been filled (all zeros means not enriched yet)
+      query = query.eq("eta_destinations", 0).eq("voa_destinations", 0);
+    }
+    
+    const { data: countries, error: fetchError } = await query.limit(batchSize);
 
     if (fetchError) {
       console.error("Error fetching countries:", fetchError);
@@ -53,7 +58,7 @@ serve(async (req) => {
 
     if (!countries || countries.length === 0) {
       return new Response(
-        JSON.stringify({ message: "All countries have passport data", processed: 0 }),
+        JSON.stringify({ message: "All countries have complete passport data", processed: 0 }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -70,12 +75,18 @@ serve(async (req) => {
 
 Return ONLY a valid JSON object with these exact fields (numbers only, no text):
 {
-  "passport_rank": <number 1-199 based on global passport strength>,
-  "passport_score": <number, total destinations accessible without advance visa>,
-  "visa_free_destinations": <number of countries allowing visa-free entry>
+  "passport_rank": <number 1-199 based on global passport strength ranking>,
+  "passport_score": <number, total destinations accessible (visa-free + eTA + VOA + eVisa)>,
+  "visa_free_destinations": <number of countries allowing visa-free entry>,
+  "eta_destinations": <number of countries requiring electronic travel authorization>,
+  "passport_free_destinations": <number of countries allowing entry with just ID card, no passport needed>,
+  "voa_destinations": <number of countries offering visa on arrival>,
+  "evisa_destinations": <number of countries offering eVisa>,
+  "visa_required_destinations": <number of countries requiring advance visa>,
+  "entry_ban_destinations": <number of countries with entry bans or restrictions>
 }
 
-Use real 2024-2025 passport index data from sources like Henley Passport Index. Be accurate.`;
+Use real 2024-2025 passport index data. Be accurate and realistic.`;
 
         const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
           method: "POST",
@@ -108,7 +119,6 @@ Use real 2024-2025 passport index data from sources like Henley Passport Index. 
         
         console.log(`Raw response for ${country.name}:`, content);
 
-        // Parse JSON from response
         const jsonMatch = content.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
           console.error(`No JSON found for ${country.name}:`, content);
@@ -118,13 +128,19 @@ Use real 2024-2025 passport index data from sources like Henley Passport Index. 
         const passportData = JSON.parse(jsonMatch[0]);
         console.log(`Parsed data for ${country.name}:`, passportData);
 
-        // Update country with passport data
+        // Update country with all passport data
         const { error: updateError } = await supabase
           .from("countries")
           .update({
             passport_rank: Number(passportData.passport_rank) || country.passport_rank,
             passport_score: Number(passportData.passport_score) || country.passport_score,
-            visa_free_destinations: Number(passportData.visa_free_destinations) || 0,
+            visa_free_destinations: Number(passportData.visa_free_destinations) || country.visa_free_destinations || 0,
+            eta_destinations: Number(passportData.eta_destinations) || 0,
+            passport_free_destinations: Number(passportData.passport_free_destinations) || 0,
+            voa_destinations: Number(passportData.voa_destinations) || 0,
+            evisa_destinations: Number(passportData.evisa_destinations) || 0,
+            visa_required_destinations: Number(passportData.visa_required_destinations) || 0,
+            entry_ban_destinations: Number(passportData.entry_ban_destinations) || 0,
           })
           .eq("id", country.id);
 

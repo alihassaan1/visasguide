@@ -15,21 +15,35 @@ interface AnalyticsSettings {
 
 const GoogleAnalytics = () => {
   const [settings, setSettings] = useState<AnalyticsSettings | null>(null);
+  const [adsenseCode, setAdsenseCode] = useState<string>("");
 
   useEffect(() => {
-    const fetchAnalyticsSettings = async () => {
-      const { data } = await supabase
+    const fetchSettings = async () => {
+      // Fetch analytics settings
+      const { data: analyticsData } = await supabase
         .from('site_settings')
         .select('setting_value')
         .eq('setting_key', 'analytics_settings')
         .single();
 
-      if (data?.setting_value) {
-        setSettings(data.setting_value as unknown as AnalyticsSettings);
+      if (analyticsData?.setting_value) {
+        setSettings(analyticsData.setting_value as unknown as AnalyticsSettings);
+      }
+
+      // Fetch AdSense code from monetization settings
+      const { data: adsenseData } = await supabase
+        .from('site_settings')
+        .select('setting_value')
+        .eq('setting_key', 'adsense_code')
+        .single();
+
+      if (adsenseData?.setting_value) {
+        const code = (adsenseData.setting_value as any)?.code || '';
+        setAdsenseCode(code);
       }
     };
 
-    fetchAnalyticsSettings();
+    fetchSettings();
   }, []);
 
   useEffect(() => {
@@ -214,7 +228,7 @@ const GoogleAnalytics = () => {
       console.log('Microsoft Clarity initialized:', clarityId);
     }
 
-    // Inject Google AdSense Auto-Ads
+    // Inject Google AdSense Auto-Ads (from analytics settings - publisher ID only)
     if (settings.google_adsense_publisher_id && settings.google_adsense_publisher_id.startsWith('ca-pub-')) {
       const publisherId = settings.google_adsense_publisher_id.trim();
       
@@ -225,10 +239,35 @@ const GoogleAnalytics = () => {
         script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${publisherId}`;
         script.crossOrigin = 'anonymous';
         document.head.appendChild(script);
-        console.log('Google AdSense initialized:', publisherId);
+        console.log('Google AdSense initialized from publisher ID:', publisherId);
       }
     }
   }, [settings]);
+
+  // Inject raw AdSense code from Monetization Settings
+  useEffect(() => {
+    if (!adsenseCode) return;
+    
+    // Check if it's already injected
+    if (document.querySelector('script[data-adsense-raw]')) return;
+
+    // Extract client ID from the pasted code
+    const clientMatch = adsenseCode.match(/client=([^"&\s]+)/);
+    if (clientMatch) {
+      const clientId = clientMatch[1];
+      
+      // Check if AdSense is already loaded via publisher ID
+      if (!document.querySelector('script[data-adsense]')) {
+        const script = document.createElement('script');
+        script.async = true;
+        script.setAttribute('data-adsense-raw', 'true');
+        script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${clientId}`;
+        script.crossOrigin = 'anonymous';
+        document.head.appendChild(script);
+        console.log('Google AdSense initialized from raw code:', clientId);
+      }
+    }
+  }, [adsenseCode]);
 
   return null;
 };

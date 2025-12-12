@@ -6,7 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -16,15 +15,24 @@ serve(async (req) => {
   }
 
   try {
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     
+    // Get DeepSeek API key from site_settings (same pattern as other working functions)
+    const { data: settingsData } = await supabase
+      .from("site_settings")
+      .select("setting_value")
+      .eq("setting_key", "deepseek_api_key")
+      .single();
+
+    const deepseekApiKey = settingsData?.setting_value;
+    
+    if (!deepseekApiKey) {
+      throw new Error("DeepSeek API key not configured in site_settings");
+    }
+
     const { batchSize = 10 } = await req.json().catch(() => ({}));
 
-    // Fetch countries missing passport data, prioritize those without rank
+    // Fetch countries missing passport data
     const { data: countries, error: fetchError } = await supabase
       .from("countries")
       .select("id, name, code, passport_rank, passport_score, visa_free_destinations")
@@ -63,14 +71,14 @@ Return ONLY a valid JSON object with these exact fields (numbers only, no text):
 
 Use real 2024-2025 passport index data from sources like Henley Passport Index. Be accurate.`;
 
-        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+            "Authorization": `Bearer ${deepseekApiKey}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
+            model: "deepseek-chat",
             messages: [
               { role: "system", content: "You are a visa and travel data expert. Return only valid JSON, no markdown or explanations." },
               { role: "user", content: prompt }
@@ -80,7 +88,7 @@ Use real 2024-2025 passport index data from sources like Henley Passport Index. 
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`Lovable AI error for ${country.name}:`, response.status, errorText);
+          console.error(`DeepSeek API error for ${country.name}:`, response.status, errorText);
           
           if (response.status === 429) {
             console.log("Rate limited, waiting 5 seconds...");
@@ -127,7 +135,7 @@ Use real 2024-2025 passport index data from sources like Henley Passport Index. 
 
         // Log to api_logs
         await supabase.from("api_logs").insert({
-          api_provider: "lovable-ai",
+          api_provider: "deepseek",
           task_type: "passport_index_enrichment",
           entity_name: country.name,
           status: "success",

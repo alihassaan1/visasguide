@@ -14,6 +14,7 @@ import ProcessingTimes from "./pages/ProcessingTimes";
 import Requirements from "./pages/Requirements";
 import VisaGuides from "./pages/VisaGuides";
 import CountryGuide from "./pages/CountryGuide";
+import GuidePage from "./pages/GuidePage";
 import VisaFreeCountries from "./pages/VisaFreeCountries";
 import NewsPage from "./pages/NewsPage";
 import NewsArticle from "./pages/NewsArticle";
@@ -84,7 +85,7 @@ const App = () => (
           <Route path="/processing-times" element={<ProcessingTimes />} />
           <Route path="/requirements" element={<Requirements />} />
           <Route path="/guides" element={<VisaGuides />} />
-          <Route path="/guides/:slug" element={<CountryGuide />} />
+          <Route path="/guides/:slug" element={<GuidePage />} />
           <Route path="/visa-types/tourist" element={<TouristVisa />} />
           <Route path="/visa-types/business" element={<BusinessVisa />} />
           <Route path="/visa-types/student" element={<StudentVisa />} />

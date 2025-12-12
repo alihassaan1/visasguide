@@ -24,11 +24,17 @@ serve(async (req) => {
       .eq("setting_key", "deepseek_api_key")
       .single();
 
-    const deepseekApiKey = settingsData?.setting_value;
+    // Handle both formats: string or {key: "..."} object
+    const settingValue = settingsData?.setting_value;
+    const deepseekApiKey = typeof settingValue === 'object' && settingValue?.key 
+      ? settingValue.key 
+      : settingValue;
     
     if (!deepseekApiKey) {
       throw new Error("DeepSeek API key not configured in site_settings");
     }
+    
+    console.log("DeepSeek API key retrieved successfully");
 
     const { batchSize = 10 } = await req.json().catch(() => ({}));
 

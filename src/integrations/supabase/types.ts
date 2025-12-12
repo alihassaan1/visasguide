@@ -443,10 +443,14 @@ export type Database = {
           continent: string | null
           created_at: string
           currency: string | null
+          entry_ban_destinations: number | null
+          eta_destinations: number | null
+          evisa_destinations: number | null
           flag_emoji: string | null
           id: string
           language: string | null
           name: string
+          passport_free_destinations: number | null
           passport_rank: number | null
           passport_score: number | null
           population: number | null
@@ -454,6 +458,8 @@ export type Database = {
           slug: string
           updated_at: string
           visa_free_destinations: number | null
+          visa_required_destinations: number | null
+          voa_destinations: number | null
         }
         Insert: {
           capital?: string | null
@@ -461,10 +467,14 @@ export type Database = {
           continent?: string | null
           created_at?: string
           currency?: string | null
+          entry_ban_destinations?: number | null
+          eta_destinations?: number | null
+          evisa_destinations?: number | null
           flag_emoji?: string | null
           id?: string
           language?: string | null
           name: string
+          passport_free_destinations?: number | null
           passport_rank?: number | null
           passport_score?: number | null
           population?: number | null
@@ -472,6 +482,8 @@ export type Database = {
           slug: string
           updated_at?: string
           visa_free_destinations?: number | null
+          visa_required_destinations?: number | null
+          voa_destinations?: number | null
         }
         Update: {
           capital?: string | null
@@ -479,10 +491,14 @@ export type Database = {
           continent?: string | null
           created_at?: string
           currency?: string | null
+          entry_ban_destinations?: number | null
+          eta_destinations?: number | null
+          evisa_destinations?: number | null
           flag_emoji?: string | null
           id?: string
           language?: string | null
           name?: string
+          passport_free_destinations?: number | null
           passport_rank?: number | null
           passport_score?: number | null
           population?: number | null
@@ -490,6 +506,8 @@ export type Database = {
           slug?: string
           updated_at?: string
           visa_free_destinations?: number | null
+          visa_required_destinations?: number | null
+          voa_destinations?: number | null
         }
         Relationships: []
       }

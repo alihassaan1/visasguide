@@ -52,10 +52,13 @@ export default function MonetizationSettings() {
     try {
       const { error } = await supabase
         .from('site_settings')
-        .upsert({
-          setting_key: 'adsense_code',
-          setting_value: { code: adsenseCode }
-        });
+        .upsert(
+          {
+            setting_key: 'adsense_code',
+            setting_value: { code: adsenseCode }
+          },
+          { onConflict: 'setting_key' }
+        );
 
       if (error) throw error;
 

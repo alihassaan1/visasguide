@@ -85,3 +85,6 @@ verify_jwt = false
 
 [functions.passport-index-enricher]
 verify_jwt = false
+
+[functions.generate-guide-content]
+verify_jwt = false

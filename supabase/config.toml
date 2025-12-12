@@ -82,3 +82,6 @@ verify_jwt = false
 
 [functions.send-weekly-newsletter]
 verify_jwt = false
+
+[functions.passport-index-enricher]
+verify_jwt = false

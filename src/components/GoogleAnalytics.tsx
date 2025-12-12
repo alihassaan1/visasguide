@@ -16,6 +16,7 @@ interface AnalyticsSettings {
 const GoogleAnalytics = () => {
   const [settings, setSettings] = useState<AnalyticsSettings | null>(null);
   const [adsenseCode, setAdsenseCode] = useState<string>("");
+  const [gdprConsentCode, setGdprConsentCode] = useState<string>("");
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -41,10 +42,56 @@ const GoogleAnalytics = () => {
         const code = (adsenseData.setting_value as any)?.code || '';
         setAdsenseCode(code);
       }
+
+      // Fetch GDPR Consent Code
+      const { data: gdprData } = await supabase
+        .from('site_settings')
+        .select('setting_value')
+        .eq('setting_key', 'gdpr_consent_code')
+        .single();
+
+      if (gdprData?.setting_value) {
+        const code = (gdprData.setting_value as any)?.code || '';
+        setGdprConsentCode(code);
+      }
     };
 
     fetchSettings();
   }, []);
+
+  // Inject GDPR Consent Banner (Google CMP) - must load FIRST before any other scripts
+  useEffect(() => {
+    if (!gdprConsentCode) return;
+
+    // Check if already injected
+    if (document.querySelector('script[data-google-cmp]')) return;
+
+    // Create a temporary div to parse the HTML and extract scripts
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = gdprConsentCode;
+
+    // Find and inject all script elements
+    const scripts = tempDiv.querySelectorAll('script');
+    scripts.forEach((originalScript) => {
+      const script = document.createElement('script');
+      script.setAttribute('data-google-cmp', 'true');
+      
+      // Copy all attributes
+      Array.from(originalScript.attributes).forEach(attr => {
+        script.setAttribute(attr.name, attr.value);
+      });
+      
+      // Copy inline script content if any
+      if (originalScript.innerHTML) {
+        script.innerHTML = originalScript.innerHTML;
+      }
+      
+      // Insert at the beginning of head to ensure it loads first
+      document.head.insertBefore(script, document.head.firstChild);
+    });
+
+    console.log('Google GDPR Consent Banner initialized');
+  }, [gdprConsentCode]);
 
   useEffect(() => {
     if (!settings) return;

@@ -15,6 +15,7 @@ import { ImageUpload } from "@/components/admin/ImageUpload";
 export default function MonetizationSettings() {
   const { toast } = useToast();
   const [adsenseCode, setAdsenseCode] = useState("");
+  const [gdprConsentCode, setGdprConsentCode] = useState("");
   const [affiliates, setAffiliates] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -33,6 +34,17 @@ export default function MonetizationSettings() {
 
       if (adsense && typeof adsense.setting_value === 'object') {
         setAdsenseCode((adsense.setting_value as any)?.code || '');
+      }
+
+      // Load GDPR Consent Code
+      const { data: gdpr } = await supabase
+        .from('site_settings')
+        .select('setting_value')
+        .eq('setting_key', 'gdpr_consent_code')
+        .single();
+
+      if (gdpr && typeof gdpr.setting_value === 'object') {
+        setGdprConsentCode((gdpr.setting_value as any)?.code || '');
       }
 
       // Load affiliate banners
@@ -63,6 +75,33 @@ export default function MonetizationSettings() {
       if (error) throw error;
 
       toast({ title: "AdSense code saved successfully" });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveGdprConsent = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('site_settings')
+        .upsert(
+          {
+            setting_key: 'gdpr_consent_code',
+            setting_value: { code: gdprConsentCode }
+          },
+          { onConflict: 'setting_key' }
+        );
+
+      if (error) throw error;
+
+      toast({ title: "GDPR Consent code saved successfully" });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -147,11 +186,41 @@ export default function MonetizationSettings() {
         <p className="text-muted-foreground">Manage AdSense and affiliate banners</p>
       </div>
 
-      <Tabs defaultValue="adsense">
-        <TabsList>
+      <Tabs defaultValue="gdpr">
+        <TabsList className="flex-wrap h-auto">
+          <TabsTrigger value="gdpr">GDPR Consent</TabsTrigger>
           <TabsTrigger value="adsense">AdSense</TabsTrigger>
           <TabsTrigger value="affiliates">Affiliate Banners</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="gdpr">
+          <Card>
+            <CardHeader>
+              <CardTitle>Google GDPR Consent Banner</CardTitle>
+              <CardDescription>Configure the cookie consent banner for EEA/UK visitors (required for AdSense)</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>Google CMP Code</Label>
+                <Textarea
+                  value={gdprConsentCode}
+                  onChange={(e) => setGdprConsentCode(e.target.value)}
+                  placeholder="Paste the Google Consent Management Platform code from AdSense here..."
+                  rows={8}
+                  className="font-mono text-xs"
+                />
+                <p className="text-sm text-muted-foreground mt-2">
+                  This code is provided by Google AdSense after selecting your consent options. 
+                  It will display a cookie consent banner to visitors in the EEA, UK, and Switzerland.
+                </p>
+              </div>
+
+              <Button onClick={saveGdprConsent} disabled={loading}>
+                Save GDPR Consent Settings
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="adsense">
           <Card>

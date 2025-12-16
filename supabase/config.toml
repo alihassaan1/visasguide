@@ -91,3 +91,6 @@ verify_jwt = false
 
 [functions.countries-travel-stats-backfill]
 verify_jwt = false
+
+[functions.generate-city-content]
+verify_jwt = false

@@ -312,6 +312,8 @@ const CityPage = () => {
                 
                 {/* GetYourGuide Direct Widget Embed */}
                 <GetYourGuideWidget 
+                  cityId={city.id}
+                  countryId={city.country?.id}
                   location={`${city.name}, ${city.country?.name}`}
                   numberOfItems={6}
                   showDisclosure={false}

@@ -29,6 +29,7 @@ import {
   DollarSign,
   Globe,
   ClipboardList,
+  Ticket,
 } from "lucide-react";
 
 interface MenuItem {
@@ -90,6 +91,7 @@ const menuStructure: MenuItemOrGroup[] = [
       { title: "Platform Settings", icon: Settings, href: "/admin/marketing/platforms" },
       { title: "Newsletter", icon: Mail, href: "/admin/newsletter" },
       { title: "Ads & Affiliates", icon: DollarSign, href: "/admin/monetization" },
+      { title: "Affiliate Manager", icon: Ticket, href: "/admin/affiliate-manager" },
     ],
   },
   {

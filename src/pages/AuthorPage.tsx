@@ -155,8 +155,11 @@ const AuthorPage = () => {
           </CardContent>
         </Card>
 
-        {/* Author's Articles */}
-        <h2 className="text-2xl font-bold mb-6">Articles by {author.name}</h2>
+        {/* Pages Updated by Author */}
+        <h2 className="text-2xl font-bold mb-2">Pages Updated by {author.name}</h2>
+        <p className="text-muted-foreground mb-6">
+          Browse all visa guides, country pages, and blog posts written and updated by {author.name}.
+        </p>
 
         {allArticles.length === 0 ? (
           <p className="text-muted-foreground">No articles published yet.</p>

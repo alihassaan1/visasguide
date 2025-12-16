@@ -18,6 +18,7 @@ import AuthorBio from "@/components/AuthorBio";
 import RelatedContent from "@/components/RelatedContent";
 import ArticleSchema from "@/components/ArticleSchema";
 import SocialShareButtons from "@/components/SocialShareButtons";
+import TravelStatistics from "@/components/TravelStatistics";
 
 const CountryGuide = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
@@ -66,6 +67,8 @@ const CountryGuide = () => {
 
   // Lazy backfill: if core fields are missing, trigger countries-backfill for this country and refetch
   const hasBackfilledRef = useRef(false);
+  const hasTravelStatsBackfilledRef = useRef(false);
+  
   useEffect(() => {
     if (!country || hasBackfilledRef.current) return;
     const missingCore = !country.capital || !country.currency || !country.region || !country.continent || !country.language || !country.population || country.visa_free_destinations == null;
@@ -79,6 +82,25 @@ const CountryGuide = () => {
         })
         .catch(() => {
           // ignore silently; UI already handles fallbacks
+        });
+    }
+  }, [country, refetchCountry]);
+
+  // Lazy backfill travel stats if missing
+  useEffect(() => {
+    if (!country || hasTravelStatsBackfilledRef.current) return;
+    const missingTravelStats = !country.annual_tourists && !country.tourism_rank;
+    if (missingTravelStats) {
+      hasTravelStatsBackfilledRef.current = true;
+      supabase.functions
+        .invoke('countries-travel-stats-backfill', { 
+          body: { countryId: country.id, countryName: country.name } 
+        })
+        .then(() => {
+          refetchCountry();
+        })
+        .catch(() => {
+          // ignore silently
         });
     }
   }, [country, refetchCountry]);
@@ -350,6 +372,9 @@ const CountryGuide = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Travel Statistics Section */}
+        <TravelStatistics country={country} />
 
         {/* Country Guide Content */}
         {guideContent && (

@@ -438,6 +438,7 @@ export type Database = {
       }
       countries: {
         Row: {
+          annual_tourists: number | null
           capital: string | null
           code: string
           continent: string | null
@@ -453,15 +454,21 @@ export type Database = {
           passport_free_destinations: number | null
           passport_rank: number | null
           passport_score: number | null
+          peak_travel_months: string | null
           population: number | null
           region: string | null
           slug: string
+          top_source_countries: string[] | null
+          tourism_growth_percent: number | null
+          tourism_rank: number | null
+          tourism_revenue_usd: number | null
           updated_at: string
           visa_free_destinations: number | null
           visa_required_destinations: number | null
           voa_destinations: number | null
         }
         Insert: {
+          annual_tourists?: number | null
           capital?: string | null
           code: string
           continent?: string | null
@@ -477,15 +484,21 @@ export type Database = {
           passport_free_destinations?: number | null
           passport_rank?: number | null
           passport_score?: number | null
+          peak_travel_months?: string | null
           population?: number | null
           region?: string | null
           slug: string
+          top_source_countries?: string[] | null
+          tourism_growth_percent?: number | null
+          tourism_rank?: number | null
+          tourism_revenue_usd?: number | null
           updated_at?: string
           visa_free_destinations?: number | null
           visa_required_destinations?: number | null
           voa_destinations?: number | null
         }
         Update: {
+          annual_tourists?: number | null
           capital?: string | null
           code?: string
           continent?: string | null
@@ -501,9 +514,14 @@ export type Database = {
           passport_free_destinations?: number | null
           passport_rank?: number | null
           passport_score?: number | null
+          peak_travel_months?: string | null
           population?: number | null
           region?: string | null
           slug?: string
+          top_source_countries?: string[] | null
+          tourism_growth_percent?: number | null
+          tourism_rank?: number | null
+          tourism_revenue_usd?: number | null
           updated_at?: string
           visa_free_destinations?: number | null
           visa_required_destinations?: number | null

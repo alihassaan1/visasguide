@@ -210,63 +210,123 @@ const CityPage = () => {
           </div>
         </div>
 
+        {/* Quick Facts Bar */}
+        <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-y border-primary/10">
+          <div className="container mx-auto px-4 py-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+              {city.population && (
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                    <Users className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Population</p>
+                    <p className="font-bold text-lg">{formatNumber(city.population)}</p>
+                  </div>
+                </div>
+              )}
+              {city.is_capital && (
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center shrink-0">
+                    <Star className="h-5 w-5 text-yellow-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Status</p>
+                    <p className="font-bold text-lg">Capital City</p>
+                  </div>
+                </div>
+              )}
+              {city.best_time_to_visit && (
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                    <Calendar className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Best Time</p>
+                    <p className="font-bold text-lg truncate max-w-[120px]">{city.best_time_to_visit.split(',')[0]}</p>
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center shrink-0">
+                  <MapPin className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Country</p>
+                  <p className="font-bold text-lg">{city.country?.name}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Main Content */}
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Main Content */}
-            <div className="lg:col-span-2 space-y-6">
-            {/* About Section */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* About Section */}
               {city.description && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5" />
-                      About {city.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground leading-relaxed">{city.description}</p>
-                  </CardContent>
-                </Card>
+                <section>
+                  <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <MapPin className="h-4 w-4 text-primary" />
+                    </span>
+                    About {city.name}
+                  </h2>
+                  <p className="text-muted-foreground leading-relaxed text-lg">{city.description}</p>
+                </section>
               )}
 
-              {/* Practical Info Grid - Best Time, Safety, Getting Around */}
+              {/* Travel Essentials Cards */}
               {(city.best_time_to_visit || city.safety_tips || city.getting_around) && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {city.best_time_to_visit && (
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Calendar className="h-4 w-4 text-primary" />
-                          <h4 className="font-semibold text-sm">Best Time to Visit</h4>
+                <section>
+                  <h2 className="text-2xl font-bold mb-4">Travel Essentials</h2>
+                  <div className="grid grid-cols-1 gap-4">
+                    {city.best_time_to_visit && (
+                      <div className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 p-5 transition-all hover:shadow-lg hover:shadow-green-500/10">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                        <div className="relative">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center">
+                              <Calendar className="h-5 w-5 text-white" />
+                            </div>
+                            <h3 className="font-bold text-lg">Best Time to Visit</h3>
+                          </div>
+                          <p className="text-muted-foreground leading-relaxed">{city.best_time_to_visit}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground">{city.best_time_to_visit}</p>
-                      </CardContent>
-                    </Card>
-                  )}
-                  {city.safety_tips && (
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Shield className="h-4 w-4 text-green-600" />
-                          <h4 className="font-semibold text-sm">Safety Tips</h4>
+                      </div>
+                    )}
+                    {city.safety_tips && (
+                      <div className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 p-5 transition-all hover:shadow-lg hover:shadow-blue-500/10">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                        <div className="relative">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center">
+                              <Shield className="h-5 w-5 text-white" />
+                            </div>
+                            <h3 className="font-bold text-lg">Safety Tips</h3>
+                          </div>
+                          <p className="text-muted-foreground leading-relaxed">{city.safety_tips}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground">{city.safety_tips}</p>
-                      </CardContent>
-                    </Card>
-                  )}
-                  {city.getting_around && (
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Bus className="h-4 w-4 text-blue-600" />
-                          <h4 className="font-semibold text-sm">Getting Around</h4>
+                      </div>
+                    )}
+                    {city.getting_around && (
+                      <div className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20 p-5 transition-all hover:shadow-lg hover:shadow-purple-500/10">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                        <div className="relative">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center">
+                              <Bus className="h-5 w-5 text-white" />
+                            </div>
+                            <h3 className="font-bold text-lg">Getting Around</h3>
+                          </div>
+                          <p className="text-muted-foreground leading-relaxed">{city.getting_around}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground">{city.getting_around}</p>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
+                      </div>
+                    )}
+                  </div>
+                </section>
               )}
 
               {/* Visa Recap Section */}
@@ -280,32 +340,38 @@ const CityPage = () => {
 
               {/* Top Attractions */}
               {city.attractions && city.attractions.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Star className="h-5 w-5" />
-                      Top Attractions in {city.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {city.attractions.map((attraction, index) => (
-                        <div key={index} className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                          <span className="text-primary font-bold">{index + 1}</span>
-                          <span className="text-sm">{attraction}</span>
+                <section>
+                  <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                      <Star className="h-4 w-4 text-amber-500" />
+                    </span>
+                    Top Attractions in {city.name}
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {city.attractions.map((attraction, index) => (
+                      <div 
+                        key={index} 
+                        className="group flex items-center gap-4 p-4 rounded-xl border bg-card hover:bg-accent/50 hover:border-primary/20 transition-all"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20">
+                          <span className="text-white font-bold text-sm">{index + 1}</span>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                        <span className="font-medium group-hover:text-primary transition-colors">{attraction}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
               )}
 
               {/* Things to do Section - GetYourGuide Direct Embed */}
               <section className="space-y-4">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  🎫 Things to do in {city.name}
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center">
+                    🎫
+                  </span>
+                  Things to do in {city.name}
                 </h2>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-muted-foreground">
                   Discover the best experiences, guided tours, and activities in {city.name}. 
                   Book ahead and skip the lines!
                 </p>
@@ -325,47 +391,52 @@ const CityPage = () => {
 
               {/* Gallery */}
               {city.gallery_images && city.gallery_images.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Photo Gallery</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {city.gallery_images.slice(0, 6).map((img, index) => (
-                        <div 
-                          key={index}
-                          className="aspect-video rounded-lg overflow-hidden bg-muted"
-                        >
-                          <img 
-                            src={img} 
-                            alt={`${city.name} photo ${index + 1}`}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                <section>
+                  <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                      📷
+                    </span>
+                    Photo Gallery
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {city.gallery_images.slice(0, 6).map((img, index) => (
+                      <div 
+                        key={index}
+                        className="aspect-video rounded-xl overflow-hidden bg-muted group cursor-pointer"
+                      >
+                        <img 
+                          src={img} 
+                          alt={`${city.name} photo ${index + 1}`}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </section>
               )}
             </div>
 
             {/* Right Column - Sidebar */}
-            <div className="space-y-5">
+            <div className="space-y-6">
               {/* Sidebar Affiliates */}
               <AffiliateBannerContainer position="sidebar-right" />
 
               {/* Back to Country */}
-              <Card>
-                <CardContent className="p-5">
-                  <h4 className="font-semibold mb-3">Explore {city.country?.name}</h4>
-                  <Link to={`/countries/${city.country?.slug}`}>
-                    <Button variant="outline" className="w-full">
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      Back to {city.country?.name} Guide
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
+              <div className="rounded-xl border bg-gradient-to-br from-primary/5 to-primary/10 p-5">
+                <h4 className="font-bold mb-3 flex items-center gap-2">
+                  <span className="text-2xl">{city.country?.flag_emoji}</span>
+                  Explore {city.country?.name}
+                </h4>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Discover more cities, visa requirements, and travel tips for {city.country?.name}.
+                </p>
+                <Link to={`/countries/${city.country?.slug}`}>
+                  <Button variant="default" className="w-full">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    View Country Guide
+                  </Button>
+                </Link>
+              </div>
 
               {/* Newsletter */}
               <NewsletterSignup variant="sidebar" />

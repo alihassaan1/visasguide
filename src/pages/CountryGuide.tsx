@@ -21,6 +21,7 @@ import SocialShareButtons from "@/components/SocialShareButtons";
 import { CountryCombobox } from "@/components/CountryCombobox";
 import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
 import VisaAlertTicker from "@/components/VisaAlertTicker";
+import CityCards from "@/components/CityCards";
 
 const CountryGuide = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
@@ -335,6 +336,13 @@ const CountryGuide = () => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Popular Cities */}
+            <CityCards 
+              countryId={country.id} 
+              countrySlug={country.slug} 
+              countryName={country.name} 
+            />
 
             {/* Check Your Visa CTA */}
             <Card className="bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">

@@ -302,6 +302,71 @@ export type Database = {
         }
         Relationships: []
       }
+      cities: {
+        Row: {
+          attractions: string[] | null
+          country_id: string
+          created_at: string
+          description: string | null
+          gallery_images: string[] | null
+          hero_image_url: string | null
+          id: string
+          is_capital: boolean | null
+          is_featured: boolean | null
+          meta_description: string | null
+          meta_title: string | null
+          name: string
+          population: number | null
+          slug: string
+          updated_at: string
+          view_count: number | null
+        }
+        Insert: {
+          attractions?: string[] | null
+          country_id: string
+          created_at?: string
+          description?: string | null
+          gallery_images?: string[] | null
+          hero_image_url?: string | null
+          id?: string
+          is_capital?: boolean | null
+          is_featured?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
+          name: string
+          population?: number | null
+          slug: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Update: {
+          attractions?: string[] | null
+          country_id?: string
+          created_at?: string
+          description?: string | null
+          gallery_images?: string[] | null
+          hero_image_url?: string | null
+          id?: string
+          is_capital?: boolean | null
+          is_featured?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
+          name?: string
+          population?: number | null
+          slug?: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cities_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_events: {
         Row: {
           content_page_id: string | null
@@ -1499,6 +1564,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_city_view_count: {
+        Args: { p_city_id: string }
+        Returns: undefined
       }
       increment_email_clicks: {
         Args: { p_campaign_id: string }

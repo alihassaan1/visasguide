@@ -22,6 +22,8 @@ import { CountryCombobox } from "@/components/CountryCombobox";
 import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
 import VisaAlertTicker from "@/components/VisaAlertTicker";
 import CityCards from "@/components/CityCards";
+import GetYourGuideWidget from "@/components/GetYourGuideWidget";
+import AffiliateDisclosure from "@/components/AffiliateDisclosure";
 
 const CountryGuide = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
@@ -525,6 +527,24 @@ const CountryGuide = () => {
               </Card>
             )}
 
+            {/* Top Experiences - GetYourGuide Widget */}
+            <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  🎫 Top Experiences in {country.name}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground text-sm">
+                  Book tours, activities, and experiences in {country.name}. Skip the lines and secure your spot!
+                </p>
+                <GetYourGuideWidget 
+                  location={country.name}
+                  numberOfItems={4}
+                />
+                <AffiliateDisclosure />
+              </CardContent>
+            </Card>
 
             {/* Social Share */}
             <SocialShareButtons

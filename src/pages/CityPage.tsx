@@ -6,13 +6,17 @@ import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Users, Star, ExternalLink, ArrowLeft } from "lucide-react";
+import { MapPin, Users, Star, ArrowLeft } from "lucide-react";
 import { useEffect } from "react";
 import SEOHead from "@/components/SEOHead";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { usePageTracking } from "@/hooks/useAnalytics";
 import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
+import TouristAttractionSchema from "@/components/TouristAttractionSchema";
+import VisaRecap from "@/components/VisaRecap";
+import GetYourGuideWidget from "@/components/GetYourGuideWidget";
+import AffiliateDisclosure from "@/components/AffiliateDisclosure";
 
 const CityPage = () => {
   const { countrySlug, citySlug } = useParams<{ countrySlug: string; citySlug: string }>();
@@ -130,6 +134,16 @@ const CityPage = () => {
         keywords={[`${city.name} tours`, `${city.name} activities`, `things to do in ${city.name}`, `${city.name} travel guide`, city.country?.name || '']}
       />
       
+      {/* TouristAttraction Schema for SEO */}
+      <TouristAttractionSchema
+        name={city.name}
+        description={city.description || `Discover tours and activities in ${city.name}, ${city.country?.name}`}
+        image={city.hero_image_url}
+        address={{ city: city.name, country: city.country?.name || '' }}
+        url={`https://visas.guide/${city.country?.slug}/${city.slug}`}
+        attractions={city.attractions || []}
+      />
+      
       <Header />
       
       <main>
@@ -201,7 +215,7 @@ const CityPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Main Content */}
             <div className="lg:col-span-2 space-y-6">
-              {/* About Section */}
+            {/* About Section */}
               {city.description && (
                 <Card>
                   <CardHeader>
@@ -214,6 +228,15 @@ const CityPage = () => {
                     <p className="text-muted-foreground leading-relaxed">{city.description}</p>
                   </CardContent>
                 </Card>
+              )}
+
+              {/* Visa Recap Section */}
+              {city.country?.id && (
+                <VisaRecap
+                  countryId={city.country.id}
+                  countrySlug={city.country.slug}
+                  countryName={city.country.name}
+                />
               )}
 
               {/* Top Attractions */}
@@ -238,7 +261,7 @@ const CityPage = () => {
                 </Card>
               )}
 
-              {/* Things to do Section - For GetYourGuide Widget */}
+              {/* Things to do Section - GetYourGuide Widget */}
               <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -251,16 +274,17 @@ const CityPage = () => {
                     Book ahead and skip the lines!
                   </p>
                   
-                  {/* GetYourGuide Widget Placeholder - Add your widget code here */}
-                  <div className="bg-muted/30 border-2 border-dashed border-muted-foreground/20 rounded-lg p-6 text-center">
-                    <p className="text-muted-foreground text-sm">GetYourGuide widget will appear here</p>
-                  </div>
+                  {/* GetYourGuide Widget */}
+                  <GetYourGuideWidget 
+                    location={`${city.name}, ${city.country?.name}`}
+                    numberOfItems={4}
+                  />
                   
                   {/* Affiliate Banners - In Content */}
                   <AffiliateBannerContainer position="in-content" />
                   
-                  {/* Horizontal Banner */}
-                  <AffiliateBannerContainer position="horizontal-banner" />
+                  {/* Affiliate Disclosure */}
+                  <AffiliateDisclosure />
                 </CardContent>
               </Card>
 

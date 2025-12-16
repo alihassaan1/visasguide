@@ -16,16 +16,10 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get DeepSeek API key from site_settings
-    const { data: settingsData } = await supabase
-      .from('site_settings')
-      .select('setting_value')
-      .eq('setting_key', 'deepseek_api_key')
-      .single();
-
-    const deepseekApiKey = settingsData?.setting_value;
+    // Get DeepSeek API key from environment variable
+    const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');
     if (!deepseekApiKey) {
-      throw new Error('DeepSeek API key not configured');
+      throw new Error('DEEPSEEK_API_KEY environment variable not configured');
     }
 
     const { countryId, countryName, batchSize = 5 } = await req.json();

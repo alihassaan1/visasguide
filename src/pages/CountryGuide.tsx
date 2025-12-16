@@ -540,7 +540,7 @@ const CountryGuide = () => {
           {/* Sidebar - Right Column */}
           <div className="space-y-5">
             {/* Country Quick Facts */}
-            <Card className="sticky top-4">
+            <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Globe className="h-4 w-4" />

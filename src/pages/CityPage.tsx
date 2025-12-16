@@ -139,7 +139,7 @@ const CityPage = () => {
           style={{ 
             backgroundImage: city.hero_image_url 
               ? `url(${city.hero_image_url})` 
-              : `linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%)`
+              : `url(https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1920&q=80)`
           }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
@@ -238,21 +238,11 @@ const CityPage = () => {
                 </Card>
               )}
 
-              {/* GetYourGuide Tours - Main Section */}
+              {/* Things to do Section - For GetYourGuide Widget */}
               <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      🎫 Tours & Activities in {city.name}
-                    </span>
-                    <a 
-                      href={`https://www.getyourguide.com/s/?q=${encodeURIComponent(city.name)}&partner_id=your_partner_id`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-primary hover:underline flex items-center gap-1"
-                    >
-                      View all <ExternalLink className="h-3 w-3" />
-                    </a>
+                  <CardTitle className="flex items-center gap-2">
+                    🎫 Things to do in {city.name}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -261,26 +251,16 @@ const CityPage = () => {
                     Book ahead and skip the lines!
                   </p>
                   
+                  {/* GetYourGuide Widget Placeholder - Add your widget code here */}
+                  <div className="bg-muted/30 border-2 border-dashed border-muted-foreground/20 rounded-lg p-6 text-center">
+                    <p className="text-muted-foreground text-sm">GetYourGuide widget will appear here</p>
+                  </div>
+                  
                   {/* Affiliate Banners - In Content */}
                   <AffiliateBannerContainer position="in-content" />
                   
                   {/* Horizontal Banner */}
                   <AffiliateBannerContainer position="horizontal-banner" />
-                  
-                  {/* Quick Tour Categories */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4">
-                    {['City Tours', 'Day Trips', 'Food Tours', 'Museums'].map((category) => (
-                      <a
-                        key={category}
-                        href={`https://www.getyourguide.com/s/?q=${encodeURIComponent(`${city.name} ${category}`)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-3 bg-background border rounded-lg text-center hover:border-primary transition-colors text-sm font-medium"
-                      >
-                        {category}
-                      </a>
-                    ))}
-                  </div>
                 </CardContent>
               </Card>
 
@@ -312,25 +292,6 @@ const CityPage = () => {
 
             {/* Right Column - Sidebar */}
             <div className="space-y-5">
-              {/* Quick Book Card */}
-              <Card className="border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5">
-                <CardContent className="p-5 text-center">
-                  <h3 className="font-bold text-lg mb-2">Book Your Experience</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Find and book the best tours, activities, and experiences in {city.name}
-                  </p>
-                  <a
-                    href={`https://www.getyourguide.com/s/?q=${encodeURIComponent(city.name)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Button className="w-full">
-                      Browse Tours <ExternalLink className="h-4 w-4 ml-2" />
-                    </Button>
-                  </a>
-                </CardContent>
-              </Card>
-
               {/* Sidebar Affiliates */}
               <AffiliateBannerContainer position="sidebar-right" />
 

@@ -1,13 +1,14 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, DollarSign, FileText, Globe, Users, MapPin, TrendingUp, Plane, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Clock, DollarSign, FileText, Globe, Users, MapPin, TrendingUp, Plane, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import SEOHead from "@/components/SEOHead";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -17,9 +18,15 @@ import AuthorBio from "@/components/AuthorBio";
 import RelatedContent from "@/components/RelatedContent";
 import ArticleSchema from "@/components/ArticleSchema";
 import SocialShareButtons from "@/components/SocialShareButtons";
+import { CountryCombobox } from "@/components/CountryCombobox";
+import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
+import VisaAlertTicker from "@/components/VisaAlertTicker";
 
 const CountryGuide = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
+  const navigate = useNavigate();
+  const [selectedPassportCountry, setSelectedPassportCountry] = useState<string>("");
+  const [showAllVisitors, setShowAllVisitors] = useState(false);
   
   usePageTracking(`countries/${countrySlug}`);
   
@@ -90,6 +97,19 @@ const CountryGuide = () => {
     }
   }, [country, refetchCountry]);
 
+  // Fetch all countries for passport selector
+  const { data: allCountries } = useQuery({
+    queryKey: ['all-countries'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('countries')
+        .select('id, name, code, flag_emoji, slug')
+        .order('name');
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
   const { data: visaRequirements } = useQuery({
     queryKey: ['visa-requirements', country?.id],
     queryFn: async () => {
@@ -98,11 +118,11 @@ const CountryGuide = () => {
         .from('visa_requirements')
         .select(`
           *,
-          from_country:countries!visa_requirements_from_country_id_fkey(name, code, flag_emoji),
+          from_country:countries!visa_requirements_from_country_id_fkey(name, code, flag_emoji, slug),
           to_country:countries!visa_requirements_to_country_id_fkey(name, code, flag_emoji)
         `)
         .eq('to_country_id', country.id)
-        .limit(20);
+        .limit(100);
       
       if (error) throw error;
       return data;
@@ -274,6 +294,9 @@ const CountryGuide = () => {
         {/* Country Hero */}
         <CountryHero country={country} />
 
+        {/* Visa Alert Ticker */}
+        <VisaAlertTicker countryId={country.id} countryName={country.name} />
+
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6">
           {/* Main Content - Left Column */}
@@ -316,21 +339,36 @@ const CountryGuide = () => {
             {/* Check Your Visa CTA */}
             <Card className="bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
               <CardContent className="p-5">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <h3 className="text-lg font-bold flex items-center gap-2 mb-3">
+                  <Users className="h-5 w-5 text-primary" />
+                  Do YOU Need a Visa for {country.name}?
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Select your passport country to see exact requirements
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1">
-                    <h3 className="text-lg font-bold flex items-center gap-2">
-                      <Users className="h-5 w-5 text-primary" />
-                      Do YOU Need a Visa for {country.name}?
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Select your passport country to see exact requirements
-                    </p>
+                    <CountryCombobox
+                      countries={allCountries || []}
+                      value={selectedPassportCountry}
+                      onValueChange={setSelectedPassportCountry}
+                      placeholder="Your passport country..."
+                    />
                   </div>
-                  <Link to="/visa-search" className="shrink-0">
-                    <button className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-sm">
-                      Check Requirements →
-                    </button>
-                  </Link>
+                  <Button
+                    onClick={() => {
+                      if (selectedPassportCountry && allCountries) {
+                        const fromCountry = allCountries.find(c => c.id === selectedPassportCountry);
+                        if (fromCountry) {
+                          navigate(`/visa-requirements/${fromCountry.slug}-to-${country.slug}-visa-requirements`);
+                        }
+                      }
+                    }}
+                    disabled={!selectedPassportCountry}
+                    className="shrink-0"
+                  >
+                    Check Requirements →
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -346,24 +384,45 @@ const CountryGuide = () => {
               <CardContent>
                 <div className="space-y-2">
                   {visaRequirements && visaRequirements.length > 0 ? (
-                    visaRequirements.slice(0, 6).map((req) => (
-                      <div key={req.id} className="flex items-center justify-between p-2.5 border rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">{req.from_country?.flag_emoji || countryCodeToFlagEmoji(req.from_country?.code) || '🏳️'}</span>
-                          <span className="font-medium text-sm">{req.from_country?.name}</span>
-                        </div>
-                        <Badge className={`text-xs ${getRequirementColor(req.requirement_type)}`}>
-                          {formatRequirementType(req.requirement_type)}
-                        </Badge>
-                      </div>
-                    ))
+                    <>
+                      {visaRequirements.slice(0, showAllVisitors ? 50 : 8).map((req) => (
+                        <Link 
+                          key={req.id} 
+                          to={`/visa-requirements/${req.from_country?.slug}-to-${country.slug}-visa-requirements`}
+                          className="flex items-center justify-between p-2.5 border rounded-lg hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">{req.from_country?.flag_emoji || countryCodeToFlagEmoji(req.from_country?.code) || '🏳️'}</span>
+                            <span className="font-medium text-sm">{req.from_country?.name}</span>
+                          </div>
+                          <Badge className={`text-xs ${getRequirementColor(req.requirement_type)}`}>
+                            {formatRequirementType(req.requirement_type)}
+                          </Badge>
+                        </Link>
+                      ))}
+                      {visaRequirements.length > 8 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowAllVisitors(!showAllVisitors)}
+                          className="w-full mt-2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showAllVisitors ? (
+                            <>
+                              <ChevronUp className="h-4 w-4 mr-1" />
+                              Show Less
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="h-4 w-4 mr-1" />
+                              Show {Math.min(visaRequirements.length - 8, 42)} More Countries
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </>
                   ) : (
                     <p className="text-muted-foreground text-sm py-4 text-center">Visa requirement data coming soon.</p>
-                  )}
-                  {visaRequirements && visaRequirements.length > 6 && (
-                    <p className="text-xs text-muted-foreground text-center pt-2">
-                      +{visaRequirements.length - 6} more countries
-                    </p>
                   )}
                 </div>
               </CardContent>
@@ -549,6 +608,16 @@ const CountryGuide = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* GetYourGuide Tours & Affiliate Links */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Tours & Activities</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <AffiliateBannerContainer position="sidebar-right" />
+              </CardContent>
+            </Card>
 
             {/* Newsletter Signup */}
             <NewsletterSignup variant="sidebar" />

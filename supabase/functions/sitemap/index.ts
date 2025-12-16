@@ -26,7 +26,8 @@ serve(async (req) => {
       { data: guides },
       { data: news },
       { data: contentPages },
-      { data: visaRequirements }
+      { data: visaRequirements },
+      { data: cities }
     ] = await Promise.all([
       supabase.from("countries").select("slug, updated_at"),
       supabase.from("guides").select("slug, updated_at, published_at").not("published_at", "is", null),
@@ -36,6 +37,10 @@ serve(async (req) => {
         id, last_updated,
         from_country:countries!visa_requirements_from_country_id_fkey(slug),
         to_country:countries!visa_requirements_to_country_id_fkey(slug)
+      `),
+      supabase.from("cities").select(`
+        slug, updated_at,
+        country:countries!cities_country_id_fkey(slug)
       `)
     ]);
 
@@ -118,6 +123,14 @@ serve(async (req) => {
           const lastmod = (vr.last_updated || now).split("T")[0];
           addUrl(path, lastmod, "weekly", "0.7");
         }
+      }
+    }
+
+    // City pages (country/city)
+    for (const city of cities || []) {
+      if (city.country?.slug && city.slug) {
+        const lastmod = (city.updated_at || now).split("T")[0];
+        addUrl(`/${city.country.slug}/${city.slug}`, lastmod, "weekly", "0.7");
       }
     }
 

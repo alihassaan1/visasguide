@@ -3,6 +3,9 @@ import { ArrowRight } from "lucide-react";
 import globeTravel from "@/assets/icons/globe-travel.jpg";
 import passportStamps from "@/assets/icons/passport-stamps.jpg";
 import studentGlobal from "@/assets/icons/student-global.jpg";
+import passportRankings from "@/assets/icons/passport-rankings.jpg";
+import visaSearch from "@/assets/icons/visa-search.jpg";
+import businessVisa from "@/assets/icons/business-visa.jpg";
 
 const QuickLinks = () => {
   const links = [
@@ -14,16 +17,14 @@ const QuickLinks = () => {
       gradient: "from-blue-500/20 to-cyan-500/20",
     },
     {
-      image: null,
-      emoji: "🏆",
+      image: passportRankings,
       title: "Passport Rankings",
       description: "Global passport power index and mobility scores",
       link: "/passport-index",
       gradient: "from-amber-500/20 to-orange-500/20",
     },
     {
-      image: null,
-      emoji: "🔍",
+      image: visaSearch,
       title: "Visa Search",
       description: "Check visa requirements between any two countries",
       link: "/visa-search",
@@ -37,8 +38,7 @@ const QuickLinks = () => {
       gradient: "from-rose-500/20 to-pink-500/20",
     },
     {
-      image: null,
-      emoji: "💼",
+      image: businessVisa,
       title: "Business Visa",
       description: "Business travel and work permit requirements",
       link: "/visa-types/business",
@@ -72,21 +72,15 @@ const QuickLinks = () => {
             className={`group relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br ${item.gradient} p-1 hover:shadow-xl transition-all duration-300`}
           >
             <div className="bg-card rounded-xl p-5 h-full flex items-start gap-4">
-              {/* Image or Emoji */}
+              {/* Image */}
               <div className="flex-shrink-0">
-                {item.image ? (
-                  <div className="w-16 h-16 rounded-xl overflow-hidden shadow-md">
-                    <img 
-                      src={item.image} 
-                      alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center text-3xl group-hover:scale-110 transition-transform duration-300">
-                    {item.emoji}
-                  </div>
-                )}
+                <div className="w-16 h-16 rounded-xl overflow-hidden shadow-md">
+                  <img 
+                    src={item.image} 
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
               </div>
 
               {/* Content */}

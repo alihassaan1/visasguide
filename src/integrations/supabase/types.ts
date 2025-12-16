@@ -74,6 +74,108 @@ export type Database = {
         }
         Relationships: []
       }
+      affiliate_programs: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          name: string
+          partner_id: string | null
+          settings: Json | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name: string
+          partner_id?: string | null
+          settings?: Json | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name?: string
+          partner_id?: string | null
+          settings?: Json | null
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      affiliate_widgets: {
+        Row: {
+          affiliate_program: string
+          city_id: string | null
+          click_count: number | null
+          country_id: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          position: string | null
+          tour_id: string | null
+          updated_at: string | null
+          widget_type: string | null
+          widget_url: string
+          widget_variant: string | null
+        }
+        Insert: {
+          affiliate_program: string
+          city_id?: string | null
+          click_count?: number | null
+          country_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          position?: string | null
+          tour_id?: string | null
+          updated_at?: string | null
+          widget_type?: string | null
+          widget_url: string
+          widget_variant?: string | null
+        }
+        Update: {
+          affiliate_program?: string
+          city_id?: string | null
+          click_count?: number | null
+          country_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          position?: string | null
+          tour_id?: string | null
+          updated_at?: string | null
+          widget_type?: string | null
+          widget_url?: string
+          widget_variant?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_widgets_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_widgets_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_generations: {
         Row: {
           author_id: string

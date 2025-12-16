@@ -6,6 +6,39 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function logApiCall(
+  supabase: any,
+  taskType: string,
+  entityName: string,
+  status: 'success' | 'error' | 'timeout',
+  startTime: number,
+  tokensUsed?: number,
+  errorMessage?: string,
+  inputTokens?: number,
+  outputTokens?: number
+) {
+  const responseTime = Date.now() - startTime;
+  try {
+    await supabase.from('api_logs').insert({
+      api_provider: 'deepseek',
+      endpoint: 'https://api.deepseek.com/chat/completions',
+      task_type: taskType,
+      entity_name: entityName,
+      status,
+      response_time_ms: responseTime,
+      tokens_used: tokensUsed,
+      input_tokens: inputTokens,
+      output_tokens: outputTokens,
+      error_message: errorMessage,
+      retry_count: 0,
+      response_summary: { mode: taskType }
+    });
+    console.log(`API call logged: ${taskType} - ${entityName} - ${status}`);
+  } catch (logError) {
+    console.error('Failed to log API call:', logError);
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -48,28 +81,37 @@ Return ONLY a valid JSON array with this exact structure, no markdown:
   }
 ]`;
 
-      const response = await fetch('https://api.deepseek.com/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${deepseekKey}`,
-        },
-        body: JSON.stringify({
-          model: 'deepseek-chat',
-          messages: [
-            { role: 'system', content: 'You are a travel expert. Always respond with valid JSON only, no markdown formatting.' },
-            { role: 'user', content: prompt }
-          ],
-          temperature: 0.7,
-          max_tokens: 2000,
-        }),
-      });
+      const startTime = Date.now();
+      let response;
+      try {
+        response = await fetch('https://api.deepseek.com/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${deepseekKey}`,
+          },
+          body: JSON.stringify({
+            model: 'deepseek-chat',
+            messages: [
+              { role: 'system', content: 'You are a travel expert. Always respond with valid JSON only, no markdown formatting.' },
+              { role: 'user', content: prompt }
+            ],
+            temperature: 0.7,
+            max_tokens: 2000,
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error(`DeepSeek API error: ${response.status}`);
+        if (!response.ok) {
+          await logApiCall(supabase, 'city_generation', countryName, 'error', startTime, undefined, `DeepSeek API error: ${response.status}`);
+          throw new Error(`DeepSeek API error: ${response.status}`);
+        }
+      } catch (fetchError) {
+        await logApiCall(supabase, 'city_generation', countryName, 'error', startTime, undefined, fetchError.message);
+        throw fetchError;
       }
 
       const data = await response.json();
+      const usage = data.usage || {};
       let content = data.choices[0]?.message?.content || '[]';
       
       // Clean up the response
@@ -80,8 +122,21 @@ Return ONLY a valid JSON array with this exact structure, no markdown:
       let cities;
       try {
         cities = JSON.parse(content);
+        // Log successful API call with token counts
+        await logApiCall(
+          supabase,
+          'city_generation',
+          countryName,
+          'success',
+          startTime,
+          usage.total_tokens,
+          undefined,
+          usage.prompt_tokens,
+          usage.completion_tokens
+        );
       } catch (e) {
         console.error('Failed to parse cities JSON:', e);
+        await logApiCall(supabase, 'city_generation', countryName, 'error', startTime, usage.total_tokens, 'Failed to parse JSON response', usage.prompt_tokens, usage.completion_tokens);
         return new Response(JSON.stringify({ error: 'Failed to parse city data' }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -151,36 +206,59 @@ Return ONLY valid JSON with this structure, no markdown:
   "attractions": ["Attraction 1", "Attraction 2", "Attraction 3", "Attraction 4", "Attraction 5"]
 }`;
 
-      const response = await fetch('https://api.deepseek.com/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${deepseekKey}`,
-        },
-        body: JSON.stringify({
-          model: 'deepseek-chat',
-          messages: [
-            { role: 'system', content: 'You are a travel expert. Always respond with valid JSON only.' },
-            { role: 'user', content: prompt }
-          ],
-          temperature: 0.7,
-          max_tokens: 1500,
-        }),
-      });
+      const startTime = Date.now();
+      const entityName = `${cityName}, ${countryName}`;
+      let response;
+      try {
+        response = await fetch('https://api.deepseek.com/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${deepseekKey}`,
+          },
+          body: JSON.stringify({
+            model: 'deepseek-chat',
+            messages: [
+              { role: 'system', content: 'You are a travel expert. Always respond with valid JSON only.' },
+              { role: 'user', content: prompt }
+            ],
+            temperature: 0.7,
+            max_tokens: 1500,
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error(`DeepSeek API error: ${response.status}`);
+        if (!response.ok) {
+          await logApiCall(supabase, 'city_content_update', entityName, 'error', startTime, undefined, `DeepSeek API error: ${response.status}`);
+          throw new Error(`DeepSeek API error: ${response.status}`);
+        }
+      } catch (fetchError) {
+        await logApiCall(supabase, 'city_content_update', entityName, 'error', startTime, undefined, fetchError.message);
+        throw fetchError;
       }
 
       const data = await response.json();
+      const usage = data.usage || {};
       let content = data.choices[0]?.message?.content || '{}';
       content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
       let cityContent;
       try {
         cityContent = JSON.parse(content);
+        // Log successful API call with token counts
+        await logApiCall(
+          supabase,
+          'city_content_update',
+          entityName,
+          'success',
+          startTime,
+          usage.total_tokens,
+          undefined,
+          usage.prompt_tokens,
+          usage.completion_tokens
+        );
       } catch (e) {
         console.error('Failed to parse city content JSON:', e);
+        await logApiCall(supabase, 'city_content_update', entityName, 'error', startTime, usage.total_tokens, 'Failed to parse JSON response', usage.prompt_tokens, usage.completion_tokens);
         return new Response(JSON.stringify({ error: 'Failed to parse content' }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

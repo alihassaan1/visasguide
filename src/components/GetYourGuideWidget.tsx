@@ -12,7 +12,7 @@ interface GetYourGuideWidgetProps {
 }
 
 const GetYourGuideWidget = ({
-  partnerId = 'VISASGUIDE', // Replace with actual partner ID
+  partnerId = 'WN9V7PZ',
   location,
   locationId,
   numberOfItems = 4,

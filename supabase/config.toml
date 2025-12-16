@@ -88,3 +88,6 @@ verify_jwt = false
 
 [functions.generate-guide-content]
 verify_jwt = false
+
+[functions.countries-travel-stats-backfill]
+verify_jwt = false

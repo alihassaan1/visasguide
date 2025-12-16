@@ -52,16 +52,16 @@ const GetYourGuideWidget = ({
   };
 
   return (
-    <div className={`space-y-3 ${className}`}>
+    <div className={`${className}`}>
       {/* Widget Container */}
       <div 
         ref={containerRef}
-        className="rounded-lg overflow-hidden bg-white"
+        className="rounded-xl overflow-hidden border border-border/50 shadow-sm"
       >
         <iframe
           src={getWidgetUrl()}
-          className="w-full border-0"
-          style={{ minHeight: '400px' }}
+          className="w-full border-0 bg-background"
+          style={{ minHeight: numberOfItems > 4 ? '600px' : '450px' }}
           title={`GetYourGuide ${location || 'Activities'} Widget`}
           loading="lazy"
           allow="payment"
@@ -81,7 +81,11 @@ const GetYourGuideWidget = ({
       )}
 
       {/* Affiliate Disclosure */}
-      {showDisclosure && <AffiliateDisclosure variant="compact" />}
+      {showDisclosure && (
+        <div className="mt-3">
+          <AffiliateDisclosure variant="compact" />
+        </div>
+      )}
     </div>
   );
 };

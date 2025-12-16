@@ -300,32 +300,26 @@ const CityPage = () => {
                 </Card>
               )}
 
-              {/* Things to do Section - GetYourGuide Widget */}
-              <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    🎫 Things to do in {city.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-muted-foreground text-sm">
-                    Discover the best experiences, guided tours, and activities in {city.name}. 
-                    Book ahead and skip the lines!
-                  </p>
-                  
-                  {/* GetYourGuide Widget */}
-                  <GetYourGuideWidget 
-                    location={`${city.name}, ${city.country?.name}`}
-                    numberOfItems={4}
-                  />
-                  
-                  {/* Affiliate Banners - In Content */}
-                  <AffiliateBannerContainer position="in-content" />
-                  
-                  {/* Affiliate Disclosure */}
-                  <AffiliateDisclosure />
-                </CardContent>
-              </Card>
+              {/* Things to do Section - GetYourGuide Direct Embed */}
+              <section className="space-y-4">
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  🎫 Things to do in {city.name}
+                </h2>
+                <p className="text-muted-foreground text-sm">
+                  Discover the best experiences, guided tours, and activities in {city.name}. 
+                  Book ahead and skip the lines!
+                </p>
+                
+                {/* GetYourGuide Direct Widget Embed */}
+                <GetYourGuideWidget 
+                  location={`${city.name}, ${city.country?.name}`}
+                  numberOfItems={6}
+                  showDisclosure={false}
+                />
+                
+                {/* Affiliate Banners - In Content */}
+                <AffiliateBannerContainer position="in-content" />
+              </section>
 
               {/* Gallery */}
               {city.gallery_images && city.gallery_images.length > 0 && (
@@ -377,6 +371,11 @@ const CityPage = () => {
           </div>
         </div>
       </main>
+      
+      {/* Affiliate Disclosure - Footer */}
+      <div className="container mx-auto px-4 pb-4">
+        <AffiliateDisclosure />
+      </div>
       
       <Footer />
     </div>

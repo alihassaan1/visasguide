@@ -6,48 +6,104 @@ interface GetYourGuideWidgetProps {
   location?: string;
   locationId?: string;
   numberOfItems?: number;
-  widget?: 'activities' | 'city' | 'search';
+  widget?: 'activities' | 'city';
   className?: string;
   showDisclosure?: boolean;
 }
+
+// GetYourGuide location IDs for popular destinations
+const locationIds: Record<string, string> = {
+  'thailand': 'l169040',
+  'bangkok': 'l187',
+  'chiang-mai': 'l188',
+  'phuket': 'l189',
+  'pattaya': 'l2630',
+  'indonesia': 'l171310',
+  'bali': 'l551',
+  'jakarta': 'l550',
+  'japan': 'l169041',
+  'tokyo': 'l193',
+  'osaka': 'l194',
+  'kyoto': 'l195',
+  'singapore': 'l212',
+  'malaysia': 'l169048',
+  'kuala-lumpur': 'l199',
+  'uae': 'l169055',
+  'dubai': 'l173',
+  'abu-dhabi': 'l2621',
+  'france': 'l169016',
+  'paris': 'l16',
+  'uk': 'l169015',
+  'london': 'l57',
+  'usa': 'l169058',
+  'new-york': 'l59',
+  'los-angeles': 'l58',
+  'italy': 'l169017',
+  'rome': 'l31',
+  'venice': 'l35',
+  'spain': 'l169018',
+  'barcelona': 'l45',
+  'madrid': 'l46',
+  'germany': 'l169019',
+  'berlin': 'l17',
+  'australia': 'l169033',
+  'sydney': 'l207',
+  'india': 'l169039',
+  'delhi': 'l197',
+  'turkey': 'l169053',
+  'istanbul': 'l56',
+  'egypt': 'l169020',
+  'cairo': 'l178',
+  'south-korea': 'l169044',
+  'seoul': 'l236',
+};
 
 const GetYourGuideWidget = ({
   partnerId = 'WN9V7PZ',
   location,
   locationId,
-  numberOfItems = 4,
+  numberOfItems = 6,
   widget = 'activities',
   className = '',
   showDisclosure = true
 }: GetYourGuideWidgetProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const scriptLoaded = useRef(false);
 
-  useEffect(() => {
-    // Load GetYourGuide script if not already loaded
-    if (!scriptLoaded.current && typeof window !== 'undefined') {
-      const existingScript = document.querySelector('script[src*="getyourguide.com"]');
-      
-      if (!existingScript) {
-        const script = document.createElement('script');
-        script.src = 'https://widget.getyourguide.com/dist/pa.umd.production.min.js';
-        script.async = true;
-        script.dataset.gyg_partner_id = partnerId;
-        document.body.appendChild(script);
-      }
-      scriptLoaded.current = true;
+  // Get location ID from slug or use provided locationId
+  const getLocationId = () => {
+    if (locationId) return locationId;
+    
+    // Try to match location name to ID
+    if (location) {
+      const slug = location.toLowerCase()
+        .split(',')[0]
+        .trim()
+        .replace(/\s+/g, '-');
+      return locationIds[slug] || '';
     }
-  }, [partnerId]);
+    return '';
+  };
 
-  // Build widget URL based on type
+  // Build widget URL
   const getWidgetUrl = () => {
-    const baseUrl = 'https://widget.getyourguide.com/default/activities.frame';
+    const locId = getLocationId();
+    const baseUrl = widget === 'city' 
+      ? 'https://widget.getyourguide.com/default/city.frame'
+      : 'https://widget.getyourguide.com/default/activities.frame';
+    
     const params = new URLSearchParams({
       partner_id: partnerId,
       number_of_items: numberOfItems.toString(),
-      ...(location && { q: location }),
-      ...(locationId && { location_id: locationId }),
+      currency: 'USD',
+      locale_code: 'en-US',
     });
+
+    if (locId) {
+      params.append('location_id', locId);
+    } else if (location) {
+      params.append('q', location);
+    }
+
     return `${baseUrl}?${params.toString()}`;
   };
 
@@ -68,18 +124,6 @@ const GetYourGuideWidget = ({
           scrolling="no"
         />
       </div>
-
-      {/* Alternative: Native Widget (use data attributes) */}
-      {widget === 'search' && (
-        <div
-          data-gyg-href={`https://www.getyourguide.com${location ? `/s?q=${encodeURIComponent(location)}` : ''}`}
-          data-gyg-partner-id={partnerId}
-          data-gyg-widget="activities"
-          data-gyg-number-of-items={numberOfItems}
-          data-gyg-locale-code="en-US"
-          data-gyg-currency="USD"
-        />
-      )}
 
       {/* Affiliate Disclosure */}
       {showDisclosure && (

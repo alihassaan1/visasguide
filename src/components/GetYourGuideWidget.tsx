@@ -53,18 +53,19 @@ const GetYourGuideWidget = ({
 
   return (
     <div className={`${className}`}>
-      {/* Widget Container */}
-      <div 
-        ref={containerRef}
-        className="rounded-xl overflow-hidden border border-border/50 shadow-sm"
-      >
+      {/* Widget Container - Seamless integration */}
+      <div ref={containerRef}>
         <iframe
           src={getWidgetUrl()}
-          className="w-full border-0 bg-background"
-          style={{ minHeight: numberOfItems > 4 ? '600px' : '450px' }}
+          className="w-full border-0 bg-transparent"
+          style={{ 
+            minHeight: numberOfItems > 4 ? '800px' : '550px',
+            overflow: 'hidden'
+          }}
           title={`GetYourGuide ${location || 'Activities'} Widget`}
           loading="lazy"
           allow="payment"
+          scrolling="no"
         />
       </div>
 

@@ -5,8 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Clock, DollarSign, FileText, Globe, Users, MapPin } from "lucide-react";
+import { Clock, DollarSign, FileText, Globe, Users, MapPin, TrendingUp, Plane, CheckCircle } from "lucide-react";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
 import { useEffect, useRef } from "react";
 import SEOHead from "@/components/SEOHead";
@@ -18,12 +17,10 @@ import AuthorBio from "@/components/AuthorBio";
 import RelatedContent from "@/components/RelatedContent";
 import ArticleSchema from "@/components/ArticleSchema";
 import SocialShareButtons from "@/components/SocialShareButtons";
-import TravelStatistics from "@/components/TravelStatistics";
 
 const CountryGuide = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
   
-  // Track page views and time spent
   usePageTracking(`countries/${countrySlug}`);
   
   const { data: country, isLoading: countryLoading, refetch: refetchCountry } = useQuery({
@@ -41,7 +38,6 @@ const CountryGuide = () => {
     enabled: !!countrySlug
   });
 
-  // Fetch country guide content from content_pages
   const { data: guideContent } = useQuery({
     queryKey: ['country-guide-content', countrySlug],
     queryFn: async () => {
@@ -58,14 +54,13 @@ const CountryGuide = () => {
     enabled: !!countrySlug
   });
 
-  // Track page view when country data loads
   useEffect(() => {
     if (country?.id) {
       supabase.rpc('increment_page_view_count', { p_country_id: country.id });
     }
   }, [country?.id]);
 
-  // Lazy backfill: if core fields are missing, trigger countries-backfill for this country and refetch
+  // Lazy backfill for missing core data
   const hasBackfilledRef = useRef(false);
   const hasTravelStatsBackfilledRef = useRef(false);
   
@@ -76,17 +71,11 @@ const CountryGuide = () => {
       hasBackfilledRef.current = true;
       supabase.functions
         .invoke('countries-backfill', { body: { code: country.code } })
-        .then(() => {
-          // Refetch country to get fresh data
-          refetchCountry();
-        })
-        .catch(() => {
-          // ignore silently; UI already handles fallbacks
-        });
+        .then(() => refetchCountry())
+        .catch(() => {});
     }
   }, [country, refetchCountry]);
 
-  // Lazy backfill travel stats if missing
   useEffect(() => {
     if (!country || hasTravelStatsBackfilledRef.current) return;
     const missingTravelStats = !country.annual_tourists && !country.tourism_rank;
@@ -96,12 +85,8 @@ const CountryGuide = () => {
         .invoke('countries-travel-stats-backfill', { 
           body: { countryId: country.id, countryName: country.name } 
         })
-        .then(() => {
-          refetchCountry();
-        })
-        .catch(() => {
-          // ignore silently
-        });
+        .then(() => refetchCountry())
+        .catch(() => {});
     }
   }, [country, refetchCountry]);
 
@@ -109,7 +94,6 @@ const CountryGuide = () => {
     queryKey: ['visa-requirements', country?.id],
     queryFn: async () => {
       if (!country?.id) return [];
-      
       const { data, error } = await supabase
         .from('visa_requirements')
         .select(`
@@ -126,7 +110,6 @@ const CountryGuide = () => {
     enabled: !!country?.id
   });
 
-  // Fallback: compute visa-free destinations count if missing in countries table
   const { data: computedVisaFreeCount } = useQuery({
     queryKey: ['visa-free-count', country?.id],
     queryFn: async () => {
@@ -142,43 +125,10 @@ const CountryGuide = () => {
     enabled: !!country?.id && (country?.visa_free_destinations == null || country?.visa_free_destinations === 0)
   });
 
-  // Query for visa on arrival count
-  const { data: visaOnArrivalCount } = useQuery({
-    queryKey: ['visa-on-arrival-count', country?.id],
-    queryFn: async () => {
-      if (!country?.id) return 0;
-      const { count, error } = await supabase
-        .from('visa_requirements')
-        .select('id', { count: 'exact', head: true })
-        .eq('from_country_id', country.id)
-        .eq('requirement_type', 'visa_on_arrival');
-      if (error) throw error;
-      return count || 0;
-    },
-    enabled: !!country?.id
-  });
-
-  // Query for visa required count
-  const { data: visaRequiredCount } = useQuery({
-    queryKey: ['visa-required-count', country?.id],
-    queryFn: async () => {
-      if (!country?.id) return 0;
-      const { count, error } = await supabase
-        .from('visa_requirements')
-        .select('id', { count: 'exact', head: true })
-        .eq('from_country_id', country.id)
-        .eq('requirement_type', 'visa_required');
-      if (error) throw error;
-      return count || 0;
-    },
-    enabled: !!country?.id
-  });
-
   const { data: processingTimes } = useQuery({
     queryKey: ['processing-times', country?.id],
     queryFn: async () => {
       if (!country?.id) return [];
-      
       const { data, error } = await supabase
         .from('processing_times')
         .select('*')
@@ -196,12 +146,19 @@ const CountryGuide = () => {
       case 'visa_on_arrival': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
       case 'eTA_required': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
       case 'visa_required': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
   const formatRequirementType = (type: string) => {
     return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000000000) return (num / 1000000000).toFixed(1) + 'B';
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
   };
 
   if (countryLoading) {
@@ -210,11 +167,14 @@ const CountryGuide = () => {
         <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-            <div className="h-32 bg-gray-200 rounded"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="h-64 bg-gray-200 rounded"></div>
-              <div className="h-64 bg-gray-200 rounded"></div>
+            <div className="h-8 bg-muted rounded w-1/3"></div>
+            <div className="h-48 bg-muted rounded"></div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-4">
+                <div className="h-32 bg-muted rounded"></div>
+                <div className="h-64 bg-muted rounded"></div>
+              </div>
+              <div className="h-96 bg-muted rounded"></div>
             </div>
           </div>
         </main>
@@ -228,7 +188,7 @@ const CountryGuide = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="container mx-auto px-4 py-8">
-          <div className="text-center">
+          <div className="text-center py-16">
             <h1 className="text-2xl font-bold mb-4">Country Not Found</h1>
             <p className="text-muted-foreground">The country you're looking for doesn't exist in our database.</p>
           </div>
@@ -238,7 +198,6 @@ const CountryGuide = () => {
     );
   }
 
-  // CTR-optimized country name abbreviations for better search query matching
   const countryAbbreviations: Record<string, string> = {
     'saint-kitts-and-nevis': 'St Kitts',
     'united-states': 'USA',
@@ -251,15 +210,15 @@ const CountryGuide = () => {
     'saudi-arabia': 'Saudi Arabia',
   };
   
-  // Get CTR-optimized display name
   const ctrName = countryAbbreviations[country.slug] || country.name;
   
-  // Use guide content meta if available (CTR-optimized by content agent)
   const metaTitle = guideContent?.meta_title || 
     `${ctrName} Visa Requirements 2025 | ${country.name !== ctrName ? country.name + ' ' : ''}Entry Guide & Requirements`;
   
   const metaDescription = guideContent?.meta_description || 
     `Do you need a visa for ${ctrName}? ✓ Complete ${country.name} visa requirements ✓ Visa-free countries ✓ Application process ✓ Processing times. Updated 2025 guide.`;
+
+  const visaFreeCount = country.visa_free_destinations || computedVisaFreeCount || 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -267,10 +226,9 @@ const CountryGuide = () => {
         title={metaTitle}
         description={metaDescription}
         canonical={`https://visas.guide/countries/${country.slug}`}
-        keywords={[`${country.name} visa`, `${country.name} visa requirements`, `${country.name} visa-free countries`, `${country.name} passport`, `${country.name} evisa`, `travel to ${country.name}`, `${country.name} visa application`]}
+        keywords={[`${country.name} visa`, `${country.name} visa requirements`, `${country.name} visa-free countries`, `${country.name} passport`, `${country.name} evisa`, `travel to ${country.name}`]}
       />
       
-      {/* SEO Meta Tags */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -278,7 +236,7 @@ const CountryGuide = () => {
             "@context": "https://schema.org",
             "@type": "WebPage",
             "name": `${country.name} Visa Requirements & Travel Guide`,
-            "description": `Complete visa requirements, passport information, and travel guide for ${country.name}. Get up-to-date visa information for travelers.`,
+            "description": `Complete visa requirements, passport information, and travel guide for ${country.name}.`,
             "url": `https://visas.guide/countries/${country.slug}`,
             "mainEntity": {
               "@type": "Country",
@@ -291,9 +249,9 @@ const CountryGuide = () => {
 
       <Header />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-6">
         {/* Breadcrumbs */}
-        <Breadcrumb className="mb-6">
+        <Breadcrumb className="mb-4">
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
@@ -313,282 +271,312 @@ const CountryGuide = () => {
           </BreadcrumbList>
         </Breadcrumb>
 
-        {/* Country Hero Image */}
+        {/* Country Hero */}
         <CountryHero country={country} />
 
-        {/* Country Overview Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          <Card className="border-0 bg-gradient-to-br from-primary/10 to-primary/5">
-            <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-primary mb-1">
-                #{country.passport_rank || 'N/A'}
-              </div>
-              <div className="text-sm text-muted-foreground">Passport Rank</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-0 bg-gradient-to-br from-green-500/10 to-green-500/5">
-            <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-green-600 mb-1">
-                {country.visa_free_destinations || computedVisaFreeCount || 0}
-              </div>
-              <div className="text-sm text-muted-foreground">Visa-Free Access</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-0 bg-gradient-to-br from-blue-500/10 to-blue-500/5">
-            <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-1">
-                {country.population ? (country.population / 1000000).toFixed(1) + 'M' : 'N/A'}
-              </div>
-              <div className="text-sm text-muted-foreground">Population</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-0 bg-gradient-to-br from-orange-500/10 to-orange-500/5">
-            <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-orange-600 mb-1">
-                {country.passport_score || 'N/A'}
-              </div>
-              <div className="text-sm text-muted-foreground">Passport Score</div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 bg-gradient-to-br from-yellow-500/10 to-yellow-500/5">
-            <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-yellow-600 mb-1">
-                {visaOnArrivalCount || 0}
-              </div>
-              <div className="text-sm text-muted-foreground">Visa on Arrival</div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 bg-gradient-to-br from-red-500/10 to-red-500/5">
-            <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-red-600 mb-1">
-                {visaRequiredCount || 0}
-              </div>
-              <div className="text-sm text-muted-foreground">Visa Required</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Travel Statistics Section */}
-        <TravelStatistics country={country} />
-
-        {/* Country Guide Content */}
-        {guideContent && (
-          <Card className="mb-8">
-            <CardContent className="p-8">
-              <div 
-                className="prose prose-lg max-w-none dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: guideContent.content }}
-              />
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Country Overview */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5" />
-              Country Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  Capital City
-                </div>
-                <p className="font-medium">{country.capital || 'N/A'}</p>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <DollarSign className="h-4 w-4" />
-                  Currency
-                </div>
-                <p className="font-medium">{country.currency || 'N/A'}</p>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Globe className="h-4 w-4" />
-                  Region
-                </div>
-                <p className="font-medium">{country.region || 'N/A'}</p>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <FileText className="h-4 w-4" />
-                  Language
-                </div>
-                <p className="font-medium">{country.language || 'N/A'}</p>
-              </div>
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6">
+          {/* Main Content - Left Column */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Visa Summary Cards - Simplified 4 key stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Card className="border-0 bg-gradient-to-br from-primary/10 to-primary/5">
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-primary">#{country.passport_rank || 'N/A'}</div>
+                  <div className="text-xs text-muted-foreground mt-1">Passport Rank</div>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-0 bg-gradient-to-br from-green-500/10 to-green-500/5">
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-green-600">{visaFreeCount}</div>
+                  <div className="text-xs text-muted-foreground mt-1">Visa-Free Access</div>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-0 bg-gradient-to-br from-blue-500/10 to-blue-500/5">
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {country.annual_tourists ? formatNumber(country.annual_tourists) : 'N/A'}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">Annual Tourists</div>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-0 bg-gradient-to-br from-orange-500/10 to-orange-500/5">
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-orange-600">
+                    {country.tourism_rank ? `#${country.tourism_rank}` : 'N/A'}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">Tourism Rank</div>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Check YOUR Visa Requirements Widget */}
-        <Card className="mb-8 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
-          <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              <div className="flex-1">
-                <h3 className="text-xl font-bold mb-1 flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  Check If YOU Need a Visa for {country.name}
-                </h3>
-                <p className="text-muted-foreground text-sm">
-                  Select your passport country to see exact visa requirements
-                </p>
-              </div>
-              <Link to="/visa-search" className="shrink-0">
-                <button className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors whitespace-nowrap">
-                  Check Requirements →
-                </button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+            {/* Check Your Visa CTA */}
+            <Card className="bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
+              <CardContent className="p-5">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                      <Users className="h-5 w-5 text-primary" />
+                      Do YOU Need a Visa for {country.name}?
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Select your passport country to see exact requirements
+                    </p>
+                  </div>
+                  <Link to="/visa-search" className="shrink-0">
+                    <button className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-sm">
+                      Check Requirements →
+                    </button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Who Can Visit - Visa Requirements */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Who Can Visit {country.name}</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Visa requirements by passport nationality
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {visaRequirements && visaRequirements.length > 0 ? (
-                  visaRequirements.slice(0, 8).map((req) => (
-                    <div key={req.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl" style={{ fontFamily: "'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif" }}>{req.from_country?.flag_emoji || countryCodeToFlagEmoji(req.from_country?.code) || '🏳️'}</span>
-                        <span className="font-medium text-sm">{req.from_country?.name}</span>
-                      </div>
-                      <Badge className={getRequirementColor(req.requirement_type)}>
-                        {formatRequirementType(req.requirement_type)}
-                      </Badge>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-muted-foreground text-sm">Visa requirement data coming soon.</p>
-                )}
-                {visaRequirements && visaRequirements.length > 8 && (
-                  <p className="text-sm text-muted-foreground text-center pt-2">
-                    +{visaRequirements.length - 8} more countries
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Processing Times - Only show if data exists */}
-          {processingTimes && processingTimes.length > 0 && (
+            {/* Who Can Visit Section */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  Processing Times
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Plane className="h-5 w-5" />
+                  Who Can Visit {country.name}
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Estimated visa processing times for {country.name}
-                </p>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {processingTimes.map((time) => (
-                    <div key={time.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-medium text-sm">{time.visa_type}</p>
-                        {time.embassy_location && (
-                          <p className="text-xs text-muted-foreground">{time.embassy_location}</p>
-                        )}
+                <div className="space-y-2">
+                  {visaRequirements && visaRequirements.length > 0 ? (
+                    visaRequirements.slice(0, 6).map((req) => (
+                      <div key={req.id} className="flex items-center justify-between p-2.5 border rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{req.from_country?.flag_emoji || countryCodeToFlagEmoji(req.from_country?.code) || '🏳️'}</span>
+                          <span className="font-medium text-sm">{req.from_country?.name}</span>
+                        </div>
+                        <Badge className={`text-xs ${getRequirementColor(req.requirement_type)}`}>
+                          {formatRequirementType(req.requirement_type)}
+                        </Badge>
                       </div>
-                      <Badge variant="outline">
-                        {time.processing_time_days} days
-                      </Badge>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-sm py-4 text-center">Visa requirement data coming soon.</p>
+                  )}
+                  {visaRequirements && visaRequirements.length > 6 && (
+                    <p className="text-xs text-muted-foreground text-center pt-2">
+                      +{visaRequirements.length - 6} more countries
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
-          )}
 
-          {/* If no processing times, show travel tips instead */}
-          {(!processingTimes || processingTimes.length === 0) && (
+            {/* Processing Times & Entry Requirements */}
+            {processingTimes && processingTimes.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Clock className="h-5 w-5" />
+                    Processing Times
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {processingTimes.slice(0, 5).map((time) => (
+                      <div key={time.id} className="flex items-center justify-between p-2.5 border rounded-lg">
+                        <div>
+                          <p className="font-medium text-sm">{time.visa_type}</p>
+                          {time.embassy_location && (
+                            <p className="text-xs text-muted-foreground">{time.embassy_location}</p>
+                          )}
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {time.processing_time_days} days
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Entry Requirements Checklist */}
             <Card>
-              <CardHeader>
-                <CardTitle>Quick Travel Tips</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5" />
+                  Entry Requirements Checklist
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-semibold text-sm mb-2">Before You Go</h4>
-                  <ul className="text-sm space-y-1 text-muted-foreground">
-                    <li>• Check passport validity (6+ months)</li>
-                    <li>• Verify visa requirements for your nationality</li>
-                    <li>• Review vaccination requirements</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-sm mb-2">Essential Documents</h4>
-                  <ul className="text-sm space-y-1 text-muted-foreground">
-                    <li>• Valid passport</li>
-                    <li>• Visa (if required)</li>
-                    <li>• Return/onward ticket proof</li>
-                  </ul>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <h4 className="font-semibold text-sm mb-2">Essential Documents</h4>
+                    <ul className="text-sm space-y-1.5 text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-3.5 w-3.5 text-green-500 mt-0.5 shrink-0" />
+                        <span>Valid passport (6+ months validity)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-3.5 w-3.5 text-green-500 mt-0.5 shrink-0" />
+                        <span>Visa or eVisa (if required)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-3.5 w-3.5 text-green-500 mt-0.5 shrink-0" />
+                        <span>Return/onward ticket</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <h4 className="font-semibold text-sm mb-2">May Be Required</h4>
+                    <ul className="text-sm space-y-1.5 text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-3.5 w-3.5 text-blue-500 mt-0.5 shrink-0" />
+                        <span>Proof of accommodation</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-3.5 w-3.5 text-blue-500 mt-0.5 shrink-0" />
+                        <span>Proof of sufficient funds</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-3.5 w-3.5 text-blue-500 mt-0.5 shrink-0" />
+                        <span>Travel insurance</span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          )}
+
+            {/* Country Guide Content */}
+            {guideContent && (
+              <Card>
+                <CardContent className="p-6">
+                  <div 
+                    className="prose prose-sm max-w-none dark:prose-invert"
+                    dangerouslySetInnerHTML={{ __html: guideContent.content }}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Visa-Free Destinations Link */}
+            <Card className="bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
+              <CardContent className="p-5">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <h3 className="font-bold">Where Can {country.name} Passport Holders Travel?</h3>
+                    <p className="text-sm text-muted-foreground">Visa-free, visa on arrival & eVisa destinations</p>
+                  </div>
+                  <Link to={`/countries/${country.slug}/visa-free`} className="shrink-0">
+                    <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-sm">
+                      View Destinations →
+                    </button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Social Share */}
+            <SocialShareButtons
+              url={`https://visas.guide/countries/${country.slug}`}
+              title={`${country.name} Visa Guide`}
+              description={`Complete visa requirements and travel guide for ${country.name}`}
+            />
+
+            {/* Author Bio */}
+            <AuthorBio writerId={guideContent?.writer_id} />
+          </div>
+
+          {/* Sidebar - Right Column */}
+          <div className="space-y-5">
+            {/* Country Quick Facts */}
+            <Card className="sticky top-4">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Globe className="h-4 w-4" />
+                  Quick Facts
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
+                    <MapPin className="h-3.5 w-3.5" /> Capital
+                  </span>
+                  <span className="font-medium">{country.capital || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
+                    <DollarSign className="h-3.5 w-3.5" /> Currency
+                  </span>
+                  <span className="font-medium">{country.currency || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
+                    <Globe className="h-3.5 w-3.5" /> Region
+                  </span>
+                  <span className="font-medium">{country.region || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
+                    <FileText className="h-3.5 w-3.5" /> Language
+                  </span>
+                  <span className="font-medium">{country.language || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
+                    <Users className="h-3.5 w-3.5" /> Population
+                  </span>
+                  <span className="font-medium">
+                    {country.population ? formatNumber(country.population) : 'N/A'}
+                  </span>
+                </div>
+                {country.tourism_revenue_usd && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      <DollarSign className="h-3.5 w-3.5" /> Tourism Revenue
+                    </span>
+                    <span className="font-medium">${formatNumber(country.tourism_revenue_usd)}</span>
+                  </div>
+                )}
+                {country.peak_travel_months && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      <TrendingUp className="h-3.5 w-3.5" /> Peak Season
+                    </span>
+                    <span className="font-medium text-right text-xs">{country.peak_travel_months}</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Top Visitor Origins */}
+            {country.top_source_countries && country.top_source_countries.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Top Visitor Origins</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-1.5">
+                    {country.top_source_countries.slice(0, 5).map((c, i) => (
+                      <Badge key={i} variant="secondary" className="text-xs">
+                        {c}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Newsletter Signup */}
+            <NewsletterSignup variant="sidebar" />
+
+            {/* Related Content */}
+            <RelatedContent
+              currentSlug={country.slug}
+              contentType="country"
+              country={country.slug}
+            />
+          </div>
         </div>
-
-        {/* Visa-Free Countries Link */}
-        <Card className="mt-8 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
-          <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex-1">
-                <h3 className="text-lg font-bold mb-1">
-                  Where Can {country.name} Passport Holders Travel?
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Visa-free destinations, visa on arrival, and eVisa options
-                </p>
-              </div>
-              <Link 
-                to={`/countries/${country.slug}/visa-free`}
-                className="shrink-0"
-              >
-                <button className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-sm whitespace-nowrap">
-                  View Destinations →
-                </button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Related Content - Internal Linking */}
-        <RelatedContent
-          currentSlug={country.slug}
-          contentType="country"
-          country={country.slug}
-        />
-
-        {/* Social Share Buttons */}
-        <div className="mt-8">
-          <SocialShareButtons
-            url={`https://visas.guide/countries/${country.slug}`}
-            title={`${country.name} Visa Guide`}
-            description={`Complete visa requirements and travel guide for ${country.name}`}
-          />
-        </div>
-
-        {/* Author Bio - E-E-A-T Signal */}
-        <AuthorBio writerId={guideContent?.writer_id} />
 
         {/* Article Schema */}
         <ArticleSchema
@@ -602,11 +590,6 @@ const CountryGuide = () => {
             country.continent || ""
           ].filter(Boolean)}
         />
-
-        {/* Newsletter Signup */}
-        <div className="mt-12">
-          <NewsletterSignup variant="sidebar" />
-        </div>
       </main>
       
       <Footer />

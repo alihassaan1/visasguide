@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Search, Globe, Shield, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import heroImage from "@/assets/hero-travel-visa.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { trackVisaSearch } from "@/hooks/useAnalytics";
@@ -39,16 +38,23 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-[500px] md:min-h-[600px] flex items-center overflow-hidden">
-      {/* Full-width background image */}
+      {/* Video background */}
       <div className="absolute inset-0">
-        <img 
-          src={heroImage} 
-          alt="Visa approved stamp with passports – visa requirements guide"
+        <video 
+          autoPlay 
+          muted 
+          loop 
+          playsInline
           className="w-full h-full object-cover"
-          loading="eager"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/50 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
+          poster="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=80"
+        >
+          <source 
+            src="https://videos.pexels.com/video-files/2169880/2169880-uhd_2560_1440_30fps.mp4" 
+            type="video/mp4" 
+          />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-r from-background/85 via-background/60 to-background/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/50 to-transparent" />
       </div>
 
       <div className="container mx-auto px-4 py-16 md:py-24 relative z-10">

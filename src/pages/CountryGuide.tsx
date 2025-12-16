@@ -458,22 +458,6 @@ const CountryGuide = () => {
               </Card>
             )}
 
-            {/* Visa-Free Destinations Link */}
-            <Card className="bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
-              <CardContent className="p-5">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div>
-                    <h3 className="font-bold">Where Can {country.name} Passport Holders Travel?</h3>
-                    <p className="text-sm text-muted-foreground">Visa-free, visa on arrival & eVisa destinations</p>
-                  </div>
-                  <Link to={`/countries/${country.slug}/visa-free`} className="shrink-0">
-                    <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-sm">
-                      View Destinations →
-                    </button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Social Share */}
             <SocialShareButtons

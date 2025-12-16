@@ -32,7 +32,7 @@ const SEOKeywordsSection = () => {
       icon: FileText,
       title: "Visa Resources",
       keywords: [
-        { text: "Visa-Free Countries", link: "/visa-free-countries" },
+        { text: "Visa-Free Countries", link: "/countries" },
         { text: "eVisa Application", link: "/countries" },
         { text: "Passport Rankings", link: "/passport-rankings" },
         { text: "Visa Processing Times", link: "/processing-times" },

@@ -83,11 +83,11 @@ const CityCards = ({ countryId, countrySlug, countryName }: CityCardsProps) => {
             >
               <div 
                 className="relative h-28 rounded-lg overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20"
-                style={city.hero_image_url ? {
-                  backgroundImage: `url(${city.hero_image_url})`,
+                style={{
+                  backgroundImage: `url(${city.hero_image_url || `https://source.unsplash.com/800x600/?${encodeURIComponent(city.name)},city,tourism`})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center'
-                } : {}}
+                }}
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent group-hover:from-black/80 transition-colors" />
                 

@@ -45,9 +45,9 @@ serve(async (req) => {
   }
 
   try {
-    const { cityId, cityName, countryName, countryId, generateCities } = await req.json();
+    const { cityId, cityName, countryName, countryId, generateCities, enhancedContent } = await req.json();
 
-    console.log('Generate city content request:', { cityId, cityName, countryName, countryId, generateCities });
+    console.log('Generate city content request:', { cityId, cityName, countryName, countryId, generateCities, enhancedContent });
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -65,19 +65,28 @@ serve(async (req) => {
       
       const prompt = `List the top 5 most visited cities in ${countryName} for tourists. For each city, provide:
 1. City name
-2. A brief description (2-3 sentences about why tourists visit)
+2. A comprehensive description (4-5 sentences about why tourists visit, key attractions, culture)
 3. Top 5 attractions/places to visit
 4. Approximate population
 5. Whether it's the capital city (true/false)
+6. Best time to visit (e.g., "March to May for pleasant weather")
+7. Safety tips (2-3 practical safety tips)
+8. Getting around tips (transportation options)
+9. Latitude and longitude coordinates
 
 Return ONLY a valid JSON array with this exact structure, no markdown:
 [
   {
     "name": "City Name",
-    "description": "Brief description",
+    "description": "Comprehensive description here...",
     "attractions": ["Attraction 1", "Attraction 2", "Attraction 3", "Attraction 4", "Attraction 5"],
     "population": 1000000,
-    "is_capital": false
+    "is_capital": false,
+    "best_time_to_visit": "March to May for pleasant weather and fewer crowds",
+    "safety_tips": "Keep valuables secure in crowded areas. Use licensed taxis. Be aware of common tourist scams.",
+    "getting_around": "Metro system covers major areas. Taxis are affordable. Walking is great for central districts.",
+    "latitude": 40.7128,
+    "longitude": -74.0060
   }
 ]`;
 
@@ -93,11 +102,11 @@ Return ONLY a valid JSON array with this exact structure, no markdown:
           body: JSON.stringify({
             model: 'deepseek-chat',
             messages: [
-              { role: 'system', content: 'You are a travel expert. Always respond with valid JSON only, no markdown formatting.' },
+              { role: 'system', content: 'You are a travel expert with deep knowledge of cities worldwide. Always respond with valid JSON only, no markdown formatting. Provide accurate, helpful information for tourists.' },
               { role: 'user', content: prompt }
             ],
             temperature: 0.7,
-            max_tokens: 2000,
+            max_tokens: 4000,
           }),
         });
 
@@ -122,7 +131,6 @@ Return ONLY a valid JSON array with this exact structure, no markdown:
       let cities;
       try {
         cities = JSON.parse(content);
-        // Log successful API call with token counts
         await logApiCall(
           supabase,
           'city_generation',
@@ -143,7 +151,7 @@ Return ONLY a valid JSON array with this exact structure, no markdown:
         });
       }
 
-      // Insert cities into database
+      // Insert cities into database with enhanced fields
       const insertedCities = [];
       for (const city of cities) {
         const slug = city.name.toLowerCase()
@@ -162,8 +170,13 @@ Return ONLY a valid JSON array with this exact structure, no markdown:
             population: city.population,
             is_capital: city.is_capital || false,
             is_featured: true,
-            meta_title: `${city.name}, ${countryName} - Tours & Activities`,
-            meta_description: `Discover the best tours, activities, and things to do in ${city.name}, ${countryName}. ${city.description}`,
+            best_time_to_visit: city.best_time_to_visit,
+            safety_tips: city.safety_tips,
+            getting_around: city.getting_around,
+            latitude: city.latitude,
+            longitude: city.longitude,
+            meta_title: `${city.name}, ${countryName} - Tours, Activities & Travel Guide 2025`,
+            meta_description: `Discover the best tours, activities, and things to do in ${city.name}, ${countryName}. ${city.description?.substring(0, 100)}...`,
           }, {
             onConflict: 'slug'
           })
@@ -187,23 +200,33 @@ Return ONLY a valid JSON array with this exact structure, no markdown:
       });
     }
 
-    // If cityId is provided, update a single city's content
+    // If cityId is provided, update a single city's content (enhanced version)
     if (cityId && cityName && countryName) {
-      console.log(`Generating content for ${cityName}, ${countryName}`);
+      console.log(`Generating enhanced content for ${cityName}, ${countryName}`);
       
-      const prompt = `Write a compelling 2-3 paragraph description of ${cityName}, ${countryName} for tourists. 
-Include:
-- What makes the city special for visitors
-- Key highlights and experiences
-- Best time to visit
-- Cultural aspects
+      const prompt = `Write a comprehensive travel guide for ${cityName}, ${countryName}. This should be 800-1000 words covering:
 
-Also list the top 5 must-visit attractions.
+1. **City Overview** (3-4 paragraphs): What makes this city special, its history, culture, and atmosphere. Why tourists love visiting.
+
+2. **Top Attractions**: List the top 5-7 must-visit places with brief descriptions.
+
+3. **Best Time to Visit**: When to go for optimal weather, fewer crowds, or special events.
+
+4. **Safety Tips**: 3-4 practical safety tips for tourists.
+
+5. **Getting Around**: Transportation options (metro, taxis, walking, bikes, etc.)
+
+6. **Local Tips**: Insider tips that tourists should know.
 
 Return ONLY valid JSON with this structure, no markdown:
 {
-  "description": "Your description here...",
-  "attractions": ["Attraction 1", "Attraction 2", "Attraction 3", "Attraction 4", "Attraction 5"]
+  "description": "Your comprehensive city overview (800-1000 words, use natural paragraphs)...",
+  "attractions": ["Attraction 1 - brief description", "Attraction 2 - brief description", ...],
+  "best_time_to_visit": "Detailed best time info (2-3 sentences)",
+  "safety_tips": "Detailed safety information (3-4 tips in paragraph form)",
+  "getting_around": "Transportation guide (3-4 sentences covering options)",
+  "latitude": 40.7128,
+  "longitude": -74.0060
 }`;
 
       const startTime = Date.now();
@@ -219,20 +242,20 @@ Return ONLY valid JSON with this structure, no markdown:
           body: JSON.stringify({
             model: 'deepseek-chat',
             messages: [
-              { role: 'system', content: 'You are a travel expert. Always respond with valid JSON only.' },
+              { role: 'system', content: 'You are a professional travel writer with deep knowledge of cities worldwide. Write engaging, helpful content for tourists. Use a friendly, conversational tone. Avoid generic phrases - be specific and helpful. Always respond with valid JSON only.' },
               { role: 'user', content: prompt }
             ],
             temperature: 0.7,
-            max_tokens: 1500,
+            max_tokens: 3000,
           }),
         });
 
         if (!response.ok) {
-          await logApiCall(supabase, 'city_content_update', entityName, 'error', startTime, undefined, `DeepSeek API error: ${response.status}`);
+          await logApiCall(supabase, 'city_content_enhanced', entityName, 'error', startTime, undefined, `DeepSeek API error: ${response.status}`);
           throw new Error(`DeepSeek API error: ${response.status}`);
         }
       } catch (fetchError) {
-        await logApiCall(supabase, 'city_content_update', entityName, 'error', startTime, undefined, fetchError.message);
+        await logApiCall(supabase, 'city_content_enhanced', entityName, 'error', startTime, undefined, fetchError.message);
         throw fetchError;
       }
 
@@ -244,10 +267,9 @@ Return ONLY valid JSON with this structure, no markdown:
       let cityContent;
       try {
         cityContent = JSON.parse(content);
-        // Log successful API call with token counts
         await logApiCall(
           supabase,
-          'city_content_update',
+          'city_content_enhanced',
           entityName,
           'success',
           startTime,
@@ -258,7 +280,7 @@ Return ONLY valid JSON with this structure, no markdown:
         );
       } catch (e) {
         console.error('Failed to parse city content JSON:', e);
-        await logApiCall(supabase, 'city_content_update', entityName, 'error', startTime, usage.total_tokens, 'Failed to parse JSON response', usage.prompt_tokens, usage.completion_tokens);
+        await logApiCall(supabase, 'city_content_enhanced', entityName, 'error', startTime, usage.total_tokens, 'Failed to parse JSON response', usage.prompt_tokens, usage.completion_tokens);
         return new Response(JSON.stringify({ error: 'Failed to parse content' }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -270,6 +292,11 @@ Return ONLY valid JSON with this structure, no markdown:
         .update({
           description: cityContent.description,
           attractions: cityContent.attractions || [],
+          best_time_to_visit: cityContent.best_time_to_visit,
+          safety_tips: cityContent.safety_tips,
+          getting_around: cityContent.getting_around,
+          latitude: cityContent.latitude,
+          longitude: cityContent.longitude,
           meta_description: `Discover ${cityName}, ${countryName}. ${cityContent.description?.substring(0, 120)}...`,
         })
         .eq('id', cityId);
@@ -278,11 +305,12 @@ Return ONLY valid JSON with this structure, no markdown:
         throw updateError;
       }
 
-      console.log(`Updated content for ${cityName}`);
+      console.log(`Updated enhanced content for ${cityName}`);
 
       return new Response(JSON.stringify({ 
         success: true, 
-        message: `Updated content for ${cityName}`
+        message: `Updated enhanced content for ${cityName}`,
+        content: cityContent
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

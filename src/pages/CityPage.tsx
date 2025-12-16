@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Users, Star, ArrowLeft } from "lucide-react";
+import { MapPin, Users, Star, ArrowLeft, Calendar, Shield, Bus } from "lucide-react";
 import { useEffect } from "react";
 import SEOHead from "@/components/SEOHead";
 import NewsletterSignup from "@/components/NewsletterSignup";
@@ -228,6 +228,45 @@ const CityPage = () => {
                     <p className="text-muted-foreground leading-relaxed">{city.description}</p>
                   </CardContent>
                 </Card>
+              )}
+
+              {/* Practical Info Grid - Best Time, Safety, Getting Around */}
+              {(city.best_time_to_visit || city.safety_tips || city.getting_around) && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {city.best_time_to_visit && (
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Calendar className="h-4 w-4 text-primary" />
+                          <h4 className="font-semibold text-sm">Best Time to Visit</h4>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{city.best_time_to_visit}</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                  {city.safety_tips && (
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Shield className="h-4 w-4 text-green-600" />
+                          <h4 className="font-semibold text-sm">Safety Tips</h4>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{city.safety_tips}</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                  {city.getting_around && (
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Bus className="h-4 w-4 text-blue-600" />
+                          <h4 className="font-semibold text-sm">Getting Around</h4>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{city.getting_around}</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
               )}
 
               {/* Visa Recap Section */}

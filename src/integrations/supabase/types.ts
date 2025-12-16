@@ -305,54 +305,69 @@ export type Database = {
       cities: {
         Row: {
           attractions: string[] | null
+          best_time_to_visit: string | null
           country_id: string
           created_at: string
           description: string | null
           gallery_images: string[] | null
+          getting_around: string | null
           hero_image_url: string | null
           id: string
           is_capital: boolean | null
           is_featured: boolean | null
+          latitude: number | null
+          longitude: number | null
           meta_description: string | null
           meta_title: string | null
           name: string
           population: number | null
+          safety_tips: string | null
           slug: string
           updated_at: string
           view_count: number | null
         }
         Insert: {
           attractions?: string[] | null
+          best_time_to_visit?: string | null
           country_id: string
           created_at?: string
           description?: string | null
           gallery_images?: string[] | null
+          getting_around?: string | null
           hero_image_url?: string | null
           id?: string
           is_capital?: boolean | null
           is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
           meta_description?: string | null
           meta_title?: string | null
           name: string
           population?: number | null
+          safety_tips?: string | null
           slug: string
           updated_at?: string
           view_count?: number | null
         }
         Update: {
           attractions?: string[] | null
+          best_time_to_visit?: string | null
           country_id?: string
           created_at?: string
           description?: string | null
           gallery_images?: string[] | null
+          getting_around?: string | null
           hero_image_url?: string | null
           id?: string
           is_capital?: boolean | null
           is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
           meta_description?: string | null
           meta_title?: string | null
           name?: string
           population?: number | null
+          safety_tips?: string | null
           slug?: string
           updated_at?: string
           view_count?: number | null

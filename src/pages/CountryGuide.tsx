@@ -683,11 +683,17 @@ const CountryGuide = () => {
             )}
 
             {/* GetYourGuide Tours & Affiliate Links */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Tours & Activities</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
+            <Card className="overflow-hidden">
+              {/* Gradient Header */}
+              <div className="bg-gradient-to-r from-orange-500 to-rose-500 px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <Plane className="h-4 w-4 text-white" />
+                  </div>
+                  <h3 className="font-semibold text-white">Tours & Activities</h3>
+                </div>
+              </div>
+              <CardContent className="p-4 space-y-3">
                 <AffiliateBannerContainer position="sidebar-right" />
               </CardContent>
             </Card>

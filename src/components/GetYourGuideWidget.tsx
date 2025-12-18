@@ -98,12 +98,17 @@ const GetYourGuideWidget = ({
     return null;
   }
 
+  // Only render if we have a valid widget URL (no more Italy fallback)
+  if (!widgetUrl) {
+    return null;
+  }
+
   return (
     <div className={`${className}`}>
       {/* Native GetYourGuide Widget */}
       <div 
         ref={containerRef}
-        data-gyg-href={widgetUrl || "https://widget.getyourguide.com/default/city.frame"}
+        data-gyg-href={widgetUrl}
         data-gyg-location-id={locationId || undefined}
         data-gyg-q={!locationId && location ? location : undefined}
         data-gyg-locale-code="en-US"

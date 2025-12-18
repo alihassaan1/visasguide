@@ -547,62 +547,101 @@ const CountryGuide = () => {
           {/* Sidebar - Right Column */}
           <div className="space-y-5">
             {/* Country Quick Facts */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                  Quick Facts
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground flex items-center gap-1.5">
-                    <MapPin className="h-3.5 w-3.5" /> Capital
-                  </span>
-                  <span className="font-medium">{country.capital || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground flex items-center gap-1.5">
-                    <DollarSign className="h-3.5 w-3.5" /> Currency
-                  </span>
-                  <span className="font-medium">{country.currency || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Globe className="h-3.5 w-3.5" /> Region
-                  </span>
-                  <span className="font-medium">{country.region || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground flex items-center gap-1.5">
-                    <FileText className="h-3.5 w-3.5" /> Language
-                  </span>
-                  <span className="font-medium">{country.language || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Users className="h-3.5 w-3.5" /> Population
-                  </span>
-                  <span className="font-medium">
-                    {country.population ? formatNumber(country.population) : 'N/A'}
-                  </span>
-                </div>
-                {country.tourism_revenue_usd && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground flex items-center gap-1.5">
-                      <DollarSign className="h-3.5 w-3.5" /> Tourism Revenue
-                    </span>
-                    <span className="font-medium">${formatNumber(country.tourism_revenue_usd)}</span>
+            <Card className="overflow-hidden">
+              {/* Gradient Header */}
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <Globe className="h-4 w-4 text-white" />
                   </div>
-                )}
-                {country.peak_travel_months && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground flex items-center gap-1.5">
-                      <TrendingUp className="h-3.5 w-3.5" /> Peak Season
+                  <h3 className="font-semibold text-white">Quick Facts</h3>
+                </div>
+              </div>
+              <CardContent className="p-0">
+                <div className="divide-y divide-border">
+                  {/* Capital */}
+                  <div className="flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors">
+                    <span className="text-muted-foreground flex items-center gap-2.5 text-sm">
+                      <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                        <MapPin className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      Capital
                     </span>
-                    <span className="font-medium text-right text-xs">{country.peak_travel_months}</span>
+                    <span className="font-semibold text-blue-600 dark:text-blue-400">{country.capital || 'N/A'}</span>
                   </div>
-                )}
+                  
+                  {/* Currency */}
+                  <div className="flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors">
+                    <span className="text-muted-foreground flex items-center gap-2.5 text-sm">
+                      <div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                        <DollarSign className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      </div>
+                      Currency
+                    </span>
+                    <span className="font-semibold text-green-600 dark:text-green-400">{country.currency || 'N/A'}</span>
+                  </div>
+                  
+                  {/* Region */}
+                  <div className="flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors">
+                    <span className="text-muted-foreground flex items-center gap-2.5 text-sm">
+                      <div className="h-8 w-8 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
+                        <Globe className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                      </div>
+                      Region
+                    </span>
+                    <span className="font-semibold text-teal-600 dark:text-teal-400">{country.region || 'N/A'}</span>
+                  </div>
+                  
+                  {/* Language */}
+                  <div className="flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors">
+                    <span className="text-muted-foreground flex items-center gap-2.5 text-sm">
+                      <div className="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                        <FileText className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      Language
+                    </span>
+                    <span className="font-semibold text-purple-600 dark:text-purple-400">{country.language || 'N/A'}</span>
+                  </div>
+                  
+                  {/* Population */}
+                  <div className="flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors">
+                    <span className="text-muted-foreground flex items-center gap-2.5 text-sm">
+                      <div className="h-8 w-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                        <Users className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                      </div>
+                      Population
+                    </span>
+                    <span className="font-semibold text-orange-600 dark:text-orange-400">
+                      {country.population ? formatNumber(country.population) : 'N/A'}
+                    </span>
+                  </div>
+                  
+                  {/* Tourism Revenue */}
+                  {country.tourism_revenue_usd && (
+                    <div className="flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors">
+                      <span className="text-muted-foreground flex items-center gap-2.5 text-sm">
+                        <div className="h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                          <DollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                        Tourism Revenue
+                      </span>
+                      <span className="font-semibold text-emerald-600 dark:text-emerald-400">${formatNumber(country.tourism_revenue_usd)}</span>
+                    </div>
+                  )}
+                  
+                  {/* Peak Season */}
+                  {country.peak_travel_months && (
+                    <div className="flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors">
+                      <span className="text-muted-foreground flex items-center gap-2.5 text-sm">
+                        <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                          <TrendingUp className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        Peak Season
+                      </span>
+                      <span className="font-semibold text-amber-600 dark:text-amber-400 text-right text-sm max-w-[120px]">{country.peak_travel_months}</span>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
 

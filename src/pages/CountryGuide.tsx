@@ -527,24 +527,11 @@ const CountryGuide = () => {
               </Card>
             )}
 
-            {/* Top Experiences - GetYourGuide Widget */}
-            <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  🎫 Top Experiences in {country.name}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-muted-foreground text-sm">
-                  Book tours, activities, and experiences in {country.name}. Skip the lines and secure your spot!
-                </p>
-                <GetYourGuideWidget 
-                  location={country.name}
-                  numberOfItems={4}
-                />
-                <AffiliateDisclosure />
-              </CardContent>
-            </Card>
+            {/* GetYourGuide Widget - Only shows if configured in database */}
+            <GetYourGuideWidget 
+              countryId={country.id}
+              numberOfItems={4}
+            />
 
             {/* Social Share */}
             <SocialShareButtons

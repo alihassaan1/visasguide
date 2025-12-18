@@ -364,31 +364,15 @@ const CityPage = () => {
                 </section>
               )}
 
-              {/* Things to do Section - GetYourGuide Direct Embed */}
-              <section className="space-y-4">
-                <h2 className="text-2xl font-bold flex items-center gap-2">
-                  <span className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center">
-                    🎫
-                  </span>
-                  Things to do in {city.name}
-                </h2>
-                <p className="text-muted-foreground">
-                  Discover the best experiences, guided tours, and activities in {city.name}. 
-                  Book ahead and skip the lines!
-                </p>
-                
-                {/* GetYourGuide Direct Widget Embed */}
-                <GetYourGuideWidget 
-                  cityId={city.id}
-                  countryId={city.country?.id}
-                  location={`${city.name}, ${city.country?.name}`}
-                  numberOfItems={6}
-                  showDisclosure={false}
-                />
-                
-                {/* Affiliate Banners - In Content */}
-                <AffiliateBannerContainer position="in-content" />
-              </section>
+              {/* GetYourGuide Widget - Only shows if configured in database */}
+              <GetYourGuideWidget 
+                cityId={city.id}
+                countryId={city.country?.id}
+                numberOfItems={6}
+              />
+              
+              {/* Affiliate Banners - In Content */}
+              <AffiliateBannerContainer position="in-content" />
 
               {/* Gallery */}
               {city.gallery_images && city.gallery_images.length > 0 && (

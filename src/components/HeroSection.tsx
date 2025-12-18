@@ -53,25 +53,26 @@ const HeroSection = () => {
             type="video/mp4" 
           />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-r from-background/85 via-background/60 to-background/30" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/50 to-transparent" />
+        {/* Darker, more cinematic overlays */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
       </div>
 
       <div className="container mx-auto px-4 py-16 md:py-24 relative z-10">
         <div className="max-w-2xl">
-          {/* Main heading */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-4">
+          {/* Main heading - White text with shadows */}
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4 drop-shadow-lg">
             Your Complete Guide to{" "}
-            <span className="text-transparent bg-gradient-to-r from-primary to-accent bg-clip-text">
+            <span className="text-transparent bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text">
               Travel Visas
             </span>
           </h1>
-          <p className="text-base md:text-lg text-muted-foreground mb-8 max-w-lg">
+          <p className="text-base md:text-lg text-white/90 mb-8 max-w-lg drop-shadow-md">
             Navigate visa requirements for 200+ countries with up-to-date visa-free lists, eVisa details, and travel documentation tips.
           </p>
 
-          {/* Floating Search Box - Pill shaped */}
-          <div className="bg-card/95 backdrop-blur-sm rounded-2xl p-4 md:p-6 shadow-2xl border border-border/50 max-w-xl">
+          {/* Floating Search Box - Enhanced with glow */}
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 md:p-6 shadow-2xl border border-white/20 max-w-xl ring-1 ring-white/20">
             <div className="flex flex-col md:flex-row gap-3 md:gap-2 md:items-end">
               <div className="flex-1">
                 <CountryCombobox
@@ -105,25 +106,25 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Trust Indicators */}
-          <div className="flex flex-wrap gap-4 md:gap-8 mt-8 text-sm">
-            <div className="flex items-center gap-2 text-foreground/80">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Globe className="h-4 w-4 text-primary" />
+          {/* Trust Indicators - Glass-morphism pills */}
+          <div className="flex flex-wrap gap-3 md:gap-4 mt-8 text-sm">
+            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/10">
+              <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                <Globe className="h-4 w-4 text-emerald-400" />
               </div>
-              <span className="font-medium">190+ Countries</span>
+              <span className="font-medium text-white">190+ Countries</span>
             </div>
-            <div className="flex items-center gap-2 text-foreground/80">
-              <div className="w-8 h-8 rounded-full bg-visa-success/10 flex items-center justify-center">
-                <Shield className="h-4 w-4 text-visa-success" />
+            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/10">
+              <div className="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center">
+                <Shield className="h-4 w-4 text-teal-400" />
               </div>
-              <span className="font-medium">2M+ Travelers</span>
+              <span className="font-medium text-white">2M+ Travelers</span>
             </div>
-            <div className="flex items-center gap-2 text-foreground/80">
-              <div className="w-8 h-8 rounded-full bg-visa-warning/10 flex items-center justify-center">
-                <Clock className="h-4 w-4 text-visa-warning" />
+            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/10">
+              <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center">
+                <Clock className="h-4 w-4 text-cyan-400" />
               </div>
-              <span className="font-medium">Updated Daily</span>
+              <span className="font-medium text-white">Updated Daily</span>
             </div>
           </div>
         </div>

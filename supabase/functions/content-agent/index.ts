@@ -165,6 +165,7 @@ serve(async (req) => {
     let blogGenerationMode = false;
     let faqGenerationMode = false;
     let visaRequirementsContentMode = false;
+    let evergreenContentMode = false;
     let batchSize = 3;
     
     try {
@@ -175,8 +176,9 @@ serve(async (req) => {
       blogGenerationMode = body?.blogGeneration === true;
       faqGenerationMode = body?.faqGeneration === true;
       visaRequirementsContentMode = body?.visaRequirementsContent === true;
+      evergreenContentMode = body?.evergreenContent === true;
       batchSize = body?.batchSize || 3;
-      console.log(`Modes - Priority: ${priorityCountrySlug}, BulkCTR: ${bulkCTRMode}, VisaEnrich: ${visaEnrichmentMode}, Blog: ${blogGenerationMode}, FAQ: ${faqGenerationMode}, VisaReqContent: ${visaRequirementsContentMode}, Batch: ${batchSize}`);
+      console.log(`Modes - Priority: ${priorityCountrySlug}, BulkCTR: ${bulkCTRMode}, VisaEnrich: ${visaEnrichmentMode}, Blog: ${blogGenerationMode}, FAQ: ${faqGenerationMode}, VisaReqContent: ${visaRequirementsContentMode}, Evergreen: ${evergreenContentMode}, Batch: ${batchSize}`);
     } catch {
       // No body provided, continue with default behavior
     }
@@ -220,6 +222,7 @@ serve(async (req) => {
       blogGeneration: { enabled: true, batchSize: 3 },
       faqGeneration: { enabled: true, batchSize: 5 },
       visaRequirementsContent: { enabled: true, batchSize: 25 },
+      evergreenContent: { enabled: true, batchSize: 2 },
     };
 
     // Override batch size from settings if not provided in request
@@ -229,8 +232,20 @@ serve(async (req) => {
       else if (blogGenerationMode && taskConfig.blogGeneration) batchSize = taskConfig.blogGeneration.batchSize;
       else if (faqGenerationMode && taskConfig.faqGeneration) batchSize = taskConfig.faqGeneration.batchSize;
       else if (visaRequirementsContentMode && taskConfig.visaRequirementsContent) batchSize = taskConfig.visaRequirementsContent.batchSize;
+      else if (evergreenContentMode && taskConfig.evergreenContent) batchSize = taskConfig.evergreenContent.batchSize;
       else if (taskConfig.create) batchSize = taskConfig.create.batchSize;
     }
+
+    // Get random author for content attribution
+    const { data: authors } = await supabase
+      .from('authors')
+      .select('id, name')
+      .eq('is_active', true);
+    
+    const getRandomAuthor = () => {
+      if (!authors || authors.length === 0) return null;
+      return authors[Math.floor(Math.random() * authors.length)];
+    };
 
     // Check if task is enabled
     const isTaskEnabled = (mode: string): boolean => {
@@ -239,6 +254,7 @@ serve(async (req) => {
       if (mode === 'blogGeneration') return taskConfig.blogGeneration?.enabled !== false;
       if (mode === 'faqGeneration') return taskConfig.faqGeneration?.enabled !== false;
       if (mode === 'visaRequirementsContent') return taskConfig.visaRequirementsContent?.enabled !== false;
+      if (mode === 'evergreenContent') return taskConfig.evergreenContent?.enabled !== false;
       return taskConfig.create?.enabled !== false;
     };
 
@@ -249,6 +265,7 @@ serve(async (req) => {
     else if (blogGenerationMode) currentMode = 'blogGeneration';
     else if (faqGenerationMode) currentMode = 'faqGeneration';
     else if (visaRequirementsContentMode) currentMode = 'visaRequirementsContent';
+    else if (evergreenContentMode) currentMode = 'evergreenContent';
 
     if (!isTaskEnabled(currentMode) && !priorityCountrySlug) {
       console.log(`Task ${currentMode} is disabled in settings. Skipping.`);
@@ -282,6 +299,7 @@ serve(async (req) => {
           blogGenerationMode,
           faqGenerationMode,
           visaRequirementsContentMode,
+          evergreenContentMode,
           batchSize,
           timestamp: new Date().toISOString()
         }
@@ -841,7 +859,10 @@ Keep it concise, accurate, and helpful.`,
 
           const metaDescription = `Complete guide to ${topic.title.toLowerCase()}. Step-by-step application process, required documents, fees, and expert tips. Updated 2025.`;
 
-          // Insert new blog post
+          // Get random author for this blog post
+          const author = getRandomAuthor();
+
+          // Insert new blog post with author attribution
           const { data: newPost, error } = await supabase
             .from('content_pages')
             .insert({
@@ -854,7 +875,8 @@ Keep it concise, accurate, and helpful.`,
               keywords: topic.keywords,
               is_published: true,
               status: 'published',
-              ai_generated: true
+              ai_generated: true,
+              writer_id: author?.id || null,
             })
             .select()
             .single();
@@ -1004,6 +1026,150 @@ ${faqSchemaScript}`;
           logs.push({
             entity: page.title,
             type: 'faq_generation',
+            status: 'error',
+            error: error.message
+          });
+        }
+      }
+    }
+
+    // ============================================
+    // MODE: EVERGREEN CONTENT GENERATION
+    // ============================================
+    if (evergreenContentMode) {
+      console.log(`🌲 Evergreen Content Mode: Creating ${batchSize} SEO pages...`);
+
+      // High-value evergreen topics for visa websites
+      const evergreenTopics = [
+        { title: "Schengen Visa Guide 2025: Complete Application Process", slug: "schengen-visa-guide", keywords: ["schengen visa", "europe visa", "schengen application", "schengen visa requirements"] },
+        { title: "US Visa Application: Complete B1/B2 Tourist Visa Guide", slug: "us-visa-application-guide", keywords: ["us visa", "b1 b2 visa", "us tourist visa", "american visa application"] },
+        { title: "Dubai Visa Requirements: Complete UAE Entry Guide 2025", slug: "dubai-visa-requirements-guide", keywords: ["dubai visa", "uae visa", "dubai tourist visa", "visit dubai"] },
+        { title: "Canada Visitor Visa: Complete Application Guide 2025", slug: "canada-visitor-visa-guide", keywords: ["canada visa", "canadian visa", "canada visitor visa", "visit canada"] },
+        { title: "UK Visitor Visa: Standard Visitor Visa Application Guide", slug: "uk-visitor-visa-guide", keywords: ["uk visa", "british visa", "uk visitor visa", "visit uk"] },
+        { title: "Australia Tourist Visa (Subclass 600): How to Apply 2025", slug: "australia-tourist-visa-guide", keywords: ["australia visa", "subclass 600", "australian visa", "visit australia"] },
+        { title: "Japan Tourist Visa: Complete Requirements Guide 2025", slug: "japan-tourist-visa-guide", keywords: ["japan visa", "japanese visa", "japan travel visa", "visit japan"] },
+        { title: "Thailand Visa Guide: Entry Requirements & Extensions", slug: "thailand-visa-guide", keywords: ["thailand visa", "thai visa", "thailand entry", "visit thailand"] },
+        { title: "Singapore Visa Requirements: Complete Entry Guide", slug: "singapore-visa-requirements-guide", keywords: ["singapore visa", "singapore entry", "visit singapore"] },
+        { title: "South Korea Visa Guide: K-ETA & Tourist Visa 2025", slug: "south-korea-visa-guide", keywords: ["korea visa", "k-eta", "south korea visa", "korean visa"] },
+        { title: "Turkey e-Visa: Online Application Step-by-Step Guide", slug: "turkey-evisa-guide", keywords: ["turkey visa", "turkey e-visa", "turkish visa", "visit turkey"] },
+        { title: "India e-Visa Guide: Tourist, Business & Medical Visa", slug: "india-evisa-guide", keywords: ["india visa", "india e-visa", "indian visa", "visit india"] },
+        { title: "Egypt Visa on Arrival: Complete Guide for Tourists", slug: "egypt-visa-on-arrival-guide", keywords: ["egypt visa", "egypt voa", "egypt entry", "visit egypt"] },
+        { title: "Malaysia Visa Requirements: Entry Guide for All Countries", slug: "malaysia-visa-requirements-guide", keywords: ["malaysia visa", "malaysian visa", "visit malaysia"] },
+        { title: "New Zealand Visitor Visa: Complete Application Guide", slug: "new-zealand-visitor-visa-guide", keywords: ["new zealand visa", "nz visa", "visit new zealand"] },
+        { title: "Indonesia Visa: Tourist Visa & Visa on Arrival Guide", slug: "indonesia-visa-guide", keywords: ["indonesia visa", "bali visa", "indonesian visa", "visit indonesia"] },
+        { title: "Saudi Arabia Visa: Tourist & Business Visa Guide 2025", slug: "saudi-arabia-visa-guide", keywords: ["saudi visa", "saudi arabia visa", "visit saudi arabia"] },
+        { title: "Vietnam Visa: e-Visa & Visa on Arrival Guide 2025", slug: "vietnam-visa-guide", keywords: ["vietnam visa", "vietnam e-visa", "visit vietnam"] },
+        { title: "Brazil Visa Requirements: Complete Entry Guide", slug: "brazil-visa-requirements-guide", keywords: ["brazil visa", "brazilian visa", "visit brazil"] },
+        { title: "Digital Nomad Visas: Complete Guide to Remote Work Visas", slug: "digital-nomad-visa-guide", keywords: ["digital nomad visa", "remote work visa", "work abroad visa"] },
+        { title: "Passport Ranking 2025: World's Most Powerful Passports", slug: "passport-ranking-2025", keywords: ["passport ranking", "powerful passports", "passport index 2025"] },
+        { title: "Visa-Free Countries: Complete List for All Passports", slug: "visa-free-countries-guide", keywords: ["visa free countries", "no visa required", "visa free travel"] },
+        { title: "Transit Visa Guide: When You Need One & How to Apply", slug: "transit-visa-guide", keywords: ["transit visa", "airport transit", "layover visa"] },
+        { title: "Student Visa Guide: Study Abroad Visa Requirements", slug: "student-visa-guide", keywords: ["student visa", "study visa", "study abroad visa"] },
+        { title: "Work Visa Guide: Employment Visa Requirements Worldwide", slug: "work-visa-guide", keywords: ["work visa", "employment visa", "work permit"] },
+      ];
+
+      // Check which topics don't exist yet
+      const { data: existingPages } = await supabase
+        .from('content_pages')
+        .select('slug');
+
+      const existingSlugs = new Set(existingPages?.map(p => p.slug) || []);
+      const newTopics = evergreenTopics.filter(t => !existingSlugs.has(t.slug)).slice(0, batchSize);
+
+      if (newTopics.length === 0) {
+        console.log('📝 All evergreen topics already created!');
+      }
+
+      for (const topic of newTopics) {
+        try {
+          console.log(`🌲 Generating evergreen page: ${topic.title}`);
+
+          await supabase.from('activity_log').insert({
+            action: 'content_agent_status',
+            entity_type: 'evergreen_content',
+            metadata: {
+              status: 'processing',
+              title: topic.title,
+              timestamp: new Date().toISOString()
+            }
+          });
+
+          // Human-style evergreen content prompt
+          const content = await callDeepSeek(
+            `You are an experienced travel writer with 10+ years covering visa and immigration topics. Write like a human expert, not an AI.`,
+            `Write a comprehensive, authoritative guide titled "${topic.title}".
+
+ANTI-AI DETECTION (Critical):
+- Use contractions: you'll, don't, it's, can't, won't, there's, that's
+- Start sentences with And, But, So, Plus, Also naturally
+- Include conversational asides (like this) or with dashes - it helps flow
+- Mix paragraph lengths: some short, some longer
+- Use casual expert phrases: "honestly", "here's the thing", "quick tip", "pro tip"
+- Add personal touches: "I've helped thousands...", "Most travelers miss this..."
+- NEVER use: "It is important", "Furthermore", "Additionally", "In conclusion", "It should be noted"
+
+TARGET KEYWORDS: ${topic.keywords.join(', ')}
+
+STRUCTURE (1500-2000 words):
+1. **Hook + Quick Answer** - Answer the main question immediately
+2. **Overview Section** - Key requirements summary
+3. **Detailed Requirements** - Step-by-step breakdown
+4. **Application Process** - How to apply
+5. **Costs & Timeline** - Fees, processing times
+6. **Common Mistakes** - What to avoid
+7. **Insider Tips** - Expert advice
+8. **FAQs** - 5-6 common questions
+9. **Final Tips** - Quick checklist
+
+Format in clean HTML with h2, h3, p, ul, li tags. Use Tailwind CSS spacing classes.
+Write with authority and personality. This should read like content from an expert travel writer.`,
+            4500,
+            topic.title
+          );
+
+          const author = getRandomAuthor();
+          const metaDescription = `Complete ${topic.title.toLowerCase().replace(' 2025', '')} with step-by-step instructions, requirements, and expert tips. Updated for 2025.`;
+
+          // Insert evergreen content page
+          const { data: newPage, error } = await supabase
+            .from('content_pages')
+            .insert({
+              title: topic.title,
+              slug: topic.slug,
+              content: content,
+              excerpt: metaDescription,
+              meta_title: `${topic.title} | visas.guide`,
+              meta_description: metaDescription,
+              keywords: topic.keywords,
+              is_published: true,
+              status: 'published',
+              ai_generated: true,
+              writer_id: author?.id || null,
+            })
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          logs.push({
+            entity: topic.title,
+            type: 'evergreen_content',
+            status: 'success',
+            slug: topic.slug,
+            author: author?.name || 'Unattributed'
+          });
+
+          console.log(`✅ Created evergreen page: ${topic.title} (by ${author?.name || 'Unknown'})`);
+
+          // Submit to IndexNow
+          await submitToIndexNow([`/${topic.slug}`]);
+
+          await new Promise(resolve => setTimeout(resolve, 4000)); // 4s delay for longer content
+        } catch (error) {
+          console.error(`Error generating evergreen content:`, error);
+          logs.push({
+            entity: topic.title,
+            type: 'evergreen_content',
             status: 'error',
             error: error.message
           });

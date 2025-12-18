@@ -1,10 +1,201 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Milestone thresholds for email alerts
+const MILESTONES = [25, 50, 75];
+
+// Check and send milestone alert if a new milestone is reached
+async function checkAndSendMilestoneAlert(supabase: any) {
+  try {
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    if (!resendApiKey) {
+      console.log("⚠️ RESEND_API_KEY not configured, skipping milestone check");
+      return;
+    }
+
+    // Get total countries to calculate combinations
+    const { count: totalCountries } = await supabase
+      .from("countries")
+      .select("id", { count: "exact", head: true });
+    
+    const totalCombinations = (totalCountries || 0) * ((totalCountries || 0) - 1);
+    
+    // Get current visa content count
+    const { count: visaContentTotal } = await supabase
+      .from("content_pages")
+      .select("id", { count: "exact", head: true })
+      .like("slug", "%-to-%-visa-requirements");
+    
+    const currentCoverage = totalCombinations > 0 
+      ? ((visaContentTotal || 0) / totalCombinations * 100)
+      : 0;
+
+    // Get reached milestones from settings
+    const { data: milestoneSettings } = await supabase
+      .from("site_settings")
+      .select("setting_value")
+      .eq("setting_key", "visa_coverage_milestones")
+      .single();
+
+    const reachedMilestones: number[] = (milestoneSettings?.setting_value as any)?.reached || [];
+
+    // Check if we've crossed a new milestone
+    const newlyReachedMilestone = MILESTONES.find(
+      m => currentCoverage >= m && !reachedMilestones.includes(m)
+    );
+
+    if (!newlyReachedMilestone) {
+      return; // No new milestone
+    }
+
+    console.log(`🎉 MILESTONE REACHED: ${newlyReachedMilestone}% visa coverage!`);
+
+    // Get admin email
+    const { data: emailSettings } = await supabase
+      .from("site_settings")
+      .select("setting_value")
+      .eq("setting_key", "admin_email")
+      .single();
+
+    const adminEmail = (emailSettings?.setting_value as any)?.email || "admin@visas.guide";
+
+    // Send milestone email
+    const resend = new Resend(resendApiKey);
+    
+    const nextMilestone = MILESTONES.find(m => m > newlyReachedMilestone);
+    const remaining = totalCombinations - (visaContentTotal || 0);
+    const pagesPerDay = 4800;
+    const daysToNext = nextMilestone 
+      ? Math.ceil((totalCombinations * (nextMilestone / 100) - (visaContentTotal || 0)) / pagesPerDay)
+      : null;
+
+    const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 40px; border-radius: 12px; text-align: center; }
+    .header h1 { margin: 0; font-size: 28px; }
+    .header .milestone { font-size: 72px; font-weight: bold; margin: 20px 0; }
+    .content { background: #f8fafc; padding: 25px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }
+    .stat { background: white; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #e2e8f0; }
+    .stat-value { font-size: 24px; font-weight: bold; color: #059669; }
+    .stat-label { font-size: 11px; color: #64748b; text-transform: uppercase; }
+    .progress-container { margin: 20px 0; }
+    .progress-bar { background: #e2e8f0; border-radius: 8px; height: 24px; overflow: hidden; }
+    .progress-fill { background: linear-gradient(90deg, #10b981, #059669); height: 100%; border-radius: 8px; }
+    .milestone-markers { display: flex; justify-content: space-between; margin-top: 5px; font-size: 11px; color: #64748b; }
+    .footer { text-align: center; padding: 20px; color: #64748b; font-size: 12px; }
+    .celebration { font-size: 32px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="celebration">🎉🎊🎉</div>
+    <h1>Milestone Reached!</h1>
+    <div class="milestone">${newlyReachedMilestone}%</div>
+    <p>Visa Content Coverage</p>
+  </div>
+  
+  <div class="content">
+    <p>Great news! Your AI content agent has reached <strong>${newlyReachedMilestone}% visa content coverage</strong>.</p>
+    
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value">${(visaContentTotal || 0).toLocaleString()}</div>
+        <div class="stat-label">Pages Created</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">${remaining.toLocaleString()}</div>
+        <div class="stat-label">Remaining</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">${currentCoverage.toFixed(1)}%</div>
+        <div class="stat-label">Exact Coverage</div>
+      </div>
+    </div>
+
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: ${Math.min(currentCoverage, 100)}%;"></div>
+      </div>
+      <div class="milestone-markers">
+        <span>0%</span>
+        <span style="color: ${currentCoverage >= 25 ? '#10b981' : '#94a3b8'}; font-weight: ${currentCoverage >= 25 ? 'bold' : 'normal'};">25%</span>
+        <span style="color: ${currentCoverage >= 50 ? '#10b981' : '#94a3b8'}; font-weight: ${currentCoverage >= 50 ? 'bold' : 'normal'};">50%</span>
+        <span style="color: ${currentCoverage >= 75 ? '#10b981' : '#94a3b8'}; font-weight: ${currentCoverage >= 75 ? 'bold' : 'normal'};">75%</span>
+        <span>100%</span>
+      </div>
+    </div>
+
+    ${nextMilestone ? `
+    <p style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-top: 20px;">
+      <strong>Next milestone:</strong> ${nextMilestone}% (~${daysToNext} days at current pace)
+    </p>
+    ` : `
+    <p style="background: #dcfce7; padding: 15px; border-radius: 8px; margin-top: 20px;">
+      <strong>🏆 Final stretch!</strong> You're in the home stretch to 100% coverage!
+    </p>
+    `}
+  </div>
+
+  <div class="footer">
+    <p>🌍 visas.guide AI Agent</p>
+    <p><a href="https://visas.guide/admin/agent" style="color: #10b981;">View Agent Dashboard →</a></p>
+  </div>
+</body>
+</html>
+    `;
+
+    await resend.emails.send({
+      from: "AI Agent <agent@visas.guide>",
+      to: [adminEmail],
+      subject: `🎉 Milestone: ${newlyReachedMilestone}% Visa Content Coverage Reached!`,
+      html: emailHtml,
+    });
+
+    // Update reached milestones in settings
+    const updatedMilestones = [...reachedMilestones, newlyReachedMilestone];
+    
+    await supabase
+      .from("site_settings")
+      .upsert({
+        setting_key: "visa_coverage_milestones",
+        setting_value: { 
+          reached: updatedMilestones,
+          last_milestone: newlyReachedMilestone,
+          last_milestone_at: new Date().toISOString()
+        },
+        updated_at: new Date().toISOString()
+      }, { onConflict: "setting_key" });
+
+    // Log the milestone
+    await supabase.from("activity_log").insert({
+      action: "milestone_reached",
+      entity_type: "visa_coverage",
+      metadata: {
+        milestone: newlyReachedMilestone,
+        coverage: currentCoverage,
+        total_pages: visaContentTotal,
+        email_sent_to: adminEmail,
+        timestamp: new Date().toISOString()
+      }
+    });
+
+    console.log(`✅ Milestone email sent to ${adminEmail}`);
+  } catch (error) {
+    console.error("Error checking/sending milestone alert:", error);
+  }
+}
 
 interface ContentIssue {
   id: string;
@@ -669,6 +860,9 @@ serve(async (req) => {
           timestamp: new Date().toISOString()
         }
       });
+
+      // Check for milestone alerts after batch completes
+      await checkAndSendMilestoneAlert(supabase);
     }
 
     // ============================================

@@ -32,6 +32,19 @@ const cityImageMap: Record<string, string> = {
   // UAE
   "dubai": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&h=600&fit=crop",
   "abu-dhabi": "https://images.unsplash.com/photo-1512632578888-169bbbc64f33?w=800&h=600&fit=crop",
+  "sharjah": "https://images.unsplash.com/photo-1578895101408-1a36b834405b?w=800&h=600&fit=crop",
+  "ajman": "https://images.unsplash.com/photo-1580674684081-7617fbf3d745?w=800&h=600&fit=crop",
+  "ras-al-khaimah": "https://images.unsplash.com/photo-1597659840241-37e2b9c2f55f?w=800&h=600&fit=crop",
+  "fujairah": "https://images.unsplash.com/photo-1597985392882-5ef76c7abc89?w=800&h=600&fit=crop",
+  // Qatar
+  "doha": "https://images.unsplash.com/photo-1559564484-e48b3e040ff4?w=800&h=600&fit=crop",
+  // Saudi Arabia
+  "riyadh": "https://images.unsplash.com/photo-1586724237569-f3d0c1dee8c6?w=800&h=600&fit=crop",
+  "jeddah": "https://images.unsplash.com/photo-1578681041175-9717c638e22f?w=800&h=600&fit=crop",
+  "mecca": "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?w=800&h=600&fit=crop",
+  // Vietnam
+  "hanoi": "https://images.unsplash.com/photo-1509030450996-dd1a26dda07a?w=800&h=600&fit=crop",
+  "ho-chi-minh-city": "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800&h=600&fit=crop",
   // Singapore
   "singapore": "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800&h=600&fit=crop",
   // Malaysia

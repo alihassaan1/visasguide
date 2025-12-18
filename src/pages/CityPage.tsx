@@ -156,7 +156,8 @@ const CityPage = () => {
               : `url(https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1920&q=80)`
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+          {/* Lighter overlay to show image better */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
           <div className="container mx-auto px-4 h-full flex flex-col justify-end pb-8 relative z-10">
             {/* Breadcrumbs */}
             <Breadcrumb className="mb-4">

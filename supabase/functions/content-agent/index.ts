@@ -37,9 +37,16 @@ const COUNTRY_ABBREVIATIONS: Record<string, string[]> = {
   'sao-tome-and-principe': ['Sao Tome', 'São Tomé'],
 };
 
-// Priority countries for visa requirement content generation
-const PRIORITY_ORIGINS = ['united-states', 'united-kingdom', 'india', 'germany', 'united-arab-emirates', 'canada', 'australia', 'china', 'pakistan', 'philippines', 'nigeria', 'brazil', 'mexico', 'france', 'italy'];
-const PRIORITY_DESTINATIONS = ['united-states', 'united-kingdom', 'united-arab-emirates', 'thailand', 'singapore', 'japan', 'australia', 'germany', 'france', 'italy', 'canada', 'spain', 'turkey', 'indonesia', 'malaysia'];
+// Priority countries for visa requirement content generation (Tier 1 - highest traffic)
+const TIER1_ORIGINS = ['united-states', 'united-kingdom', 'india', 'china', 'germany', 'united-arab-emirates', 'canada', 'australia', 'pakistan', 'philippines', 'nigeria', 'brazil', 'mexico', 'france', 'italy', 'south-korea', 'japan', 'russia', 'turkey', 'indonesia'];
+const TIER1_DESTINATIONS = ['united-states', 'united-kingdom', 'united-arab-emirates', 'thailand', 'singapore', 'japan', 'australia', 'germany', 'france', 'italy', 'canada', 'spain', 'turkey', 'indonesia', 'malaysia', 'south-korea', 'netherlands', 'switzerland', 'vietnam', 'philippines'];
+
+// Tier 2 - Regional hubs and transit points
+const TIER2_HUBS = ['singapore', 'united-arab-emirates', 'qatar', 'hong-kong', 'netherlands', 'turkey', 'ethiopia', 'south-africa', 'panama', 'mexico'];
+
+// Legacy exports for compatibility
+const PRIORITY_ORIGINS = TIER1_ORIGINS;
+const PRIORITY_DESTINATIONS = TIER1_DESTINATIONS;
 
 // Get CTR-optimized country display name
 function getCTROptimizedName(slug: string, name: string): string {
@@ -221,7 +228,7 @@ serve(async (req) => {
       visaEnrichment: { enabled: true, batchSize: 10 },
       blogGeneration: { enabled: true, batchSize: 3 },
       faqGeneration: { enabled: true, batchSize: 5 },
-      visaRequirementsContent: { enabled: true, batchSize: 25 },
+      visaRequirementsContent: { enabled: true, batchSize: 50, priorityMode: true },
       evergreenContent: { enabled: true, batchSize: 2 },
     };
 
@@ -473,10 +480,24 @@ serve(async (req) => {
           const slug = `${fromCountry.slug}-to-${toCountry.slug}-visa-requirements`;
           if (existingSlugs.has(slug)) continue;
 
-          // Calculate priority score
+          // Calculate priority score with enhanced tiers
           let priority = 0;
-          if (PRIORITY_ORIGINS.includes(fromCountry.slug)) priority += 10;
-          if (PRIORITY_DESTINATIONS.includes(toCountry.slug)) priority += 10;
+          
+          // Tier 1: Both origin and destination are high-traffic (highest priority = 20)
+          const isT1Origin = TIER1_ORIGINS.includes(fromCountry.slug);
+          const isT1Dest = TIER1_DESTINATIONS.includes(toCountry.slug);
+          if (isT1Origin && isT1Dest) {
+            priority = 20;
+          } else if (isT1Origin || isT1Dest) {
+            // Tier 2: Either is high-traffic (priority = 15)
+            priority = 15;
+          } else if (TIER2_HUBS.includes(fromCountry.slug) || TIER2_HUBS.includes(toCountry.slug)) {
+            // Tier 3: Regional hub (priority = 10)
+            priority = 10;
+          } else {
+            // Tier 4: Standard (priority = 5)
+            priority = 5;
+          }
           
           combinations.push({ from: fromCountry, to: toCountry, priority });
         }
@@ -578,7 +599,10 @@ serve(async (req) => {
 
           const fullContent = content + jsonLdScript;
 
-          // Insert content page
+          // Get random author for attribution
+          const author = getRandomAuthor();
+
+          // Insert content page with author attribution
           const { data: newPage, error: insertError } = await supabase
             .from('content_pages')
             .insert({
@@ -591,7 +615,8 @@ serve(async (req) => {
               keywords: keywords,
               is_published: true,
               status: 'published',
-              ai_generated: true
+              ai_generated: true,
+              writer_id: author?.id || null
             })
             .select()
             .single();
@@ -610,8 +635,8 @@ serve(async (req) => {
 
           console.log(`✅ Created: ${entityName}`);
 
-          // Reduced delay for aggressive batching (1.5s instead of 3s)
-          await new Promise(resolve => setTimeout(resolve, 1500));
+          // Minimal delay for 4x speedup (0.8s between requests)
+          await new Promise(resolve => setTimeout(resolve, 800));
 
         } catch (error) {
           console.error(`Error generating visa content:`, error);

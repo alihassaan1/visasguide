@@ -12,7 +12,7 @@ import {
   Play, Settings, Globe, FileText, HelpCircle, CreditCard,
   Bot, Zap, Calendar, TrendingUp, AlertCircle, Save, Timer,
   ScrollText, AlertTriangle, DollarSign, Coins, XCircle, ArrowUp, ArrowDown, ChevronDown,
-  Mail, Leaf
+  Mail, Leaf, Trophy
 } from "lucide-react";
 import { formatDistanceToNow, addHours, addDays, format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { toast } from "sonner";
@@ -141,7 +141,7 @@ const AgentDashboard = () => {
   const { data: stats, refetch: refetchStats } = useQuery({
     queryKey: ["agent-stats"],
     queryFn: async () => {
-      const [countriesRes, contentRes, visaRes, visaTotalRes, blogRes, faqRes, visaReqContentRes] = await Promise.all([
+      const [countriesRes, contentRes, visaRes, visaTotalRes, blogRes, faqRes, visaReqContentRes, milestonesRes] = await Promise.all([
         supabase.from("countries").select("id", { count: "exact", head: true }),
         supabase.from("content_pages").select("id", { count: "exact", head: true }).like("slug", "countries/%"),
         supabase.from("visa_requirements").select("id", { count: "exact", head: true }).or("fee_usd.is.null,processing_time_days.is.null"),
@@ -149,12 +149,19 @@ const AgentDashboard = () => {
         supabase.from("content_pages").select("id", { count: "exact", head: true }).like("slug", "blog/%"),
         supabase.from("content_pages").select("id, content", { count: "exact" }).like("slug", "countries/%").not("content", "ilike", "%FAQPage%"),
         supabase.from("content_pages").select("id", { count: "exact", head: true }).like("slug", "%-to-%-visa-requirements"),
+        supabase.from("site_settings").select("setting_value").eq("setting_key", "visa_coverage_milestones").maybeSingle(),
       ]);
 
       // Calculate total possible combinations (n * (n-1) where n = total countries)
       const totalCountries = countriesRes.count || 0;
       const totalCombinations = totalCountries * (totalCountries - 1);
       const visaReqContentCount = visaReqContentRes.count || 0;
+      
+      // Get milestone data
+      const milestoneData = milestonesRes.data?.setting_value as any;
+      const reachedMilestones: number[] = milestoneData?.reached || [];
+      const lastMilestone = milestoneData?.last_milestone || null;
+      const lastMilestoneAt = milestoneData?.last_milestone_at || null;
 
       return {
         totalCountries,
@@ -166,6 +173,11 @@ const AgentDashboard = () => {
         visaReqContentCount,
         visaReqTotalCombinations: totalCombinations,
         visaReqRemaining: totalCombinations - visaReqContentCount,
+        milestones: {
+          reached: reachedMilestones,
+          lastMilestone,
+          lastMilestoneAt,
+        },
       };
     },
     refetchInterval: 30000,
@@ -1101,6 +1113,95 @@ const AgentDashboard = () => {
                     <p className="text-sm text-muted-foreground">{estimates.faq.remaining} remaining</p>
                     <p className="text-xs text-primary font-medium">~{estimates.faq.days} days to complete</p>
                   </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Milestone Tracker */}
+      {visaEstimate && (
+        <Card className="bg-gradient-to-r from-emerald-500/5 to-emerald-500/10 border-emerald-500/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-emerald-500" />
+              Visa Coverage Milestones
+            </CardTitle>
+            <CardDescription>Email alerts sent at each milestone</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Current Coverage */}
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-bold text-emerald-600">{visaEstimate.coveragePercent}%</span>
+                <span className="text-sm text-muted-foreground">
+                  {stats?.visaReqContentCount?.toLocaleString()} / {stats?.visaReqTotalCombinations?.toLocaleString()} pages
+                </span>
+              </div>
+
+              {/* Milestone Progress Bar */}
+              <div className="relative">
+                <Progress value={Number(visaEstimate.coveragePercent)} className="h-3" />
+                {/* Milestone markers */}
+                <div className="absolute top-0 left-0 w-full h-3 flex">
+                  {[25, 50, 75].map(milestone => (
+                    <div 
+                      key={milestone}
+                      className="absolute h-full w-0.5 bg-background"
+                      style={{ left: `${milestone}%` }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Milestone Labels */}
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">0%</span>
+                {[25, 50, 75, 100].map(milestone => {
+                  const isReached = stats?.milestones?.reached?.includes(milestone) || Number(visaEstimate.coveragePercent) >= milestone;
+                  const isCurrent = milestone === 100 
+                    ? Number(visaEstimate.coveragePercent) >= 75 
+                    : Number(visaEstimate.coveragePercent) >= milestone - 25 && Number(visaEstimate.coveragePercent) < milestone;
+                  return (
+                    <div key={milestone} className="flex flex-col items-center">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium mb-1 ${
+                        isReached 
+                          ? 'bg-emerald-500 text-white' 
+                          : isCurrent 
+                            ? 'bg-emerald-500/20 text-emerald-600 ring-2 ring-emerald-500/50' 
+                            : 'bg-muted text-muted-foreground'
+                      }`}>
+                        {isReached ? '✓' : milestone === 100 ? '🏆' : ''}
+                      </div>
+                      <span className={isReached ? 'text-emerald-600 font-medium' : 'text-muted-foreground'}>
+                        {milestone}%
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Last Milestone Info */}
+              {stats?.milestones?.lastMilestone && (
+                <div className="flex items-center gap-2 text-sm bg-emerald-500/10 p-2 rounded-lg">
+                  <Trophy className="h-4 w-4 text-emerald-500" />
+                  <span>Last milestone: <strong>{stats.milestones.lastMilestone}%</strong></span>
+                  {stats.milestones.lastMilestoneAt && (
+                    <span className="text-muted-foreground">
+                      ({formatDistanceToNow(new Date(stats.milestones.lastMilestoneAt), { addSuffix: true })})
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Next Milestone */}
+              {Number(visaEstimate.coveragePercent) < 100 && (
+                <div className="text-sm text-muted-foreground">
+                  Next milestone: <strong>{
+                    [25, 50, 75, 100].find(m => m > Number(visaEstimate.coveragePercent)) || 100
+                  }%</strong>
+                  {' '}- Email will be sent automatically when reached
                 </div>
               )}
             </div>

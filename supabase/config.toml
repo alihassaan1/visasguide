@@ -97,3 +97,6 @@ verify_jwt = false
 
 [functions.news-sitemap]
 verify_jwt = false
+
+[functions.daily-agent-report]
+verify_jwt = false

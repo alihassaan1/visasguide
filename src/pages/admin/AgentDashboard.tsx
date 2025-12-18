@@ -11,7 +11,8 @@ import {
   RefreshCw, Activity, CheckCircle, Clock, Loader2, 
   Play, Settings, Globe, FileText, HelpCircle, CreditCard,
   Bot, Zap, Calendar, TrendingUp, AlertCircle, Save, Timer,
-  ScrollText, AlertTriangle, DollarSign, Coins, XCircle, ArrowUp, ArrowDown, ChevronDown
+  ScrollText, AlertTriangle, DollarSign, Coins, XCircle, ArrowUp, ArrowDown, ChevronDown,
+  Mail, Leaf
 } from "lucide-react";
 import { formatDistanceToNow, addHours, addDays, format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { toast } from "sonner";
@@ -35,6 +36,8 @@ interface AgentSettings {
   blogGeneration: TaskConfig;
   faqGeneration: TaskConfig;
   visaRequirementsContent: TaskConfig;
+  evergreenContent: TaskConfig;
+  dailyReport: TaskConfig;
 }
 
 const defaultSettings: AgentSettings = {
@@ -44,6 +47,8 @@ const defaultSettings: AgentSettings = {
   blogGeneration: { enabled: true, batchSize: 3, schedule: "0 3 * * *" },
   faqGeneration: { enabled: true, batchSize: 5, schedule: "0 4 * * *" },
   visaRequirementsContent: { enabled: true, batchSize: 25, schedule: "*/30 * * * *" },
+  evergreenContent: { enabled: true, batchSize: 2, schedule: "0 6 * * *" },
+  dailyReport: { enabled: true, batchSize: 1, schedule: "0 8 * * *" },
 };
 
 const AgentDashboard = () => {
@@ -547,12 +552,22 @@ const AgentDashboard = () => {
     try {
       toast.info(`Starting ${mode} task...`);
       
+      // Handle daily report separately
+      if (mode === 'dailyReport') {
+        const { data, error } = await supabase.functions.invoke("daily-agent-report", {});
+        if (error) throw error;
+        toast.success(`Daily report sent to ${data.recipient}!`);
+        refetchActivity();
+        return;
+      }
+      
       const body: any = { batchSize };
       if (mode === 'bulkCTR') body.bulkCTR = true;
       else if (mode === 'visaEnrichment') body.visaEnrichment = true;
       else if (mode === 'blogGeneration') body.blogGeneration = true;
       else if (mode === 'faqGeneration') body.faqGeneration = true;
       else if (mode === 'visaRequirementsContent') body.visaRequirementsContent = true;
+      else if (mode === 'evergreenContent') body.evergreenContent = true;
 
       const { data, error } = await supabase.functions.invoke("content-agent", { body });
 
@@ -676,10 +691,19 @@ const AgentDashboard = () => {
       id: 'blogGeneration' as const,
       name: 'Blog Generation',
       mode: 'blogGeneration',
-      description: 'Auto-generate evergreen travel blog posts',
+      description: 'Auto-generate travel blog posts with author attribution',
       icon: <FileText className="h-5 w-5 text-purple-500" />,
       scheduleLabel: 'Daily at 3:00 AM',
       status: activeTask?.mode === 'blog_generation' ? 'running' : 'idle',
+    },
+    {
+      id: 'evergreenContent' as const,
+      name: 'Evergreen SEO Content',
+      mode: 'evergreenContent',
+      description: 'Create high-value evergreen pages (Schengen Guide, US Visa, etc.)',
+      icon: <Leaf className="h-5 w-5 text-green-600" />,
+      scheduleLabel: 'Daily at 6:00 AM',
+      status: activeTask?.mode === 'evergreen_content' ? 'running' : 'idle',
     },
     {
       id: 'faqGeneration' as const,
@@ -691,6 +715,16 @@ const AgentDashboard = () => {
       remaining: estimates?.faq.remaining,
       eta: estimates?.faq.days,
       status: activeTask?.mode === 'faq_generation' ? 'running' : 'idle',
+    },
+    {
+      id: 'dailyReport' as const,
+      name: 'Daily Progress Report',
+      mode: 'dailyReport',
+      description: 'Send daily email report with task progress and costs',
+      icon: <Mail className="h-5 w-5 text-indigo-500" />,
+      scheduleLabel: 'Daily at 8:00 AM UTC',
+      status: 'idle',
+      isReportTask: true,
     },
   ];
 

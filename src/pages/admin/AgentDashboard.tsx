@@ -46,7 +46,7 @@ const defaultSettings: AgentSettings = {
   visaEnrichment: { enabled: true, batchSize: 10, schedule: "15 */2 * * *" },
   blogGeneration: { enabled: true, batchSize: 3, schedule: "0 3 * * *" },
   faqGeneration: { enabled: true, batchSize: 5, schedule: "0 4 * * *" },
-  visaRequirementsContent: { enabled: true, batchSize: 25, schedule: "*/30 * * * *" },
+  visaRequirementsContent: { enabled: true, batchSize: 50, schedule: "*/15 * * * *" },
   evergreenContent: { enabled: true, batchSize: 2, schedule: "0 6 * * *" },
   dailyReport: { enabled: true, batchSize: 1, schedule: "0 8 * * *" },
 };
@@ -383,12 +383,12 @@ const AgentDashboard = () => {
 
     const projections: { taskName: string; dailyCost: number; monthlyCost: number; runsPerDay: number }[] = [];
 
-    // Visa Requirements Content: every 30 min = 48 runs/day
+    // Visa Requirements Content: every 15 min = 96 runs/day (4x speedup)
     if (localSettings.visaRequirementsContent.enabled) {
       const avgCost = getTaskAvgCost('visa_requirements_content', 0.0013);
-      const runsPerDay = 48;
+      const runsPerDay = 96; // 4x speedup: every 15 min instead of 30 min
       const dailyCost = localSettings.visaRequirementsContent.batchSize * runsPerDay * avgCost;
-      projections.push({ taskName: 'Visa Req Content', dailyCost, monthlyCost: dailyCost * 30, runsPerDay });
+      projections.push({ taskName: 'Visa Req Content (4x)', dailyCost, monthlyCost: dailyCost * 30, runsPerDay });
     }
 
     // CTR Optimization: every hour = 24 runs/day
@@ -643,18 +643,37 @@ const AgentDashboard = () => {
     }
   };
 
+  // Calculate visa content completion estimate
+  const visaCompletionEstimate = () => {
+    if (!stats) return null;
+    const remaining = stats.visaReqRemaining;
+    const batchSize = localSettings.visaRequirementsContent.batchSize;
+    const runsPerDay = 96; // every 15 min
+    const pagesPerDay = batchSize * runsPerDay;
+    const daysToComplete = Math.ceil(remaining / pagesPerDay);
+    const coveragePercent = stats.visaReqTotalCombinations > 0 
+      ? ((stats.visaReqContentCount / stats.visaReqTotalCombinations) * 100).toFixed(1)
+      : 0;
+    return { daysToComplete, pagesPerDay, coveragePercent };
+  };
+
+  const visaEstimate = visaCompletionEstimate();
+
   const tasks = [
     {
       id: 'visaRequirementsContent' as const,
       name: 'Visa Requirements Content',
       mode: 'visaRequirementsContent',
-      description: 'Generate human-style content for country-to-country visa pages (25-30/batch)',
+      description: `Priority Mode: ${localSettings.visaRequirementsContent.batchSize} pages every 15 min (~${visaEstimate?.pagesPerDay || 4800}/day)`,
       icon: <Globe className="h-5 w-5 text-emerald-500" />,
-      scheduleLabel: 'Every 30 min (aggressive)',
+      scheduleLabel: 'Every 15 min (4x speedup)',
       remaining: stats?.visaReqRemaining,
       total: stats?.visaReqTotalCombinations,
       completed: stats?.visaReqContentCount,
+      coverage: visaEstimate?.coveragePercent,
+      daysToComplete: visaEstimate?.daysToComplete,
       status: activeTask?.mode === 'visa_requirements_content' ? 'running' : 'idle',
+      priority: true,
     },
     {
       id: 'ctr' as const,

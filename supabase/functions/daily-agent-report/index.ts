@@ -18,6 +18,12 @@ interface DailyStats {
   apiCostUSD: number;
   errorCount: number;
   topErrors: string[];
+  // Visa coverage tracking
+  visaContentToday: number;
+  visaContentTotal: number;
+  visaCoveragePercent: string;
+  visaRemaining: number;
+  daysToComplete: number;
 }
 
 serve(async (req) => {
@@ -94,6 +100,33 @@ serve(async (req) => {
       .select("id", { count: "exact", head: true })
       .gte("created_at", yesterday.toISOString());
 
+    // Get visa content stats - total coverage
+    const { count: totalCountries } = await supabase
+      .from("countries")
+      .select("id", { count: "exact", head: true });
+    
+    const totalCombinations = (totalCountries || 0) * ((totalCountries || 0) - 1);
+    
+    const { count: visaContentTotal } = await supabase
+      .from("content_pages")
+      .select("id", { count: "exact", head: true })
+      .like("slug", "%-to-%-visa-requirements");
+    
+    const { count: visaContentToday } = await supabase
+      .from("content_pages")
+      .select("id", { count: "exact", head: true })
+      .like("slug", "%-to-%-visa-requirements")
+      .gte("created_at", yesterday.toISOString());
+
+    const visaCoveragePercent = totalCombinations > 0 
+      ? ((visaContentTotal || 0) / totalCombinations * 100).toFixed(2)
+      : "0";
+    const visaRemaining = totalCombinations - (visaContentTotal || 0);
+    
+    // Estimate completion at current pace (4800/day with 4x speedup)
+    const pagesPerDay = visaContentToday && visaContentToday > 0 ? visaContentToday : 4800;
+    const daysToComplete = Math.ceil(visaRemaining / pagesPerDay);
+
     // Get remaining work estimates
     const { count: visaReqRemaining } = await supabase
       .from("visa_requirements")
@@ -123,6 +156,12 @@ serve(async (req) => {
       apiCostUSD: totalCost,
       errorCount: logs.filter(l => l.status === 'error').length,
       topErrors: [...new Set(errorMessages)].slice(0, 5),
+      // New visa coverage fields
+      visaContentToday: visaContentToday || 0,
+      visaContentTotal: visaContentTotal || 0,
+      visaCoveragePercent,
+      visaRemaining,
+      daysToComplete,
     };
 
     // Generate HTML email
@@ -186,6 +225,26 @@ serve(async (req) => {
       </div>
     </div>
 
+    <div class="section" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 20px; border-radius: 12px; color: white; margin: 20px 0;">
+      <div style="font-size: 14px; opacity: 0.9; margin-bottom: 5px;">🌍 VISA CONTENT COVERAGE - PRIORITY TASK</div>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-size: 36px; font-weight: bold;">${stats.visaCoveragePercent}%</div>
+          <div style="font-size: 12px; opacity: 0.8;">${stats.visaContentTotal.toLocaleString()} of 38,612 pages</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 24px; font-weight: 600;">+${stats.visaContentToday}</div>
+          <div style="font-size: 12px; opacity: 0.8;">pages today</div>
+        </div>
+      </div>
+      <div style="background: rgba(255,255,255,0.2); border-radius: 4px; height: 8px; margin-top: 15px;">
+        <div style="background: white; height: 100%; border-radius: 4px; width: ${stats.visaCoveragePercent}%;"></div>
+      </div>
+      <div style="font-size: 11px; opacity: 0.8; margin-top: 8px;">
+        ${stats.visaRemaining.toLocaleString()} remaining • Est. ${stats.daysToComplete} days to complete at current pace
+      </div>
+    </div>
+
     <div class="cost-highlight">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
@@ -202,8 +261,8 @@ serve(async (req) => {
     <div class="section">
       <div class="section-title">📊 Task Breakdown</div>
       <table style="width: 100%; margin-top: 10px; font-size: 14px;">
+        <tr style="background: #dcfce7;"><td><strong>Visa Content Pages</strong></td><td style="text-align: right; font-weight: 600;">${stats.visaContentToday}</td></tr>
         <tr><td>CTR Optimization</td><td style="text-align: right; font-weight: 600;">${stats.ctrOptimizations}</td></tr>
-        <tr><td>Visa Requirement Pages</td><td style="text-align: right; font-weight: 600;">${stats.visaRequirementsGenerated}</td></tr>
         <tr><td>Blog Posts Generated</td><td style="text-align: right; font-weight: 600;">${stats.blogPostsCreated}</td></tr>
         <tr><td>FAQs Generated</td><td style="text-align: right; font-weight: 600;">${stats.faqsGenerated}</td></tr>
         <tr><td>Visa Data Enrichments</td><td style="text-align: right; font-weight: 600;">${stats.visaEnrichmentsCompleted}</td></tr>
@@ -213,10 +272,10 @@ serve(async (req) => {
     <div class="section">
       <div class="section-title">📈 Remaining Work</div>
       <div class="remaining-work">
-        <p><strong>Visa Requirement Pages:</strong> ~${(visaReqRemaining || 0).toLocaleString()} remaining</p>
+        <p><strong>Visa Requirement Pages:</strong> ${stats.visaRemaining.toLocaleString()} remaining (${stats.visaCoveragePercent}% complete)</p>
         <p><strong>Country Guides:</strong> ~${Math.max(0, countriesRemaining)} countries need content</p>
         <div style="font-size: 12px; color: #64748b; margin-top: 10px;">
-          At current pace, visa pages estimated completion in ~${Math.ceil((visaReqRemaining || 0) / (stats.visaRequirementsGenerated || 1) / 30)} months
+          At 4x speedup (~4,800 pages/day), visa content completion in ~${stats.daysToComplete} days
         </div>
       </div>
     </div>

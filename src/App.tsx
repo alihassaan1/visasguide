@@ -65,6 +65,9 @@ import SchengenVisaGuide from "./pages/SchengenVisaGuide";
 import AuthorPage from "./pages/AuthorPage";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "./pages/Unsubscribe";
+import About from "./pages/About";
+import EditorialPolicy from "./pages/EditorialPolicy";
+import AffiliateDisclosure from "./pages/AffiliateDisclosure";
 
 const queryClient = new QueryClient();
 
@@ -99,6 +102,9 @@ const App = () => (
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/cookie-policy" element={<CookiePolicy />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/editorial-policy" element={<EditorialPolicy />} />
+          <Route path="/affiliate-disclosure" element={<AffiliateDisclosure />} />
           <Route path="/schengen-visa-guide" element={<SchengenVisaGuide />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
           <Route path="/rss" element={<RSSFeed />} />

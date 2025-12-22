@@ -5,8 +5,10 @@ import NewsletterSignup from "@/components/NewsletterSignup";
 import SEOHead from "@/components/SEOHead";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import DestinationCarousel from "@/components/DestinationCarousel";
-
 import QuickLinks from "@/components/QuickLinks";
+import LatestGuidesSection from "@/components/LatestGuidesSection";
+import FeaturedAuthorsSection from "@/components/FeaturedAuthorsSection";
+import LatestNewsSection from "@/components/LatestNewsSection";
 
 const Index = () => {
   return (
@@ -19,7 +21,6 @@ const Index = () => {
       />
       <AnalyticsTracker />
       
-      {/* Structured Data for SEO */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -51,7 +52,9 @@ const Index = () => {
       <main>
         <HeroSection />
         <DestinationCarousel />
-        
+        <LatestGuidesSection />
+        <FeaturedAuthorsSection />
+        <LatestNewsSection />
         
         <div className="container mx-auto px-4">
           <QuickLinks />

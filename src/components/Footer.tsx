@@ -154,25 +154,18 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Feedspot Badge Placeholder */}
-        <div className="border-t border-primary-foreground/20 py-8 text-center">
-          <p className="text-primary-foreground/60 text-sm mb-3">Featured On</p>
-          <div className="inline-block bg-primary-foreground/10 px-8 py-4 rounded-lg">
-            <p className="text-primary-foreground font-semibold text-lg">🏆 Feedspot Top Visa Guide</p>
-            <p className="text-primary-foreground/70 text-xs mt-1">Trusted by travelers worldwide</p>
-          </div>
-        </div>
-
         {/* Bottom Bar */}
         <div className="border-t border-primary-foreground/20 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-sm text-primary-foreground/80">
               © 2025 Visas.Guide. All rights reserved.
             </div>
-            <div className="flex space-x-6 text-sm">
+            <div className="flex flex-wrap justify-center gap-4 text-sm">
+              <Link to="/about" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">About Us</Link>
+              <Link to="/editorial-policy" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Editorial Policy</Link>
+              <Link to="/affiliate-disclosure" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Affiliate Disclosure</Link>
               <Link to="/privacy-policy" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Privacy Policy</Link>
               <Link to="/terms-of-service" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Terms of Service</Link>
-              <Link to="/cookie-policy" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Cookie Policy</Link>
               <Link to="/contact" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Contact Us</Link>
             </div>
           </div>

@@ -276,7 +276,40 @@ IMPORTANT: Do NOT use border classes. Keep styling minimal and clean.
 Be concise but comprehensive. SEO-optimized with natural keyword placement.`;
 }
 
-// Human-style prompt for visa requirements content (country-to-country)
+// Helper function for parallel processing with concurrency limit
+async function processInParallel<T, R>(
+  items: T[],
+  processor: (item: T) => Promise<R>,
+  concurrency: number = 5
+): Promise<R[]> {
+  const results: R[] = [];
+  const executing: Promise<void>[] = [];
+
+  for (const item of items) {
+    const promise = processor(item).then(result => {
+      results.push(result);
+    });
+    executing.push(promise);
+
+    if (executing.length >= concurrency) {
+      await Promise.race(executing);
+      // Remove completed promises
+      for (let i = executing.length - 1; i >= 0; i--) {
+        if (executing[i] !== undefined) {
+          const status = await Promise.race([executing[i], Promise.resolve('pending')]);
+          if (status !== 'pending') {
+            executing.splice(i, 1);
+          }
+        }
+      }
+    }
+  }
+
+  await Promise.all(executing);
+  return results;
+}
+
+// Human-style prompt for visa requirements content (country-to-country) - OPTIMIZED for speed
 function generateVisaRequirementsPrompt(
   fromCountry: { name: string; slug: string },
   toCountry: { name: string; slug: string },
@@ -300,52 +333,33 @@ function generateVisaRequirementsPrompt(
   ];
   const randomOpening = openingStyles[Math.floor(Math.random() * openingStyles.length)];
 
-  return `Write a travel blog post about ${toCTR} visa requirements for ${fromCTR} passport holders.
+  // OPTIMIZED PROMPT - Reduced to ~500-600 words output for faster generation
+  return `Write a concise travel guide about ${toCTR} visa for ${fromCTR} passport holders.
 
-ANTI-AI DETECTION RULES (Critical - Google will penalize robotic content):
-- Write like a travel blogger, NOT a corporate FAQ
-- Use contractions ALWAYS: you'll, don't, it's, can't, won't, there's, that's
-- Start some sentences with And, But, So, Plus, Also - real writers do this
-- Include conversational asides in parentheses (like this one) or with dashes
-- Mix paragraph lengths: some 1 sentence, some 4-5 sentences
-- Use casual phrases: "honestly", "the thing is", "here's the deal", "quick note"
-- Add experience-based language: "I've seen...", "What works best...", "Most people skip this but..."
-- FORBIDDEN phrases (instant AI detection): "It is important", "Furthermore", "Additionally", "In conclusion", "One should", "It is recommended", "It should be noted", "When planning"
-- Never start 2+ paragraphs with the same word
-- Include specific details: actual embassy info, real fees, exact timelines
-- Use rhetorical questions occasionally: "Sound complicated? It's not."
+STYLE: Write naturally like a travel blogger. Use contractions (you'll, don't, it's). Keep it friendly and practical.
 
-KNOWN VISA INFO:
-- Entry Type: ${visaType}
-- Fee: ${fee}
-- Processing: ${processing}
-- Max Stay: ${maxStay}
+VISA INFO:
+- Entry: ${visaType} | Fee: ${fee} | Processing: ${processing} | Stay: ${maxStay}
 ${visaData?.notes ? `- Notes: ${visaData.notes}` : ''}
 
-SUGGESTED OPENING: ${randomOpening}
+STRUCTURE (500-600 words max):
 
-STRUCTURE (700-900 words):
+1. **Quick Answer** (2-3 sentences) - ${randomOpening} Answer immediately.
 
-1. **Hook + Quick Answer** - ${randomOpening} Answer the visa question in your first 2 sentences.
+2. **Requirements** (bullet list) - Entry type, documents, duration
 
-2. **Entry Requirements** - What type of entry, duration, written casually
+3. **How to Apply** (3-5 steps) - Simple step-by-step
 
-3. **Documents Needed** - List requirements like you're helping a friend pack
+4. **Costs & Timeline** - Fees, processing time, hidden costs
 
-4. **Application Process** - Step-by-step in friendly language
+5. **3 Pro Tips** - Practical insider advice
 
-5. **Costs Breakdown** - Fees, payment methods, hidden costs
+6. **2-3 FAQs** - Common questions with short answers
 
-6. **Insider Tips** - 3-4 tips that sound like real experience
+KEYWORDS: "${toCTR} visa for ${fromCTR} citizens", "${fromCTR} passport ${toCTR}"
 
-7. **FAQs** - 3 common questions in natural Q&A format
-
-TARGET KEYWORDS (integrate naturally):
-- "${toCTR} visa for ${fromCTR} citizens"
-- "${fromCTR} passport ${toCTR} entry"
-- "do ${fromCTR} citizens need visa ${toCTR}"
-
-OUTPUT: HTML with h2, h3, p, ul. Tailwind spacing classes (mb-4, mt-6). No borders.`;
+FORMAT: Clean HTML (h2, h3, p, ul, li). Tailwind spacing (mb-4, mt-6). No borders.
+Be concise but helpful. Answer the main question fast.`;
 }
 
 serve(async (req) => {
@@ -700,7 +714,9 @@ serve(async (req) => {
 
       console.log(`Found ${combinations.length} combinations needing content, processing ${batch.length} (priority sorted)...`);
 
-      // Broadcast status
+      const batchStartTime = Date.now();
+
+      // Broadcast status with batch info
       await supabase.from('activity_log').insert({
         action: 'content_agent_status',
         entity_type: 'visa_requirements_content',
@@ -708,13 +724,18 @@ serve(async (req) => {
           status: 'started',
           total_remaining: combinations.length,
           batch_size: batch.length,
+          parallel_processing: true,
+          concurrency: 5,
           timestamp: new Date().toISOString()
         }
       });
 
       const generatedUrls: string[] = [];
+      let successCount = 0;
+      let errorCount = 0;
 
-      for (const combo of batch) {
+      // Define the processor function for each combo
+      const processCombo = async (combo: typeof batch[0]) => {
         try {
           const fromCTR = getCTROptimizedName(combo.from.slug, combo.from.name);
           const toCTR = getCTROptimizedName(combo.to.slug, combo.to.name);
@@ -722,28 +743,16 @@ serve(async (req) => {
           
           console.log(`📝 Generating visa content: ${entityName}`);
 
-          // Broadcast processing status
-          await supabase.from('activity_log').insert({
-            action: 'content_agent_status',
-            entity_type: 'visa_requirements_content',
-            metadata: {
-              status: 'processing',
-              from_country: combo.from.name,
-              to_country: combo.to.name,
-              timestamp: new Date().toISOString()
-            }
-          });
-
           // Get visa data if available
           const visaDataKey = `${combo.from.id}-${combo.to.id}`;
           const visaData = visaDataMap.get(visaDataKey);
 
-          // Generate human-style content
+          // Generate human-style content with OPTIMIZED token limit (1500 instead of 2500)
           const prompt = generateVisaRequirementsPrompt(combo.from, combo.to, visaData);
           const content = await callDeepSeek(
-            `You're a friendly, experienced travel advisor who's helped thousands of travelers. Write naturally, like you're giving advice to a good friend. Be helpful, practical, and conversational.`,
+            `You're a friendly travel advisor. Write naturally, be concise and helpful.`,
             prompt,
-            2500,
+            1500, // REDUCED from 2500 for faster generation
             entityName
           );
 
@@ -815,6 +824,7 @@ serve(async (req) => {
           if (insertError) throw insertError;
 
           generatedUrls.push(`/visa-requirements/${slug}`);
+          successCount++;
 
           logs.push({
             entity: entityName,
@@ -826,10 +836,12 @@ serve(async (req) => {
 
           console.log(`✅ Created: ${entityName}`);
 
-          // Minimal delay for 4x speedup (0.8s between requests)
-          await new Promise(resolve => setTimeout(resolve, 800));
+          // Reduced delay for parallel processing (0.3s between individual requests)
+          await new Promise(resolve => setTimeout(resolve, 300));
 
+          return { success: true, slug };
         } catch (error) {
+          errorCount++;
           console.error(`Error generating visa content:`, error);
           logs.push({
             entity: `${combo.from.name} → ${combo.to.name}`,
@@ -837,26 +849,41 @@ serve(async (req) => {
             status: 'error',
             error: error.message
           });
+          return { success: false, error: error.message };
         }
-      }
+      };
+
+      // Process batch with parallel execution (5 concurrent)
+      console.log(`🚀 Starting parallel processing with 5 concurrent requests...`);
+      await processInParallel(batch, processCombo, 5);
+
+      const batchDuration = (Date.now() - batchStartTime) / 1000;
+      const pagesPerSecond = successCount / batchDuration;
+      const pagesPerHour = Math.round(pagesPerSecond * 3600);
 
       // Batch submit all generated URLs to IndexNow
       if (generatedUrls.length > 0) {
         await submitToIndexNow(generatedUrls);
       }
 
-      // Log remaining count
+      // Log remaining count with speed metrics
       const remainingCount = combinations.length - batch.length;
-      console.log(`📊 ${remainingCount} country combinations still need content`);
+      const estimatedHoursRemaining = remainingCount / pagesPerHour;
+      console.log(`📊 ${remainingCount} combinations remaining | Speed: ${pagesPerHour} pages/hour | ETA: ${estimatedHoursRemaining.toFixed(1)} hours`);
 
-      // Broadcast completion with stats
+      // Broadcast completion with speed metrics
       await supabase.from('activity_log').insert({
         action: 'content_agent_status',
         entity_type: 'visa_requirements_content',
         metadata: {
           status: 'batch_complete',
-          generated: generatedUrls.length,
+          generated: successCount,
+          errors: errorCount,
           remaining: remainingCount,
+          batch_duration_seconds: Math.round(batchDuration),
+          pages_per_hour: pagesPerHour,
+          estimated_hours_remaining: Math.round(estimatedHoursRemaining * 10) / 10,
+          parallel_processing: true,
           timestamp: new Date().toISOString()
         }
       });

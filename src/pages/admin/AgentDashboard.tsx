@@ -46,7 +46,7 @@ const defaultSettings: AgentSettings = {
   visaEnrichment: { enabled: true, batchSize: 10, schedule: "15 */2 * * *" },
   blogGeneration: { enabled: true, batchSize: 3, schedule: "0 3 * * *" },
   faqGeneration: { enabled: true, batchSize: 5, schedule: "0 4 * * *" },
-  visaRequirementsContent: { enabled: true, batchSize: 50, schedule: "*/15 * * * *" },
+  visaRequirementsContent: { enabled: true, batchSize: 100, schedule: "*/10 * * * *" }, // AGGRESSIVE: 100 batch, every 10 min
   evergreenContent: { enabled: true, batchSize: 2, schedule: "0 6 * * *" },
   dailyReport: { enabled: true, batchSize: 1, schedule: "0 8 * * *" },
 };
@@ -180,7 +180,63 @@ const AgentDashboard = () => {
         },
       };
     },
-    refetchInterval: 30000,
+    refetchInterval: 15000, // Faster refresh for aggressive mode
+  });
+
+  // Fetch real-time speed metrics from latest batch completions
+  const { data: speedMetrics, refetch: refetchSpeedMetrics } = useQuery({
+    queryKey: ["agent-speed-metrics"],
+    queryFn: async () => {
+      const now = new Date();
+      const lastHour = new Date(now.getTime() - 60 * 60 * 1000);
+      
+      // Get latest batch_complete events for speed data
+      const { data: recentBatches } = await supabase
+        .from("activity_log")
+        .select("metadata, created_at")
+        .eq("action", "content_agent_status")
+        .eq("entity_type", "visa_requirements_content")
+        .gte("created_at", lastHour.toISOString())
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      const completedBatches = (recentBatches || []).filter(
+        (b) => (b.metadata as any)?.status === 'batch_complete'
+      );
+
+      if (completedBatches.length === 0) {
+        return {
+          pagesPerHour: 0,
+          estimatedHoursRemaining: 0,
+          lastBatchSpeed: 0,
+          batchesThisHour: 0,
+          totalPagesThisHour: 0,
+          isParallelProcessing: false,
+        };
+      }
+
+      // Calculate aggregate metrics
+      const totalPagesThisHour = completedBatches.reduce(
+        (sum, b) => sum + ((b.metadata as any)?.generated || 0), 0
+      );
+      
+      // Get speed from latest batch
+      const latestBatch = completedBatches[0]?.metadata as any;
+      const pagesPerHour = latestBatch?.pages_per_hour || 0;
+      const estimatedHoursRemaining = latestBatch?.estimated_hours_remaining || 0;
+      const isParallelProcessing = latestBatch?.parallel_processing || false;
+
+      return {
+        pagesPerHour,
+        estimatedHoursRemaining,
+        lastBatchSpeed: latestBatch?.generated || 0,
+        batchesThisHour: completedBatches.length,
+        totalPagesThisHour,
+        isParallelProcessing,
+        lastBatchDuration: latestBatch?.batch_duration_seconds || 0,
+      };
+    },
+    refetchInterval: 10000, // Refresh every 10 seconds for real-time feel
   });
 
   // DeepSeek API pricing (per 1M tokens)
@@ -526,6 +582,11 @@ const AgentDashboard = () => {
                 entity: metadata.country_name || metadata.title || metadata.page_title || metadata.from_country || 'Processing...',
                 type: payload.new.entity_type || ''
               });
+            } else if (metadata?.status === 'batch_complete') {
+              // Batch completed - refresh speed metrics
+              refetchSpeedMetrics();
+              refetchStats();
+              refetchActivity();
             } else if (metadata?.status === 'completed' || metadata?.status === 'started') {
               if (metadata?.status === 'started') {
                 setActiveTask({
@@ -550,7 +611,7 @@ const AgentDashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [refetchActivity, refetchStats]);
+  }, [refetchActivity, refetchStats, refetchSpeedMetrics]);
 
   const updateSetting = (taskId: keyof AgentSettings, field: keyof TaskConfig, value: boolean | number | string) => {
     setLocalSettings(prev => ({
@@ -798,6 +859,89 @@ const AgentDashboard = () => {
             <span className="font-medium">{activeTask.entity}</span>
           </AlertDescription>
         </Alert>
+      )}
+
+      {/* Real-Time Speed Metrics - Aggressive Mode Dashboard */}
+      {speedMetrics && (speedMetrics.pagesPerHour > 0 || speedMetrics.totalPagesThisHour > 0) && (
+        <Card className="bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-blue-500/10 border-emerald-500/30">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Zap className="h-5 w-5 text-emerald-500" />
+                Aggressive Mode Active
+                {speedMetrics.isParallelProcessing && (
+                  <Badge className="ml-2 bg-cyan-500/20 text-cyan-600 border-cyan-500/30">
+                    5x Parallel
+                  </Badge>
+                )}
+              </CardTitle>
+              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30 animate-pulse">
+                <Activity className="h-3 w-3 mr-1" />
+                Live
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="p-3 bg-background/50 rounded-lg border border-emerald-500/20">
+                <p className="text-xs text-muted-foreground uppercase">Speed</p>
+                <p className="text-2xl font-bold text-emerald-600">
+                  {speedMetrics.pagesPerHour.toLocaleString()}
+                </p>
+                <p className="text-xs text-muted-foreground">pages/hour</p>
+              </div>
+              <div className="p-3 bg-background/50 rounded-lg border border-cyan-500/20">
+                <p className="text-xs text-muted-foreground uppercase">ETA</p>
+                <p className="text-2xl font-bold text-cyan-600">
+                  {speedMetrics.estimatedHoursRemaining > 24 
+                    ? `${(speedMetrics.estimatedHoursRemaining / 24).toFixed(1)}d`
+                    : `${speedMetrics.estimatedHoursRemaining.toFixed(1)}h`
+                  }
+                </p>
+                <p className="text-xs text-muted-foreground">to complete</p>
+              </div>
+              <div className="p-3 bg-background/50 rounded-lg border border-blue-500/20">
+                <p className="text-xs text-muted-foreground uppercase">This Hour</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {speedMetrics.totalPagesThisHour}
+                </p>
+                <p className="text-xs text-muted-foreground">pages generated</p>
+              </div>
+              <div className="p-3 bg-background/50 rounded-lg border border-purple-500/20">
+                <p className="text-xs text-muted-foreground uppercase">Batches</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {speedMetrics.batchesThisHour}
+                </p>
+                <p className="text-xs text-muted-foreground">this hour</p>
+              </div>
+              <div className="p-3 bg-background/50 rounded-lg border border-amber-500/20">
+                <p className="text-xs text-muted-foreground uppercase">Last Batch</p>
+                <p className="text-2xl font-bold text-amber-600">
+                  {speedMetrics.lastBatchDuration || 0}s
+                </p>
+                <p className="text-xs text-muted-foreground">{speedMetrics.lastBatchSpeed} pages</p>
+              </div>
+            </div>
+            
+            {/* Progress towards completion */}
+            {stats && (
+              <div className="mt-4">
+                <div className="flex items-center justify-between text-sm mb-2">
+                  <span className="text-muted-foreground">
+                    Progress: {stats.visaReqContentCount.toLocaleString()} / {stats.visaReqTotalCombinations.toLocaleString()} pages
+                  </span>
+                  <span className="font-medium text-emerald-600">
+                    {((stats.visaReqContentCount / stats.visaReqTotalCombinations) * 100).toFixed(2)}%
+                  </span>
+                </div>
+                <Progress 
+                  value={(stats.visaReqContentCount / stats.visaReqTotalCombinations) * 100} 
+                  className="h-2"
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {/* API Usage Stats */}

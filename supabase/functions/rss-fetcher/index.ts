@@ -115,7 +115,7 @@ serve(async (req) => {
             }
           }
 
-          // Insert new article
+          // Insert new article with PUBLISHED status
           const { error: insertError } = await supabase
             .from('news_articles')
             .insert({
@@ -127,6 +127,7 @@ serve(async (req) => {
               source_name: feed.name,
               source_url: feed.url,
               source_type: 'rss',
+              status: 'published', // FIXED: Set as published so it appears on blog
               categories: feed.category ? [feed.category] : ['Immigration News'],
               tags: extractTags(item.title + ' ' + item.description),
               published_at: new Date().toISOString(),

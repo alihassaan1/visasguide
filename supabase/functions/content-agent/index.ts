@@ -802,10 +802,10 @@ serve(async (req) => {
           // Get random author for attribution
           const author = getRandomAuthor();
 
-          // Insert content page with author attribution
+          // UPSERT content page to avoid duplicate key errors
           const { data: newPage, error: insertError } = await supabase
             .from('content_pages')
-            .insert({
+            .upsert({
               slug: slug,
               title: title,
               content: fullContent,
@@ -816,12 +816,24 @@ serve(async (req) => {
               is_published: true,
               status: 'published',
               ai_generated: true,
-              writer_id: author?.id || null
+              writer_id: author?.id || null,
+              updated_at: new Date().toISOString()
+            }, { 
+              onConflict: 'slug',
+              ignoreDuplicates: true 
             })
             .select()
             .single();
 
-          if (insertError) throw insertError;
+          if (insertError && !insertError.message?.includes('duplicate')) {
+            throw insertError;
+          }
+          
+          // If we got a duplicate, skip to next without counting as error
+          if (!newPage) {
+            console.log(`⏭️ Skipped duplicate: ${slug}`);
+            return { success: false, skipped: true };
+          }
 
           generatedUrls.push(`/visa-requirements/${slug}`);
           successCount++;
@@ -1039,8 +1051,9 @@ Return ONLY valid JSON.`;
     if (blogGenerationMode) {
       console.log(`📝 Blog Generation Mode: Creating ${batchSize} articles...`);
 
-      // Topics for auto-generation
+      // Topics for auto-generation - EXPANDED list for Feedspot traffic
       const blogTopics = [
+        // Top Destinations
         { title: "Schengen Visa Guide 2025: Complete Application Process", slug: "schengen-visa-guide-2025", keywords: ["schengen visa", "europe visa", "schengen application"] },
         { title: "US Tourist Visa (B1/B2): Step-by-Step Guide", slug: "us-tourist-visa-b1-b2-guide", keywords: ["us visa", "b1 b2 visa", "america tourist visa"] },
         { title: "Dubai Visa Guide: Requirements for All Nationalities", slug: "dubai-visa-guide-requirements", keywords: ["dubai visa", "uae visa", "dubai tourist visa"] },
@@ -1056,6 +1069,46 @@ Return ONLY valid JSON.`;
         { title: "India e-Visa Guide: Tourist, Business & Medical", slug: "india-evisa-guide-tourist-business", keywords: ["india visa", "india e-visa", "indian tourist visa"] },
         { title: "Egypt Visa on Arrival: Complete Guide", slug: "egypt-visa-on-arrival-guide", keywords: ["egypt visa", "egypt visa on arrival", "visit egypt"] },
         { title: "Brazil Visa Requirements 2025", slug: "brazil-visa-requirements-2025", keywords: ["brazil visa", "brazilian visa", "visit brazil"] },
+        // Additional High-Traffic Topics
+        { title: "Saudi Arabia Visa 2025: Tourist & Umrah Visa Guide", slug: "saudi-arabia-visa-tourist-umrah-guide", keywords: ["saudi visa", "umrah visa", "saudi tourist visa"] },
+        { title: "Malaysia Visa Guide: Entry Requirements 2025", slug: "malaysia-visa-guide-entry-requirements", keywords: ["malaysia visa", "malaysia entry", "visit malaysia"] },
+        { title: "Vietnam E-Visa: Online Application Guide 2025", slug: "vietnam-evisa-application-guide-2025", keywords: ["vietnam visa", "vietnam e-visa", "visit vietnam"] },
+        { title: "Indonesia Visa Guide: Bali Entry Requirements", slug: "indonesia-visa-guide-bali-entry", keywords: ["indonesia visa", "bali visa", "visit bali"] },
+        { title: "Morocco Visa Requirements for All Countries", slug: "morocco-visa-requirements-guide", keywords: ["morocco visa", "morocco entry", "visit morocco"] },
+        { title: "Greece Visa Guide: Schengen Entry Requirements", slug: "greece-visa-schengen-guide", keywords: ["greece visa", "greek visa", "visit greece"] },
+        { title: "Portugal Golden Visa 2025: Investment & Residency", slug: "portugal-golden-visa-investment-guide", keywords: ["portugal golden visa", "portugal residency", "portugal investment visa"] },
+        { title: "Ireland Visa Guide: Tourist & Study Visa 2025", slug: "ireland-visa-tourist-study-guide", keywords: ["ireland visa", "irish visa", "visit ireland"] },
+        { title: "Mexico Visa Requirements: FMM Tourist Card Guide", slug: "mexico-visa-fmm-tourist-card-guide", keywords: ["mexico visa", "fmm card", "visit mexico"] },
+        { title: "Costa Rica Visa: Entry Requirements 2025", slug: "costa-rica-visa-entry-requirements", keywords: ["costa rica visa", "costa rica entry", "visit costa rica"] },
+        { title: "Philippines Visa Guide: Tourist Entry 2025", slug: "philippines-visa-tourist-entry-guide", keywords: ["philippines visa", "ph visa", "visit philippines"] },
+        { title: "Kenya E-Visa: Online Application Process", slug: "kenya-evisa-online-application", keywords: ["kenya visa", "kenya e-visa", "visit kenya"] },
+        { title: "South Africa Visa Requirements 2025", slug: "south-africa-visa-requirements-2025", keywords: ["south africa visa", "sa visa", "visit south africa"] },
+        { title: "Argentina Visa: Entry Requirements & AVE", slug: "argentina-visa-entry-ave-guide", keywords: ["argentina visa", "argentina ave", "visit argentina"] },
+        { title: "Chile Visa Guide: Entry Requirements 2025", slug: "chile-visa-entry-requirements-2025", keywords: ["chile visa", "chilean visa", "visit chile"] },
+        { title: "Peru Visa Requirements for All Countries", slug: "peru-visa-requirements-guide", keywords: ["peru visa", "peruvian visa", "visit peru"] },
+        { title: "Colombia Visa Guide: Tourist Entry 2025", slug: "colombia-visa-tourist-entry-guide", keywords: ["colombia visa", "colombian visa", "visit colombia"] },
+        { title: "Russia Visa 2025: E-Visa & Tourist Visa Guide", slug: "russia-evisa-tourist-visa-guide", keywords: ["russia visa", "russian visa", "visit russia"] },
+        { title: "China Visa Guide: Tourist & Transit Visa 2025", slug: "china-visa-tourist-transit-guide", keywords: ["china visa", "chinese visa", "visit china"] },
+        { title: "Taiwan Visa: Entry Requirements 2025", slug: "taiwan-visa-entry-requirements-2025", keywords: ["taiwan visa", "taiwan entry", "visit taiwan"] },
+        { title: "Hong Kong Visa Guide: Entry Requirements", slug: "hong-kong-visa-entry-guide", keywords: ["hong kong visa", "hk entry", "visit hong kong"] },
+        { title: "Maldives Visa: Tourist Entry Guide 2025", slug: "maldives-visa-tourist-entry-guide", keywords: ["maldives visa", "maldives entry", "visit maldives"] },
+        { title: "Sri Lanka ETA: Electronic Travel Authorization", slug: "sri-lanka-eta-electronic-travel", keywords: ["sri lanka eta", "sri lanka visa", "visit sri lanka"] },
+        { title: "Nepal Visa on Arrival: Complete Guide", slug: "nepal-visa-on-arrival-guide", keywords: ["nepal visa", "nepal voa", "visit nepal"] },
+        { title: "Pakistan Visa Requirements 2025", slug: "pakistan-visa-requirements-2025", keywords: ["pakistan visa", "pakistani visa", "visit pakistan"] },
+        { title: "Bangladesh Visa Guide: Entry Requirements", slug: "bangladesh-visa-entry-guide", keywords: ["bangladesh visa", "bd visa", "visit bangladesh"] },
+        { title: "Cuba Tourist Visa: Entry Requirements 2025", slug: "cuba-tourist-visa-entry-requirements", keywords: ["cuba visa", "cuba tourist card", "visit cuba"] },
+        { title: "Dominican Republic Visa Guide 2025", slug: "dominican-republic-visa-guide", keywords: ["dominican republic visa", "dr visa", "visit dominican republic"] },
+        { title: "Jamaica Visa: Entry Requirements 2025", slug: "jamaica-visa-entry-requirements", keywords: ["jamaica visa", "jamaica entry", "visit jamaica"] },
+        { title: "Digital Nomad Visas 2025: Complete Country Guide", slug: "digital-nomad-visas-complete-guide", keywords: ["digital nomad visa", "remote work visa", "work abroad visa"] },
+        { title: "How to Extend Your Tourist Visa: Step-by-Step", slug: "how-to-extend-tourist-visa-guide", keywords: ["extend visa", "visa extension", "tourist visa extension"] },
+        { title: "Visa Interview Tips: How to Get Approved", slug: "visa-interview-tips-get-approved", keywords: ["visa interview", "visa interview tips", "visa approval tips"] },
+        { title: "Transit Visa Guide: Do You Need One?", slug: "transit-visa-guide-requirements", keywords: ["transit visa", "airport transit", "layover visa"] },
+        { title: "Visa Rejection Reasons: How to Avoid Denial", slug: "visa-rejection-reasons-avoid-denial", keywords: ["visa rejection", "visa denied", "visa refusal reasons"] },
+        { title: "Business Visa vs Tourist Visa: Key Differences", slug: "business-visa-vs-tourist-visa-differences", keywords: ["business visa", "tourist visa", "visa types"] },
+        { title: "Student Visa Guide: Study Abroad Requirements", slug: "student-visa-study-abroad-guide", keywords: ["student visa", "study visa", "study abroad"] },
+        { title: "Work Visa Requirements: How to Work Abroad", slug: "work-visa-requirements-work-abroad", keywords: ["work visa", "work permit", "work abroad"] },
+        { title: "Family Reunion Visa: Bring Your Family Abroad", slug: "family-reunion-visa-guide", keywords: ["family visa", "family reunion visa", "spouse visa"] },
+        { title: "Visa Processing Times: What to Expect in 2025", slug: "visa-processing-times-2025-guide", keywords: ["visa processing time", "visa wait time", "how long visa"] },
       ];
 
       // Check which topics don't exist yet

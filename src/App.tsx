@@ -133,6 +133,7 @@ const App = () => (
             <Route path="newsletter" element={<NewsletterManager />} />
             <Route path="content-agent-logs" element={<ContentAgentLogs />} />
             <Route path="agent-dashboard" element={<AgentDashboard />} />
+            <Route path="agent" element={<AgentDashboard />} />
             <Route path="api-logs" element={<APILogs />} />
             <Route path="developer-agent" element={<DeveloperAgent />} />
             <Route path="developer-settings" element={<DeveloperAPISettings />} />

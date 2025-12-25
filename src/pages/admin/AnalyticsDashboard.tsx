@@ -10,7 +10,7 @@ import { TrendingUp, Users, Search, Globe, Eye, Clock, MousePointer, FileText, M
 import { countryCodeToFlagEmoji } from "@/lib/utils";
 import { format, subDays, subHours, startOfDay, endOfDay, subYears } from "date-fns";
 
-type TimePeriod = '24h' | 'yesterday' | '7d' | '14d' | '30d' | '60d' | '90d' | '1y';
+type TimePeriod = '24h' | 'yesterday' | '7d' | '14d' | '30d' | '60d' | '90d' | '1y' | 'all';
 
 const TIME_PERIODS: { value: TimePeriod; label: string }[] = [
   { value: '24h', label: '24 Hours' },
@@ -21,6 +21,7 @@ const TIME_PERIODS: { value: TimePeriod; label: string }[] = [
   { value: '60d', label: '60 Days' },
   { value: '90d', label: '90 Days' },
   { value: '1y', label: '1 Year' },
+  { value: 'all', label: 'All Time' },
 ];
 
 const getDateRange = (period: TimePeriod) => {
@@ -43,22 +44,30 @@ const getDateRange = (period: TimePeriod) => {
       return { start: subDays(now, 90), end: now, isHourly: false };
     case '1y':
       return { start: subYears(now, 1), end: now, isHourly: false };
+    case 'all':
+      // Since October 29, 2025 (when analytics was added)
+      return { start: new Date('2025-10-29'), end: now, isHourly: false };
     default:
       return { start: subDays(now, 14), end: now, isHourly: false };
   }
 };
 
 const AnalyticsDashboard = () => {
-  const [trendPeriod, setTrendPeriod] = useState<TimePeriod>('14d');
+  const [trendPeriod, setTrendPeriod] = useState<TimePeriod>('30d');
 
-  // Fetch analytics summary with unique visitors and bot traffic
+  // Get date range based on selected period
+  const { start: periodStart, end: periodEnd } = getDateRange(trendPeriod);
+  const periodLabel = TIME_PERIODS.find(p => p.value === trendPeriod)?.label || '30 Days';
+
+  // Fetch analytics summary with unique visitors and bot traffic - USES SELECTED PERIOD
   const { data: analyticsSummary } = useQuery({
-    queryKey: ['analytics-summary'],
+    queryKey: ['analytics-summary', trendPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
         .select('event_type, created_at, session_duration_seconds, visitor_ip, is_bot')
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('created_at', periodStart.toISOString())
+        .lte('created_at', periodEnd.toISOString());
       
       if (error) throw error;
       
@@ -163,15 +172,16 @@ const AnalyticsDashboard = () => {
     refetchInterval: 30000
   });
 
-  // Device type distribution
+  // Device type distribution - USES SELECTED PERIOD
   const { data: deviceDistribution } = useQuery({
-    queryKey: ['device-distribution'],
+    queryKey: ['device-distribution', trendPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
         .select('device_type')
         .not('device_type', 'is', null)
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('created_at', periodStart.toISOString())
+        .lte('created_at', periodEnd.toISOString());
       
       if (error) throw error;
       
@@ -185,15 +195,16 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // Browser distribution
+  // Browser distribution - USES SELECTED PERIOD
   const { data: browserDistribution } = useQuery({
-    queryKey: ['browser-distribution'],
+    queryKey: ['browser-distribution', trendPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
         .select('browser_name')
         .not('browser_name', 'is', null)
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('created_at', periodStart.toISOString())
+        .lte('created_at', periodEnd.toISOString());
       
       if (error) throw error;
       
@@ -210,15 +221,16 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // OS distribution
+  // OS distribution - USES SELECTED PERIOD
   const { data: osDistribution } = useQuery({
-    queryKey: ['os-distribution'],
+    queryKey: ['os-distribution', trendPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
         .select('os_name')
         .not('os_name', 'is', null)
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('created_at', periodStart.toISOString())
+        .lte('created_at', periodEnd.toISOString());
       
       if (error) throw error;
       
@@ -232,16 +244,17 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // Screen resolutions
+  // Screen resolutions - USES SELECTED PERIOD
   const { data: screenResolutions } = useQuery({
-    queryKey: ['screen-resolutions'],
+    queryKey: ['screen-resolutions', trendPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
         .select('screen_width, screen_height')
         .not('screen_width', 'is', null)
         .not('screen_height', 'is', null)
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('created_at', periodStart.toISOString())
+        .lte('created_at', periodEnd.toISOString());
       
       if (error) throw error;
       
@@ -260,15 +273,16 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // Top device names
+  // Top device names - USES SELECTED PERIOD
   const { data: topDevices } = useQuery({
-    queryKey: ['top-devices'],
+    queryKey: ['top-devices', trendPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
         .select('device_name, device_type')
         .not('device_name', 'is', null)
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('created_at', periodStart.toISOString())
+        .lte('created_at', periodEnd.toISOString());
       
       if (error) throw error;
       
@@ -339,15 +353,16 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // Affiliate click stats
+  // Affiliate click stats - USES SELECTED PERIOD
   const { data: affiliateStats } = useQuery({
-    queryKey: ['affiliate-stats'],
+    queryKey: ['affiliate-stats', trendPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
         .select('search_term, page_slug')
         .eq('event_type', 'affiliate_click')
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('created_at', periodStart.toISOString())
+        .lte('created_at', periodEnd.toISOString());
       
       if (error) throw error;
       
@@ -367,15 +382,16 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // Bot traffic details
+  // Bot traffic details - USES SELECTED PERIOD
   const { data: botTrafficDetails } = useQuery({
-    queryKey: ['bot-traffic'],
+    queryKey: ['bot-traffic', trendPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
         .select('user_agent, is_bot')
         .eq('is_bot', true)
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('created_at', periodStart.toISOString())
+        .lte('created_at', periodEnd.toISOString());
       
       if (error) throw error;
       
@@ -402,14 +418,15 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // Traffic sources
+  // Traffic sources - USES SELECTED PERIOD
   const { data: trafficSources } = useQuery({
-    queryKey: ['traffic-sources'],
+    queryKey: ['traffic-sources', trendPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
         .select('referrer_source')
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('created_at', periodStart.toISOString())
+        .lte('created_at', periodEnd.toISOString());
       
       if (error) throw error;
       
@@ -426,16 +443,17 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // Enhanced Referring URLs with full URL and source detection
+  // Enhanced Referring URLs with full URL and source detection - USES SELECTED PERIOD
   const { data: referringUrls } = useQuery({
-    queryKey: ['referring-urls-enhanced'],
+    queryKey: ['referring-urls-enhanced', trendPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
         .select('referrer_source')
         .not('referrer_source', 'is', null)
         .not('referrer_source', 'eq', 'direct')
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('created_at', periodStart.toISOString())
+        .lte('created_at', periodEnd.toISOString());
       
       if (error) throw error;
       
@@ -478,15 +496,16 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // Top pages
+  // Top pages - USES SELECTED PERIOD
   const { data: topPages } = useQuery({
-    queryKey: ['top-pages'],
+    queryKey: ['top-pages', trendPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
         .select('page_slug')
         .eq('event_type', 'page_view')
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('created_at', periodStart.toISOString())
+        .lte('created_at', periodEnd.toISOString());
       
       if (error) throw error;
       
@@ -503,15 +522,16 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // Visitor locations
+  // Visitor locations - USES SELECTED PERIOD
   const { data: visitorLocations } = useQuery({
-    queryKey: ['visitor-locations'],
+    queryKey: ['visitor-locations', trendPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
         .select('visitor_location')
         .not('visitor_location', 'is', null)
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('created_at', periodStart.toISOString())
+        .lte('created_at', periodEnd.toISOString());
       
       if (error) throw error;
       
@@ -529,14 +549,15 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // Page performance
+  // Page performance - USES SELECTED PERIOD
   const { data: pagePerformance } = useQuery({
-    queryKey: ['page-performance'],
+    queryKey: ['page-performance', trendPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
         .select('session_duration_seconds, page_slug, event_type')
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('created_at', periodStart.toISOString())
+        .lte('created_at', periodEnd.toISOString());
       
       if (error) throw error;
       
@@ -656,7 +677,7 @@ const AnalyticsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold">{analyticsSummary?.pageViews.toLocaleString() || 0}</div>
-            <p className="text-xs text-muted-foreground">30 days</p>
+            <p className="text-xs text-muted-foreground">{periodLabel}</p>
           </CardContent>
         </Card>
 
@@ -678,7 +699,7 @@ const AnalyticsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold">{analyticsSummary?.searches.toLocaleString() || 0}</div>
-            <p className="text-xs text-muted-foreground">30 days</p>
+            <p className="text-xs text-muted-foreground">{periodLabel}</p>
           </CardContent>
         </Card>
 

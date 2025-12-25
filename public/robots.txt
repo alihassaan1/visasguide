@@ -1,5 +1,5 @@
 # Visas.Guide - Robots.txt
-# Last updated: 2025-12-10
+# Last updated: 2025-12-25
 
 User-agent: Googlebot
 Allow: /
@@ -26,9 +26,8 @@ Crawl-delay: 2
 Disallow: /admin
 Disallow: /admin/*
 
-# Sitemaps - Dynamic sitemap includes all pages
+# Primary Dynamic Sitemap (includes all 12,000+ pages)
 Sitemap: https://awiytryceqehqapytfgn.supabase.co/functions/v1/sitemap
-Sitemap: https://visas.guide/sitemap.xml
 
 # News Sitemap for Google News
 Sitemap: https://awiytryceqehqapytfgn.supabase.co/functions/v1/news-sitemap

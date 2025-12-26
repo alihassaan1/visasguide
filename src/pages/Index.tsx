@@ -9,6 +9,8 @@ import QuickLinks from "@/components/QuickLinks";
 import LatestGuidesSection from "@/components/LatestGuidesSection";
 import FeaturedAuthorsSection from "@/components/FeaturedAuthorsSection";
 import LatestNewsSection from "@/components/LatestNewsSection";
+import OrganizationSchema from "@/components/OrganizationSchema";
+import SiteNavigationSchema from "@/components/SiteNavigationSchema";
 
 const Index = () => {
   return (
@@ -20,6 +22,8 @@ const Index = () => {
         keywords={["visa requirements", "travel visa", "evisa", "visa-free countries", "passport information", "travel documentation", "visa application guide", "schengen visa", "tourist visa", "business visa"]}
       />
       <AnalyticsTracker />
+      <OrganizationSchema />
+      <SiteNavigationSchema />
       
       <script
         type="application/ld+json"

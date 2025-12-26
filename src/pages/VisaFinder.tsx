@@ -9,6 +9,7 @@ import { MapPin, Users, Clock, CreditCard, CheckCircle, ArrowRight } from "lucid
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
+import ResidencyToggle, { ResidencyType } from "@/components/ResidencyToggle";
 import { Link } from "react-router-dom";
 
 const VisaFinder = () => {
@@ -19,6 +20,7 @@ const VisaFinder = () => {
     purpose: "",
     duration: ""
   });
+  const [residency, setResidency] = useState<ResidencyType>("none");
   const [results, setResults] = useState<any>(null);
 
   // Fetch all countries from the database
@@ -182,6 +184,11 @@ const VisaFinder = () => {
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Find the exact visa requirements for your travel needs in just a few clicks
           </p>
+        </div>
+
+        {/* Residency Toggle */}
+        <div className="max-w-3xl mx-auto mb-8">
+          <ResidencyToggle value={residency} onChange={setResidency} />
         </div>
 
         {step <= 4 && (

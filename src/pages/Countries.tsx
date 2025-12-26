@@ -2,11 +2,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Users, X, List, Map as MapIcon } from "lucide-react";
+import { Search, MapPin, Users, X, List, Map as MapIcon, Grid } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import WorldVisaMap from "@/components/WorldVisaMap";
+import ResidencyToggle, { ResidencyType } from "@/components/ResidencyToggle";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,6 +63,7 @@ const Countries = () => {
   const selectedRegion = searchParams.get("region") || "All";
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"map" | "list">("map");
+  const [residency, setResidency] = useState<ResidencyType>("none");
 
   const { data: countries = [], isLoading } = useQuery({
     queryKey: ["countries-list", selectedRegion, searchQuery],
@@ -124,6 +126,11 @@ const Countries = () => {
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Click on any country to view detailed visa requirements and travel information
           </p>
+        </div>
+
+        {/* Residency Toggle */}
+        <div className="max-w-3xl mx-auto mb-6">
+          <ResidencyToggle value={residency} onChange={setResidency} compact />
         </div>
 
         <div className="flex justify-center mb-6">

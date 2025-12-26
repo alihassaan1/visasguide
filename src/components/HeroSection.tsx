@@ -38,24 +38,16 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-[500px] md:min-h-[600px] flex items-center overflow-hidden">
-      {/* Video background */}
+      {/* Airplane image background */}
       <div className="absolute inset-0">
-        <video 
-          autoPlay 
-          muted 
-          loop 
-          playsInline
+        <img 
+          src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=80"
+          alt="Airplane on runway at sunset - travel visa guide"
           className="w-full h-full object-cover"
-          poster="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=80"
-        >
-          <source 
-            src="https://videos.pexels.com/video-files/2169880/2169880-uhd_2560_1440_30fps.mp4" 
-            type="video/mp4" 
-          />
-        </video>
-        {/* Darker, more cinematic overlays */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/30" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
+        />
+        {/* Lighter, brighter overlays */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
       </div>
 
       <div className="container mx-auto px-4 py-16 md:py-24 relative z-10">

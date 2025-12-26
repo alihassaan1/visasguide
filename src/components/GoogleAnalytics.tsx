@@ -28,7 +28,20 @@ const GoogleAnalytics = () => {
         .single();
 
       if (analyticsData?.setting_value) {
-        setSettings(analyticsData.setting_value as unknown as AnalyticsSettings);
+        const rawSettings = analyticsData.setting_value as Record<string, unknown>;
+        // Handle legacy key names (ga4_id -> google_analytics_id, clarity_id -> microsoft_clarity_id)
+        const normalizedSettings: AnalyticsSettings = {
+          google_analytics_id: (rawSettings.google_analytics_id || rawSettings.ga4_id || '') as string,
+          microsoft_clarity_id: (rawSettings.microsoft_clarity_id || rawSettings.clarity_id || '') as string,
+          google_tag_manager_id: (rawSettings.google_tag_manager_id || '') as string,
+          google_adsense_publisher_id: (rawSettings.google_adsense_publisher_id || '') as string,
+          facebook_pixel_id: (rawSettings.facebook_pixel_id || '') as string,
+          tiktok_pixel_id: (rawSettings.tiktok_pixel_id || '') as string,
+          linkedin_insight_tag: (rawSettings.linkedin_insight_tag || '') as string,
+          twitter_pixel_id: (rawSettings.twitter_pixel_id || '') as string,
+          pinterest_tag_id: (rawSettings.pinterest_tag_id || '') as string,
+        };
+        setSettings(normalizedSettings);
       }
 
       // Fetch AdSense code from monetization settings

@@ -6,6 +6,24 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Engaging subject line variations for weekly newsletters
+const getWeeklySubject = (): string => {
+  const today = new Date();
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const month = monthNames[today.getMonth()];
+  const day = today.getDate();
+  
+  const subjects = [
+    `Your Weekly Visa Updates - ${month} ${day} ✈️`,
+    `This Week's Top Travel & Visa News 🌍`,
+    `Weekly Digest: New Visa Policies & Destinations 📋`,
+    `Your ${month} Travel Update from Visas Guide 🗺️`,
+    `Visa Updates You Need to Know This Week ✨`,
+  ];
+  
+  return subjects[Math.floor(Math.random() * subjects.length)];
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -38,11 +56,14 @@ serve(async (req) => {
 
     console.log(`Found ${subscribers.length} active subscribers`);
 
+    // Generate engaging subject for this campaign
+    const campaignSubject = getWeeklySubject();
+
     // Create campaign for this batch
     const { data: campaign, error: campaignError } = await supabase
       .from('email_campaigns')
       .insert({
-        subject: 'Weekly Visa Updates from Visas.Guide',
+        subject: campaignSubject,
         content: 'Automated weekly newsletter',
         sent_count: 0,
         opened_count: 0,
@@ -78,17 +99,18 @@ serve(async (req) => {
 
         if (response.ok) {
           sentCount++;
-          console.log(`Sent to: ${subscriber.email}`);
+          console.log(`✅ Sent to: ${subscriber.email}`);
         } else {
           errorCount++;
-          console.error(`Failed to send to: ${subscriber.email}`);
+          const errorText = await response.text();
+          console.error(`❌ Failed to send to: ${subscriber.email} - ${errorText}`);
         }
 
-        // Small delay between sends (100ms)
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Small delay between sends (150ms) to avoid rate limits
+        await new Promise(resolve => setTimeout(resolve, 150));
       } catch (err) {
         errorCount++;
-        console.error(`Error sending to ${subscriber.email}:`, err);
+        console.error(`❌ Error sending to ${subscriber.email}:`, err);
       }
     }
 
@@ -101,12 +123,13 @@ serve(async (req) => {
       })
       .eq('id', campaignId);
 
-    console.log(`Newsletter complete: ${sentCount} sent, ${errorCount} failed`);
+    console.log(`📧 Newsletter complete: ${sentCount} sent, ${errorCount} failed`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: `Newsletter sent to ${sentCount} subscribers`,
+        subject: campaignSubject,
         campaignId,
         sent: sentCount,
         failed: errorCount,

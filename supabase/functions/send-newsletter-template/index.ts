@@ -19,6 +19,29 @@ interface SendNewsletterRequest {
   campaignId?: string;
 }
 
+// Dynamic subject line variations for better engagement
+const getSubjectLine = (name: string, blogPosts: any[]): string => {
+  const subjects = [
+    `${name}, your weekly visa updates are here ✈️`,
+    `${name}, discover new travel destinations this week 🌍`,
+    `New visa updates for you, ${name}! 📋`,
+    `${name}, plan your next adventure with these updates 🗺️`,
+    `This week's visa news for you, ${name} ✨`,
+  ];
+  
+  // If we have blog posts, occasionally use content-driven subjects
+  if (blogPosts && blogPosts.length > 0) {
+    const contentSubjects = [
+      `${name}: ${blogPosts[0].title.substring(0, 40)}...`,
+      `${name}, don't miss: ${blogPosts[0].title.substring(0, 35)}...`,
+    ];
+    subjects.push(...contentSubjects);
+  }
+  
+  // Pick a random subject for variety
+  return subjects[Math.floor(Math.random() * subjects.length)];
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -31,7 +54,7 @@ serve(async (req) => {
       throw new Error("Email is required");
     }
 
-    console.log(`Sending newsletter to: ${email}`);
+    console.log(`Sending newsletter to: ${email} (isTest: ${isTest})`);
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -40,26 +63,6 @@ serve(async (req) => {
 
     // Generate or use existing campaign ID
     let activeCampaignId = campaignId;
-    if (!activeCampaignId) {
-      // Create a new campaign
-      const { data: campaignData, error: campaignError } = await supabase
-        .from('email_campaigns')
-        .insert({
-          subject: isTest ? '[TEST] Weekly Visa Updates' : 'Weekly Visa Updates from Visas.Guide',
-          content: 'Newsletter campaign',
-          sent_count: 0,
-          opened_count: 0,
-          clicked_count: 0,
-        })
-        .select('id')
-        .single();
-
-      if (campaignError) {
-        console.error("Error creating campaign:", campaignError);
-      } else {
-        activeCampaignId = campaignData.id;
-      }
-    }
 
     // Fetch latest blog posts
     const { data: blogPosts } = await supabase
@@ -67,7 +70,7 @@ serve(async (req) => {
       .select('title, excerpt, slug, featured_image_url')
       .eq('status', 'published')
       .order('published_at', { ascending: false })
-      .limit(3);
+      .limit(4);
 
     // Fetch popular country guides
     const { data: countries } = await supabase
@@ -82,6 +85,28 @@ serve(async (req) => {
       .select('name, target_url, image_url')
       .eq('is_active', true)
       .limit(3);
+
+    // Create campaign if not provided
+    if (!activeCampaignId) {
+      const subject = getSubjectLine(name, blogPosts || []);
+      const { data: campaignData, error: campaignError } = await supabase
+        .from('email_campaigns')
+        .insert({
+          subject: subject,
+          content: 'Newsletter campaign',
+          sent_count: 0,
+          opened_count: 0,
+          clicked_count: 0,
+        })
+        .select('id')
+        .single();
+
+      if (campaignError) {
+        console.error("Error creating campaign:", campaignError);
+      } else {
+        activeCampaignId = campaignData.id;
+      }
+    }
 
     // Prepare data for template
     const templateData = {
@@ -116,13 +141,14 @@ serve(async (req) => {
 
     console.log("Template rendered successfully");
 
-    // Send the email from verified domain - using personal name format to avoid promotions tab
+    // Generate engaging subject line
+    const subject = getSubjectLine(name, blogPosts || []);
+
+    // Send the email - personalized subject line
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: "Visas Guide <newsletter@visas.guide>",
       to: [email],
-      subject: isTest 
-        ? `${name}, your visa updates are here`
-        : `${name}, your weekly visa updates are here`,
+      subject: subject,
       html,
     });
 
@@ -137,7 +163,8 @@ serve(async (req) => {
         .from('email_campaigns')
         .update({ 
           sent_count: 1,
-          sent_at: new Date().toISOString()
+          sent_at: new Date().toISOString(),
+          subject: subject, // Update with actual subject used
         })
         .eq('id', activeCampaignId);
     }
@@ -149,7 +176,8 @@ serve(async (req) => {
         success: true, 
         message: `Newsletter sent to ${email}`,
         emailId: emailData?.id,
-        campaignId: activeCampaignId
+        campaignId: activeCampaignId,
+        subject: subject,
       }),
       {
         status: 200,

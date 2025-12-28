@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import StickyNewsletterCTA from "@/components/StickyNewsletterCTA";
 import ScrollToTop from "@/components/ScrollToTop";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import CookieConsentBanner from "@/components/CookieConsentBanner";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import Index from "./pages/Index";
 import Countries from "./pages/Countries";
@@ -79,6 +80,7 @@ const App = () => (
       <BrowserRouter>
         <ScrollToTop />
         <GoogleAnalytics />
+        <CookieConsentBanner />
         <StickyNewsletterCTA />
         <Routes>
           <Route path="/" element={<Index />} />

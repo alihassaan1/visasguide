@@ -823,7 +823,7 @@ serve(async (req) => {
               ignoreDuplicates: true 
             })
             .select()
-            .single();
+            .maybeSingle();
 
           if (insertError && !insertError.message?.includes('duplicate')) {
             throw insertError;
@@ -1134,6 +1134,74 @@ Return ONLY valid JSON.`;
             }
           });
 
+          // Generate featured image using Lovable AI
+          let featuredImageUrl: string | null = null;
+          try {
+            const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+            if (lovableApiKey) {
+              console.log(`🎨 Generating image for: ${topic.title}`);
+              
+              // Extract country/destination from title for better image prompt
+              const destination = topic.title.replace(/Visa.*|Guide.*|Requirements.*/i, '').trim();
+              const imagePrompt = `A beautiful, professional travel photography image representing ${destination}. Stunning landscape or iconic landmark, vibrant colors, high quality, travel magazine style, 16:9 aspect ratio. Ultra high resolution.`;
+              
+              const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${lovableApiKey}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  model: 'google/gemini-2.5-flash-image-preview',
+                  messages: [{ role: 'user', content: imagePrompt }],
+                  modalities: ['image', 'text']
+                }),
+              });
+
+              if (imageResponse.ok) {
+                const imageData = await imageResponse.json();
+                const generatedImage = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+                
+                if (generatedImage) {
+                  // Upload base64 image to Supabase Storage
+                  const base64Data = generatedImage.replace(/^data:image\/\w+;base64,/, '');
+                  const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+                  const fileName = `blog/${topic.slug}-${Date.now()}.png`;
+                  
+                  const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('content-images')
+                    .upload(fileName, imageBuffer, {
+                      contentType: 'image/png',
+                      upsert: true
+                    });
+                  
+                  if (!uploadError && uploadData) {
+                    const { data: publicUrl } = supabase.storage
+                      .from('content-images')
+                      .getPublicUrl(fileName);
+                    featuredImageUrl = publicUrl.publicUrl;
+                    console.log(`✅ Image uploaded: ${featuredImageUrl}`);
+                  } else {
+                    console.error('Image upload error:', uploadError);
+                  }
+                }
+              } else {
+                console.error('Image generation failed:', await imageResponse.text());
+              }
+            }
+          } catch (imageError) {
+            console.error('Image generation error:', imageError);
+            // Continue without image - use fallback Unsplash image
+            const destination = topic.title.replace(/Visa.*|Guide.*|Requirements.*/i, '').trim();
+            featuredImageUrl = `https://source.unsplash.com/1600x900/?${encodeURIComponent(destination + ' travel')}`;
+          }
+
+          // If no generated image, use Unsplash as fallback
+          if (!featuredImageUrl) {
+            const destination = topic.title.replace(/Visa.*|Guide.*|Requirements.*/i, '').trim();
+            featuredImageUrl = `https://source.unsplash.com/1600x900/?${encodeURIComponent(destination + ' travel landmark')}`;
+          }
+
           // REDUCED prompt - 800 words max
           const content = await callDeepSeek(
             `You are an expert travel and visa content writer. Write SEO-optimized articles.`,
@@ -1161,7 +1229,7 @@ Keep it concise, accurate, and helpful.`,
           // Get random author for this blog post
           const author = getRandomAuthor();
 
-          // Insert new blog post with author attribution
+          // Insert new blog post with author attribution and image
           const { data: newPost, error } = await supabase
             .from('content_pages')
             .insert({
@@ -1176,6 +1244,7 @@ Keep it concise, accurate, and helpful.`,
               status: 'published',
               ai_generated: true,
               writer_id: author?.id || null,
+              featured_image_url: featuredImageUrl,
             })
             .select()
             .single();
@@ -1186,10 +1255,11 @@ Keep it concise, accurate, and helpful.`,
             entity: topic.title,
             type: 'blog_generation',
             status: 'success',
-            slug: `blog/${topic.slug}`
+            slug: `blog/${topic.slug}`,
+            has_image: !!featuredImageUrl
           });
 
-          console.log(`✅ Created blog post: ${topic.title}`);
+          console.log(`✅ Created blog post: ${topic.title} (image: ${featuredImageUrl ? 'yes' : 'no'})`);
 
           // Submit to IndexNow
           await submitToIndexNow([`/blog/${topic.slug}`]);

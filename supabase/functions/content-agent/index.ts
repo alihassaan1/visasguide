@@ -1051,9 +1051,9 @@ Return ONLY valid JSON.`;
     if (blogGenerationMode) {
       console.log(`📝 Blog Generation Mode: Creating ${batchSize} articles...`);
 
-      // Topics for auto-generation - EXPANDED list for Feedspot traffic
+      // Topics for auto-generation - MASSIVE EXPANDED list for SEO traffic
       const blogTopics = [
-        // Top Destinations
+        // === CORE VISA GUIDES ===
         { title: "Schengen Visa Guide 2025: Complete Application Process", slug: "schengen-visa-guide-2025", keywords: ["schengen visa", "europe visa", "schengen application"] },
         { title: "US Tourist Visa (B1/B2): Step-by-Step Guide", slug: "us-tourist-visa-b1-b2-guide", keywords: ["us visa", "b1 b2 visa", "america tourist visa"] },
         { title: "Dubai Visa Guide: Requirements for All Nationalities", slug: "dubai-visa-guide-requirements", keywords: ["dubai visa", "uae visa", "dubai tourist visa"] },
@@ -1069,7 +1069,6 @@ Return ONLY valid JSON.`;
         { title: "India e-Visa Guide: Tourist, Business & Medical", slug: "india-evisa-guide-tourist-business", keywords: ["india visa", "india e-visa", "indian tourist visa"] },
         { title: "Egypt Visa on Arrival: Complete Guide", slug: "egypt-visa-on-arrival-guide", keywords: ["egypt visa", "egypt visa on arrival", "visit egypt"] },
         { title: "Brazil Visa Requirements 2025", slug: "brazil-visa-requirements-2025", keywords: ["brazil visa", "brazilian visa", "visit brazil"] },
-        // Additional High-Traffic Topics
         { title: "Saudi Arabia Visa 2025: Tourist & Umrah Visa Guide", slug: "saudi-arabia-visa-tourist-umrah-guide", keywords: ["saudi visa", "umrah visa", "saudi tourist visa"] },
         { title: "Malaysia Visa Guide: Entry Requirements 2025", slug: "malaysia-visa-guide-entry-requirements", keywords: ["malaysia visa", "malaysia entry", "visit malaysia"] },
         { title: "Vietnam E-Visa: Online Application Guide 2025", slug: "vietnam-evisa-application-guide-2025", keywords: ["vietnam visa", "vietnam e-visa", "visit vietnam"] },
@@ -1099,6 +1098,8 @@ Return ONLY valid JSON.`;
         { title: "Cuba Tourist Visa: Entry Requirements 2025", slug: "cuba-tourist-visa-entry-requirements", keywords: ["cuba visa", "cuba tourist card", "visit cuba"] },
         { title: "Dominican Republic Visa Guide 2025", slug: "dominican-republic-visa-guide", keywords: ["dominican republic visa", "dr visa", "visit dominican republic"] },
         { title: "Jamaica Visa: Entry Requirements 2025", slug: "jamaica-visa-entry-requirements", keywords: ["jamaica visa", "jamaica entry", "visit jamaica"] },
+        
+        // === VISA TIPS & GUIDES ===
         { title: "Digital Nomad Visas 2025: Complete Country Guide", slug: "digital-nomad-visas-complete-guide", keywords: ["digital nomad visa", "remote work visa", "work abroad visa"] },
         { title: "How to Extend Your Tourist Visa: Step-by-Step", slug: "how-to-extend-tourist-visa-guide", keywords: ["extend visa", "visa extension", "tourist visa extension"] },
         { title: "Visa Interview Tips: How to Get Approved", slug: "visa-interview-tips-get-approved", keywords: ["visa interview", "visa interview tips", "visa approval tips"] },
@@ -1109,6 +1110,87 @@ Return ONLY valid JSON.`;
         { title: "Work Visa Requirements: How to Work Abroad", slug: "work-visa-requirements-work-abroad", keywords: ["work visa", "work permit", "work abroad"] },
         { title: "Family Reunion Visa: Bring Your Family Abroad", slug: "family-reunion-visa-guide", keywords: ["family visa", "family reunion visa", "spouse visa"] },
         { title: "Visa Processing Times: What to Expect in 2025", slug: "visa-processing-times-2025-guide", keywords: ["visa processing time", "visa wait time", "how long visa"] },
+        
+        // === ADDITIONAL COUNTRY GUIDES (New) ===
+        { title: "Spain Visa Requirements 2025: Tourist & Schengen", slug: "spain-visa-requirements-2025", keywords: ["spain visa", "spanish visa", "visit spain"] },
+        { title: "Italy Visa Guide 2025: Schengen Entry", slug: "italy-visa-guide-2025", keywords: ["italy visa", "italian visa", "visit italy"] },
+        { title: "France Visa Requirements: Tourism & Business", slug: "france-visa-requirements-guide", keywords: ["france visa", "french visa", "visit france"] },
+        { title: "Germany Visa Guide 2025: Schengen Application", slug: "germany-visa-guide-2025", keywords: ["germany visa", "german visa", "visit germany"] },
+        { title: "Netherlands Visa: Tourist Entry Guide 2025", slug: "netherlands-visa-tourist-guide-2025", keywords: ["netherlands visa", "dutch visa", "visit netherlands"] },
+        { title: "Switzerland Visa Requirements 2025", slug: "switzerland-visa-requirements-2025", keywords: ["switzerland visa", "swiss visa", "visit switzerland"] },
+        { title: "Austria Visa Guide: Schengen Entry 2025", slug: "austria-visa-guide-schengen-2025", keywords: ["austria visa", "austrian visa", "visit austria"] },
+        { title: "Sweden Visa Requirements: Tourist & Work", slug: "sweden-visa-requirements-guide", keywords: ["sweden visa", "swedish visa", "visit sweden"] },
+        { title: "Norway Visa Guide 2025: Entry Requirements", slug: "norway-visa-guide-2025", keywords: ["norway visa", "norwegian visa", "visit norway"] },
+        { title: "Denmark Visa Requirements 2025", slug: "denmark-visa-requirements-2025", keywords: ["denmark visa", "danish visa", "visit denmark"] },
+        { title: "Finland Visa Guide: Schengen Entry", slug: "finland-visa-guide-schengen", keywords: ["finland visa", "finnish visa", "visit finland"] },
+        { title: "Belgium Visa Requirements 2025", slug: "belgium-visa-requirements-2025", keywords: ["belgium visa", "belgian visa", "visit belgium"] },
+        { title: "Poland Visa Guide: Tourist Entry 2025", slug: "poland-visa-guide-tourist-2025", keywords: ["poland visa", "polish visa", "visit poland"] },
+        { title: "Czech Republic Visa Requirements", slug: "czech-republic-visa-requirements", keywords: ["czech visa", "prague visa", "visit czech republic"] },
+        { title: "Hungary Visa Guide 2025: Schengen Entry", slug: "hungary-visa-guide-2025", keywords: ["hungary visa", "hungarian visa", "visit hungary"] },
+        { title: "Romania Visa Requirements 2025", slug: "romania-visa-requirements-2025", keywords: ["romania visa", "romanian visa", "visit romania"] },
+        { title: "Bulgaria Visa Guide: Entry Requirements", slug: "bulgaria-visa-guide-entry", keywords: ["bulgaria visa", "bulgarian visa", "visit bulgaria"] },
+        { title: "Croatia Visa Requirements 2025", slug: "croatia-visa-requirements-2025", keywords: ["croatia visa", "croatian visa", "visit croatia"] },
+        
+        // === HIGH-TRAFFIC ORIGIN COUNTRY GUIDES ===
+        { title: "US Passport Visa-Free Countries 2025", slug: "us-passport-visa-free-countries-2025", keywords: ["us passport visa free", "american passport power", "us visa free travel"] },
+        { title: "UK Passport Visa-Free Countries 2025", slug: "uk-passport-visa-free-countries-2025", keywords: ["uk passport visa free", "british passport power", "uk visa free travel"] },
+        { title: "Indian Passport Visa-Free Countries 2025", slug: "indian-passport-visa-free-countries-2025", keywords: ["indian passport visa free", "india passport power", "indian visa free travel"] },
+        { title: "Nigerian Passport Visa Guide 2025", slug: "nigerian-passport-visa-guide-2025", keywords: ["nigerian passport visa", "nigeria visa requirements", "nigerian travel visa"] },
+        { title: "Pakistani Passport Visa-Free Destinations", slug: "pakistani-passport-visa-free-destinations", keywords: ["pakistani passport visa free", "pakistan passport power", "pakistani visa free travel"] },
+        { title: "Filipino Passport Visa Guide 2025", slug: "filipino-passport-visa-guide-2025", keywords: ["filipino passport visa", "philippines passport power", "filipino visa free"] },
+        { title: "Bangladeshi Passport Visa Requirements", slug: "bangladeshi-passport-visa-requirements", keywords: ["bangladeshi passport visa", "bangladesh passport power", "bangladeshi visa"] },
+        { title: "Mexican Passport Visa-Free Countries", slug: "mexican-passport-visa-free-countries", keywords: ["mexican passport visa free", "mexico passport power", "mexican visa free travel"] },
+        { title: "Brazilian Passport Visa Guide 2025", slug: "brazilian-passport-visa-guide-2025", keywords: ["brazilian passport visa", "brazil passport power", "brazilian visa free"] },
+        { title: "Chinese Passport Visa Requirements 2025", slug: "chinese-passport-visa-requirements-2025", keywords: ["chinese passport visa", "china passport power", "chinese visa requirements"] },
+        { title: "South African Passport Visa Guide", slug: "south-african-passport-visa-guide", keywords: ["south african passport visa", "sa passport power", "south african visa free"] },
+        { title: "Egyptian Passport Visa Requirements", slug: "egyptian-passport-visa-requirements", keywords: ["egyptian passport visa", "egypt passport power", "egyptian visa requirements"] },
+        { title: "Turkish Passport Visa-Free Countries", slug: "turkish-passport-visa-free-countries", keywords: ["turkish passport visa free", "turkey passport power", "turkish visa free travel"] },
+        
+        // === SPECIAL VISA TYPES ===
+        { title: "E-Visa Countries List 2025: Complete Guide", slug: "evisa-countries-list-2025", keywords: ["evisa countries", "electronic visa", "evisa destinations"] },
+        { title: "Visa on Arrival Countries 2025", slug: "visa-on-arrival-countries-2025", keywords: ["visa on arrival countries", "voa destinations", "arrival visa"] },
+        { title: "Medical Tourism Visa Guide 2025", slug: "medical-tourism-visa-guide-2025", keywords: ["medical tourism visa", "medical travel visa", "healthcare visa"] },
+        { title: "Retirement Visa Guide: Best Countries 2025", slug: "retirement-visa-guide-best-countries", keywords: ["retirement visa", "retire abroad visa", "best retirement destinations"] },
+        { title: "Investor Visa Guide: Golden Visa Programs", slug: "investor-visa-guide-golden-visa", keywords: ["investor visa", "golden visa", "investment immigration"] },
+        { title: "Journalist Visa Requirements by Country", slug: "journalist-visa-requirements-country", keywords: ["journalist visa", "media visa", "press visa"] },
+        { title: "Volunteer Visa Guide: Requirements 2025", slug: "volunteer-visa-guide-requirements", keywords: ["volunteer visa", "volunteering abroad visa", "ngo visa"] },
+        { title: "Religious Visa Guide: Pilgrimage & Umrah", slug: "religious-visa-guide-pilgrimage", keywords: ["religious visa", "pilgrimage visa", "umrah visa hajj"] },
+        { title: "Research Visa Requirements: Academic Travel", slug: "research-visa-requirements-academic", keywords: ["research visa", "academic visa", "scholar visa"] },
+        { title: "Crew Visa Guide: Aviation & Maritime", slug: "crew-visa-guide-aviation-maritime", keywords: ["crew visa", "aviation visa", "maritime visa"] },
+        
+        // === REGIONAL GUIDES ===
+        { title: "Southeast Asia Visa Guide 2025", slug: "southeast-asia-visa-guide-2025", keywords: ["southeast asia visa", "asean visa", "asia travel visa"] },
+        { title: "Caribbean Visa Guide: Island Hopping 2025", slug: "caribbean-visa-guide-island-hopping", keywords: ["caribbean visa", "caribbean travel", "island visa"] },
+        { title: "Middle East Visa Requirements 2025", slug: "middle-east-visa-requirements-2025", keywords: ["middle east visa", "gulf visa", "arab countries visa"] },
+        { title: "Africa Visa Guide: Safari & Tourism", slug: "africa-visa-guide-safari-tourism", keywords: ["africa visa", "safari visa", "african travel visa"] },
+        { title: "Central America Visa Guide 2025", slug: "central-america-visa-guide-2025", keywords: ["central america visa", "latin america visa", "central american travel"] },
+        { title: "Eastern Europe Visa Requirements", slug: "eastern-europe-visa-requirements", keywords: ["eastern europe visa", "balkans visa", "eastern european travel"] },
+        { title: "Scandinavian Countries Visa Guide", slug: "scandinavian-countries-visa-guide", keywords: ["scandinavian visa", "nordic visa", "scandinavia travel"] },
+        { title: "Pacific Islands Visa Requirements 2025", slug: "pacific-islands-visa-requirements", keywords: ["pacific islands visa", "oceania visa", "island travel visa"] },
+        
+        // === PRACTICAL GUIDES ===
+        { title: "Best Travel Insurance for Visa Applications", slug: "best-travel-insurance-visa-applications", keywords: ["travel insurance visa", "visa travel insurance", "schengen insurance"] },
+        { title: "How to Get Passport Photos for Visa", slug: "passport-photos-visa-requirements", keywords: ["visa photo requirements", "passport photo visa", "visa photo size"] },
+        { title: "Bank Statement Requirements for Visa", slug: "bank-statement-requirements-visa", keywords: ["bank statement visa", "financial proof visa", "visa bank documents"] },
+        { title: "Invitation Letter for Visa: Complete Guide", slug: "invitation-letter-visa-complete-guide", keywords: ["invitation letter visa", "visa invitation", "sponsor letter visa"] },
+        { title: "Cover Letter for Visa Application", slug: "cover-letter-visa-application", keywords: ["cover letter visa", "visa application letter", "visa purpose letter"] },
+        { title: "Flight Itinerary for Visa Without Booking", slug: "flight-itinerary-visa-without-booking", keywords: ["flight itinerary visa", "dummy ticket visa", "visa flight reservation"] },
+        { title: "Hotel Booking for Visa Application", slug: "hotel-booking-visa-application", keywords: ["hotel booking visa", "visa accommodation proof", "hotel reservation visa"] },
+        { title: "Proof of Employment for Visa", slug: "proof-employment-visa-requirements", keywords: ["employment letter visa", "work proof visa", "employer letter visa"] },
+        { title: "Visa Application Fee Payment Methods", slug: "visa-application-fee-payment-methods", keywords: ["visa fee payment", "visa application cost", "pay visa online"] },
+        { title: "Biometrics for Visa: What to Expect", slug: "biometrics-visa-what-to-expect", keywords: ["visa biometrics", "biometric appointment visa", "fingerprints visa"] },
+        
+        // === TRENDING TOPICS ===
+        { title: "Visa-Free Countries for Remote Workers 2025", slug: "visa-free-countries-remote-workers-2025", keywords: ["remote work visa free", "digital nomad destinations", "work from anywhere visa"] },
+        { title: "Cheapest Countries to Get a Visa 2025", slug: "cheapest-countries-get-visa-2025", keywords: ["cheap visa countries", "affordable visa destinations", "low cost visa"] },
+        { title: "Fastest Visa Processing Countries 2025", slug: "fastest-visa-processing-countries-2025", keywords: ["fast visa processing", "quick visa approval", "express visa"] },
+        { title: "Easiest Countries to Get a Visa 2025", slug: "easiest-countries-get-visa-2025", keywords: ["easy visa countries", "easy visa approval", "simple visa process"] },
+        { title: "Visa-Free Countries for Indians 2025", slug: "visa-free-countries-indians-2025", keywords: ["visa free for indians", "indian visa free travel", "no visa india"] },
+        { title: "Visa-Free Countries for Pakistanis 2025", slug: "visa-free-countries-pakistanis-2025", keywords: ["visa free for pakistanis", "pakistan visa free travel", "no visa pakistan"] },
+        { title: "Visa-Free Countries for Nigerians 2025", slug: "visa-free-countries-nigerians-2025", keywords: ["visa free for nigerians", "nigeria visa free travel", "no visa nigeria"] },
+        { title: "Visa-Free Countries for Filipinos 2025", slug: "visa-free-countries-filipinos-2025", keywords: ["visa free for filipinos", "philippines visa free", "no visa philippines"] },
+        { title: "Countries with Long Stay Visas 2025", slug: "countries-long-stay-visas-2025", keywords: ["long stay visa", "extended visa", "long term visa"] },
+        { title: "Multiple Entry Visa: Countries Guide 2025", slug: "multiple-entry-visa-countries-guide", keywords: ["multiple entry visa", "multi entry visa", "reentry visa"] },
       ];
 
       // Check which topics don't exist yet

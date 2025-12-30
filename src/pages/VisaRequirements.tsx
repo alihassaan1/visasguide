@@ -26,10 +26,11 @@ const VisaRequirements = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<string | null>(null);
   
-  // Parse slug to get from and to country slugs (format: "india-to-uae")
+  // Parse slug to get from and to country slugs (format: "india-to-uae-visa-requirements" or "india-to-uae")
   const slugParts = slug?.split("-to-");
   const fromSlug = slugParts?.[0];
-  const toSlug = slugParts?.[1];
+  // Remove "-visa-requirements" suffix if present
+  const toSlug = slugParts?.[1]?.replace(/-visa-requirements$/, '');
 
   usePageTracking(`visa-requirements-${slug}`);
 

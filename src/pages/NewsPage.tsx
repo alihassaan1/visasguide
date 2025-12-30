@@ -7,20 +7,36 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar, Clock, ExternalLink, Search } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar, ExternalLink, Search, Newspaper, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+
+interface ContentItem {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  featured_image_url: string | null;
+  published_at: string | null;
+  created_at: string;
+  categories: string[] | null;
+  source_url?: string | null;
+  type: 'news' | 'blog';
+}
 
 const NewsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("all");
 
-  const { data: articles, isLoading } = useQuery({
+  // Fetch news articles
+  const { data: newsArticles, isLoading: newsLoading } = useQuery({
     queryKey: ['news-articles', searchTerm, selectedCategory],
     queryFn: async () => {
       let query = supabase
         .from('news_articles')
-        .select('*')
+        .select('id, title, slug, excerpt, featured_image_url, published_at, created_at, categories, source_url')
         .not('published_at', 'is', null)
         .order('published_at', { ascending: false });
 
@@ -34,7 +50,34 @@ const NewsPage = () => {
 
       const { data, error } = await query.limit(20);
       if (error) throw error;
-      return data;
+      return (data || []).map(article => ({ ...article, type: 'news' as const }));
+    }
+  });
+
+  // Fetch blog posts from content_pages
+  const { data: blogPosts, isLoading: blogLoading } = useQuery({
+    queryKey: ['blog-posts', searchTerm],
+    queryFn: async () => {
+      let query = supabase
+        .from('content_pages')
+        .select('id, title, slug, excerpt, featured_image_url, created_at, keywords')
+        .like('slug', 'blog/%')
+        .eq('is_published', true)
+        .order('created_at', { ascending: false });
+
+      if (searchTerm) {
+        query = query.or(`title.ilike.%${searchTerm}%,content.ilike.%${searchTerm}%`);
+      }
+
+      const { data, error } = await query.limit(20);
+      if (error) throw error;
+      return (data || []).map(post => ({ 
+        ...post, 
+        published_at: post.created_at,
+        categories: post.keywords,
+        source_url: null,
+        type: 'blog' as const 
+      }));
     }
   });
 
@@ -72,6 +115,89 @@ const NewsPage = () => {
     });
   };
 
+  // Combine and sort all content
+  const allContent: ContentItem[] = [...(newsArticles || []), ...(blogPosts || [])]
+    .sort((a, b) => {
+      const dateA = new Date(a.published_at || a.created_at).getTime();
+      const dateB = new Date(b.published_at || b.created_at).getTime();
+      return dateB - dateA;
+    });
+
+  const filteredContent = activeTab === 'all' 
+    ? allContent 
+    : activeTab === 'blog' 
+      ? allContent.filter(item => item.type === 'blog')
+      : allContent.filter(item => item.type === 'news');
+
+  const isLoading = newsLoading || blogLoading;
+
+  const getItemLink = (item: ContentItem) => {
+    if (item.type === 'blog') {
+      // Remove 'blog/' prefix from slug for blog posts
+      const cleanSlug = item.slug.replace(/^blog\//, '');
+      return `/blog/${cleanSlug}`;
+    }
+    return `/blog/${item.slug}`;
+  };
+
+  const renderContentCard = (item: ContentItem) => (
+    <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+      {item.featured_image_url && (
+        <div className="aspect-video bg-muted">
+          <img 
+            src={item.featured_image_url} 
+            alt={item.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+      <CardHeader>
+        <div className="flex items-center gap-2 mb-2">
+          <Badge variant={item.type === 'blog' ? 'default' : 'secondary'}>
+            {item.type === 'blog' ? (
+              <><FileText className="h-3 w-3 mr-1" /> Blog</>
+            ) : (
+              <><Newspaper className="h-3 w-3 mr-1" /> News</>
+            )}
+          </Badge>
+          {item.categories && item.categories[0] && (
+            <Badge variant="outline">{item.categories[0]}</Badge>
+          )}
+        </div>
+        <CardTitle className="line-clamp-2">
+          <Link 
+            to={getItemLink(item)}
+            className="hover:text-primary transition-colors"
+          >
+            {item.title}
+          </Link>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground line-clamp-3 mb-4">
+          {item.excerpt}
+        </p>
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            {formatDate(item.published_at || item.created_at)}
+          </div>
+          {item.source_url && (
+            <a 
+              href={item.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 hover:text-primary"
+            >
+              <ExternalLink className="h-3 w-3" />
+              Source
+            </a>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
@@ -80,7 +206,6 @@ const NewsPage = () => {
         canonical="https://visas.guide/blog"
         keywords={["visa news", "immigration updates", "travel restrictions", "visa policy changes", "border news", "travel updates 2025"]}
       />
-      {/* SEO Meta Tags */}
       <script 
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -102,19 +227,17 @@ const NewsPage = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-8">
-        {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-4">Latest Visa & Travel News</h1>
           <p className="text-xl text-muted-foreground mb-6">
             Stay informed with real-time updates on visa requirements, travel restrictions, and immigration policies worldwide.
           </p>
 
-          {/* Search and Filter */}
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search news articles..."
+                placeholder="Search articles..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -122,14 +245,27 @@ const NewsPage = () => {
             </div>
           </div>
 
-          {/* Category Filter */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+            <TabsList>
+              <TabsTrigger value="all">All Content</TabsTrigger>
+              <TabsTrigger value="blog">
+                <FileText className="h-4 w-4 mr-1" />
+                Blog Posts
+              </TabsTrigger>
+              <TabsTrigger value="news">
+                <Newspaper className="h-4 w-4 mr-1" />
+                News Articles
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
           <div className="flex flex-wrap gap-2 mb-8">
             <Button
               variant={selectedCategory === null ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedCategory(null)}
             >
-              All News
+              All Categories
             </Button>
             {categories.map((category) => (
               <Button
@@ -144,15 +280,15 @@ const NewsPage = () => {
           </div>
         </div>
 
-        {/* Featured Articles */}
-        {featuredArticles && featuredArticles.length > 0 && !searchTerm && !selectedCategory && (
+        {/* Featured Articles - only show on All tab without filters */}
+        {featuredArticles && featuredArticles.length > 0 && !searchTerm && !selectedCategory && activeTab === 'all' && (
           <section className="mb-12">
             <h2 className="text-2xl font-bold mb-6">Featured Stories</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredArticles.map((article) => (
                 <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   {article.featured_image_url && (
-                    <div className="aspect-video bg-gray-100 dark:bg-gray-800">
+                    <div className="aspect-video bg-muted">
                       <img 
                         src={article.featured_image_url} 
                         alt={article.title}
@@ -204,89 +340,46 @@ const NewsPage = () => {
           </section>
         )}
 
-        {/* All Articles */}
+        {/* All Content */}
         <section>
           <h2 className="text-2xl font-bold mb-6">
-            {searchTerm || selectedCategory ? 'Search Results' : 'Latest News'}
+            {searchTerm || selectedCategory 
+              ? 'Search Results' 
+              : activeTab === 'blog' 
+                ? 'Latest Blog Posts' 
+                : activeTab === 'news' 
+                  ? 'Latest News' 
+                  : 'Latest Content'}
           </h2>
           
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
                 <Card key={i} className="animate-pulse">
-                  <div className="aspect-video bg-gray-200 dark:bg-gray-700"></div>
+                  <div className="aspect-video bg-muted"></div>
                   <CardHeader>
                     <div className="space-y-2">
-                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                      <div className="h-4 bg-muted rounded w-3/4"></div>
+                      <div className="h-4 bg-muted rounded w-1/2"></div>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+                      <div className="h-3 bg-muted rounded"></div>
+                      <div className="h-3 bg-muted rounded"></div>
+                      <div className="h-3 bg-muted rounded w-2/3"></div>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
-          ) : articles && articles.length > 0 ? (
+          ) : filteredContent && filteredContent.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {articles.map((article) => (
-                <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  {article.featured_image_url && (
-                    <div className="aspect-video bg-gray-100 dark:bg-gray-800">
-                      <img 
-                        src={article.featured_image_url} 
-                        alt={article.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <CardHeader>
-                    <div className="flex items-center gap-2 mb-2">
-                      {article.categories && article.categories.map((category, index) => (
-                        <Badge key={index} variant="secondary">{category}</Badge>
-                      ))}
-                    </div>
-                    <CardTitle className="line-clamp-2">
-                      <Link 
-                        to={`/blog/${article.slug}`}
-                        className="hover:text-primary transition-colors"
-                      >
-                        {article.title}
-                      </Link>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground line-clamp-3 mb-4">
-                      {article.excerpt}
-                    </p>
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        {formatDate(article.published_at!)}
-                      </div>
-                      {article.source_url && (
-                        <a 
-                          href={article.source_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 hover:text-primary"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          Source
-                        </a>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              {filteredContent.map(renderContentCard)}
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg">No articles found.</p>
+              <p className="text-muted-foreground text-lg">No content found.</p>
               <p className="text-sm text-muted-foreground mt-2">
                 Try adjusting your search terms or check back later for new updates.
               </p>

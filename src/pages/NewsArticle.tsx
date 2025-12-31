@@ -19,7 +19,8 @@ import SocialShareButtons from "@/components/SocialShareButtons";
 const NewsArticle = () => {
   const { slug } = useParams<{ slug: string }>();
   
-  const { data: article, isLoading } = useQuery({
+  // First try news_articles table
+  const { data: newsArticle, isLoading: newsLoading } = useQuery({
     queryKey: ['news-article', slug],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -34,16 +35,58 @@ const NewsArticle = () => {
     enabled: !!slug
   });
 
-  const { data: relatedArticles } = useQuery({
-    queryKey: ['related-articles', article?.categories],
+  // If not found in news_articles, try content_pages (for blog posts)
+  const { data: contentPage, isLoading: contentLoading } = useQuery({
+    queryKey: ['content-page-blog', slug],
     queryFn: async () => {
-      if (!article?.categories || article.categories.length === 0) return [];
+      // Try exact slug match first
+      let { data, error } = await supabase
+        .from('content_pages')
+        .select(`
+          *,
+          writer:authors(name, slug, avatar_url, bio)
+        `)
+        .eq('slug', slug)
+        .eq('is_published', true)
+        .maybeSingle();
+      
+      if (!data) {
+        // Try with blog/ prefix
+        const result = await supabase
+          .from('content_pages')
+          .select(`
+            *,
+            writer:authors(name, slug, avatar_url, bio)
+          `)
+          .eq('slug', `blog/${slug}`)
+          .eq('is_published', true)
+          .maybeSingle();
+        
+        data = result.data;
+        error = result.error;
+      }
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!slug && !newsArticle && !newsLoading
+  });
+
+  // Combine article from either source
+  const article = newsArticle || contentPage;
+  const isLoading = newsLoading || (contentLoading && !newsArticle);
+  const isFromContentPages = !newsArticle && !!contentPage;
+
+  const { data: relatedArticles } = useQuery({
+    queryKey: ['related-articles', newsArticle?.categories],
+    queryFn: async () => {
+      if (!newsArticle?.categories || newsArticle.categories.length === 0) return [];
       
       const { data, error } = await supabase
         .from('news_articles')
         .select('*')
-        .neq('id', article.id)
-        .overlaps('categories', article.categories)
+        .neq('id', newsArticle.id)
+        .overlaps('categories', newsArticle.categories)
         .not('published_at', 'is', null)
         .order('published_at', { ascending: false })
         .limit(3);
@@ -51,7 +94,7 @@ const NewsArticle = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!article
+    enabled: !!newsArticle
   });
 
   const formatDate = (dateString: string) => {
@@ -67,14 +110,13 @@ const NewsArticle = () => {
       try {
         await navigator.share({
           title: article?.title,
-          text: article?.excerpt,
+          text: isFromContentPages ? article?.excerpt : (article as any)?.excerpt,
           url: window.location.href,
         });
       } catch (err) {
         console.log('Error sharing:', err);
       }
     } else {
-      // Fallback to copying URL to clipboard
       navigator.clipboard.writeText(window.location.href);
     }
   };
@@ -85,12 +127,12 @@ const NewsArticle = () => {
         <Header />
         <main className="container mx-auto px-4 py-8 max-w-4xl">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-64 bg-gray-200 rounded"></div>
+            <div className="h-8 bg-muted rounded w-3/4"></div>
+            <div className="h-64 bg-muted rounded"></div>
             <div className="space-y-4">
-              <div className="h-4 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+              <div className="h-4 bg-muted rounded"></div>
+              <div className="h-4 bg-muted rounded"></div>
+              <div className="h-4 bg-muted rounded w-2/3"></div>
             </div>
           </div>
         </main>
@@ -110,7 +152,7 @@ const NewsArticle = () => {
             <Link to="/blog">
               <Button>
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to News
+                Back to Blog
               </Button>
             </Link>
           </div>
@@ -120,37 +162,56 @@ const NewsArticle = () => {
     );
   }
 
-  const metaTitle = article.seo_title || `${article.title} | Visas.Guide Travel News`;
-  const metaDescription = article.seo_description || article.excerpt || `Read about ${article.title} - Latest visa and travel news from Visas.Guide`;
+  // Handle different data structures between news_articles and content_pages
+  const title = article.title;
+  const content = article.content;
+  const excerpt = article.excerpt;
+  const featuredImage = article.featured_image_url;
+  const publishedAt = isFromContentPages ? article.created_at : (article as any).published_at;
+  const updatedAt = article.updated_at;
+  const categories = isFromContentPages 
+    ? ((article as any).keywords || []) 
+    : ((article as any).categories || []);
+  const tags = isFromContentPages 
+    ? ((article as any).keywords || []) 
+    : ((article as any).tags || []);
+  const authorName = isFromContentPages 
+    ? ((article as any).writer?.name || "Visas.Guide Editorial Team")
+    : ((article as any).author || "Visas.Guide Editorial Team");
+  const writerId = (article as any).writer_id;
+  const sourceName = isFromContentPages ? null : (article as any).source_name;
+
+  const metaTitle = (isFromContentPages ? (article as any).meta_title : (article as any).seo_title) || `${title} | Visas.Guide Travel News`;
+  const metaDescription = (isFromContentPages ? (article as any).meta_description : (article as any).seo_description) || excerpt || `Read about ${title} - Latest visa and travel news from Visas.Guide`;
   
   // Check if recently updated (within last 7 days)
-  const isRecentlyUpdated = article.updated_at && 
-    (new Date().getTime() - new Date(article.updated_at).getTime()) < 7 * 24 * 60 * 60 * 1000;
+  const isRecentlyUpdated = updatedAt && 
+    (new Date().getTime() - new Date(updatedAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
 
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
         title={metaTitle}
         description={metaDescription}
-        canonical={`https://visas.guide/blog/${article.slug}`}
+        canonical={`https://visas.guide/blog/${slug}`}
         ogType="article"
-        articlePublishedTime={article.published_at || undefined}
-        articleModifiedTime={article.updated_at}
-        ogImage={article.featured_image_url || undefined}
-        keywords={[...(article.tags || []), ...(article.categories || []), "visa news", "travel news", "immigration updates"]}
+        articlePublishedTime={publishedAt || undefined}
+        articleModifiedTime={updatedAt}
+        ogImage={featuredImage || undefined}
+        keywords={[...tags, ...categories, "visa news", "travel news", "immigration updates"]}
       />
       
       {/* Article Schema for SEO */}
       <ArticleSchema
-        title={article.title}
+        title={title}
         description={metaDescription}
-        url={`https://visas.guide/blog/${article.slug}`}
-        imageUrl={article.featured_image_url || undefined}
-        datePublished={article.published_at || undefined}
-        dateModified={article.updated_at}
-        authorName={article.author || "Visas.Guide Editorial Team"}
-        keywords={[...(article.tags || []), ...(article.categories || [])]}
-        wordCount={article.content?.split(/\s+/).length}
+        url={`https://visas.guide/blog/${slug}`}
+        imageUrl={featuredImage || undefined}
+        datePublished={publishedAt || undefined}
+        dateModified={updatedAt}
+        authorName={authorName}
+        keywords={[...tags, ...categories]}
+        wordCount={content?.split(/\s+/).length}
       />
 
       <Header />
@@ -172,7 +233,7 @@ const NewsArticle = () => {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{article.title.substring(0, 40)}...</BreadcrumbPage>
+              <BreadcrumbPage>{title.substring(0, 40)}...</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -182,7 +243,7 @@ const NewsArticle = () => {
           <Link to="/blog">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to News
+              Back to Blog
             </Button>
           </Link>
         </div>
@@ -191,7 +252,7 @@ const NewsArticle = () => {
         <article className="mb-12">
           <header className="mb-8">
             <div className="flex flex-wrap gap-2 mb-4">
-              {article.categories?.map((category, index) => (
+              {categories?.slice(0, 3).map((category: string, index: number) => (
                 <Badge key={index} variant="secondary">{category}</Badge>
               ))}
               {isRecentlyUpdated && (
@@ -200,12 +261,12 @@ const NewsArticle = () => {
             </div>
             
             <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-              {article.title}
+              {title}
             </h1>
             
-            {article.excerpt && (
+            {excerpt && (
               <p className="text-xl text-muted-foreground mb-6 leading-relaxed">
-                {article.excerpt}
+                {excerpt}
               </p>
             )}
 
@@ -213,34 +274,34 @@ const NewsArticle = () => {
               <div className="flex items-center gap-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  {formatDate(article.published_at!)}
+                  {formatDate(publishedAt!)}
                 </div>
-                {article.author && (
+                {authorName && (
                   <div className="flex items-center gap-2">
-                    <span>By {article.author}</span>
+                    <span>By {authorName}</span>
                   </div>
                 )}
-                {article.source_name && (
+                {sourceName && (
                   <div className="flex items-center gap-2">
-                    <span>Source: {article.source_name}</span>
+                    <span>Source: {sourceName}</span>
                   </div>
                 )}
               </div>
               
               <SocialShareButtons
-                url={`https://visas.guide/blog/${article.slug}`}
-                title={article.title}
-                description={article.excerpt || undefined}
+                url={`https://visas.guide/blog/${slug}`}
+                title={title}
+                description={excerpt || undefined}
               />
             </div>
           </header>
 
           {/* Featured Image */}
-          {article.featured_image_url && (
+          {featuredImage && (
             <div className="mb-8">
               <img 
-                src={article.featured_image_url} 
-                alt={`${article.title} - Visa and travel news illustration`}
+                src={featuredImage} 
+                alt={`${title} - Visa and travel news illustration`}
                 className="w-full rounded-lg shadow-lg"
                 loading="lazy"
               />
@@ -249,8 +310,8 @@ const NewsArticle = () => {
 
           {/* Article Content */}
           <div className="prose prose-lg dark:prose-invert max-w-none">
-            {article.content ? (
-              <div dangerouslySetInnerHTML={{ __html: formatArticleContent(article.content) }} />
+            {content ? (
+              <div dangerouslySetInnerHTML={{ __html: formatArticleContent(content) }} />
             ) : (
               <div className="text-muted-foreground">
                 <p>Article content is not available. Please visit the original source for the full article.</p>
@@ -259,11 +320,11 @@ const NewsArticle = () => {
           </div>
 
           {/* Tags */}
-          {article.tags && article.tags.length > 0 && (
+          {tags && tags.length > 0 && (
             <div className="mt-8 pt-8 border-t">
               <h3 className="text-sm font-medium text-muted-foreground mb-3">Tags:</h3>
               <div className="flex flex-wrap gap-2">
-                {article.tags.map((tag, index) => (
+                {tags.map((tag: string, index: number) => (
                   <Badge key={index} variant="outline">{tag}</Badge>
                 ))}
               </div>
@@ -271,13 +332,13 @@ const NewsArticle = () => {
           )}
 
           {/* Author Bio - E-E-A-T Signal */}
-          <AuthorBio writerId={article.writer_id} />
+          <AuthorBio writerId={writerId} />
 
           {/* Related Content - Internal Linking */}
           <RelatedContent
-            currentSlug={article.slug}
+            currentSlug={slug || ''}
             contentType="blog"
-            country={article.categories?.[0]}
+            country={categories?.[0]}
           />
         </article>
 
@@ -286,7 +347,7 @@ const NewsArticle = () => {
           <NewsletterSignup variant="sidebar" />
         </div>
 
-        {/* Related Articles */}
+        {/* Related Articles (only for news_articles) */}
         {relatedArticles && relatedArticles.length > 0 && (
           <section>
             <h2 className="text-2xl font-bold mb-6">Related Articles</h2>
@@ -294,7 +355,7 @@ const NewsArticle = () => {
               {relatedArticles.map((related) => (
                 <Card key={related.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   {related.featured_image_url && (
-                    <div className="aspect-video bg-gray-100 dark:bg-gray-800">
+                    <div className="aspect-video bg-muted">
                       <img 
                         src={related.featured_image_url} 
                         alt={related.title}

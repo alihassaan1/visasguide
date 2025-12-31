@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import { ArrowRight, Calendar } from "lucide-react";
+import { ArrowRight, Calendar, Globe } from "lucide-react";
 
 const LatestGuidesSection = () => {
   const { data: guides, isLoading } = useQuery({
@@ -55,6 +55,20 @@ const LatestGuidesSection = () => {
     });
   };
 
+  // Generate placeholder gradient based on title
+  const getPlaceholderGradient = (title: string) => {
+    const colors = [
+      'from-blue-500 to-indigo-600',
+      'from-emerald-500 to-teal-600',
+      'from-orange-500 to-red-600',
+      'from-purple-500 to-pink-600',
+      'from-cyan-500 to-blue-600',
+      'from-amber-500 to-orange-600',
+    ];
+    const index = title.length % colors.length;
+    return colors[index];
+  };
+
   return (
     <section className="py-12 bg-muted/30">
       <div className="container mx-auto px-4">
@@ -72,15 +86,19 @@ const LatestGuidesSection = () => {
           {guides.map((guide) => (
             <Link key={guide.id} to={`/${guide.slug}`}>
               <Card className="h-full hover:shadow-lg transition-all duration-300 overflow-hidden group">
-                {guide.featured_image_url && (
-                  <div className="h-40 overflow-hidden">
+                <div className="h-40 overflow-hidden">
+                  {guide.featured_image_url ? (
                     <img 
                       src={guide.featured_image_url} 
                       alt={guide.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                  </div>
-                )}
+                  ) : (
+                    <div className={`w-full h-full bg-gradient-to-br ${getPlaceholderGradient(guide.title)} flex items-center justify-center group-hover:scale-105 transition-transform duration-300`}>
+                      <Globe className="h-12 w-12 text-white/80" />
+                    </div>
+                  )}
+                </div>
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                     {guide.title}

@@ -78,7 +78,6 @@ const menuStructure: MenuItemOrGroup[] = [
       { title: "RSS Feeds", icon: ScrollText, href: "/admin/rss-feeds" },
       { title: "Agent Logs", icon: Activity, href: "/admin/content-agent-logs" },
       { title: "API Logs", icon: ScrollText, href: "/admin/api-logs" },
-      { title: "Country Updater", icon: Globe, href: "/admin/country-content-updater" },
       { title: "Visa Updater", icon: ClipboardList, href: "/admin/visa-requirements-content-updater" },
     ],
   },

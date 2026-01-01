@@ -1,9 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FileText, Sparkles, Eye, TrendingUp, DollarSign } from "lucide-react";
+import { Users, FileText, Sparkles, Eye, DollarSign, Globe, Loader2, Clock, Zap, AlertCircle, CheckCircle2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { formatDistanceToNow } from "date-fns";
 
 export default function AdminDashboard() {
   // Fetch content pages
@@ -77,6 +83,86 @@ export default function AdminDashboard() {
       return data || [];
     },
     staleTime: 30000,
+  });
+
+  // Fetch visa requirements progress
+  const { data: visaProgress, isLoading: visaProgressLoading } = useQuery({
+    queryKey: ['admin-visa-progress'],
+    queryFn: async () => {
+      const now = new Date();
+      const lastHour = new Date(now.getTime() - 60 * 60 * 1000);
+      const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+      const [countriesRes, visaContentRes, recentBatches, last24hContent, apiErrors] = await Promise.all([
+        supabase.from("countries").select("id", { count: "exact", head: true }),
+        supabase.from("content_pages").select("id", { count: "exact", head: true }).like("slug", "%-to-%-visa-requirements"),
+        supabase
+          .from("activity_log")
+          .select("metadata, created_at")
+          .eq("action", "content_agent_status")
+          .eq("entity_type", "visa_requirements_content")
+          .gte("created_at", lastHour.toISOString())
+          .order("created_at", { ascending: false })
+          .limit(20),
+        supabase
+          .from("content_pages")
+          .select("id", { count: "exact", head: true })
+          .like("slug", "%-to-%-visa-requirements")
+          .gte("created_at", last24h.toISOString()),
+        supabase
+          .from("api_logs")
+          .select("error_message, created_at")
+          .eq("status", "error")
+          .order("created_at", { ascending: false })
+          .limit(1),
+      ]);
+
+      const totalCountries = countriesRes.count || 0;
+      const totalCombinations = totalCountries * (totalCountries - 1);
+      const completedPages = visaContentRes.count || 0;
+      const pagesLast24h = last24hContent.count || 0;
+
+      // Calculate speed from recent batches
+      const completedBatches = (recentBatches.data || []).filter(
+        (b) => (b.metadata as any)?.status === 'batch_complete'
+      );
+
+      let pagesPerHour = 0;
+      let lastBatchTime: string | null = null;
+
+      if (completedBatches.length > 0) {
+        const totalPagesThisHour = completedBatches.reduce(
+          (sum, b) => sum + ((b.metadata as any)?.generated || 0), 0
+        );
+        pagesPerHour = (completedBatches[0]?.metadata as any)?.pages_per_hour || totalPagesThisHour;
+        lastBatchTime = completedBatches[0]?.created_at;
+      }
+
+      const remaining = totalCombinations - completedPages;
+      const estimatedHoursRemaining = pagesPerHour > 0 ? remaining / pagesPerHour : 0;
+      const percentComplete = totalCombinations > 0 ? (completedPages / totalCombinations) * 100 : 0;
+
+      // Check for recent errors
+      const latestError = apiErrors.data?.[0];
+      const hasRecentError = latestError && 
+        new Date(latestError.created_at).getTime() > now.getTime() - 10 * 60 * 1000;
+
+      return {
+        totalCombinations,
+        completedPages,
+        remaining,
+        percentComplete,
+        pagesPerHour,
+        pagesLast24h,
+        estimatedHoursRemaining,
+        estimatedDaysRemaining: estimatedHoursRemaining / 24,
+        lastBatchTime,
+        hasRecentError,
+        errorMessage: hasRecentError ? latestError?.error_message : null,
+      };
+    },
+    refetchInterval: 15000, // Refresh every 15 seconds
+    staleTime: 10000,
   });
 
   // Calculate derived stats
@@ -169,6 +255,132 @@ export default function AdminDashboard() {
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">Admin Dashboard</h1>
         <p className="text-muted-foreground">Complete overview of Visas.Guide performance</p>
       </div>
+
+      {/* Visa Requirements Progress Tracker */}
+      <Card className="mb-8 border-primary/20 bg-gradient-to-br from-primary/5 to-background">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <Globe className="h-5 w-5 text-primary" />
+              <CardTitle>Visa Requirements Generation Progress</CardTitle>
+            </div>
+            <Link to="/admin/agent">
+              <Button variant="outline" size="sm">
+                <Zap className="h-4 w-4 mr-2" />
+                Agent Dashboard
+              </Button>
+            </Link>
+          </div>
+          <CardDescription>
+            AI-powered content generation for all country combinations
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {visaProgressLoading ? (
+            <div className="space-y-3">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-16" />)}
+              </div>
+            </div>
+          ) : visaProgress ? (
+            <>
+              {/* Error Alert */}
+              {visaProgress.hasRecentError && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="text-sm">
+                    {visaProgress.errorMessage?.includes("Insufficient Balance") 
+                      ? "DeepSeek API balance depleted. Please top up your account to continue generation."
+                      : visaProgress.errorMessage || "Generation paused due to API errors"}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Progress Bar */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">
+                    {visaProgress.completedPages.toLocaleString()} / {visaProgress.totalCombinations.toLocaleString()} pages
+                  </span>
+                  <span className="text-primary font-bold">
+                    {visaProgress.percentComplete.toFixed(2)}%
+                  </span>
+                </div>
+                <Progress value={visaProgress.percentComplete} className="h-3" />
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{visaProgress.remaining.toLocaleString()} remaining</span>
+                  <span className="flex items-center gap-1">
+                    {visaProgress.pagesPerHour > 0 ? (
+                      <>
+                        <Zap className="h-3 w-3 text-green-500" />
+                        {visaProgress.pagesPerHour.toLocaleString()} pages/hour
+                      </>
+                    ) : (
+                      <>
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Calculating speed...
+                      </>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
+                <div className="p-3 rounded-lg bg-muted/50 text-center">
+                  <p className="text-2xl font-bold text-primary">
+                    {visaProgress.pagesLast24h.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Pages (24h)</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50 text-center">
+                  <p className="text-2xl font-bold">
+                    {visaProgress.pagesPerHour > 0 ? visaProgress.pagesPerHour.toLocaleString() : "—"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Pages/Hour</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50 text-center">
+                  <p className="text-2xl font-bold">
+                    {visaProgress.estimatedDaysRemaining > 0 
+                      ? visaProgress.estimatedDaysRemaining < 1 
+                        ? `${Math.ceil(visaProgress.estimatedHoursRemaining)}h`
+                        : `${Math.ceil(visaProgress.estimatedDaysRemaining)}d`
+                      : "—"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">ETA</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50 text-center">
+                  <p className="text-2xl font-bold flex items-center justify-center gap-1">
+                    {visaProgress.hasRecentError ? (
+                      <AlertCircle className="h-5 w-5 text-destructive" />
+                    ) : visaProgress.pagesPerHour > 0 ? (
+                      <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <Clock className="h-5 w-5 text-muted-foreground" />
+                    )}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {visaProgress.hasRecentError 
+                      ? "Error" 
+                      : visaProgress.pagesPerHour > 0 
+                        ? "Running" 
+                        : "Idle"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Last Activity */}
+              {visaProgress.lastBatchTime && (
+                <p className="text-xs text-muted-foreground text-center pt-2">
+                  Last batch: {formatDistanceToNow(new Date(visaProgress.lastBatchTime), { addSuffix: true })}
+                </p>
+              )}
+            </>
+          ) : null}
+        </CardContent>
+      </Card>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">

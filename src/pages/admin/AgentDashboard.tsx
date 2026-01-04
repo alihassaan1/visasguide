@@ -73,6 +73,55 @@ const AgentDashboard = () => {
     },
   });
 
+  // Fetch circuit breaker status
+  const { data: circuitBreakerStatus, refetch: refetchCircuitBreaker } = useQuery({
+    queryKey: ["circuit-breaker-status"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("site_settings")
+        .select("setting_value")
+        .eq("setting_key", "api_circuit_breaker")
+        .maybeSingle();
+
+      if (error) throw error;
+      const state = data?.setting_value as any;
+      
+      if (state?.open_until && new Date(state.open_until) > new Date()) {
+        const remainingMinutes = Math.ceil((new Date(state.open_until).getTime() - Date.now()) / 60000);
+        return {
+          isOpen: true,
+          reason: state.reason,
+          openedAt: state.opened_at,
+          opensAt: state.open_until,
+          remainingMinutes,
+          errorCount: state.error_count
+        };
+      }
+      
+      return { isOpen: false };
+    },
+    refetchInterval: 30000, // Check every 30 seconds
+  });
+
+  // Reset circuit breaker mutation
+  const resetCircuitBreakerMutation = useMutation({
+    mutationFn: async () => {
+      const response = await supabase.functions.invoke('content-agent', {
+        body: { resetCircuitBreaker: true }
+      });
+      if (response.error) throw response.error;
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["circuit-breaker-status"] });
+      toast.success("Circuit breaker reset successfully! API calls will resume.");
+    },
+    onError: (error) => {
+      toast.error("Failed to reset circuit breaker");
+      console.error(error);
+    },
+  });
+
   // Update local settings when saved settings load
   useEffect(() => {
     if (savedSettings) {
@@ -848,6 +897,46 @@ const AgentDashboard = () => {
           </Button>
         </div>
       </div>
+
+      {/* Circuit Breaker Alert */}
+      {circuitBreakerStatus?.isOpen && (
+        <Alert variant="destructive" className="bg-red-500/10 border-red-500/30">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle className="ml-2 flex items-center gap-2">
+            API Calls Paused
+            <Badge variant="outline" className="bg-red-500/20 text-red-600 border-red-500/30">
+              Circuit Breaker Open
+            </Badge>
+          </AlertTitle>
+          <AlertDescription className="ml-6">
+            <p className="mb-2">
+              <strong>Reason:</strong> {circuitBreakerStatus.reason}
+            </p>
+            <p className="mb-2 text-sm">
+              Opened: {circuitBreakerStatus.openedAt ? formatDistanceToNow(new Date(circuitBreakerStatus.openedAt), { addSuffix: true }) : 'Unknown'} 
+              {' • '}Auto-resets in <strong>{circuitBreakerStatus.remainingMinutes} minutes</strong>
+            </p>
+            <p className="text-sm text-muted-foreground mb-3">
+              This prevents wasted API calls when the DeepSeek balance is exhausted. 
+              Add balance to your DeepSeek account and click "Reset" to resume.
+            </p>
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => resetCircuitBreakerMutation.mutate()}
+              disabled={resetCircuitBreakerMutation.isPending}
+              className="border-red-500/30 hover:bg-red-500/10"
+            >
+              {resetCircuitBreakerMutation.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCw className="w-4 h-4 mr-2" />
+              )}
+              Reset Circuit Breaker
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Live Status Alert */}
       {activeTask && (

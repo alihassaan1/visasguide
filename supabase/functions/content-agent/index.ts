@@ -379,6 +379,7 @@ serve(async (req) => {
     let visaRequirementsContentMode = false;
     let evergreenContentMode = false;
     let batchSize = 3;
+    let resetCircuitBreaker = false;
     
     try {
       const body = await req.json();
@@ -390,6 +391,7 @@ serve(async (req) => {
       visaRequirementsContentMode = body?.visaRequirementsContent === true;
       evergreenContentMode = body?.evergreenContent === true;
       batchSize = body?.batchSize || 3;
+      resetCircuitBreaker = body?.resetCircuitBreaker === true;
       console.log(`Modes - Priority: ${priorityCountrySlug}, BulkCTR: ${bulkCTRMode}, VisaEnrich: ${visaEnrichmentMode}, Blog: ${blogGenerationMode}, FAQ: ${faqGenerationMode}, VisaReqContent: ${visaRequirementsContentMode}, Evergreen: ${evergreenContentMode}, Batch: ${batchSize}`);
     } catch {
       // No body provided, continue with default behavior
@@ -398,6 +400,102 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // ============================================
+    // CIRCUIT BREAKER CHECK - Prevent API calls when balance is exhausted
+    // ============================================
+    
+    // Handle manual reset request
+    if (resetCircuitBreaker) {
+      console.log('🔧 Manual circuit breaker reset requested');
+      await supabase.from('site_settings').upsert({
+        setting_key: 'api_circuit_breaker',
+        setting_value: { open: false, reset_at: new Date().toISOString(), reset_reason: 'manual' },
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'setting_key' });
+      
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: 'Circuit breaker reset successfully' 
+      }), { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      });
+    }
+    
+    // Check if circuit breaker is open
+    const { data: circuitBreakerSettings } = await supabase
+      .from('site_settings')
+      .select('setting_value')
+      .eq('setting_key', 'api_circuit_breaker')
+      .maybeSingle();
+    
+    const circuitState = circuitBreakerSettings?.setting_value as any;
+    
+    if (circuitState?.open_until && new Date(circuitState.open_until) > new Date()) {
+      const remainingMinutes = Math.ceil((new Date(circuitState.open_until).getTime() - Date.now()) / 60000);
+      console.log(`⚡ Circuit breaker OPEN - API calls paused for ${remainingMinutes} more minutes`);
+      console.log(`   Reason: ${circuitState.reason}`);
+      console.log(`   Will auto-reset at: ${circuitState.open_until}`);
+      
+      return new Response(JSON.stringify({ 
+        success: false, 
+        circuitBreakerOpen: true,
+        reason: circuitState.reason,
+        openedAt: circuitState.opened_at,
+        opensAt: circuitState.open_until,
+        remainingMinutes,
+        message: `Circuit breaker is open due to: ${circuitState.reason}. Auto-resets in ${remainingMinutes} minutes.`
+      }), { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      });
+    }
+    
+    // Check for recent 402 "Insufficient Balance" errors (last 10 minutes)
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+    const { count: recent402Errors } = await supabase
+      .from('api_logs')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'error')
+      .ilike('error_message', '%402%Insufficient Balance%')
+      .gte('created_at', tenMinutesAgo.toISOString());
+    
+    if (recent402Errors && recent402Errors >= 3) {
+      // Open circuit breaker for 6 hours
+      const openUntil = new Date(Date.now() + 6 * 60 * 60 * 1000);
+      
+      console.log('🔴 Opening circuit breaker - 3+ recent 402 errors detected');
+      
+      await supabase.from('site_settings').upsert({
+        setting_key: 'api_circuit_breaker',
+        setting_value: { 
+          open_until: openUntil.toISOString(),
+          reason: 'DeepSeek API Insufficient Balance',
+          opened_at: new Date().toISOString(),
+          error_count: recent402Errors
+        },
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'setting_key' });
+      
+      // Log the circuit breaker opening
+      await supabase.from('activity_log').insert({
+        action: 'circuit_breaker_opened',
+        entity_type: 'api',
+        metadata: {
+          reason: 'Insufficient Balance',
+          error_count: recent402Errors,
+          open_until: openUntil.toISOString()
+        }
+      });
+      
+      return new Response(JSON.stringify({ 
+        success: false, 
+        circuitBreakerOpen: true,
+        reason: 'DeepSeek API Insufficient Balance',
+        message: 'Circuit breaker opened due to insufficient API balance. Will auto-reset in 6 hours. Add balance to DeepSeek and manually reset to resume.'
+      }), { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      });
+    }
 
     // Get DeepSeek API key from site_settings
     const { data: settings } = await supabase
@@ -603,6 +701,27 @@ serve(async (req) => {
           
           // Log failed API call
           await logApiCall(currentMode, entityName, status, startTime, undefined, error.message, attempt);
+          
+          // CIRCUIT BREAKER: If 402 Insufficient Balance, don't retry - open circuit immediately
+          if (error.message?.includes('402') && error.message?.includes('Insufficient Balance')) {
+            console.log('🔴 402 Insufficient Balance detected - opening circuit breaker immediately');
+            
+            const openUntil = new Date(Date.now() + 6 * 60 * 60 * 1000);
+            await supabase.from('site_settings').upsert({
+              setting_key: 'api_circuit_breaker',
+              setting_value: { 
+                open_until: openUntil.toISOString(),
+                reason: 'DeepSeek API Insufficient Balance',
+                opened_at: new Date().toISOString(),
+                error_count: 1,
+                triggered_by: entityName
+              },
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'setting_key' });
+            
+            // Don't retry - throw immediately
+            throw new Error('Circuit breaker opened: Insufficient Balance');
+          }
           
           // Wait before retry with exponential backoff
           if (attempt < maxRetries - 1) {

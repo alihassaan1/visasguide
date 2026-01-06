@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FileText, Sparkles, Eye, DollarSign, Globe, Loader2, Clock, Zap, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Users, FileText, Sparkles, Eye, DollarSign, Globe, Loader2, Clock, Zap, AlertCircle, CheckCircle2, ShieldCheck, ImageOff, UserX, Wrench } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 
 export default function AdminDashboard() {
   // Fetch content pages
@@ -163,6 +164,64 @@ export default function AdminDashboard() {
     },
     refetchInterval: 15000, // Refresh every 15 seconds
     staleTime: 10000,
+  });
+
+  // Fetch content health stats
+  const queryClient = useQueryClient();
+  const { data: contentHealth, isLoading: contentHealthLoading } = useQuery({
+    queryKey: ['admin-content-health'],
+    queryFn: async () => {
+      const [
+        { count: totalPages },
+        { count: pagesWithWrapper },
+        { count: pagesWithoutImages },
+        { count: pagesWithoutAuthors },
+      ] = await Promise.all([
+        supabase.from('content_pages').select('id', { count: 'exact', head: true }),
+        supabase.from('content_pages').select('id', { count: 'exact', head: true })
+          .or('content.ilike.%<!DOCTYPE%,content.ilike.%<html%,content.ilike.%```html%'),
+        supabase.from('content_pages').select('id', { count: 'exact', head: true })
+          .is('featured_image_url', null),
+        supabase.from('content_pages').select('id', { count: 'exact', head: true })
+          .is('author_id', null),
+      ]);
+
+      const total = totalPages || 0;
+      const dirty = pagesWithWrapper || 0;
+      const clean = total - dirty;
+      
+      return {
+        totalPages: total,
+        pagesWithWrapper: dirty,
+        cleanPages: clean,
+        pagesWithoutImages: pagesWithoutImages || 0,
+        pagesWithoutAuthors: pagesWithoutAuthors || 0,
+        healthScore: total > 0 ? Math.round((clean / total) * 100) : 100,
+      };
+    },
+    staleTime: 30000,
+  });
+
+  // Content cleaner mutation
+  const cleanerMutation = useMutation({
+    mutationFn: async (options: { dryRun?: boolean; assignAuthors?: boolean }) => {
+      const { data, error } = await supabase.functions.invoke('content-cleaner', {
+        body: { batchSize: 100, ...options }
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data.dryRun) {
+        toast.info(`Dry run: Would clean ${data.results.cleaned} pages`);
+      } else {
+        toast.success(`Cleaned ${data.results.cleaned} pages`);
+        queryClient.invalidateQueries({ queryKey: ['admin-content-health'] });
+      }
+    },
+    onError: (error) => {
+      toast.error(`Cleanup failed: ${error.message}`);
+    }
   });
 
   // Calculate derived stats
@@ -376,6 +435,112 @@ export default function AdminDashboard() {
                 <p className="text-xs text-muted-foreground text-center pt-2">
                   Last batch: {formatDistanceToNow(new Date(visaProgress.lastBatchTime), { addSuffix: true })}
                 </p>
+              )}
+            </>
+          ) : null}
+        </CardContent>
+      </Card>
+
+      {/* Content Health Card - AdSense Readiness */}
+      <Card className="mb-8 border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-background">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-amber-500" />
+              <CardTitle>Content Health (AdSense Readiness)</CardTitle>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => cleanerMutation.mutate({ dryRun: true })}
+                disabled={cleanerMutation.isPending}
+              >
+                {cleanerMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Preview Cleanup
+              </Button>
+              <Button 
+                variant="default" 
+                size="sm"
+                onClick={() => cleanerMutation.mutate({ dryRun: false, assignAuthors: true })}
+                disabled={cleanerMutation.isPending}
+              >
+                <Wrench className="h-4 w-4 mr-2" />
+                Run Cleanup
+              </Button>
+            </div>
+          </div>
+          <CardDescription>
+            Fix content issues before applying for AdSense
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {contentHealthLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-20" />)}
+            </div>
+          ) : contentHealth ? (
+            <>
+              {/* Health Score */}
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Content Quality Score</span>
+                <Badge variant={contentHealth.healthScore >= 90 ? "default" : contentHealth.healthScore >= 70 ? "secondary" : "destructive"}>
+                  {contentHealth.healthScore}%
+                </Badge>
+              </div>
+              <Progress 
+                value={contentHealth.healthScore} 
+                className={`h-2 ${contentHealth.healthScore < 70 ? '[&>div]:bg-destructive' : contentHealth.healthScore < 90 ? '[&>div]:bg-amber-500' : ''}`}
+              />
+              
+              {/* Issue Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4">
+                <div className="p-3 rounded-lg bg-muted/50 text-center">
+                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <AlertCircle className={`h-4 w-4 ${contentHealth.pagesWithWrapper > 0 ? 'text-destructive' : 'text-green-500'}`} />
+                  </div>
+                  <p className="text-2xl font-bold">
+                    {contentHealth.pagesWithWrapper.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-muted-foreground">HTML Wrapper Issues</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50 text-center">
+                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <ImageOff className={`h-4 w-4 ${contentHealth.pagesWithoutImages > 0 ? 'text-amber-500' : 'text-green-500'}`} />
+                  </div>
+                  <p className="text-2xl font-bold">
+                    {contentHealth.pagesWithoutImages.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Missing Images</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50 text-center">
+                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <UserX className={`h-4 w-4 ${contentHealth.pagesWithoutAuthors > 0 ? 'text-amber-500' : 'text-green-500'}`} />
+                  </div>
+                  <p className="text-2xl font-bold">
+                    {contentHealth.pagesWithoutAuthors.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Missing Authors</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50 text-center">
+                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  </div>
+                  <p className="text-2xl font-bold text-green-600">
+                    {contentHealth.cleanPages.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Clean Pages</p>
+                </div>
+              </div>
+
+              {/* Warning if issues exist */}
+              {contentHealth.pagesWithWrapper > 0 && (
+                <Alert variant="destructive" className="mt-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    {contentHealth.pagesWithWrapper} pages have HTML document wrappers that may cause AdSense rejection. Click "Run Cleanup" to fix.
+                  </AlertDescription>
+                </Alert>
               )}
             </>
           ) : null}

@@ -358,8 +358,21 @@ STRUCTURE (500-600 words max):
 
 KEYWORDS: "${toCTR} visa for ${fromCTR} citizens", "${fromCTR} passport ${toCTR}"
 
-FORMAT: Clean HTML (h2, h3, p, ul, li). Tailwind spacing (mb-4, mt-6). No borders.
-Be concise but helpful. Answer the main question fast.`;
+CRITICAL OUTPUT FORMAT RULES:
+- Output ONLY the article body content as an HTML fragment
+- Do NOT include <!DOCTYPE>, <html>, <head>, <body>, or any document wrapper tags
+- Do NOT wrap in markdown code blocks (no \`\`\`html or \`\`\`)
+- Start DIRECTLY with your first <h2> or <p> tag
+- Use ONLY these tags: h2, h3, p, ul, ol, li, strong, em
+- Add Tailwind spacing classes: mb-4, mt-6
+- No borders, no full page structure
+
+EXAMPLE OF CORRECT OUTPUT:
+<h2 class="text-2xl font-bold mt-6 mb-4">Quick Answer</h2>
+<p class="mb-4">Planning a trip to France? Here's what you need to know...</p>
+
+EXAMPLE OF WRONG OUTPUT (DO NOT DO THIS):
+<!DOCTYPE html><html><head>...</head><body>...</body></html>`;
 }
 
 serve(async (req) => {

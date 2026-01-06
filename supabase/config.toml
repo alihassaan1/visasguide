@@ -100,3 +100,6 @@ verify_jwt = false
 
 [functions.daily-agent-report]
 verify_jwt = false
+
+[functions.content-cleaner]
+verify_jwt = false

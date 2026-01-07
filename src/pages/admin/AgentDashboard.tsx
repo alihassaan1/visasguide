@@ -571,11 +571,12 @@ const AgentDashboard = () => {
     };
   });
 
-  // Cost change indicator component
-  const CostChangeIndicator = ({ change, size = 'sm' }: { change: number; size?: 'sm' | 'lg' }) => {
-    if (change === 0) return null;
-    const isDecrease = change < 0;
-    const absChange = Math.abs(change);
+  // Cost change indicator component - with safe guards
+  const CostChangeIndicator = ({ change, size = 'sm' }: { change: number | undefined | null; size?: 'sm' | 'lg' }) => {
+    const safeChange = change ?? 0;
+    if (safeChange === 0 || !isFinite(safeChange)) return null;
+    const isDecrease = safeChange < 0;
+    const absChange = Math.abs(safeChange);
     const Icon = isDecrease ? ArrowDown : ArrowUp;
     const colorClass = isDecrease ? 'text-green-500' : 'text-red-500';
     const bgClass = isDecrease ? 'bg-green-500/10' : 'bg-red-500/10';
@@ -765,17 +766,19 @@ const AgentDashboard = () => {
     }
   };
 
-  // Calculate visa content completion estimate
+  // Calculate visa content completion estimate - with safe guards
   const visaCompletionEstimate = () => {
-    if (!stats) return null;
-    const remaining = stats.visaReqRemaining;
-    const batchSize = localSettings.visaRequirementsContent.batchSize;
+    if (!stats) return { daysToComplete: 0, pagesPerDay: 0, coveragePercent: '0.0' };
+    const remaining = stats.visaReqRemaining ?? 0;
+    const batchSize = localSettings?.visaRequirementsContent?.batchSize ?? 50;
     const runsPerDay = 96; // every 15 min
     const pagesPerDay = batchSize * runsPerDay;
-    const daysToComplete = Math.ceil(remaining / pagesPerDay);
-    const coveragePercent = stats.visaReqTotalCombinations > 0 
-      ? ((stats.visaReqContentCount / stats.visaReqTotalCombinations) * 100).toFixed(1)
-      : 0;
+    const daysToComplete = pagesPerDay > 0 ? Math.ceil(remaining / pagesPerDay) : 0;
+    const total = stats.visaReqTotalCombinations ?? 0;
+    const count = stats.visaReqContentCount ?? 0;
+    const coveragePercent = total > 0 
+      ? ((count / total) * 100).toFixed(1)
+      : '0.0';
     return { daysToComplete, pagesPerDay, coveragePercent };
   };
 

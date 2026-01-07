@@ -654,17 +654,19 @@ const AnalyticsDashboard = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={dailyTrend}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="date" className="text-xs" />
-              <YAxis className="text-xs" />
-              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
-              <Line type="monotone" dataKey="pageViews" stroke="hsl(var(--primary))" strokeWidth={2} name="Page Views" />
-              <Line type="monotone" dataKey="searches" stroke="hsl(var(--secondary))" strokeWidth={2} name="Searches" />
-            </LineChart>
-          </ResponsiveContainer>
+        <CardContent className="min-w-0">
+          <div style={{ width: '100%', height: 280 }} key={`chart-${trendPeriod}`}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={dailyTrend || []}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="date" className="text-xs" />
+                <YAxis className="text-xs" />
+                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+                <Line type="monotone" dataKey="pageViews" stroke="hsl(var(--primary))" strokeWidth={2} name="Page Views" />
+                <Line type="monotone" dataKey="searches" stroke="hsl(var(--secondary))" strokeWidth={2} name="Searches" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
 
@@ -791,26 +793,28 @@ const AnalyticsDashboard = () => {
               Device Types
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={deviceDistribution}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={40}
-                  outerRadius={70}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                >
-                  {deviceDistribution?.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={DEVICE_COLORS[entry.name as keyof typeof DEVICE_COLORS] || COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+          <CardContent className="min-w-0">
+            <div style={{ width: '100%', height: 200 }} key={`device-${trendPeriod}`}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={deviceDistribution || []}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={70}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
+                  >
+                    {(deviceDistribution || []).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={DEVICE_COLORS[entry.name as keyof typeof DEVICE_COLORS] || COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
 
@@ -822,15 +826,17 @@ const AnalyticsDashboard = () => {
               Browsers
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={browserDistribution} layout="vertical">
-                <XAxis type="number" className="text-xs" />
-                <YAxis dataKey="name" type="category" width={60} className="text-xs" />
-                <Tooltip />
-                <Bar dataKey="value" fill="hsl(var(--primary))" />
-              </BarChart>
-            </ResponsiveContainer>
+          <CardContent className="min-w-0">
+            <div style={{ width: '100%', height: 200 }} key={`browser-${trendPeriod}`}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={browserDistribution || []} layout="vertical">
+                  <XAxis type="number" className="text-xs" />
+                  <YAxis dataKey="name" type="category" width={60} className="text-xs" />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="hsl(var(--primary))" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
 
@@ -842,26 +848,28 @@ const AnalyticsDashboard = () => {
               Operating Systems
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={osDistribution}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={40}
-                  outerRadius={70}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                >
-                  {osDistribution?.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+          <CardContent className="min-w-0">
+            <div style={{ width: '100%', height: 200 }} key={`os-${trendPeriod}`}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={osDistribution || []}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={70}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
+                  >
+                    {(osDistribution || []).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
       </div>

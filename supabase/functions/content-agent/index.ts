@@ -309,7 +309,69 @@ async function processInParallel<T, R>(
   return results;
 }
 
-// Human-style prompt for visa requirements content (country-to-country) - OPTIMIZED for speed
+// Quality gate: Minimum standards for high-quality content
+const QUALITY_STANDARDS = {
+  visa_requirements_content: {
+    minWordCount: 400, // Minimum words (approx 500-600 target)
+    requiredSections: ['Quick Answer', 'Requirements', 'Apply', 'Tips', 'FAQ'],
+    forbiddenPhrases: ['[insert', 'TBD', 'Lorem ipsum', 'placeholder', 'coming soon'],
+    minFAQCount: 2,
+  },
+  evergreen_guide: {
+    minWordCount: 800,
+    requiredSections: ['Introduction', 'Step', 'Common Mistakes', 'FAQ'],
+    forbiddenPhrases: ['[insert', 'TBD', 'Lorem ipsum', 'placeholder'],
+    minFAQCount: 4,
+  }
+};
+
+// Validate content quality - returns { isValid: boolean, issues: string[] }
+function validateContentQuality(content: string, contentType: keyof typeof QUALITY_STANDARDS): { isValid: boolean; issues: string[] } {
+  const issues: string[] = [];
+  const standards = QUALITY_STANDARDS[contentType];
+  
+  if (!standards) return { isValid: true, issues: [] };
+  
+  // Word count check (strip HTML tags first)
+  const textContent = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  const wordCount = textContent.split(' ').filter(w => w.length > 0).length;
+  
+  if (wordCount < standards.minWordCount) {
+    issues.push(`Content too thin: ${wordCount} words (minimum: ${standards.minWordCount})`);
+  }
+  
+  // Required sections check
+  const contentLower = content.toLowerCase();
+  const missingSections: string[] = [];
+  for (const section of standards.requiredSections) {
+    if (!contentLower.includes(section.toLowerCase())) {
+      missingSections.push(section);
+    }
+  }
+  if (missingSections.length > 0) {
+    issues.push(`Missing sections: ${missingSections.join(', ')}`);
+  }
+  
+  // Forbidden phrases check
+  for (const phrase of standards.forbiddenPhrases) {
+    if (contentLower.includes(phrase.toLowerCase())) {
+      issues.push(`Contains placeholder text: "${phrase}"`);
+    }
+  }
+  
+  // FAQ count check
+  const faqMatches = content.match(/<h3[^>]*>.*\?.*<\/h3>/gi) || [];
+  if (faqMatches.length < standards.minFAQCount) {
+    issues.push(`Insufficient FAQs: ${faqMatches.length} (minimum: ${standards.minFAQCount})`);
+  }
+  
+  return {
+    isValid: issues.length === 0,
+    issues
+  };
+}
+
+// Human-style prompt for visa requirements content (country-to-country) - OPTIMIZED for speed + QUALITY
 function generateVisaRequirementsPrompt(
   fromCountry: { name: string; slug: string },
   toCountry: { name: string; slug: string },
@@ -333,8 +395,8 @@ function generateVisaRequirementsPrompt(
   ];
   const randomOpening = openingStyles[Math.floor(Math.random() * openingStyles.length)];
 
-  // OPTIMIZED PROMPT - Reduced to ~500-600 words output for faster generation
-  return `Write a concise travel guide about ${toCTR} visa for ${fromCTR} passport holders.
+  // QUALITY-FOCUSED PROMPT - Ensures minimum standards are met
+  return `Write a comprehensive travel guide about ${toCTR} visa for ${fromCTR} passport holders.
 
 STYLE: Write naturally like a travel blogger. Use contractions (you'll, don't, it's). Keep it friendly and practical.
 
@@ -342,19 +404,19 @@ VISA INFO:
 - Entry: ${visaType} | Fee: ${fee} | Processing: ${processing} | Stay: ${maxStay}
 ${visaData?.notes ? `- Notes: ${visaData.notes}` : ''}
 
-STRUCTURE (500-600 words max):
+REQUIRED STRUCTURE (500-700 words minimum):
 
-1. **Quick Answer** (2-3 sentences) - ${randomOpening} Answer immediately.
+1. **Quick Answer** (2-3 sentences) - ${randomOpening} Answer immediately with visa type and key details.
 
-2. **Requirements** (bullet list) - Entry type, documents, duration
+2. **Requirements** (bullet list with 5+ items) - Entry type, passport validity, documents needed, photos, proof of funds, return ticket, etc.
 
-3. **How to Apply** (3-5 steps) - Simple step-by-step
+3. **How to Apply** (numbered steps, at least 4 steps) - Clear step-by-step application process.
 
-4. **Costs & Timeline** - Fees, processing time, hidden costs
+4. **Costs & Timeline** - Fees breakdown, processing time, any expedite options.
 
-5. **3 Pro Tips** - Practical insider advice
+5. **5 Pro Tips** (minimum 5 tips) - Practical insider advice travelers actually need.
 
-6. **2-3 FAQs** - Common questions with short answers
+6. **FAQ Section** (minimum 3 questions) - Use <h3> tags with question marks. Common questions with detailed answers.
 
 KEYWORDS: "${toCTR} visa for ${fromCTR} citizens", "${fromCTR} passport ${toCTR}"
 
@@ -879,14 +941,35 @@ serve(async (req) => {
           const visaDataKey = `${combo.from.id}-${combo.to.id}`;
           const visaData = visaDataMap.get(visaDataKey);
 
-          // Generate human-style content with OPTIMIZED token limit (1500 instead of 2500)
+          // Generate human-style content with quality-focused token limit
           const prompt = generateVisaRequirementsPrompt(combo.from, combo.to, visaData);
-          const content = await callDeepSeek(
-            `You're a friendly travel advisor. Write naturally, be concise and helpful.`,
+          let content = await callDeepSeek(
+            `You're a friendly travel advisor. Write naturally, be thorough, and include all required sections.`,
             prompt,
-            1500, // REDUCED from 2500 for faster generation
+            2000, // Increased from 1500 for quality
             entityName
           );
+          
+          // QUALITY GATE: Validate content meets standards
+          const qualityCheck = validateContentQuality(content, 'visa_requirements_content');
+          if (!qualityCheck.isValid) {
+            console.warn(`⚠️ Quality check failed for ${entityName}:`, qualityCheck.issues);
+            
+            // Try regenerating once with explicit guidance
+            const repairPrompt = `${prompt}\n\nIMPORTANT: The previous version was rejected because:\n${qualityCheck.issues.join('\n')}\n\nPlease ensure your response meets all requirements.`;
+            content = await callDeepSeek(
+              `You're a friendly travel advisor. This is a retry - please include ALL required sections and meet the minimum word count.`,
+              repairPrompt,
+              2500,
+              `${entityName} (retry)`
+            );
+            
+            const retryCheck = validateContentQuality(content, 'visa_requirements_content');
+            if (!retryCheck.isValid) {
+              console.error(`❌ Quality gate failed after retry for ${entityName}:`, retryCheck.issues);
+              throw new Error(`Quality gate failed: ${retryCheck.issues.join('; ')}`);
+            }
+          }
 
           // Create SEO-optimized metadata
           const slug = `${combo.from.slug}-to-${combo.to.slug}-visa-requirements`;

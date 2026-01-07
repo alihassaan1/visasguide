@@ -5,6 +5,7 @@ import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import AdminErrorBoundary from "./AdminErrorBoundary";
 
 type RedirectTarget = "/admin/auth" | "/" | null;
 
@@ -78,7 +79,9 @@ export function AdminLayout() {
       <div className="flex-1 flex flex-col">
         <AdminHeader />
         <main className="flex-1 overflow-auto">
-          <Outlet />
+          <AdminErrorBoundary fallbackTitle="Dashboard Error">
+            <Outlet />
+          </AdminErrorBoundary>
         </main>
       </div>
     </div>

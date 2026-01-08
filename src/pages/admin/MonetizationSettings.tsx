@@ -8,16 +8,38 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, ExternalLink } from "lucide-react";
+import { Plus, Trash2, ExternalLink, Target, Calendar, BarChart3 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageUpload } from "@/components/admin/ImageUpload";
+import { CountryMultiSelect } from "@/components/admin/CountryMultiSelect";
+import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
+interface AffiliateData {
+  id: string;
+  name: string;
+  target_url: string;
+  html_embed: string | null;
+  image_url: string | null;
+  is_active: boolean;
+  click_count: number;
+  position: string;
+  target_countries: string[];
+  exclude_countries: string[];
+  target_page_patterns: string[];
+  priority: number;
+  start_date: string | null;
+  end_date: string | null;
+  impressions: number;
+}
 
 export default function MonetizationSettings() {
   const { toast } = useToast();
   const [adsenseCode, setAdsenseCode] = useState("");
   const [gdprConsentCode, setGdprConsentCode] = useState("");
-  const [affiliates, setAffiliates] = useState<any[]>([]);
+  const [affiliates, setAffiliates] = useState<AffiliateData[]>([]);
   const [loading, setLoading] = useState(false);
+  const [expandedTargeting, setExpandedTargeting] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     loadSettings();
@@ -25,7 +47,6 @@ export default function MonetizationSettings() {
 
   const loadSettings = async () => {
     try {
-      // Load AdSense settings
       const { data: adsense } = await supabase
         .from('site_settings')
         .select('setting_value')
@@ -36,7 +57,6 @@ export default function MonetizationSettings() {
         setAdsenseCode((adsense.setting_value as any)?.code || '');
       }
 
-      // Load GDPR Consent Code
       const { data: gdpr } = await supabase
         .from('site_settings')
         .select('setting_value')
@@ -47,13 +67,19 @@ export default function MonetizationSettings() {
         setGdprConsentCode((gdpr.setting_value as any)?.code || '');
       }
 
-      // Load affiliate banners
       const { data: affiliateData } = await supabase
         .from('settings_affiliates')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('priority', { ascending: false });
 
-      setAffiliates(affiliateData || []);
+      setAffiliates((affiliateData || []).map(aff => ({
+        ...aff,
+        target_countries: aff.target_countries || [],
+        exclude_countries: aff.exclude_countries || [],
+        target_page_patterns: aff.target_page_patterns || [],
+        priority: aff.priority || 0,
+        impressions: aff.impressions || 0,
+      })));
     } catch (error: any) {
       console.error('Error loading settings:', error);
     }
@@ -65,22 +91,14 @@ export default function MonetizationSettings() {
       const { error } = await supabase
         .from('site_settings')
         .upsert(
-          {
-            setting_key: 'adsense_code',
-            setting_value: { code: adsenseCode }
-          },
+          { setting_key: 'adsense_code', setting_value: { code: adsenseCode } },
           { onConflict: 'setting_key' }
         );
 
       if (error) throw error;
-
       toast({ title: "AdSense code saved successfully" });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -92,22 +110,14 @@ export default function MonetizationSettings() {
       const { error } = await supabase
         .from('site_settings')
         .upsert(
-          {
-            setting_key: 'gdpr_consent_code',
-            setting_value: { code: gdprConsentCode }
-          },
+          { setting_key: 'gdpr_consent_code', setting_value: { code: gdprConsentCode } },
           { onConflict: 'setting_key' }
         );
 
       if (error) throw error;
-
       toast({ title: "GDPR Consent code saved successfully" });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -120,23 +130,22 @@ export default function MonetizationSettings() {
         target_url: 'https://example.com',
         position: 'sidebar-right',
         is_active: false,
-        html_embed: ''
+        html_embed: '',
+        target_countries: [],
+        exclude_countries: [],
+        target_page_patterns: [],
+        priority: 0,
       });
 
       if (error) throw error;
-
       await loadSettings();
       toast({ title: "Affiliate banner added" });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
-  const updateAffiliate = async (id: string, updates: any) => {
+  const updateAffiliate = async (id: string, updates: Partial<AffiliateData>) => {
     try {
       const { error } = await supabase
         .from('settings_affiliates')
@@ -151,11 +160,7 @@ export default function MonetizationSettings() {
 
       toast({ title: "Affiliate banner updated" });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
@@ -167,26 +172,30 @@ export default function MonetizationSettings() {
         .eq('id', id);
 
       if (error) throw error;
-
       setAffiliates(prev => prev.filter(aff => aff.id !== id));
       toast({ title: "Affiliate banner deleted" });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
+  };
+
+  const calculateCTR = (clicks: number, impressions: number) => {
+    if (impressions === 0) return "0.00%";
+    return ((clicks / impressions) * 100).toFixed(2) + "%";
+  };
+
+  const toggleTargeting = (id: string) => {
+    setExpandedTargeting(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
   return (
     <div className="container mx-auto p-3 sm:p-6 max-w-7xl">
       <div className="mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">Monetization Settings</h1>
-        <p className="text-muted-foreground">Manage AdSense and affiliate banners</p>
+        <p className="text-muted-foreground">Manage AdSense, affiliate banners, and geo-targeting</p>
       </div>
 
-      <Tabs defaultValue="gdpr">
+      <Tabs defaultValue="affiliates">
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="gdpr">GDPR Consent</TabsTrigger>
           <TabsTrigger value="adsense">AdSense</TabsTrigger>
@@ -197,7 +206,7 @@ export default function MonetizationSettings() {
           <Card>
             <CardHeader>
               <CardTitle>Google GDPR Consent Banner</CardTitle>
-              <CardDescription>Configure the cookie consent banner for EEA/UK visitors (required for AdSense)</CardDescription>
+              <CardDescription>Configure the cookie consent banner for EEA/UK visitors</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -205,19 +214,12 @@ export default function MonetizationSettings() {
                 <Textarea
                   value={gdprConsentCode}
                   onChange={(e) => setGdprConsentCode(e.target.value)}
-                  placeholder="Paste the Google Consent Management Platform code from AdSense here..."
+                  placeholder="Paste the Google Consent Management Platform code..."
                   rows={8}
                   className="font-mono text-xs"
                 />
-                <p className="text-sm text-muted-foreground mt-2">
-                  This code is provided by Google AdSense after selecting your consent options. 
-                  It will display a cookie consent banner to visitors in the EEA, UK, and Switzerland.
-                </p>
               </div>
-
-              <Button onClick={saveGdprConsent} disabled={loading}>
-                Save GDPR Consent Settings
-              </Button>
+              <Button onClick={saveGdprConsent} disabled={loading}>Save GDPR Consent Settings</Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -237,14 +239,8 @@ export default function MonetizationSettings() {
                   placeholder="Paste your AdSense code here..."
                   rows={6}
                 />
-                <p className="text-sm text-muted-foreground mt-2">
-                  This code will be inserted into the header and in-content ad positions
-                </p>
               </div>
-
-              <Button onClick={saveAdsense} disabled={loading}>
-                Save AdSense Settings
-              </Button>
+              <Button onClick={saveAdsense} disabled={loading}>Save AdSense Settings</Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -254,7 +250,7 @@ export default function MonetizationSettings() {
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-2xl font-bold">Affiliate Banners</h2>
-                <p className="text-muted-foreground">Manage affiliate link banners and track clicks</p>
+                <p className="text-muted-foreground">Geo-targeted banners with analytics</p>
               </div>
               <Button onClick={addAffiliate}>
                 <Plus className="mr-2 h-4 w-4" />
@@ -273,24 +269,39 @@ export default function MonetizationSettings() {
                           onChange={(e) => updateAffiliate(affiliate.id, { name: e.target.value })}
                           className="font-semibold text-lg mb-2"
                         />
+                        <div className="flex flex-wrap gap-2">
+                          {affiliate.target_countries.length > 0 && (
+                            <Badge variant="outline" className="text-xs">
+                              <Target className="mr-1 h-3 w-3" />
+                              {affiliate.target_countries.length} countries
+                            </Badge>
+                          )}
+                          {affiliate.target_page_patterns.length > 0 && (
+                            <Badge variant="outline" className="text-xs">
+                              {affiliate.target_page_patterns.length} page patterns
+                            </Badge>
+                          )}
+                          {(affiliate.start_date || affiliate.end_date) && (
+                            <Badge variant="outline" className="text-xs">
+                              <Calendar className="mr-1 h-3 w-3" />
+                              Scheduled
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Switch
                           checked={affiliate.is_active}
                           onCheckedChange={(checked) => updateAffiliate(affiliate.id, { is_active: checked })}
                         />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteAffiliate(affiliate.id)}
-                        >
+                        <Button variant="ghost" size="icon" onClick={() => deleteAffiliate(affiliate.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <Label>Target URL</Label>
                         <Input
@@ -299,7 +310,6 @@ export default function MonetizationSettings() {
                           placeholder="https://affiliate-link.com"
                         />
                       </div>
-
                       <div>
                         <Label>Position</Label>
                         <Select
@@ -318,20 +328,101 @@ export default function MonetizationSettings() {
                           </SelectContent>
                         </Select>
                       </div>
+                      <div>
+                        <Label>Priority</Label>
+                        <Input
+                          type="number"
+                          value={affiliate.priority}
+                          onChange={(e) => updateAffiliate(affiliate.id, { priority: parseInt(e.target.value) || 0 })}
+                          placeholder="0"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Higher = shown first</p>
+                      </div>
                     </div>
+
+                    {/* Targeting Section */}
+                    <Collapsible open={expandedTargeting[affiliate.id]} onOpenChange={() => toggleTargeting(affiliate.id)}>
+                      <CollapsibleTrigger asChild>
+                        <Button variant="outline" className="w-full justify-between">
+                          <span className="flex items-center">
+                            <Target className="mr-2 h-4 w-4" />
+                            Targeting Options
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {expandedTargeting[affiliate.id] ? 'Hide' : 'Show'}
+                          </span>
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-4 pt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label>Show to Countries (empty = all)</Label>
+                            <CountryMultiSelect
+                              value={affiliate.target_countries}
+                              onChange={(value) => updateAffiliate(affiliate.id, { target_countries: value })}
+                              placeholder="Select target countries..."
+                            />
+                          </div>
+                          <div>
+                            <Label>Exclude Countries</Label>
+                            <CountryMultiSelect
+                              value={affiliate.exclude_countries}
+                              onChange={(value) => updateAffiliate(affiliate.id, { exclude_countries: value })}
+                              placeholder="Select countries to exclude..."
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label>Page URL Patterns (empty = all pages)</Label>
+                          <Textarea
+                            value={affiliate.target_page_patterns.join('\n')}
+                            onChange={(e) => updateAffiliate(affiliate.id, { 
+                              target_page_patterns: e.target.value.split('\n').filter(p => p.trim()) 
+                            })}
+                            placeholder="*-to-thailand*&#10;/visa-guides/*&#10;/united-arab-emirates-*"
+                            rows={3}
+                            className="font-mono text-sm"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            One pattern per line. Use * as wildcard. Example: *-to-indonesia* matches all pages with "-to-indonesia" in the URL
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label>Start Date (optional)</Label>
+                            <Input
+                              type="datetime-local"
+                              value={affiliate.start_date ? affiliate.start_date.slice(0, 16) : ''}
+                              onChange={(e) => updateAffiliate(affiliate.id, { 
+                                start_date: e.target.value ? new Date(e.target.value).toISOString() : null 
+                              })}
+                            />
+                          </div>
+                          <div>
+                            <Label>End Date (optional)</Label>
+                            <Input
+                              type="datetime-local"
+                              value={affiliate.end_date ? affiliate.end_date.slice(0, 16) : ''}
+                              onChange={(e) => updateAffiliate(affiliate.id, { 
+                                end_date: e.target.value ? new Date(e.target.value).toISOString() : null 
+                              })}
+                            />
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
 
                     <div>
                       <Label>HTML Embed Code (Optional)</Label>
                       <Textarea
                         value={affiliate.html_embed || ''}
                         onChange={(e) => updateAffiliate(affiliate.id, { html_embed: e.target.value })}
-                        placeholder="Paste HTML embed code from GetYourGuide, etc..."
+                        placeholder="Paste HTML embed code..."
                         rows={4}
                         className="font-mono text-xs"
                       />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        If HTML code is provided, it will be used instead of the image banner
-                      </p>
                     </div>
 
                     {!affiliate.html_embed && (
@@ -344,20 +435,30 @@ export default function MonetizationSettings() {
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                      <div>
-                        <p className="text-sm font-medium">Total Clicks</p>
-                        <p className="text-2xl font-bold">{affiliate.click_count || 0}</p>
+                    {/* Analytics Section */}
+                    <div className="grid grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground">Impressions</p>
+                        <p className="text-xl font-bold">{affiliate.impressions.toLocaleString()}</p>
                       </div>
-                      {affiliate.target_url && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={affiliate.target_url} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Preview Link
-                          </a>
-                        </Button>
-                      )}
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground">Clicks</p>
+                        <p className="text-xl font-bold">{affiliate.click_count.toLocaleString()}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground">CTR</p>
+                        <p className="text-xl font-bold">{calculateCTR(affiliate.click_count, affiliate.impressions)}</p>
+                      </div>
                     </div>
+
+                    {affiliate.target_url && (
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={affiliate.target_url} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="mr-2 h-4 w-4" />
+                          Preview Link
+                        </a>
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               ))}

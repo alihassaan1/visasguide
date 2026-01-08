@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Search, TrendingUp, Globe, FileText, Plane, Map } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { CURRENT_YEAR } from "@/lib/constants";
 
 const SEOKeywordsSection = () => {
   const keywordCategories = [
@@ -36,7 +37,7 @@ const SEOKeywordsSection = () => {
         { text: "eVisa Application", link: "/countries" },
         { text: "Passport Rankings", link: "/passport-rankings" },
         { text: "Visa Processing Times", link: "/processing-times" },
-        { text: "Travel Requirements 2025", link: "/countries" },
+        { text: `Travel Requirements ${CURRENT_YEAR}`, link: "/countries" },
         { text: "Visa Requirements Checker", link: "/visa-requirements" },
       ],
     },

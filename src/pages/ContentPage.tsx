@@ -5,12 +5,24 @@ import Footer from '@/components/Footer';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Eye } from 'lucide-react';
+import { Eye, Clock, Calendar, BookOpen, ChevronRight } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import NewsletterSignup from '@/components/NewsletterSignup';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import SocialShareButtons from '@/components/SocialShareButtons';
 import AuthorBio from '@/components/AuthorBio';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import RelatedContent from '@/components/RelatedContent';
+import { AffiliateBannerContainer } from '@/components/AffiliateBannerContainer';
+
+// Estimate reading time based on content
+const estimateReadingTime = (content: string): number => {
+  const wordsPerMinute = 200;
+  const textContent = content.replace(/<[^>]*>/g, '');
+  const wordCount = textContent.split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(wordCount / wordsPerMinute));
+};
 
 export default function ContentPage() {
   const { slug } = useParams();
@@ -82,10 +94,17 @@ export default function ContentPage() {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="container mx-auto px-4 py-12">
-          <div className="max-w-4xl mx-auto space-y-6">
-            <Skeleton className="h-12 w-3/4" />
-            <Skeleton className="h-6 w-1/2" />
-            <Skeleton className="h-96 w-full" />
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <Skeleton className="h-12 w-3/4" />
+              <Skeleton className="h-6 w-1/2" />
+              <Skeleton className="h-[400px] w-full rounded-xl" />
+              <Skeleton className="h-96 w-full" />
+            </div>
+            <div className="space-y-6">
+              <Skeleton className="h-64 w-full" />
+              <Skeleton className="h-48 w-full" />
+            </div>
           </div>
         </main>
         <Footer />
@@ -107,6 +126,8 @@ export default function ContentPage() {
       </div>
     );
   }
+
+  const readingTime = estimateReadingTime(page.content || '');
 
   return (
     <div className="min-h-screen bg-background">
@@ -130,9 +151,9 @@ export default function ContentPage() {
         </div>
       )}
       
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-8">
         {/* Breadcrumbs */}
-        <Breadcrumb className="mb-6 max-w-4xl mx-auto">
+        <Breadcrumb className="mb-6">
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
@@ -141,90 +162,189 @@ export default function ContentPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{page.title}</BreadcrumbPage>
+              <BreadcrumbLink asChild>
+                <Link to="/guides">Guides</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="truncate max-w-[200px]">{page.title}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
-        <article className="max-w-4xl mx-auto">
-          {/* Header */}
-          <header className="mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-              {page.title}
-            </h1>
-            {page.excerpt && (
-              <p className="text-xl text-muted-foreground mb-6">
-                {page.excerpt}
-              </p>
-            )}
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <time dateTime={page.updated_at}>
-                Updated: {new Date(page.updated_at).toLocaleDateString('en-US', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
-              </time>
-              <span className="flex items-center gap-1">
-                <Eye className="h-4 w-4" />
-                {page.view_count || 0} views
-              </span>
-            </div>
-          </header>
+        {/* Two-Column Layout */}
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content - 2/3 width */}
+          <article className="lg:col-span-2">
+            {/* Header */}
+            <header className="mb-8">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 leading-tight font-serif">
+                {page.title}
+              </h1>
+              {page.excerpt && (
+                <p className="text-lg md:text-xl text-muted-foreground mb-6 leading-relaxed">
+                  {page.excerpt}
+                </p>
+              )}
+              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground border-b pb-4">
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4" />
+                  <time dateTime={page.updated_at}>
+                    {new Date(page.updated_at).toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </time>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="h-4 w-4" />
+                  <span>{readingTime} min read</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Eye className="h-4 w-4" />
+                  <span>{(page.view_count || 0).toLocaleString()} views</span>
+                </div>
+              </div>
+            </header>
 
-          {/* Featured Image */}
-          {page.featured_image_url && (
-            <div className="mb-8 rounded-xl overflow-hidden">
-              <img 
-                src={page.featured_image_url} 
-                alt={`${page.title} - comprehensive visa and travel guide illustration`}
-                className="w-full h-[400px] object-cover"
-                loading="lazy"
+            {/* Featured Image */}
+            {page.featured_image_url && (
+              <div className="mb-8 rounded-xl overflow-hidden shadow-lg">
+                <img 
+                  src={page.featured_image_url} 
+                  alt={`${page.title} - comprehensive visa and travel guide illustration`}
+                  className="w-full h-[350px] md:h-[450px] object-cover"
+                  loading="lazy"
+                />
+              </div>
+            )}
+
+            {/* Content with improved typography */}
+            <div 
+              className="prose prose-lg max-w-none 
+                prose-headings:font-serif prose-headings:text-foreground prose-headings:font-bold
+                prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
+                prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
+                prose-p:text-muted-foreground prose-p:leading-relaxed prose-p:mb-5
+                prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                prose-strong:text-foreground prose-strong:font-semibold
+                prose-ul:text-muted-foreground prose-ol:text-muted-foreground
+                prose-li:mb-2
+                prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg
+                prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
+                prose-img:rounded-lg prose-img:shadow-md"
+              dangerouslySetInnerHTML={{ __html: page.content }}
+            />
+
+            {/* In-content Ad Zone */}
+            <div className="my-8 p-4 bg-muted/30 rounded-lg border border-dashed border-muted-foreground/20 text-center">
+              <span className="text-xs text-muted-foreground">Advertisement</span>
+              {/* Ad placeholder - integrate with Google AdSense */}
+            </div>
+
+            {/* Social Share Buttons */}
+            <div className="mt-10 pt-6 border-t">
+              <h3 className="text-sm font-semibold text-muted-foreground mb-4">Share this guide</h3>
+              <SocialShareButtons
+                url={`https://visas.guide/${page.slug}`}
+                title={page.title}
+                description={page.excerpt || page.meta_description}
               />
             </div>
-          )}
 
-          {/* Content */}
-          <div 
-            className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground prose-ul:text-muted-foreground prose-ol:text-muted-foreground"
-            dangerouslySetInnerHTML={{ __html: page.content }}
-          />
-
-          {/* Social Share Buttons */}
-          <div className="mt-8 pt-6 border-t">
-            <SocialShareButtons
-              url={`https://visas.guide/${page.slug}`}
-              title={page.title}
-              description={page.excerpt || page.meta_description}
-            />
-          </div>
-
-          {/* Author Bio */}
-          <div className="mt-8">
-            <AuthorBio writerId={page.writer_id} />
-          </div>
-
-          {/* Keywords */}
-          {page.keywords && page.keywords.length > 0 && (
-            <div className="mt-12 pt-8 border-t">
-              <h3 className="text-sm font-semibold text-muted-foreground mb-3">Related Topics:</h3>
-              <div className="flex flex-wrap gap-2">
-                {page.keywords.map((keyword: string) => (
-                  <span 
-                    key={keyword}
-                    className="px-3 py-1 bg-accent/50 text-accent-foreground rounded-full text-sm"
-                  >
-                    {keyword}
-                  </span>
-                ))}
-              </div>
+            {/* Author Bio */}
+            <div className="mt-8">
+              <AuthorBio writerId={page.writer_id} />
             </div>
-          )}
-        </article>
 
-        {/* Newsletter Signup */}
-        <div className="mt-12 max-w-4xl mx-auto">
-          <NewsletterSignup variant="sidebar" />
+            {/* Keywords */}
+            {page.keywords && page.keywords.length > 0 && (
+              <div className="mt-10 pt-6 border-t">
+                <h3 className="text-sm font-semibold text-muted-foreground mb-3">Related Topics</h3>
+                <div className="flex flex-wrap gap-2">
+                  {page.keywords.map((keyword: string) => (
+                    <Badge 
+                      key={keyword}
+                      variant="secondary"
+                      className="px-3 py-1.5 text-sm hover:bg-accent cursor-pointer transition-colors"
+                    >
+                      {keyword}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </article>
+
+          {/* Sidebar - 1/3 width */}
+          <aside className="space-y-6">
+            {/* Quick Navigation Card */}
+            <Card className="sticky top-4">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <BookOpen className="h-4 w-4 text-primary" />
+                  Quick Navigation
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <Link to="/visa-finder" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors py-1">
+                  <ChevronRight className="h-3 w-3" />
+                  Visa Finder Tool
+                </Link>
+                <Link to="/countries" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors py-1">
+                  <ChevronRight className="h-3 w-3" />
+                  All Countries
+                </Link>
+                <Link to="/passport-rankings" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors py-1">
+                  <ChevronRight className="h-3 w-3" />
+                  Passport Rankings
+                </Link>
+                <Link to="/news" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors py-1">
+                  <ChevronRight className="h-3 w-3" />
+                  Latest News
+                </Link>
+              </CardContent>
+            </Card>
+
+            {/* Ad Zone 1 */}
+            <Card className="bg-muted/30 border-dashed">
+              <CardContent className="p-6 text-center">
+                <span className="text-xs text-muted-foreground block mb-2">Advertisement</span>
+                <div className="h-[250px] bg-muted/50 rounded flex items-center justify-center">
+                  {/* Ad placeholder */}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Affiliate Banner */}
+            <AffiliateBannerContainer position="sidebar-right" />
+
+            {/* Newsletter Signup */}
+            <Card>
+              <CardContent className="p-0">
+                <NewsletterSignup variant="sidebar" />
+              </CardContent>
+            </Card>
+
+            {/* Related Content */}
+            <RelatedContent 
+              currentSlug={page.slug} 
+              contentType="guide"
+              maxItems={4}
+            />
+
+            {/* Ad Zone 2 */}
+            <Card className="bg-muted/30 border-dashed">
+              <CardContent className="p-6 text-center">
+                <span className="text-xs text-muted-foreground block mb-2">Advertisement</span>
+                <div className="h-[300px] bg-muted/50 rounded flex items-center justify-center">
+                  {/* Ad placeholder */}
+                </div>
+              </CardContent>
+            </Card>
+          </aside>
         </div>
       </main>
 

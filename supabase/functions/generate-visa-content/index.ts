@@ -275,7 +275,7 @@ Quality: Ultra high resolution, suitable for hero banner.`;
         slug: contentSlug,
         title,
         content: generatedContent,
-        meta_title: `${toCTR} Visa for ${fromCTR} Citizens 2025 | Visas Guide`,
+        meta_title: `${toCTR} Visa for ${fromCTR} Citizens 2026 | Visas Guide`,
         meta_description: metaDescription,
         excerpt: metaDescription,
         featured_image_url: featuredImageUrl,

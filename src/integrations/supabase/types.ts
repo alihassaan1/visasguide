@@ -1433,36 +1433,57 @@ export type Database = {
         Row: {
           click_count: number
           created_at: string
+          end_date: string | null
+          exclude_countries: string[] | null
           html_embed: string | null
           id: string
           image_url: string | null
+          impressions: number | null
           is_active: boolean
           name: string
           position: string
+          priority: number | null
+          start_date: string | null
+          target_countries: string[] | null
+          target_page_patterns: string[] | null
           target_url: string
           updated_at: string
         }
         Insert: {
           click_count?: number
           created_at?: string
+          end_date?: string | null
+          exclude_countries?: string[] | null
           html_embed?: string | null
           id?: string
           image_url?: string | null
+          impressions?: number | null
           is_active?: boolean
           name: string
           position?: string
+          priority?: number | null
+          start_date?: string | null
+          target_countries?: string[] | null
+          target_page_patterns?: string[] | null
           target_url: string
           updated_at?: string
         }
         Update: {
           click_count?: number
           created_at?: string
+          end_date?: string | null
+          exclude_countries?: string[] | null
           html_embed?: string | null
           id?: string
           image_url?: string | null
+          impressions?: number | null
           is_active?: boolean
           name?: string
           position?: string
+          priority?: number | null
+          start_date?: string | null
+          target_countries?: string[] | null
+          target_page_patterns?: string[] | null
           target_url?: string
           updated_at?: string
         }

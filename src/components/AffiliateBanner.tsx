@@ -7,6 +7,7 @@ interface AffiliateBannerProps {
   ctaText: string;
   affiliateLink: string;
   position?: "inline" | "sidebar";
+  onClick?: () => void;
 }
 
 const AffiliateBanner = ({
@@ -15,10 +16,13 @@ const AffiliateBanner = ({
   description,
   ctaText,
   affiliateLink,
-  position = "inline"
+  position = "inline",
+  onClick
 }: AffiliateBannerProps) => {
   const handleClick = () => {
-    // Track affiliate click
+    // Call custom onClick if provided
+    onClick?.();
+    // Track affiliate click via Google Analytics
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', 'affiliate_click', {
         affiliate_name: title,

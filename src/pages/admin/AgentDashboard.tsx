@@ -429,10 +429,15 @@ const AgentDashboard = () => {
 
       const calls24h = calc24h.length;
       const success24h = calc24h.filter(l => l.status === "success").length;
-      const errors24h = calc24h.filter(l => l.status === "error" || l.status === "timeout").length;
+      const errors24h = calc24h.filter(l => l.status === "error").length;
+      const timeouts24h = calc24h.filter(l => l.status === "timeout").length;
       const avgResponseTime = calls24h > 0 
         ? Math.round(calc24h.reduce((sum, log) => sum + (log.response_time_ms || 0), 0) / calls24h)
         : 0;
+
+      // Success rate excludes timeouts from denominator (they're not failures, just slow)
+      const nonTimeoutCalls = success24h + errors24h;
+      const successRate = nonTimeoutCalls > 0 ? Math.round((success24h / nonTimeoutCalls) * 100) : 100;
 
       // Calculate percentage changes
       const change24h = costPrev24h > 0 ? ((cost24h - costPrev24h) / costPrev24h) * 100 : 0;
@@ -459,8 +464,9 @@ const AgentDashboard = () => {
         callsCurrentMonth: calcCurrentMonth.length,
         success24h,
         errors24h,
+        timeouts24h,
         avgResponseTime,
-        successRate: calls24h > 0 ? Math.round((success24h / calls24h) * 100) : 100,
+        successRate,
         recentErrors: recentErrors.data || [],
         currentMonthName: format(now, 'MMMM yyyy'),
         prevMonthName: format(prevMonthDate, 'MMMM yyyy'),
@@ -831,6 +837,7 @@ const AgentDashboard = () => {
       remaining: estimates?.countries.remaining,
       eta: estimates?.countries.days,
       status: activeTask?.mode === 'default' ? 'running' : 'idle',
+      isComplete: (estimates?.countries.remaining || 0) === 0,
     },
     {
       id: 'visaEnrichment' as const,
@@ -842,6 +849,7 @@ const AgentDashboard = () => {
       remaining: estimates?.visa.remaining,
       eta: estimates?.visa.days,
       status: activeTask?.mode === 'visa_enrichment' ? 'running' : 'idle',
+      isComplete: (stats?.visaNeedingEnrichment || 0) === 0,
     },
     {
       id: 'blogGeneration' as const,
@@ -1057,10 +1065,15 @@ const AgentDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{apiStats?.calls24h || 0}</div>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
               <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-500/20">
                 {apiStats?.successRate || 100}% success
               </Badge>
+              {(apiStats?.timeouts24h || 0) > 0 && (
+                <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 border-amber-500/20">
+                  {apiStats?.timeouts24h} timeouts
+                </Badge>
+              )}
               {(apiStats?.errors24h || 0) > 0 && (
                 <Badge variant="outline" className="text-xs bg-red-500/10 text-red-600 border-red-500/20">
                   {apiStats?.errors24h} errors
@@ -1577,7 +1590,9 @@ const AgentDashboard = () => {
         {/* Tasks Tab */}
         <TabsContent value="tasks" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {tasks.map((task) => {
+            {tasks
+              .filter(task => !(task as any).isComplete) // Hide completed tasks
+              .map((task) => {
               const settings = localSettings[task.id];
               const isRunning = task.status === 'running';
               
@@ -1642,6 +1657,30 @@ const AgentDashboard = () => {
                 </Card>
               );
             })}
+            
+            {/* Completed Tasks Section */}
+            {tasks.filter(task => (task as any).isComplete).length > 0 && (
+              <Card className="md:col-span-2 lg:col-span-3 bg-green-500/5 border-green-500/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2 text-green-600">
+                    <CheckCircle className="h-5 w-5" />
+                    Completed Tasks
+                  </CardTitle>
+                  <CardDescription>These tasks have finished processing all available data</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {tasks.filter(task => (task as any).isComplete).map((task) => (
+                      <Badge key={task.id} variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20 py-2 px-3">
+                        {task.icon}
+                        <span className="ml-2">{task.name}</span>
+                        <CheckCircle className="h-3 w-3 ml-2" />
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
 

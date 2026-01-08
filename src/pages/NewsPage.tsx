@@ -201,10 +201,10 @@ const NewsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="Latest Visa News & Immigration Updates 2025 | Visas.Guide Blog"
+        title="Latest Visa News & Immigration Updates 2026 | Visas.Guide Blog"
         description="Stay informed with the latest visa policy changes, travel restrictions, immigration updates, and border news from around the world. Updated daily."
         canonical="https://visas.guide/blog"
-        keywords={["visa news", "immigration updates", "travel restrictions", "visa policy changes", "border news", "travel updates 2025"]}
+        keywords={["visa news", "immigration updates", "travel restrictions", "visa policy changes", "border news", "travel updates 2026"]}
       />
       <script 
         type="application/ld+json"

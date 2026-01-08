@@ -69,8 +69,8 @@ const PassportRankings = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead 
-        title="Passport Index Rankings 2025: Ranking Passports by Global Travel Freedom | Visas.Guide"
-        description="Discover the world's most powerful passports in 2025. Compare 199 countries ranked by visa-free access, visa on arrival, eVisas, and global mobility. Find passport strength scores, travel freedom rankings, and destination access for every country. Updated January 2025."
+        title="Passport Index Rankings 2026: Ranking Passports by Global Travel Freedom | Visas.Guide"
+        description="Discover the world's most powerful passports in 2026. Compare 199 countries ranked by visa-free access, visa on arrival, eVisas, and global mobility. Find passport strength scores, travel freedom rankings, and destination access for every country. Updated January 2026."
         canonical="https://visas.guide/passport-index"
         keywords={[
           'passport index',
@@ -91,7 +91,7 @@ const PassportRankings = () => {
           'visa on arrival',
           'eVisa countries',
           'travel document rankings',
-          'passport index 2025',
+          'passport index 2026',
           'henley passport index',
           'destination significance score'
         ]}
@@ -104,8 +104,8 @@ const PassportRankings = () => {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Dataset",
-            "name": "Passport Index Rankings 2025",
-            "description": "Comprehensive passport ranking system evaluating 199 countries and territories based on visa-free access, visa on arrival, eVisas, and global mobility. Updated for January 2025.",
+            "name": "Passport Index Rankings 2026",
+            "description": "Comprehensive passport ranking system evaluating 199 countries and territories based on visa-free access, visa on arrival, eVisas, and global mobility. Updated for January 2026.",
             "url": "https://visas.guide/passport-index",
             "keywords": "passport rankings, passport index, visa free countries, passport power, global mobility, travel freedom",
             "creator": {
@@ -114,7 +114,7 @@ const PassportRankings = () => {
               "url": "https://visas.guide"
             },
             "license": "https://visas.guide/terms-of-service",
-            "temporalCoverage": "2025",
+            "temporalCoverage": "2026",
             "spatialCoverage": {
               "@type": "Place",
               "name": "Worldwide"
@@ -133,7 +133,7 @@ const PassportRankings = () => {
       <main className="container mx-auto px-4 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4">Passport Index Rankings 2025: Ranking Passports by Global Travel Freedom</h1>
+          <h1 className="text-4xl font-bold mb-4">Passport Index Rankings 2026: Ranking Passports by Global Travel Freedom</h1>
           <p className="text-xl text-muted-foreground mb-6">
             The Passport Index is a passport ranking system that evaluates 199 countries and territories based on factors like visa-free access, visa on arrival, eVisas, and global mobility.
           </p>
@@ -162,9 +162,9 @@ const PassportRankings = () => {
           <div className="mb-8 p-6 bg-muted/50 rounded-lg">
             <h2 className="text-2xl font-bold mb-3">What is the Strongest Passport in the World?</h2>
             <p className="text-muted-foreground">
-              The {allCountries[0].name} passport is the strongest passport in the world, with a score of {allCountries[0].passport_score} as of January 2025. 
+              The {allCountries[0].name} passport is the strongest passport in the world, with a score of {allCountries[0].passport_score} as of January 2026. 
               It is followed by the {allCountries[1]?.name}, {allCountries[2]?.name}, {allCountries[3]?.name} and {allCountries[4]?.name} passports respectively, 
-              to complete the top-five list of strongest passports for January 2025.
+              to complete the top-five list of strongest passports for January 2026.
             </p>
           </div>
         )}

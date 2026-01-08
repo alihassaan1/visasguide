@@ -240,10 +240,10 @@ const CountryGuide = () => {
   const ctrName = countryAbbreviations[country.slug] || country.name;
   
   const metaTitle = guideContent?.meta_title || 
-    `${ctrName} Visa Requirements 2025 | ${country.name !== ctrName ? country.name + ' ' : ''}Entry Guide & Requirements`;
+    `${ctrName} Visa Requirements 2026 | ${country.name !== ctrName ? country.name + ' ' : ''}Entry Guide & Requirements`;
   
   const metaDescription = guideContent?.meta_description || 
-    `Do you need a visa for ${ctrName}? ✓ Complete ${country.name} visa requirements ✓ Visa-free countries ✓ Application process ✓ Processing times. Updated 2025 guide.`;
+    `Do you need a visa for ${ctrName}? ✓ Complete ${country.name} visa requirements ✓ Visa-free countries ✓ Application process ✓ Processing times. Updated 2026 guide.`;
 
   const visaFreeCount = country.visa_free_destinations || computedVisaFreeCount || 0;
 

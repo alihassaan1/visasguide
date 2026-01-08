@@ -175,7 +175,7 @@ Return ONLY a valid JSON array with this exact structure, no markdown:
             getting_around: city.getting_around,
             latitude: city.latitude,
             longitude: city.longitude,
-            meta_title: `${city.name}, ${countryName} - Tours, Activities & Travel Guide 2025`,
+            meta_title: `${city.name}, ${countryName} - Tours, Activities & Travel Guide 2026`,
             meta_description: `Discover the best tours, activities, and things to do in ${city.name}, ${countryName}. ${city.description?.substring(0, 100)}...`,
           }, {
             onConflict: 'slug'

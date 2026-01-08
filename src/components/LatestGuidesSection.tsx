@@ -3,7 +3,138 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import { ArrowRight, Calendar, Globe } from "lucide-react";
+import { ArrowRight, Calendar, MapPin } from "lucide-react";
+
+// Import destination images
+import thailandImg from "@/assets/destinations/thailand.jpg";
+import uaeImg from "@/assets/destinations/uae.jpg";
+import japanImg from "@/assets/destinations/japan.jpg";
+import canadaImg from "@/assets/destinations/canada.jpg";
+import franceImg from "@/assets/destinations/france.jpg";
+import singaporeImg from "@/assets/destinations/singapore.jpg";
+import malaysiaImg from "@/assets/destinations/malaysia.jpg";
+import indonesiaImg from "@/assets/destinations/indonesia.jpg";
+import polandImg from "@/assets/destinations/poland.jpg";
+import hungaryImg from "@/assets/destinations/hungary.jpg";
+import slovakiaImg from "@/assets/destinations/slovakia.jpg";
+import sloveniaImg from "@/assets/destinations/slovenia.jpg";
+import icelandImg from "@/assets/destinations/iceland.jpg";
+import lithuaniaImg from "@/assets/destinations/lithuania.jpg";
+import southKoreaImg from "@/assets/destinations/south-korea.jpg";
+import pakistanImg from "@/assets/destinations/pakistan.jpg";
+
+// Country image mapping
+const countryImages: Record<string, string> = {
+  'thailand': thailandImg,
+  'united-arab-emirates': uaeImg,
+  'uae': uaeImg,
+  'japan': japanImg,
+  'canada': canadaImg,
+  'france': franceImg,
+  'singapore': singaporeImg,
+  'malaysia': malaysiaImg,
+  'indonesia': indonesiaImg,
+  'poland': polandImg,
+  'hungary': hungaryImg,
+  'slovakia': slovakiaImg,
+  'slovenia': sloveniaImg,
+  'iceland': icelandImg,
+  'lithuania': lithuaniaImg,
+  'south-korea': southKoreaImg,
+  'pakistan': pakistanImg,
+  'germany': franceImg,
+  'italy': franceImg,
+  'spain': franceImg,
+  'netherlands': franceImg,
+  'belgium': franceImg,
+  'austria': hungaryImg,
+  'switzerland': slovakiaImg,
+  'czech-republic': hungaryImg,
+  'united-states': canadaImg,
+  'usa': canadaImg,
+  'united-kingdom': franceImg,
+  'uk': franceImg,
+  'australia': singaporeImg,
+  'new-zealand': singaporeImg,
+  'india': pakistanImg,
+  'china': japanImg,
+  'vietnam': thailandImg,
+  'philippines': indonesiaImg,
+};
+
+// Extract country slug from title (e.g., "Thailand Visa Requirements" -> "thailand")
+const extractCountryFromTitle = (title: string): string | null => {
+  // Common patterns: "X Visa Requirements", "X to Y Visa", "How to Get X Visa"
+  const patterns = [
+    /^([A-Za-z\s-]+?)\s+(?:Visa|Tourist|Travel|Entry)/i,
+    /to\s+([A-Za-z\s-]+?)\s+(?:Visa|Tourist|Travel)/i,
+  ];
+  
+  for (const pattern of patterns) {
+    const match = title.match(pattern);
+    if (match) {
+      return match[1].trim().toLowerCase().replace(/\s+/g, '-');
+    }
+  }
+  return null;
+};
+
+// Get image for guide based on title
+const getGuideImage = (title: string, featuredImageUrl?: string | null): string | null => {
+  if (featuredImageUrl) return featuredImageUrl;
+  
+  const countrySlug = extractCountryFromTitle(title);
+  if (countrySlug && countryImages[countrySlug]) {
+    return countryImages[countrySlug];
+  }
+  
+  // Try partial matches
+  for (const [key, img] of Object.entries(countryImages)) {
+    if (title.toLowerCase().includes(key.replace(/-/g, ' '))) {
+      return img;
+    }
+  }
+  
+  return null;
+};
+
+// Get flag emoji from country name
+const getCountryFlag = (title: string): string => {
+  const flagMap: Record<string, string> = {
+    'thailand': '🇹🇭',
+    'united arab emirates': '🇦🇪',
+    'uae': '🇦🇪',
+    'japan': '🇯🇵',
+    'canada': '🇨🇦',
+    'france': '🇫🇷',
+    'germany': '🇩🇪',
+    'italy': '🇮🇹',
+    'spain': '🇪🇸',
+    'singapore': '🇸🇬',
+    'malaysia': '🇲🇾',
+    'indonesia': '🇮🇩',
+    'south korea': '🇰🇷',
+    'poland': '🇵🇱',
+    'hungary': '🇭🇺',
+    'iceland': '🇮🇸',
+    'united states': '🇺🇸',
+    'usa': '🇺🇸',
+    'united kingdom': '🇬🇧',
+    'uk': '🇬🇧',
+    'australia': '🇦🇺',
+    'india': '🇮🇳',
+    'china': '🇨🇳',
+    'pakistan': '🇵🇰',
+  };
+  
+  const titleLower = title.toLowerCase();
+  for (const [country, flag] of Object.entries(flagMap)) {
+    if (titleLower.includes(country)) {
+      return flag;
+    }
+  }
+  return '🌍';
+};
 
 const LatestGuidesSection = () => {
   const { data: guides, isLoading } = useQuery({
@@ -55,20 +186,6 @@ const LatestGuidesSection = () => {
     });
   };
 
-  // Generate placeholder gradient based on title
-  const getPlaceholderGradient = (title: string) => {
-    const colors = [
-      'from-blue-500 to-indigo-600',
-      'from-emerald-500 to-teal-600',
-      'from-orange-500 to-red-600',
-      'from-purple-500 to-pink-600',
-      'from-cyan-500 to-blue-600',
-      'from-amber-500 to-orange-600',
-    ];
-    const index = title.length % colors.length;
-    return colors[index];
-  };
-
   return (
     <section className="py-12 bg-muted/30">
       <div className="container mx-auto px-4">
@@ -83,44 +200,69 @@ const LatestGuidesSection = () => {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {guides.map((guide) => (
-            <Link key={guide.id} to={`/${guide.slug}`}>
-              <Card className="h-full hover:shadow-lg transition-all duration-300 overflow-hidden group">
-                <div className="h-40 overflow-hidden">
-                  {guide.featured_image_url ? (
-                    <img 
-                      src={guide.featured_image_url} 
-                      alt={guide.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className={`w-full h-full bg-gradient-to-br ${getPlaceholderGradient(guide.title)} flex items-center justify-center group-hover:scale-105 transition-transform duration-300`}>
-                      <Globe className="h-12 w-12 text-white/80" />
-                    </div>
-                  )}
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                    {guide.title}
-                  </h3>
-                  {guide.excerpt && (
-                    <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
-                      {guide.excerpt}
-                    </p>
-                  )}
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {formatDate(guide.updated_at)}
-                    </div>
-                    {guide.writer && (
-                      <span>By {guide.writer.name}</span>
+          {guides.map((guide) => {
+            const image = getGuideImage(guide.title, guide.featured_image_url);
+            const flag = getCountryFlag(guide.title);
+            
+            return (
+              <Link key={guide.id} to={`/${guide.slug}`}>
+                <Card className="h-full hover:shadow-lg transition-all duration-300 overflow-hidden group">
+                  <div className="h-44 overflow-hidden relative">
+                    {image ? (
+                      <>
+                        <img 
+                          src={image} 
+                          alt={guide.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
+                        {/* Gradient overlay for text readability */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                        {/* Flag badge */}
+                        <div className="absolute top-3 left-3">
+                          <Badge variant="secondary" className="bg-white/90 text-foreground font-medium shadow-sm">
+                            <span className="mr-1 font-emoji">{flag}</span>
+                            <MapPin className="h-3 w-3 inline" />
+                          </Badge>
+                        </div>
+                        {/* Updated badge */}
+                        <div className="absolute bottom-3 left-3">
+                          <Badge className="bg-primary/90 text-primary-foreground text-xs">
+                            Updated {formatDate(guide.updated_at)}
+                          </Badge>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/30 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                        <span className="text-5xl font-emoji">{flag}</span>
+                      </div>
                     )}
                   </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                      {guide.title}
+                    </h3>
+                    {guide.excerpt && (
+                      <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
+                        {guide.excerpt}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      {!image && (
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {formatDate(guide.updated_at)}
+                        </div>
+                      )}
+                      {guide.writer && (
+                        <span className={!image ? '' : 'ml-auto'}>By {guide.writer.name}</span>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </section>

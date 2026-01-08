@@ -973,9 +973,9 @@ serve(async (req) => {
 
           // Create SEO-optimized metadata
           const slug = `${combo.from.slug}-to-${combo.to.slug}-visa-requirements`;
-          const title = `${toCTR} Visa Requirements for ${fromCTR} Citizens 2025`;
+          const title = `${toCTR} Visa Requirements for ${fromCTR} Citizens 2026`;
           const metaTitle = `${toCTR} Visa for ${fromCTR} Citizens | Requirements & How to Apply`;
-          const metaDescription = `Do ${fromCTR} citizens need a visa for ${toCTR}? ✓ Complete guide to ${combo.to.name} visa requirements ✓ Application process ✓ Fees & processing times. Updated 2025.`;
+          const metaDescription = `Do ${fromCTR} citizens need a visa for ${toCTR}? ✓ Complete guide to ${combo.to.name} visa requirements ✓ Application process ✓ Fees & processing times. Updated 2026.`;
           
           const keywords = [
             `${toCTR.toLowerCase()} visa for ${fromCTR.toLowerCase()} citizens`,
@@ -983,7 +983,7 @@ serve(async (req) => {
             `do ${fromCTR.toLowerCase()} citizens need visa for ${toCTR.toLowerCase()}`,
             `${combo.to.name.toLowerCase()} visa requirements`,
             `${fromCTR.toLowerCase()} passport ${toCTR.toLowerCase()}`,
-            `${combo.from.slug} ${combo.to.slug} visa 2025`
+            `${combo.from.slug} ${combo.to.slug} visa 2026`
           ];
 
           // Create JSON-LD structured data
@@ -1521,7 +1521,7 @@ Keep it concise, accurate, and helpful.`,
             topic.title
           );
 
-          const metaDescription = `Complete guide to ${topic.title.toLowerCase()}. Step-by-step application process, required documents, fees, and expert tips. Updated 2025.`;
+          const metaDescription = `Complete guide to ${topic.title.toLowerCase()}. Step-by-step application process, required documents, fees, and expert tips. Updated 2026.`;
 
           // Get random author for this blog post
           const author = getRandomAuthor();
@@ -1871,8 +1871,8 @@ Write with authority and personality. This should read like content from an expe
       );
 
       // CTR-optimized meta title and description
-      const metaTitle = `${ctrName} Visa Requirements 2025 | Do You Need a Visa for ${ctrName}?`;
-      const metaDescription = `Do you need a visa for ${ctrName}? ✓ Complete ${country.name} visa guide ✓ Entry requirements ✓ Visa-free countries ✓ Step-by-step application. Updated 2025.`;
+      const metaTitle = `${ctrName} Visa Requirements 2026 | Do You Need a Visa for ${ctrName}?`;
+      const metaDescription = `Do you need a visa for ${ctrName}? ✓ Complete ${country.name} visa guide ✓ Entry requirements ✓ Visa-free countries ✓ Step-by-step application. Updated 2026.`;
       
       // Keywords optimized for search queries
       const keywords = [

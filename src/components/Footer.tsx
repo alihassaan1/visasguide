@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Mail, Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
 import { Link } from "react-router-dom";
+import { CURRENT_YEAR } from "@/lib/constants";
 
 const Footer = () => {
   const { data: footerLinks } = useQuery({
@@ -158,7 +159,7 @@ const Footer = () => {
         <div className="border-t border-primary-foreground/20 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-sm text-primary-foreground/80">
-              © 2025 Visas.Guide. All rights reserved.
+              © {CURRENT_YEAR} Visas.Guide. All rights reserved.
             </div>
             <div className="flex flex-wrap justify-center gap-4 text-sm">
               <Link to="/about" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">About Us</Link>

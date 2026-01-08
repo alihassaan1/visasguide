@@ -11,12 +11,13 @@ import FeaturedAuthorsSection from "@/components/FeaturedAuthorsSection";
 import LatestNewsSection from "@/components/LatestNewsSection";
 import OrganizationSchema from "@/components/OrganizationSchema";
 import SiteNavigationSchema from "@/components/SiteNavigationSchema";
+import { CURRENT_YEAR } from "@/lib/constants";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="Visas Guide 2025 – Complete Visa Requirements, eVisa & Visa-Free Information | Visas.Guide"
+        title={`Visas Guide ${CURRENT_YEAR} – Complete Visa Requirements, eVisa & Visa-Free Information | Visas.Guide`}
         description="Visas.Guide helps travelers navigate visa requirements for 200+ countries with up-to-date visa-free lists, eVisa details, and travel documentation tips. Your trusted source for global visa information."
         canonical="https://visas.guide/"
         keywords={["visa requirements", "travel visa", "evisa", "visa-free countries", "passport information", "travel documentation", "visa application guide", "schengen visa", "tourist visa", "business visa"]}

@@ -80,7 +80,7 @@ const handler = async (req: Request): Promise<Response> => {
                   <a href="https://visas.guide/contact" style="color: #1e40af; text-decoration: none;">Contact Us</a> | 
                   <a href="https://visas.guide/privacy-policy" style="color: #1e40af; text-decoration: none;">Privacy Policy</a>
                 </p>
-                <p style="margin-top: 20px;">© 2025 Visas.Guide. All rights reserved.</p>
+                <p style="margin-top: 20px;">© 2026 Visas.Guide. All rights reserved.</p>
               </div>
             </div>
           </body>

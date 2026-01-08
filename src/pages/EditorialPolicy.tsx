@@ -25,7 +25,7 @@ const EditorialPolicy = () => {
               Our commitment to accuracy, transparency, and trustworthiness in visa information.
             </p>
             <p className="text-sm text-muted-foreground mt-4">
-              Last Updated: December 2024
+              Last Updated: January 2026
             </p>
           </div>
 

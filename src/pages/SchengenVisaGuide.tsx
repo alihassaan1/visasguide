@@ -40,7 +40,7 @@ const SchengenVisaGuide = () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Complete Schengen Visa Guide 2025 - Requirements, Countries & Application",
+    "headline": "Complete Schengen Visa Guide 2026 - Requirements, Countries & Application",
     "description": "Everything you need to know about the Schengen visa: 27 member countries, requirements, application process, fees, and travel tips for visiting Europe.",
     "author": {
       "@type": "Organization",
@@ -54,14 +54,14 @@ const SchengenVisaGuide = () => {
         "url": "https://visas.guide/logo.png"
       }
     },
-    "datePublished": "2025-01-01",
+    "datePublished": "2026-01-01",
     "dateModified": new Date().toISOString().split('T')[0]
   };
 
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="Schengen Visa Guide 2025 - Requirements, Countries & How to Apply | Visas.Guide"
+        title="Schengen Visa Guide 2026 - Requirements, Countries & How to Apply | Visas.Guide"
         description="Complete guide to the Schengen visa: 27 member countries, visa requirements, application process, fees, and tips for traveling across Europe visa-free."
         canonical="https://visas.guide/schengen-visa-guide"
         keywords={["schengen visa", "schengen countries", "schengen visa requirements", "europe visa", "schengen area", "schengen visa application", "schengen visa fees"]}
@@ -79,7 +79,7 @@ const SchengenVisaGuide = () => {
             27 Countries, One Visa
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Schengen Visa Guide 2025
+            Schengen Visa Guide 2026
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Everything you need to know about traveling to 27 European countries with a single Schengen visa. Requirements, application process, and expert tips.
@@ -257,7 +257,7 @@ const SchengenVisaGuide = () => {
                 </ul>
               </div>
               <div>
-                <h3 className="font-semibold text-foreground mb-3">Visa Fees (2025)</h3>
+                <h3 className="font-semibold text-foreground mb-3">Visa Fees (2026)</h3>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li>• Adults: <strong>€80</strong></li>
                   <li>• Children (6-12): <strong>€40</strong></li>

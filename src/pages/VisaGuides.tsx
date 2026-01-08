@@ -73,7 +73,7 @@ const VisaGuides = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="Visa Application Guides & Travel Documentation Tips 2025 | Visas.Guide"
+        title="Visa Application Guides & Travel Documentation Tips 2026 | Visas.Guide"
         description="Step-by-step visa application guides for popular destinations. Expert tips on Schengen, US ESTA, UK visitor visas, and more. Avoid common mistakes and get approved."
         canonical="https://visas.guide/guides"
         keywords={["visa application guide", "how to apply for visa", "schengen visa guide", "ESTA application", "UK visa tips", "visa documentation", "travel visa help"]}
@@ -93,7 +93,7 @@ const VisaGuides = () => {
               Visa Guides & Travel Information
             </h1>
             <p className="text-xl text-muted-foreground">
-              Comprehensive visa guides, application tips, and travel requirements for destinations worldwide. Written by experts, updated for 2025.
+              Comprehensive visa guides, application tips, and travel requirements for destinations worldwide. Written by experts, updated for 2026.
             </p>
           </div>
           <div className="absolute right-8 bottom-8 opacity-10 text-[200px] font-bold text-primary hidden lg:block">

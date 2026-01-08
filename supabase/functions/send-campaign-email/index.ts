@@ -128,7 +128,7 @@ const handler = async (req: Request): Promise<Response> => {
                         <a href="https://visas.guide/contact?utm_source=newsletter&utm_medium=email&utm_campaign=${campaignId}">Contact Us</a> | 
                         <a href="https://visas.guide/privacy-policy?utm_source=newsletter&utm_medium=email&utm_campaign=${campaignId}">Privacy Policy</a>
                       </p>
-                      <p style="margin-top: 20px;">© 2025 Visas.Guide. All rights reserved.</p>
+                      <p style="margin-top: 20px;">© 2026 Visas.Guide. All rights reserved.</p>
                     </div>
                   </div>
                   <!-- Tracking Pixel -->

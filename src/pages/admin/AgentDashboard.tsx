@@ -122,10 +122,22 @@ const AgentDashboard = () => {
     },
   });
 
-  // Update local settings when saved settings load
+  // Update local settings when saved settings load - deep merge with defaults
   useEffect(() => {
     if (savedSettings) {
-      setLocalSettings(savedSettings);
+      // Deep merge: ensure all default keys exist even if DB is missing some
+      setLocalSettings({
+        ...defaultSettings,
+        ...savedSettings,
+        ctr: { ...defaultSettings.ctr, ...savedSettings.ctr },
+        create: { ...defaultSettings.create, ...savedSettings.create },
+        visaEnrichment: { ...defaultSettings.visaEnrichment, ...savedSettings.visaEnrichment },
+        blogGeneration: { ...defaultSettings.blogGeneration, ...savedSettings.blogGeneration },
+        faqGeneration: { ...defaultSettings.faqGeneration, ...savedSettings.faqGeneration },
+        visaRequirementsContent: { ...defaultSettings.visaRequirementsContent, ...savedSettings.visaRequirementsContent },
+        evergreenContent: { ...defaultSettings.evergreenContent, ...savedSettings.evergreenContent },
+        dailyReport: { ...defaultSettings.dailyReport, ...savedSettings.dailyReport },
+      });
     }
   }, [savedSettings]);
 

@@ -1,13 +1,19 @@
 # Visas.Guide - Robots.txt
 # Last updated: 2026-01-13
 
-# Googlebot - No crawl delay (Google ignores it anyway)
+# Allow all crawlers full access
+User-agent: *
+Allow: /
+
+# Explicitly allow Googlebot
 User-agent: Googlebot
 Allow: /
 
+# Explicitly allow Bingbot
 User-agent: Bingbot
 Allow: /
 
+# Social media bots
 User-agent: Twitterbot
 Allow: /
 
@@ -17,15 +23,11 @@ Allow: /
 User-agent: LinkedInBot
 Allow: /
 
+# Disallow admin pages for all bots
 User-agent: *
-Allow: /
-
-# Disallow admin pages
 Disallow: /admin
-Disallow: /admin/*
+Disallow: /admin/
 
-# Primary Sitemap (on main domain for Google compatibility)
+# Sitemaps - hosted on main domain
 Sitemap: https://visas.guide/sitemap.xml
-
-# News Sitemap for Google News
 Sitemap: https://visas.guide/news-sitemap.xml

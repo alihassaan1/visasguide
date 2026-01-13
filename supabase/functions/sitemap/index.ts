@@ -135,7 +135,10 @@ serve(async (req) => {
     }
 
     const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<?xml-stylesheet type="text/xsl" href="https://visas.guide/sitemap.xsl"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${urlEntries.join("\n")}
 </urlset>`;
 
@@ -167,7 +170,12 @@ ${urlEntries.join("\n")}
     console.log(`Sitemap generated with ${urlEntries.length} URLs`);
 
     return new Response(sitemapXml, {
-      headers: { ...corsHeaders, "Content-Type": "application/xml" },
+      headers: { 
+        ...corsHeaders, 
+        "Content-Type": "application/xml; charset=utf-8",
+        "Cache-Control": "public, max-age=3600, s-maxage=3600",
+        "X-Robots-Tag": "noindex"
+      },
       status: 200,
     });
   } catch (e) {

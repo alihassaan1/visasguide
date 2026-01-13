@@ -1,13 +1,12 @@
 # Visas.Guide - Robots.txt
-# Last updated: 2026-01-08
+# Last updated: 2026-01-13
 
+# Googlebot - No crawl delay (Google ignores it anyway)
 User-agent: Googlebot
 Allow: /
-Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
-Crawl-delay: 1
 
 User-agent: Twitterbot
 Allow: /
@@ -20,18 +19,13 @@ Allow: /
 
 User-agent: *
 Allow: /
-Crawl-delay: 2
 
 # Disallow admin pages
 Disallow: /admin
 Disallow: /admin/*
 
-# Primary Dynamic Sitemap (includes all 12,000+ pages)
-Sitemap: https://awiytryceqehqapytfgn.supabase.co/functions/v1/sitemap
+# Primary Sitemap (on main domain for Google compatibility)
+Sitemap: https://visas.guide/sitemap.xml
 
 # News Sitemap for Google News
-Sitemap: https://awiytryceqehqapytfgn.supabase.co/functions/v1/news-sitemap
-
-# RSS Feeds for content discovery
-# Main RSS Feed: https://visas.guide/feed
-# Subscribe: https://visas.guide/rss
+Sitemap: https://visas.guide/news-sitemap.xml

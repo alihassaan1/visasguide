@@ -6,8 +6,14 @@
     <title>Visas Guide - Complete Visa Information & Requirements for Global Travel</title>
     <meta name="description" content="Get comprehensive visa information, requirements, and application guides for over 190+ countries. Your trusted source for travel visa assistance and documentation." />
     <meta name="author" content="Visas Guide" />
-    <meta name="keywords" content="visa requirements, travel visa, passport, visa application, travel documents, immigration" />
+    <meta name="keywords" content="visa requirements, travel visa, passport, visa application, travel documents, immigration, schengen visa, tourist visa, business visa, student visa" />
     <meta name="google-adsense-account" content="ca-pub-7028612619001508">
+    
+    <!-- Google Search Console Verification -->
+    <meta name="google-site-verification" content="YOUR_GOOGLE_VERIFICATION_CODE" />
+    
+    <!-- Robots directive for indexing -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     
     <!-- Preconnect hints for performance optimization -->
     <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
@@ -15,7 +21,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="dns-prefetch" href="https://dtegsqjnnygkqtbqtyfr.supabase.co">
+    <link rel="dns-prefetch" href="https://awiytryceqehqapytfgn.supabase.co">
     <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossorigin>
 
     <!-- Google Consent Mode v2 defaults (must be before any Google scripts) -->
@@ -30,7 +36,7 @@
         'ad_storage': hasConsent ? 'granted' : 'denied',
         'ad_user_data': hasConsent ? 'granted' : 'denied',
         'ad_personalization': hasConsent ? 'granted' : 'denied',
-        'analytics_storage': 'granted',  // Always track analytics for visitor counts
+        'analytics_storage': 'granted',
         'wait_for_update': 500
       });
     </script>
@@ -38,10 +44,15 @@
     <meta property="og:title" content="Visas Guide - Complete Visa Information & Requirements for Global Travel" />
     <meta property="og:description" content="Get comprehensive visa information, requirements, and application guides for over 190+ countries. Your trusted source for travel visa assistance and documentation." />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://visas.guide/" />
     <meta property="og:image" content="https://visas.guide/hero-travel.jpg" />
+    <meta property="og:site_name" content="Visas.Guide" />
+    <meta property="og:locale" content="en_US" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@visasguide" />
+    <meta name="twitter:title" content="Visas Guide - Complete Visa Information & Requirements" />
+    <meta name="twitter:description" content="Get comprehensive visa information for 190+ countries." />
     <meta name="twitter:image" content="https://visas.guide/hero-travel.jpg" />
 
     <link rel="icon" type="image/png" href="/favicon.png" />
@@ -67,9 +78,50 @@
       "description": "Complete visa information and requirements for global travel - your trusted source for visa guides, requirements, and travel documentation."
     }
     </script>
+    
+    <!-- WebSite Schema with SearchAction for Google Sitelinks -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Visas.Guide",
+      "url": "https://visas.guide",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://visas.guide/visa-search?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
   </head>
 
   <body>
+    <!-- Fallback content for JavaScript-disabled crawlers -->
+    <noscript>
+      <div style="padding: 20px; font-family: Arial, sans-serif;">
+        <h1>Visas.Guide - Complete Visa Information for Global Travel</h1>
+        <p>Your comprehensive resource for visa requirements, application guides, and travel documentation for over 190 countries worldwide.</p>
+        <h2>Popular Destinations</h2>
+        <ul>
+          <li><a href="/countries/united-states">USA Visa Requirements</a></li>
+          <li><a href="/countries/united-kingdom">UK Visa Requirements</a></li>
+          <li><a href="/countries/canada">Canada Visa Requirements</a></li>
+          <li><a href="/countries/australia">Australia Visa Requirements</a></li>
+          <li><a href="/countries/united-arab-emirates">UAE Visa Requirements</a></li>
+          <li><a href="/schengen-visa-guide">Schengen Visa Guide</a></li>
+        </ul>
+        <h2>Visa Types</h2>
+        <ul>
+          <li><a href="/visa-types/tourist-visa">Tourist Visa Guide</a></li>
+          <li><a href="/visa-types/business-visa">Business Visa Guide</a></li>
+          <li><a href="/visa-types/student-visa">Student Visa Guide</a></li>
+        </ul>
+        <p>Enable JavaScript for the full interactive experience.</p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

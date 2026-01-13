@@ -70,6 +70,7 @@ const menuStructure: MenuItemOrGroup[] = [
     children: [
       { title: "All Pages", icon: FileText, href: "/admin/content" },
       { title: "Create New", icon: Sparkles, href: "/admin/ai-content-studio" },
+      { title: "Image Generator", icon: FileText, href: "/admin/image-generator" },
     ],
   },
   {

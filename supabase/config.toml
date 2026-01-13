@@ -103,3 +103,6 @@ verify_jwt = false
 
 [functions.content-cleaner]
 verify_jwt = false
+
+[functions.generate-visa-images]
+verify_jwt = false

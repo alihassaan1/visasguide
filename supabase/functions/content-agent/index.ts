@@ -525,26 +525,26 @@ serve(async (req) => {
       });
     }
     
-    // Check for recent 402 "Insufficient Balance" errors (last 10 minutes)
+    // Check for recent 402 "Payment Required" errors (last 10 minutes)
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
     const { count: recent402Errors } = await supabase
       .from('api_logs')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'error')
-      .ilike('error_message', '%402%Insufficient Balance%')
+      .or('error_message.ilike.%402%,error_message.ilike.%payment required%,error_message.ilike.%rate limit%')
       .gte('created_at', tenMinutesAgo.toISOString());
     
     if (recent402Errors && recent402Errors >= 3) {
       // Open circuit breaker for 6 hours
       const openUntil = new Date(Date.now() + 6 * 60 * 60 * 1000);
       
-      console.log('🔴 Opening circuit breaker - 3+ recent 402 errors detected');
+      console.log('🔴 Opening circuit breaker - 3+ recent API errors detected');
       
       await supabase.from('site_settings').upsert({
         setting_key: 'api_circuit_breaker',
         setting_value: { 
           open_until: openUntil.toISOString(),
-          reason: 'DeepSeek API Insufficient Balance',
+          reason: 'Lovable AI API Error - Add credits to workspace',
           opened_at: new Date().toISOString(),
           error_count: recent402Errors
         },
@@ -556,7 +556,7 @@ serve(async (req) => {
         action: 'circuit_breaker_opened',
         entity_type: 'api',
         metadata: {
-          reason: 'Insufficient Balance',
+          reason: 'Lovable AI API Error',
           error_count: recent402Errors,
           open_until: openUntil.toISOString()
         }
@@ -565,32 +565,19 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         success: false, 
         circuitBreakerOpen: true,
-        reason: 'DeepSeek API Insufficient Balance',
-        message: 'Circuit breaker opened due to insufficient API balance. Will auto-reset in 6 hours. Add balance to DeepSeek and manually reset to resume.'
+        reason: 'Lovable AI API Error',
+        message: 'Circuit breaker opened due to API errors. Will auto-reset in 6 hours. Add credits to your Lovable workspace and manually reset to resume.'
       }), { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       });
     }
 
-    // Get DeepSeek API key from site_settings
-    const { data: settings } = await supabase
-      .from('site_settings')
-      .select('setting_value')
-      .eq('setting_key', 'deepseek_api_key')
-      .single();
-
-    let apiKey = null;
-    if (settings?.setting_value && typeof settings.setting_value === 'object') {
-      apiKey = (settings.setting_value as any).key;
-    }
+    // Get Lovable AI API key (auto-provisioned)
+    const apiKey = Deno.env.get('LOVABLE_API_KEY');
     
     if (!apiKey) {
-      apiKey = Deno.env.get('DEEPSEEK_API_KEY');
-    }
-    
-    if (!apiKey) {
-      console.error('DeepSeek API key not found');
-      throw new Error('DeepSeek API key not configured');
+      console.error('LOVABLE_API_KEY not found');
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
     // Get agent task settings from site_settings
@@ -704,8 +691,8 @@ serve(async (req) => {
     ) {
       const responseTime = Date.now() - startTime;
       await supabase.from('api_logs').insert({
-        api_provider: 'deepseek',
-        endpoint: 'https://api.deepseek.com/v1/chat/completions',
+        api_provider: 'lovable-ai',
+        endpoint: 'https://ai.gateway.lovable.dev/v1/chat/completions',
         task_type: taskType,
         entity_name: entityName,
         status,
@@ -719,8 +706,8 @@ serve(async (req) => {
       });
     }
 
-    // Helper function to call DeepSeek API with retry logic
-    async function callDeepSeek(systemPrompt: string, userPrompt: string, maxTokens = 2000, entityName = 'unknown'): Promise<string> {
+    // Helper function to call Lovable AI Gateway with retry logic
+    async function callLovableAI(systemPrompt: string, userPrompt: string, maxTokens = 2000, entityName = 'unknown'): Promise<string> {
       const maxRetries = 3;
       let lastError: Error | null = null;
       
@@ -730,16 +717,16 @@ serve(async (req) => {
         try {
           // Add timeout using AbortController
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+          const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout for Lovable AI
           
-          const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+          const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-              model: 'deepseek-chat',
+              model: 'google/gemini-3-flash-preview',
               messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: userPrompt }
@@ -754,7 +741,16 @@ serve(async (req) => {
 
           if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`DeepSeek API error: ${response.status} - ${errorText}`);
+            
+            // Handle rate limits and payment errors
+            if (response.status === 429) {
+              throw new Error(`Lovable AI rate limit exceeded: ${errorText}`);
+            }
+            if (response.status === 402) {
+              throw new Error(`Lovable AI payment required: ${errorText}`);
+            }
+            
+            throw new Error(`Lovable AI error: ${response.status} - ${errorText}`);
           }
 
           const data = await response.json();
@@ -772,21 +768,21 @@ serve(async (req) => {
           const isTimeout = error.name === 'AbortError' || error.message?.includes('reading a body');
           const status = isTimeout ? 'timeout' : 'error';
           
-          console.error(`DeepSeek API attempt ${attempt + 1}/${maxRetries} failed:`, error.message);
+          console.error(`Lovable AI attempt ${attempt + 1}/${maxRetries} failed:`, error.message);
           
           // Log failed API call
           await logApiCall(currentMode, entityName, status, startTime, undefined, error.message, attempt);
           
-          // CIRCUIT BREAKER: If 402 Insufficient Balance, don't retry - open circuit immediately
-          if (error.message?.includes('402') && error.message?.includes('Insufficient Balance')) {
-            console.log('🔴 402 Insufficient Balance detected - opening circuit breaker immediately');
+          // CIRCUIT BREAKER: If 402 Payment Required, don't retry - open circuit immediately
+          if (error.message?.includes('402') || error.message?.includes('payment required')) {
+            console.log('🔴 402 Payment Required detected - opening circuit breaker immediately');
             
             const openUntil = new Date(Date.now() + 6 * 60 * 60 * 1000);
             await supabase.from('site_settings').upsert({
               setting_key: 'api_circuit_breaker',
               setting_value: { 
                 open_until: openUntil.toISOString(),
-                reason: 'DeepSeek API Insufficient Balance',
+                reason: 'Lovable AI Payment Required - Add credits to workspace',
                 opened_at: new Date().toISOString(),
                 error_count: 1,
                 triggered_by: entityName
@@ -795,7 +791,13 @@ serve(async (req) => {
             }, { onConflict: 'setting_key' });
             
             // Don't retry - throw immediately
-            throw new Error('Circuit breaker opened: Insufficient Balance');
+            throw new Error('Circuit breaker opened: Payment Required');
+          }
+          
+          // CIRCUIT BREAKER: If 429 Rate Limited, pause briefly
+          if (error.message?.includes('429') || error.message?.includes('rate limit')) {
+            console.log('⚠️ Rate limited - waiting before retry...');
+            await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
           }
           
           // Wait before retry with exponential backoff
@@ -807,7 +809,7 @@ serve(async (req) => {
         }
       }
       
-      throw lastError || new Error('DeepSeek API failed after retries');
+      throw lastError || new Error('Lovable AI failed after retries');
     }
 
     // Helper function to submit URLs to IndexNow
@@ -943,7 +945,7 @@ serve(async (req) => {
 
           // Generate human-style content with quality-focused token limit
           const prompt = generateVisaRequirementsPrompt(combo.from, combo.to, visaData);
-          let content = await callDeepSeek(
+          let content = await callLovableAI(
             `You're a friendly travel advisor. Write naturally, be thorough, and include all required sections.`,
             prompt,
             2000, // Increased from 1500 for quality
@@ -957,7 +959,7 @@ serve(async (req) => {
             
             // Try regenerating once with explicit guidance
             const repairPrompt = `${prompt}\n\nIMPORTANT: The previous version was rejected because:\n${qualityCheck.issues.join('\n')}\n\nPlease ensure your response meets all requirements.`;
-            content = await callDeepSeek(
+            content = await callLovableAI(
               `You're a friendly travel advisor. This is a retry - please include ALL required sections and meet the minimum word count.`,
               repairPrompt,
               2500,
@@ -1180,7 +1182,7 @@ Use typical values based on the visa type:
 
 Return ONLY valid JSON.`;
 
-          const result = await callDeepSeek(
+          const result = await callLovableAI(
             'You are a visa information expert. Return ONLY valid JSON with no markdown formatting.',
             prompt,
             500,
@@ -1192,7 +1194,7 @@ Return ONLY valid JSON.`;
           try {
             const cleanResult = result.replace(/```json\n?|\n?```/g, '').trim();
             enrichedData = JSON.parse(cleanResult);
-            console.log(`📋 DeepSeek response for ${entityName}:`, JSON.stringify(enrichedData));
+            console.log(`📋 Lovable AI response for ${entityName}:`, JSON.stringify(enrichedData));
           } catch (parseError) {
             console.error('JSON parse error:', parseError, 'Raw:', result);
             continue;
@@ -1500,7 +1502,7 @@ Return ONLY valid JSON.`;
           }
 
           // REDUCED prompt - 800 words max
-          const content = await callDeepSeek(
+          const content = await callLovableAI(
             `You are an expert travel and visa content writer. Write SEO-optimized articles.`,
             `Write a concise 800-word article titled "${topic.title}".
 
@@ -1608,7 +1610,7 @@ Keep it concise, accurate, and helpful.`,
             }
           });
 
-          const faqContent = await callDeepSeek(
+          const faqContent = await callLovableAI(
             'You are a visa information expert. Generate FAQs that match Google "People Also Ask" queries.',
             `Generate 5 frequently asked questions about ${countryName} visa requirements.
 

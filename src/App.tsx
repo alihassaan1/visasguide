@@ -39,6 +39,7 @@ import APISettings from "./pages/admin/APISettings";
 import ContentManager from "./pages/admin/ContentManager";
 import NewsletterManager from "./pages/admin/NewsletterManager";
 import AnalyticsDashboard from "./pages/admin/AnalyticsDashboard";
+import SEODashboard from "./pages/admin/SEODashboard";
 import VisaRequirementsManager from "./pages/admin/VisaRequirementsManager";
 import DataImporter from "./pages/admin/DataImporter";
 import SiteSettings from "./pages/admin/SiteSettings";
@@ -126,6 +127,7 @@ const App = () => (
             <Route path="visa-requirements-content-updater" element={<VisaRequirementsContentUpdater />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="analytics" element={<AnalyticsDashboard />} />
+            <Route path="seo" element={<SEODashboard />} />
             <Route path="freelancer" element={<FreelancerDashboard />} />
             <Route path="monetization" element={<MonetizationSettings />} />
             <Route path="users" element={<UserManagement />} />

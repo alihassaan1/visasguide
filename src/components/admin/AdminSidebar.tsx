@@ -59,7 +59,10 @@ const menuStructure: MenuItemOrGroup[] = [
   {
     title: "Analytics",
     icon: TrendingUp,
-    href: "/admin/analytics",
+    children: [
+      { title: "Overview", icon: TrendingUp, href: "/admin/analytics" },
+      { title: "SEO Health", icon: Globe, href: "/admin/seo" },
+    ],
   },
   {
     title: "Content",

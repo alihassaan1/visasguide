@@ -296,18 +296,19 @@ Quality: Ultra high resolution, suitable for hero banner.`;
     } else {
       console.log('Content saved successfully');
       
-      // Submit to IndexNow
+      // Submit to IndexNow using auto-indexnow function
       try {
-        await fetch(`${supabaseUrl}/functions/v1/indexnow`, {
+        await fetch(`${supabaseUrl}/functions/v1/auto-indexnow`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${supabaseKey}`,
           },
           body: JSON.stringify({ 
-            urls: [`https://visas.guide/visa-requirements/${fromSlug}-to-${toSlug}`] 
+            urls: [`/${contentSlug}`] 
           })
         });
+        console.log('✅ Submitted to IndexNow:', contentSlug);
       } catch (indexError) {
         console.error('IndexNow error:', indexError);
       }

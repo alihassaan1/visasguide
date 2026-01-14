@@ -310,9 +310,23 @@ export default function AIContentStudio() {
         if (error) throw error;
       }
 
+      // Submit to IndexNow when publishing
+      if (status === 'published') {
+        try {
+          await supabase.functions.invoke('auto-indexnow', {
+            body: { urls: [`/${pageSlug}`] }
+          });
+          console.log('Submitted to IndexNow:', pageSlug);
+        } catch (indexError) {
+          console.error('IndexNow submission failed:', indexError);
+        }
+      }
+
       toast({
         title: "Success!",
-        description: `Content saved as ${status}`,
+        description: status === 'published' 
+          ? "Content published and submitted to search engines" 
+          : `Content saved as ${status}`,
       });
 
       navigate('/admin/content');

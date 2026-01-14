@@ -28,6 +28,6 @@ User-agent: *
 Disallow: /admin
 Disallow: /admin/
 
-# Sitemaps - hosted on main domain
-Sitemap: https://visas.guide/sitemap.xml
-Sitemap: https://visas.guide/news-sitemap.xml
+# Sitemaps - served by edge functions with full URL lists
+Sitemap: https://awiytryceqehqapytfgn.supabase.co/functions/v1/sitemap
+Sitemap: https://awiytryceqehqapytfgn.supabase.co/functions/v1/news-sitemap

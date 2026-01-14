@@ -109,3 +109,9 @@ verify_jwt = false
 
 [functions.auto-indexnow]
 verify_jwt = false
+
+[functions.generate-static-sitemap]
+verify_jwt = false
+
+[functions.rss-feed]
+verify_jwt = false

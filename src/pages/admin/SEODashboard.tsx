@@ -21,7 +21,8 @@ import {
   Loader2,
   MapPin,
   Newspaper,
-  BookOpen
+  BookOpen,
+  Download
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar } from "recharts";
 import { format, formatDistanceToNow, subDays } from "date-fns";
@@ -73,6 +74,7 @@ export default function SEODashboard() {
   const [dateRange, setDateRange] = useState<'7d' | '14d' | '30d' | '90d'>('30d');
   const [refreshing, setRefreshing] = useState(false);
   const [submittingIndexNow, setSubmittingIndexNow] = useState(false);
+  const [regeneratingSitemap, setRegeneratingSitemap] = useState(false);
 
   useEffect(() => {
     fetchAllData();
@@ -323,6 +325,39 @@ export default function SEODashboard() {
     }
   };
 
+  const handleRegenerateSitemap = async () => {
+    setRegeneratingSitemap(true);
+    try {
+      const response = await fetch('https://awiytryceqehqapytfgn.supabase.co/functions/v1/generate-static-sitemap');
+      
+      if (!response.ok) throw new Error('Failed to generate sitemap');
+      
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sitemap.xml';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Sitemap Generated",
+        description: "Download complete. Upload this file to public/sitemap.xml to update the sitemap.",
+      });
+    } catch (error) {
+      toast({
+        title: "Sitemap Generation Failed",
+        description: "Failed to generate sitemap. Check console for details.",
+        variant: "destructive"
+      });
+      console.error('Sitemap generation error:', error);
+    } finally {
+      setRegeneratingSitemap(false);
+    }
+  };
+
   const googlebotStats = crawlerStats.find(s => s.bot_name === 'Googlebot');
   const bingbotStats = crawlerStats.find(s => s.bot_name === 'Bingbot');
   
@@ -363,6 +398,18 @@ export default function SEODashboard() {
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleRegenerateSitemap}
+            disabled={regeneratingSitemap}
+          >
+            {regeneratingSitemap ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
+            Download Sitemap
           </Button>
           <Button 
             onClick={handleIndexNowSubmit}

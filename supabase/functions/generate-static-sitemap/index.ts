@@ -51,11 +51,12 @@ Deno.serve(async (req) => {
     }
     console.log(`Added ${staticPages.length} static pages`);
 
-    // Fetch all countries
+    // Fetch all countries (up to 10,000)
     const { data: countries, error: countriesError } = await supabase
       .from('countries')
       .select('slug')
-      .order('name');
+      .order('name')
+      .range(0, 9999);
     
     if (countriesError) {
       console.error('Error fetching countries:', countriesError);
@@ -70,11 +71,12 @@ Deno.serve(async (req) => {
       console.log(`Added ${countries.length} country pages`);
     }
 
-    // Fetch all cities with country slugs
+    // Fetch all cities with country slugs (up to 10,000)
     const { data: cities, error: citiesError } = await supabase
       .from('cities')
       .select('slug, countries(slug)')
-      .order('name');
+      .order('name')
+      .range(0, 9999);
     
     if (citiesError) {
       console.error('Error fetching cities:', citiesError);
@@ -92,12 +94,13 @@ Deno.serve(async (req) => {
       console.log(`Added ${cities.length} city pages`);
     }
 
-    // Fetch all published content pages
+    // Fetch all published content pages (up to 10,000)
     const { data: contentPages, error: contentError } = await supabase
       .from('content_pages')
       .select('slug, updated_at')
       .eq('is_published', true)
-      .order('updated_at', { ascending: false });
+      .order('updated_at', { ascending: false })
+      .range(0, 9999);
     
     if (contentError) {
       console.error('Error fetching content pages:', contentError);
@@ -142,11 +145,12 @@ Deno.serve(async (req) => {
       console.log(`Added ${contentPages.length} content pages`);
     }
 
-    // Fetch all guides
+    // Fetch all guides (up to 10,000)
     const { data: guides, error: guidesError } = await supabase
       .from('guides')
       .select('slug')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(0, 9999);
     
     if (guidesError) {
       console.error('Error fetching guides:', guidesError);
@@ -161,12 +165,13 @@ Deno.serve(async (req) => {
       console.log(`Added ${guides.length} guide pages`);
     }
 
-    // Fetch all published news articles
+    // Fetch all published news articles (up to 10,000)
     const { data: news, error: newsError } = await supabase
       .from('news_articles')
       .select('slug, published_at')
       .eq('status', 'published')
-      .order('published_at', { ascending: false });
+      .order('published_at', { ascending: false })
+      .range(0, 9999);
     
     if (newsError) {
       console.error('Error fetching news:', newsError);

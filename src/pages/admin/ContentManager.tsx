@@ -60,6 +60,14 @@ export default function ContentManager() {
 
   const togglePublish = async (id: string, currentStatus: boolean) => {
     try {
+      const { data: page, error: fetchError } = await supabase
+        .from("content_pages")
+        .select("slug")
+        .eq("id", id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
       const { error } = await supabase
         .from("content_pages")
         .update({ is_published: !currentStatus })
@@ -67,8 +75,20 @@ export default function ContentManager() {
 
       if (error) throw error;
 
+      // Submit to IndexNow when publishing (not unpublishing)
+      if (!currentStatus && page?.slug) {
+        try {
+          await supabase.functions.invoke('auto-indexnow', {
+            body: { urls: [`/${page.slug}`] }
+          });
+          console.log('Submitted to IndexNow:', page.slug);
+        } catch (indexError) {
+          console.error('IndexNow submission failed:', indexError);
+        }
+      }
+
       toast({
-        title: currentStatus ? "Page unpublished" : "Page published",
+        title: currentStatus ? "Page unpublished" : "Page published and submitted to search engines",
       });
       loadPages();
     } catch (error: any) {

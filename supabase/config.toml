@@ -106,3 +106,6 @@ verify_jwt = false
 
 [functions.generate-visa-images]
 verify_jwt = false
+
+[functions.auto-indexnow]
+verify_jwt = false

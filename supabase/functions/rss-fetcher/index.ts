@@ -116,7 +116,7 @@ serve(async (req) => {
           }
 
           // Insert new article with PUBLISHED status
-          const { error: insertError } = await supabase
+          const { data: insertedArticle, error: insertError } = await supabase
             .from('news_articles')
             .insert({
               title: item.title,
@@ -134,11 +134,30 @@ serve(async (req) => {
               seo_title: seoTitle,
               seo_description: seoDescription,
               rss_feed_id: feed.id
-            });
+            })
+            .select('slug')
+            .single();
 
           if (insertError) {
             console.error('Error inserting article:', insertError);
             continue;
+          }
+
+          // Submit to IndexNow for immediate indexing
+          if (insertedArticle?.slug) {
+            try {
+              await fetch(`${supabaseUrl}/functions/v1/auto-indexnow`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${supabaseServiceKey}`,
+                },
+                body: JSON.stringify({ urls: [`/news/${insertedArticle.slug}`] })
+              });
+              console.log(`Submitted to IndexNow: /news/${insertedArticle.slug}`);
+            } catch (indexError) {
+              console.error('IndexNow submission failed:', indexError);
+            }
           }
 
           totalAdded++;

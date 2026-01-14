@@ -41,9 +41,6 @@ verify_jwt = false
 [functions.content-agent]
 verify_jwt = false
 
-[functions.sitemap]
-verify_jwt = false
-
 [functions.send-contact-form]
 verify_jwt = false
 
@@ -93,9 +90,6 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.generate-city-content]
-verify_jwt = false
-
-[functions.news-sitemap]
 verify_jwt = false
 
 [functions.daily-agent-report]

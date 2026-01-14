@@ -1,33 +1,13 @@
 # Visas.Guide - Robots.txt
-# Last updated: 2026-01-13
+# Last updated: 2026-01-14
 
 # Allow all crawlers full access
 User-agent: *
 Allow: /
 
-# Explicitly allow Googlebot
-User-agent: Googlebot
-Allow: /
-
-# Explicitly allow Bingbot
-User-agent: Bingbot
-Allow: /
-
-# Social media bots
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
-User-agent: LinkedInBot
-Allow: /
-
 # Disallow admin pages for all bots
-User-agent: *
 Disallow: /admin
 Disallow: /admin/
 
-# Sitemaps - served by edge functions with full URL lists
-Sitemap: https://awiytryceqehqapytfgn.supabase.co/functions/v1/sitemap
-Sitemap: https://awiytryceqehqapytfgn.supabase.co/functions/v1/news-sitemap
+# Sitemap
+Sitemap: https://visas.guide/sitemap.xml

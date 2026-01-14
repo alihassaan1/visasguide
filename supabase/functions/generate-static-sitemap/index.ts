@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
         const countrySlug = (city.countries as any)?.slug;
         if (countrySlug) {
           urls.push({
-            loc: `${BASE_URL}/countries/${countrySlug}/${city.slug}`,
+            loc: `${BASE_URL}/${countrySlug}/${city.slug}`,
             changefreq: 'weekly',
             priority: '0.6',
           });

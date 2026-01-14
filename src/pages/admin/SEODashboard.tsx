@@ -91,28 +91,49 @@ export default function SEODashboard() {
   };
 
   const fetchCrawlerStats = async () => {
+    // Fetch ALL TIME data for last visit stats (not filtered by date range)
+    const { data: allTimeData, error: allTimeError } = await supabase
+      .from('analytics_events')
+      .select('user_agent, created_at')
+      .eq('is_bot', true)
+      .order('created_at', { ascending: false })
+      .limit(5000);
+
+    if (allTimeError) {
+      console.error('Error fetching crawler stats:', allTimeError);
+      return;
+    }
+
+    // Also fetch date-range filtered data for visit counts
     const days = parseInt(dateRange);
-    const { data, error } = await supabase
+    const { data: rangeData } = await supabase
       .from('analytics_events')
       .select('user_agent, created_at')
       .eq('is_bot', true)
       .gte('created_at', subDays(new Date(), days).toISOString());
 
-    if (error) {
-      console.error('Error fetching crawler stats:', error);
-      return;
-    }
-
+    // Build stats from all-time data for accurate last_visit
     const botMap: Record<string, { visits: number; last_visit: string }> = {};
     
-    data?.forEach(event => {
+    // First pass: get last_visit from all-time data
+    allTimeData?.forEach(event => {
       const botName = getBotName(event.user_agent || '');
       if (!botMap[botName]) {
         botMap[botName] = { visits: 0, last_visit: event.created_at };
       }
-      botMap[botName].visits++;
-      if (new Date(event.created_at) > new Date(botMap[botName].last_visit)) {
+      // Since data is ordered by created_at desc, first occurrence is the latest
+      if (!botMap[botName].last_visit || new Date(event.created_at) > new Date(botMap[botName].last_visit)) {
         botMap[botName].last_visit = event.created_at;
+      }
+    });
+
+    // Second pass: count visits from date-range data
+    rangeData?.forEach(event => {
+      const botName = getBotName(event.user_agent || '');
+      if (botMap[botName]) {
+        botMap[botName].visits++;
+      } else {
+        botMap[botName] = { visits: 1, last_visit: event.created_at };
       }
     });
 
@@ -124,6 +145,7 @@ export default function SEODashboard() {
       }))
       .sort((a, b) => b.visits - a.visits);
 
+    console.log('Crawler stats:', stats);
     setCrawlerStats(stats);
   };
 

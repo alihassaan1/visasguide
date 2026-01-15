@@ -5,9 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Eye, Search, TrendingUp } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Search, PenLine, Sparkles, ChevronDown } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function ContentManager() {
   const { toast } = useToast();
@@ -112,10 +118,25 @@ export default function ContentManager() {
           <h1 className="text-2xl sm:text-3xl font-bold mb-2">Content Manager</h1>
           <p className="text-sm sm:text-base text-muted-foreground">Manage all content pages and articles</p>
         </div>
-        <Button onClick={() => navigate("/admin/ai-content-studio")} className="w-full sm:w-auto">
-          <Plus className="mr-2 h-4 w-4" />
-          Create New Page
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button className="w-full sm:w-auto">
+              <Plus className="mr-2 h-4 w-4" />
+              Create New Page
+              <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={() => navigate("/admin/manual-editor")}>
+              <PenLine className="mr-2 h-4 w-4" />
+              Create Manually
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/admin/ai-content-studio")}>
+              <Sparkles className="mr-2 h-4 w-4" />
+              Generate with AI
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Search */}
@@ -222,7 +243,7 @@ export default function ContentManager() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => navigate(`/admin/ai-content-studio?edit=${page.id}`)}
+                          onClick={() => navigate(`/admin/manual-editor?edit=${page.id}`)}
                         >
                           <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>

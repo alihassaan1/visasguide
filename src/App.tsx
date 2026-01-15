@@ -29,6 +29,7 @@ import Admin from "./pages/Admin";
 import AdminAuth from "./pages/AdminAuth";
 import DataManager from "./pages/admin/DataManager";
 import AIContentStudio from "./pages/admin/AIContentStudio";
+import ManualContentEditor from "./pages/admin/ManualContentEditor";
 
 import VisaRequirementsContentUpdater from "./pages/admin/VisaRequirementsContentUpdater";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -124,6 +125,7 @@ const App = () => (
             <Route path="visa-requirements" element={<VisaRequirementsManager />} />
             <Route path="data-import" element={<DataImporter />} />
             <Route path="ai-content-studio" element={<AIContentStudio />} />
+            <Route path="manual-editor" element={<ManualContentEditor />} />
             
             <Route path="visa-requirements-content-updater" element={<VisaRequirementsContentUpdater />} />
             <Route path="dashboard" element={<AdminDashboard />} />

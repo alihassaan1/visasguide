@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, Send, Sparkles, X, Loader2, User } from "lucide-react";
+import { ArrowLeft, Save, Send, Sparkles, X, Loader2, User, Clock, Calendar } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import {
@@ -48,6 +48,8 @@ export default function ManualContentEditor() {
   const [keywordInput, setKeywordInput] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [writerId, setWriterId] = useState<string | null>(null);
+  const [scheduledAt, setScheduledAt] = useState<string>("");
+  const [isScheduling, setIsScheduling] = useState(false);
 
   // Load authors and existing page if editing
   useEffect(() => {
@@ -93,6 +95,12 @@ export default function ManualContentEditor() {
         setKeywords(data.keywords || []);
         setExcerpt(data.excerpt || "");
         setWriterId(data.writer_id || null);
+        // Handle scheduled_at - convert to local datetime format for input
+        if ((data as any).scheduled_at) {
+          const date = new Date((data as any).scheduled_at);
+          setScheduledAt(date.toISOString().slice(0, 16));
+          setIsScheduling(true);
+        }
       }
     } catch (error: any) {
       toast({
@@ -221,7 +229,7 @@ export default function ManualContentEditor() {
   };
 
   // Save page
-  const savePage = async (publish: boolean) => {
+  const savePage = async (publish: boolean, schedule: boolean = false) => {
     if (!title.trim()) {
       toast({
         title: "Title required",
@@ -240,9 +248,22 @@ export default function ManualContentEditor() {
       return;
     }
 
+    // Validate scheduled time if scheduling
+    if (schedule && scheduledAt) {
+      const scheduledDate = new Date(scheduledAt);
+      if (scheduledDate <= new Date()) {
+        toast({
+          title: "Invalid schedule time",
+          description: "Schedule time must be in the future",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setSaving(true);
     try {
-      const pageData = {
+      const pageData: Record<string, any> = {
         title,
         slug,
         content,
@@ -251,9 +272,10 @@ export default function ManualContentEditor() {
         meta_title: metaTitle || title,
         keywords: keywords.length > 0 ? keywords : null,
         excerpt: excerpt || null,
-        is_published: publish,
+        is_published: publish && !schedule,
         ai_generated: false,
         writer_id: writerId || null,
+        scheduled_at: schedule && scheduledAt ? new Date(scheduledAt).toISOString() : null,
         updated_at: new Date().toISOString(),
       };
 
@@ -261,22 +283,22 @@ export default function ManualContentEditor() {
       if (editId) {
         result = await supabase
           .from("content_pages")
-          .update(pageData)
+          .update(pageData as any)
           .eq("id", editId)
           .select()
           .single();
       } else {
         result = await supabase
           .from("content_pages")
-          .insert(pageData)
+          .insert(pageData as any)
           .select()
           .single();
       }
 
       if (result.error) throw result.error;
 
-      // Submit to IndexNow if publishing
-      if (publish && result.data?.slug) {
+      // Submit to IndexNow if publishing immediately (not scheduling)
+      if (publish && !schedule && result.data?.slug) {
         try {
           await supabase.functions.invoke("auto-indexnow", {
             body: { urls: [`/${result.data.slug}`] },
@@ -286,11 +308,15 @@ export default function ManualContentEditor() {
         }
       }
 
-      toast({
-        title: publish ? "Page published!" : "Page saved as draft",
-        description: publish
+      const successMessage = schedule 
+        ? `Scheduled for ${new Date(scheduledAt).toLocaleString()}`
+        : publish 
           ? "Your page is now live and submitted to search engines"
-          : "Your page has been saved",
+          : "Your page has been saved";
+
+      toast({
+        title: schedule ? "Page scheduled!" : publish ? "Page published!" : "Page saved as draft",
+        description: successMessage,
       });
 
       navigate("/admin/content");
@@ -330,19 +356,30 @@ export default function ManualContentEditor() {
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => savePage(false)} disabled={saving}>
             <Save className="mr-2 h-4 w-4" />
             Save Draft
           </Button>
-          <Button onClick={() => savePage(true)} disabled={saving}>
-            {saving ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="mr-2 h-4 w-4" />
-            )}
-            Publish
-          </Button>
+          {isScheduling && scheduledAt ? (
+            <Button onClick={() => savePage(true, true)} disabled={saving}>
+              {saving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Clock className="mr-2 h-4 w-4" />
+              )}
+              Schedule
+            </Button>
+          ) : (
+            <Button onClick={() => savePage(true)} disabled={saving}>
+              {saving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="mr-2 h-4 w-4" />
+              )}
+              Publish Now
+            </Button>
+          )}
         </div>
       </div>
 
@@ -557,6 +594,55 @@ export default function ManualContentEditor() {
           </CardContent>
         </Card>
 
+        {/* Scheduling */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Schedule Publishing
+            </CardTitle>
+            <CardDescription>Set a future date and time to automatically publish this page</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="enableScheduling"
+                  checked={isScheduling}
+                  onChange={(e) => {
+                    setIsScheduling(e.target.checked);
+                    if (!e.target.checked) {
+                      setScheduledAt("");
+                    }
+                  }}
+                  className="h-4 w-4 rounded border-input"
+                />
+                <Label htmlFor="enableScheduling">Schedule for later</Label>
+              </div>
+            </div>
+            
+            {isScheduling && (
+              <div className="space-y-2">
+                <Label htmlFor="scheduledAt">Publish Date & Time</Label>
+                <Input
+                  id="scheduledAt"
+                  type="datetime-local"
+                  value={scheduledAt}
+                  onChange={(e) => setScheduledAt(e.target.value)}
+                  min={new Date().toISOString().slice(0, 16)}
+                  className="max-w-xs"
+                />
+                {scheduledAt && (
+                  <p className="text-sm text-muted-foreground">
+                    Will be published on: {new Date(scheduledAt).toLocaleString()}
+                  </p>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Actions */}
         <div className="flex gap-2 justify-end pb-8">
           <Button variant="outline" onClick={() => navigate("/admin/content")}>
@@ -566,14 +652,25 @@ export default function ManualContentEditor() {
             <Save className="mr-2 h-4 w-4" />
             Save Draft
           </Button>
-          <Button onClick={() => savePage(true)} disabled={saving}>
-            {saving ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="mr-2 h-4 w-4" />
-            )}
-            Publish
-          </Button>
+          {isScheduling && scheduledAt ? (
+            <Button onClick={() => savePage(true, true)} disabled={saving}>
+              {saving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Clock className="mr-2 h-4 w-4" />
+              )}
+              Schedule
+            </Button>
+          ) : (
+            <Button onClick={() => savePage(true)} disabled={saving}>
+              {saving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="mr-2 h-4 w-4" />
+              )}
+              Publish Now
+            </Button>
+          )}
         </div>
       </div>
     </div>

@@ -563,6 +563,7 @@ export type Database = {
           keywords: string[] | null
           meta_description: string | null
           meta_title: string | null
+          scheduled_at: string | null
           slug: string
           status: string
           title: string
@@ -582,6 +583,7 @@ export type Database = {
           keywords?: string[] | null
           meta_description?: string | null
           meta_title?: string | null
+          scheduled_at?: string | null
           slug: string
           status?: string
           title: string
@@ -601,6 +603,7 @@ export type Database = {
           keywords?: string[] | null
           meta_description?: string | null
           meta_title?: string | null
+          scheduled_at?: string | null
           slug?: string
           status?: string
           title?: string

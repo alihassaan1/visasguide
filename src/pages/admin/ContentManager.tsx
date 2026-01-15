@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Eye, Search, PenLine, Sparkles, ChevronDown } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Search, PenLine, Sparkles, ChevronDown, Clock } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useNavigate } from "react-router-dom";
 import {
@@ -224,9 +224,16 @@ export default function ContentManager() {
                     <TableCell className="font-medium text-xs sm:text-sm">{page.title}</TableCell>
                     <TableCell className="text-xs sm:text-sm">/{page.slug}</TableCell>
                     <TableCell>
-                      <Badge variant={page.is_published ? "default" : "secondary"} className="text-xs">
-                        {page.is_published ? "Published" : "Draft"}
-                      </Badge>
+                      {(page as any).scheduled_at && !page.is_published ? (
+                        <Badge variant="outline" className="text-xs gap-1">
+                          <Clock className="h-3 w-3" />
+                          {new Date((page as any).scheduled_at).toLocaleDateString()}
+                        </Badge>
+                      ) : (
+                        <Badge variant={page.is_published ? "default" : "secondary"} className="text-xs">
+                          {page.is_published ? "Published" : "Draft"}
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell className="text-xs sm:text-sm">{page.created_by || "-"}</TableCell>
                     <TableCell className="text-xs sm:text-sm">

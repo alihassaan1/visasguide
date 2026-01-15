@@ -8,9 +8,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, Send, Sparkles, X, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Send, Sparkles, X, Loader2, User } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { ImageUpload } from "@/components/admin/ImageUpload";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface Author {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+  role: string | null;
+}
 
 export default function ManualContentEditor() {
   const { toast } = useToast();
@@ -21,6 +35,7 @@ export default function ManualContentEditor() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [generatingMeta, setGeneratingMeta] = useState(false);
+  const [authors, setAuthors] = useState<Author[]>([]);
 
   // Form state
   const [title, setTitle] = useState("");
@@ -32,13 +47,30 @@ export default function ManualContentEditor() {
   const [keywords, setKeywords] = useState<string[]>([]);
   const [keywordInput, setKeywordInput] = useState("");
   const [excerpt, setExcerpt] = useState("");
+  const [writerId, setWriterId] = useState<string | null>(null);
 
-  // Load existing page if editing
+  // Load authors and existing page if editing
   useEffect(() => {
+    loadAuthors();
     if (editId) {
       loadPage(editId);
     }
   }, [editId]);
+
+  const loadAuthors = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("authors")
+        .select("id, name, avatar_url, role")
+        .eq("is_active", true)
+        .order("name");
+
+      if (error) throw error;
+      setAuthors(data || []);
+    } catch (error: any) {
+      console.error("Error loading authors:", error);
+    }
+  };
 
   const loadPage = async (id: string) => {
     setLoading(true);
@@ -60,6 +92,7 @@ export default function ManualContentEditor() {
         setMetaTitle(data.meta_title || "");
         setKeywords(data.keywords || []);
         setExcerpt(data.excerpt || "");
+        setWriterId(data.writer_id || null);
       }
     } catch (error: any) {
       toast({
@@ -220,6 +253,7 @@ export default function ManualContentEditor() {
         excerpt: excerpt || null,
         is_published: publish,
         ai_generated: false,
+        writer_id: writerId || null,
         updated_at: new Date().toISOString(),
       };
 
@@ -352,6 +386,49 @@ export default function ManualContentEditor() {
                 onChange={(e) => setExcerpt(e.target.value)}
                 rows={2}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="author">Author</Label>
+              <Select value={writerId || ""} onValueChange={(value) => setWriterId(value || null)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an author (optional)">
+                    {writerId ? (
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        {authors.find(a => a.id === writerId)?.name || "Unknown"}
+                      </div>
+                    ) : (
+                      "Select an author (optional)"
+                    )}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No author</SelectItem>
+                  {authors.map((author) => (
+                    <SelectItem key={author.id} value={author.id}>
+                      <div className="flex items-center gap-2">
+                        {author.avatar_url ? (
+                          <img
+                            src={author.avatar_url}
+                            alt={author.name}
+                            className="h-5 w-5 rounded-full object-cover"
+                          />
+                        ) : (
+                          <User className="h-4 w-4" />
+                        )}
+                        <span>{author.name}</span>
+                        {author.role && (
+                          <span className="text-xs text-muted-foreground">({author.role})</span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                The author will be displayed on the published page
+              </p>
             </div>
           </CardContent>
         </Card>

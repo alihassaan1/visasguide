@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { CheckCircle, FileText, AlertCircle, Info, Loader2, MapPin, Globe } from "lucide-react";
 import RelatedVisaLinks from "@/components/RelatedVisaLinks";
+import InternalLinkingModule from "@/components/InternalLinkingModule";
 import VisaRequirementsHero from "@/components/VisaRequirementsHero";
 import VisaQuickStats from "@/components/VisaQuickStats";
 import VisaSidebar from "@/components/VisaSidebar";

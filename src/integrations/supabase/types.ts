@@ -923,6 +923,87 @@ export type Database = {
           },
         ]
       }
+      gsc_search_performance: {
+        Row: {
+          avg_position: number | null
+          clicks: number | null
+          country: string | null
+          created_at: string | null
+          ctr: number | null
+          date: string
+          device: string | null
+          id: string
+          impressions: number | null
+          page_slug: string | null
+          page_url: string
+          query: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avg_position?: number | null
+          clicks?: number | null
+          country?: string | null
+          created_at?: string | null
+          ctr?: number | null
+          date: string
+          device?: string | null
+          id?: string
+          impressions?: number | null
+          page_slug?: string | null
+          page_url: string
+          query?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avg_position?: number | null
+          clicks?: number | null
+          country?: string | null
+          created_at?: string | null
+          ctr?: number | null
+          date?: string
+          device?: string | null
+          id?: string
+          impressions?: number | null
+          page_slug?: string | null
+          page_url?: string
+          query?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      gsc_sync_log: {
+        Row: {
+          completed_at: string | null
+          error_message: string | null
+          id: string
+          rows_fetched: number | null
+          rows_inserted: number | null
+          started_at: string | null
+          status: string
+          sync_type: string
+        }
+        Insert: {
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          rows_fetched?: number | null
+          rows_inserted?: number | null
+          started_at?: string | null
+          status?: string
+          sync_type?: string
+        }
+        Update: {
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          rows_fetched?: number | null
+          rows_inserted?: number | null
+          started_at?: string | null
+          status?: string
+          sync_type?: string
+        }
+        Relationships: []
+      }
       guides: {
         Row: {
           content: string

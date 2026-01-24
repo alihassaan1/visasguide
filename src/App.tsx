@@ -59,6 +59,7 @@ import AuthorManager from "./pages/admin/AuthorManager";
 import AffiliateManager from "./pages/admin/AffiliateManager";
 import ImageGenerator from "./pages/admin/ImageGenerator";
 import QuickWinsDashboard from "./pages/admin/QuickWinsDashboard";
+import BulkContentGenerator from "./pages/admin/BulkContentGenerator";
 import ContentPage from "./pages/ContentPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -154,6 +155,7 @@ const App = () => (
             <Route path="affiliate-manager" element={<AffiliateManager />} />
             <Route path="image-generator" element={<ImageGenerator />} />
             <Route path="quick-wins" element={<QuickWinsDashboard />} />
+            <Route path="bulk-generator" element={<BulkContentGenerator />} />
           </Route>
           
           {/* Catch-all for content pages - must be last */}

@@ -417,13 +417,28 @@ serve(async (req) => {
 
     const authorList = authors && authors.length > 0 ? authors : [{ id: null, slug: 'priya-sharma' }];
 
-    // Fetch existing content page slugs to skip
-    const { data: existingPages } = await supabase
-      .from('content_pages')
-      .select('slug')
-      .like('slug', 'visa-requirements/%');
-
-    const existingSlugs = new Set((existingPages || []).map(p => p.slug));
+    // Fetch existing content page slugs to skip - use pagination to get all
+    const existingSlugs = new Set<string>();
+    let offset = 0;
+    const pageSize = 1000;
+    let hasMore = true;
+    
+    while (hasMore) {
+      const { data: existingPages } = await supabase
+        .from('content_pages')
+        .select('slug')
+        .like('slug', 'visa-requirements/%')
+        .range(offset, offset + pageSize - 1);
+      
+      if (existingPages && existingPages.length > 0) {
+        existingPages.forEach(p => existingSlugs.add(p.slug));
+        offset += existingPages.length;
+        hasMore = existingPages.length === pageSize;
+      } else {
+        hasMore = false;
+      }
+    }
+    
     console.log(`Found ${existingSlugs.size} existing visa requirement pages`);
 
     // Fetch visa requirements for type matching

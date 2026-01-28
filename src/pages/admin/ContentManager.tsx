@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Eye, Search, PenLine, Sparkles, ChevronDown, Clock } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Search, PenLine, Sparkles, ChevronDown, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useNavigate } from "react-router-dom";
 import {
@@ -21,17 +21,50 @@ export default function ContentManager() {
   const [pages, setPages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [publishedCount, setPublishedCount] = useState(0);
+  const [aiGeneratedCount, setAiGeneratedCount] = useState(0);
+  const [totalViews, setTotalViews] = useState(0);
+  const pageSize = 50;
 
   useEffect(() => {
     loadPages();
-  }, []);
+    loadStats();
+  }, [currentPage]);
+
+  const loadStats = async () => {
+    try {
+      // Get accurate counts using count: 'exact'
+      const [totalRes, publishedRes, aiRes, viewsRes] = await Promise.all([
+        supabase.from("content_pages").select("id", { count: "exact", head: true }),
+        supabase.from("content_pages").select("id", { count: "exact", head: true }).eq("is_published", true),
+        supabase.from("content_pages").select("id", { count: "exact", head: true }).eq("ai_generated", true),
+        supabase.from("content_pages").select("view_count"),
+      ]);
+
+      setTotalCount(totalRes.count || 0);
+      setPublishedCount(publishedRes.count || 0);
+      setAiGeneratedCount(aiRes.count || 0);
+      
+      // Sum all view counts
+      const views = (viewsRes.data || []).reduce((sum, p) => sum + (p.view_count || 0), 0);
+      setTotalViews(views);
+    } catch (error) {
+      console.error("Error loading stats:", error);
+    }
+  };
 
   const loadPages = async () => {
     try {
+      const from = (currentPage - 1) * pageSize;
+      const to = from + pageSize - 1;
+
       const { data, error } = await supabase
         .from("content_pages")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
       setPages(data || []);
@@ -157,14 +190,14 @@ export default function ContentManager() {
         <Card>
           <CardHeader className="pb-2 sm:pb-3">
             <CardDescription className="text-xs sm:text-sm">Total Pages</CardDescription>
-            <CardTitle className="text-2xl sm:text-3xl">{pages.length}</CardTitle>
+            <CardTitle className="text-2xl sm:text-3xl">{totalCount.toLocaleString()}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2 sm:pb-3">
             <CardDescription className="text-xs sm:text-sm">Published</CardDescription>
             <CardTitle className="text-2xl sm:text-3xl">
-              {pages.filter((p) => p.is_published).length}
+              {publishedCount.toLocaleString()}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -172,7 +205,7 @@ export default function ContentManager() {
           <CardHeader className="pb-2 sm:pb-3">
             <CardDescription className="text-xs sm:text-sm">Total Views</CardDescription>
             <CardTitle className="text-2xl sm:text-3xl">
-              {pages.reduce((sum, p) => sum + (p.view_count || 0), 0).toLocaleString()}
+              {totalViews.toLocaleString()}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -180,7 +213,7 @@ export default function ContentManager() {
           <CardHeader className="pb-2 sm:pb-3">
             <CardDescription className="text-xs sm:text-sm">AI Generated</CardDescription>
             <CardTitle className="text-3xl">
-              {pages.filter((p) => p.ai_generated).length}
+              {aiGeneratedCount.toLocaleString()}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -275,6 +308,36 @@ export default function ContentManager() {
                 ))}
               </TableBody>
             </Table>
+              </div>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalCount > pageSize && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t">
+              <p className="text-sm text-muted-foreground">
+                Showing {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalCount)} of {totalCount.toLocaleString()} pages
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm px-2">
+                  Page {currentPage} of {Math.ceil(totalCount / pageSize)}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => p + 1)}
+                  disabled={currentPage >= Math.ceil(totalCount / pageSize)}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           )}

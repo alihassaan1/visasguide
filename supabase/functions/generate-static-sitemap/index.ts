@@ -10,6 +10,9 @@ const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const BASE_URL = 'https://visas.guide';
+const SITEMAP_BUCKET = 'content-images';
+const SITEMAP_PATH = 'sitemaps/sitemap-full.xml';
+const SITEMAP_PUBLIC_URL = `${supabaseUrl}/storage/v1/object/public/${SITEMAP_BUCKET}/${SITEMAP_PATH}`;
 
 // Helper function to fetch all rows with pagination
 async function fetchAllRows(
@@ -65,6 +68,9 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const url = new URL(req.url);
+    const shouldPublish = url.searchParams.get('publish') === '1' || url.searchParams.get('publish') === 'true';
+
     console.log('Starting comprehensive sitemap generation...');
     const urls: { loc: string; changefreq: string; priority: string }[] = [];
 
@@ -209,6 +215,38 @@ ${urls.map(url => `  <url>
 </urlset>`;
 
     console.log(`✅ Generated sitemap with ${urls.length} URLs total`);
+
+    if (shouldPublish) {
+      console.log(`Publishing sitemap to Storage: ${SITEMAP_BUCKET}/${SITEMAP_PATH}`);
+      const { error: uploadError } = await supabase.storage
+        .from(SITEMAP_BUCKET)
+        .upload(
+          SITEMAP_PATH,
+          new Blob([sitemapXml], { type: 'application/xml' }),
+          {
+            upsert: true,
+            contentType: 'application/xml',
+            cacheControl: '3600',
+          }
+        );
+
+      if (uploadError) {
+        console.error('Storage upload failed:', uploadError);
+        throw new Error(`Storage upload failed: ${uploadError.message}`);
+      }
+
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          urlCount: urls.length,
+          publicUrl: SITEMAP_PUBLIC_URL,
+          generatedAt: new Date().toISOString(),
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
 
     return new Response(sitemapXml, {
       headers: {

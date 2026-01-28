@@ -242,20 +242,19 @@ export default function SEODashboard() {
   };
 
   const fetchContentStats = async () => {
-    const [contentPages, news, countries, guides, cities, visaReqs] = await Promise.all([
-      supabase.from('content_pages').select('id, is_published'),
-      supabase.from('news_articles').select('id', { count: 'exact' }),
-      supabase.from('countries').select('id', { count: 'exact' }),
-      supabase.from('guides').select('id', { count: 'exact' }),
-      supabase.from('cities').select('id', { count: 'exact' }),
-      supabase.from('visa_requirements').select('id', { count: 'exact' })
+    const [publishedPages, totalPages, news, countries, guides, cities, visaReqs] = await Promise.all([
+      supabase.from('content_pages').select('id', { count: 'exact', head: true }).eq('is_published', true),
+      supabase.from('content_pages').select('id', { count: 'exact', head: true }),
+      supabase.from('news_articles').select('id', { count: 'exact', head: true }),
+      supabase.from('countries').select('id', { count: 'exact', head: true }),
+      supabase.from('guides').select('id', { count: 'exact', head: true }),
+      supabase.from('cities').select('id', { count: 'exact', head: true }),
+      supabase.from('visa_requirements').select('id', { count: 'exact', head: true })
     ]);
-
-    const publishedPages = contentPages.data?.filter(p => p.is_published).length || 0;
     
     setContentStats({
-      published_content_pages: publishedPages,
-      total_content_pages: contentPages.data?.length || 0,
+      published_content_pages: publishedPages.count || 0,
+      total_content_pages: totalPages.count || 0,
       total_news: news.count || 0,
       total_countries: countries.count || 0,
       total_guides: guides.count || 0,

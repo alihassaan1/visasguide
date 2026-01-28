@@ -13,14 +13,20 @@ import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
 export default function AdminDashboard() {
-  // Fetch content pages
-  const { data: pages = [], isLoading: pagesLoading } = useQuery({
-    queryKey: ['admin-pages'],
+  // Fetch content pages count
+  const { data: pageStats, isLoading: pagesLoading } = useQuery({
+    queryKey: ['admin-pages-stats'],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('content_pages')
-        .select('id, title, slug, ai_generated, created_at, view_count');
-      return data || [];
+      const [totalRes, aiRes, topPagesRes] = await Promise.all([
+        supabase.from('content_pages').select('id', { count: 'exact', head: true }),
+        supabase.from('content_pages').select('id', { count: 'exact', head: true }).eq('ai_generated', true),
+        supabase.from('content_pages').select('id, title, slug, view_count').order('view_count', { ascending: false }).limit(10),
+      ]);
+      return {
+        total: totalRes.count || 0,
+        aiGenerated: aiRes.count || 0,
+        topPages: topPagesRes.data || [],
+      };
     },
     staleTime: 30000,
   });
@@ -227,7 +233,8 @@ export default function AdminDashboard() {
   // Calculate derived stats
   const pageViews = analyticsEvents.filter(e => e.event_type === 'page_view');
   const totalViews = pageViews.length;
-  const aiGeneratedPages = pages.filter(p => p.ai_generated).length;
+  const aiGeneratedPages = pageStats?.aiGenerated || 0;
+  const totalPages = pageStats?.total || 0;
 
   // Count views per page slug from analytics
   const pageViewCounts: Record<string, number> = {};
@@ -237,14 +244,11 @@ export default function AdminDashboard() {
     }
   });
 
-  // Get top pages with actual view counts
-  const topPages = pages
-    .map(page => ({
-      ...page,
-      view_count: pageViewCounts[page.slug] || page.view_count || 0
-    }))
-    .sort((a, b) => b.view_count - a.view_count)
-    .slice(0, 10);
+  // Get top pages with actual view counts (from query)
+  const topPages = (pageStats?.topPages || []).map(page => ({
+    ...page,
+    view_count: pageViewCounts[page.slug] || page.view_count || 0
+  })).sort((a, b) => b.view_count - a.view_count);
 
   // Generate monthly data from actual analytics
   const last6Months = Array.from({ length: 6 }, (_, i) => {
@@ -257,21 +261,17 @@ export default function AdminDashboard() {
     };
   });
 
+  // Monthly data now simplified - we no longer have all pages loaded
   const monthlyData = last6Months.map(({ month, year, monthNum }) => {
     const monthViews = pageViews.filter((view: any) => {
       const viewDate = new Date(view.created_at);
       return viewDate.getMonth() === monthNum && viewDate.getFullYear() === year;
     }).length;
     
-    const monthPages = pages.filter((p: any) => {
-      const createdDate = new Date(p.created_at);
-      return createdDate.getMonth() === monthNum && createdDate.getFullYear() === year;
-    });
-    
     return {
       month,
       views: monthViews,
-      posts: monthPages.length
+      posts: 0 // We can't calculate this without loading all pages
     };
   });
 
@@ -551,16 +551,16 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <StatCard 
           title="Total Pages" 
-          value={pages.length} 
+          value={totalPages} 
           icon={FileText} 
-          description={`${aiGeneratedPages} AI-generated (${pages.length > 0 ? Math.round((aiGeneratedPages / pages.length) * 100) : 0}%)`}
+          description={`${aiGeneratedPages.toLocaleString()} AI-generated (${totalPages > 0 ? Math.round((aiGeneratedPages / totalPages) * 100) : 0}%)`}
           loading={pagesLoading}
         />
         <StatCard 
           title="Total Views" 
           value={totalViews} 
           icon={Eye} 
-          description={`Avg: ${pages.length > 0 ? Math.round(totalViews / pages.length) : 0} per page`}
+          description={`Avg: ${totalPages > 0 ? Math.round(totalViews / totalPages) : 0} per page`}
           loading={analyticsLoading}
         />
         <StatCard 

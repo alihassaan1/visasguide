@@ -63,6 +63,9 @@ interface SitemapStatus {
   error?: string;
 }
 
+const SITEMAP_STORAGE_PUBLIC_URL =
+  'https://awiytryceqehqapytfgn.supabase.co/storage/v1/object/public/content-images/sitemaps/sitemap-full.xml';
+
 export default function SEODashboard() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -265,19 +268,20 @@ export default function SEODashboard() {
 
   const checkSitemapHealth = async () => {
     try {
-      // We can't directly fetch the sitemap due to CORS, but we can estimate based on content
-      const totalUrls = contentStats ? 
-        (contentStats.published_content_pages + 
-         contentStats.total_countries + 
-         contentStats.total_cities + 
-         contentStats.total_guides + 
-         contentStats.total_visa_requirements + 
-         10) : 0; // 10 for static pages
+      // Check the *actual* sitemap file served to bots (stored in Supabase Storage).
+      const response = await fetch(SITEMAP_STORAGE_PUBLIC_URL, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`Sitemap fetch failed (${response.status})`);
+
+      const xml = await response.text();
+      // Fast count: number of <url> entries.
+      const urlCount = (xml.match(/<url>/g) || []).length;
+      const isHealthy = urlCount > 10000; // sanity threshold; expected is 40k+
 
       setSitemapStatus({
-        isHealthy: true,
-        urlCount: totalUrls || 13245, // Fallback to known count
+        isHealthy,
+        urlCount,
         lastChecked: new Date(),
+        error: isHealthy ? undefined : 'Sitemap appears truncated (too few URLs).',
       });
     } catch (error) {
       setSitemapStatus({
@@ -327,28 +331,28 @@ export default function SEODashboard() {
   const handleRegenerateSitemap = async () => {
     setRegeneratingSitemap(true);
     try {
-      const response = await fetch('https://awiytryceqehqapytfgn.supabase.co/functions/v1/generate-static-sitemap');
-      
-      if (!response.ok) throw new Error('Failed to generate sitemap');
-      
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'sitemap.xml';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
+      // Ask the edge function to generate AND publish server-side (no browser download / auth dependency)
+      const response = await fetch(
+        'https://awiytryceqehqapytfgn.supabase.co/functions/v1/generate-static-sitemap?publish=1',
+        { cache: 'no-store' }
+      );
+      if (!response.ok) throw new Error(`Failed to publish sitemap (${response.status})`);
+
+      const result = await response.json();
+      const generatedUrlCount = Number(result?.urlCount || 0);
+      if (generatedUrlCount < 10000) throw new Error(`Published sitemap looks incomplete (${generatedUrlCount} URLs)`);
+
+      // Re-check
+      await checkSitemapHealth();
+
       toast({
-        title: "Sitemap Generated",
-        description: "Download complete. Upload this file to public/sitemap.xml to update the sitemap.",
+        title: 'Sitemap published',
+        description: `Published ${generatedUrlCount.toLocaleString()} URLs to the live sitemap store.`,
       });
     } catch (error) {
       toast({
         title: "Sitemap Generation Failed",
-        description: "Failed to generate sitemap. Check console for details.",
+        description: "Failed to generate/publish sitemap. Check console for details.",
         variant: "destructive"
       });
       console.error('Sitemap generation error:', error);
@@ -408,7 +412,7 @@ export default function SEODashboard() {
             ) : (
               <Download className="h-4 w-4 mr-2" />
             )}
-            Download Sitemap
+            Regenerate Sitemap
           </Button>
           <Button 
             onClick={handleIndexNowSubmit}

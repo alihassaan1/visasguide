@@ -11,8 +11,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 const BASE_URL = 'https://visas.guide';
 const SITEMAP_BUCKET = 'content-images';
-const SITEMAP_PATH = 'sitemaps/sitemap-full.xml';
-const SITEMAP_PUBLIC_URL = `${supabaseUrl}/storage/v1/object/public/${SITEMAP_BUCKET}/${SITEMAP_PATH}`;
+const URLS_PER_SITEMAP = 10000; // Google allows up to 50k, we use 10k to stay safe
 
 // Helper function to fetch all rows with pagination
 async function fetchAllRows(
@@ -60,6 +59,28 @@ async function fetchAllRows(
   }
   
   return allRows;
+}
+
+function generateSitemapXml(urls: { loc: string; changefreq: string; priority: string }[], currentDate: string): string {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(url => `  <url>
+    <loc>${url.loc}</loc>
+    <lastmod>${currentDate}</lastmod>
+    <changefreq>${url.changefreq}</changefreq>
+    <priority>${url.priority}</priority>
+  </url>`).join('\n')}
+</urlset>`;
+}
+
+function generateSitemapIndex(sitemapUrls: string[], currentDate: string): string {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${sitemapUrls.map(url => `  <sitemap>
+    <loc>${url}</loc>
+    <lastmod>${currentDate}</lastmod>
+  </sitemap>`).join('\n')}
+</sitemapindex>`;
 }
 
 Deno.serve(async (req) => {
@@ -143,25 +164,20 @@ Deno.serve(async (req) => {
       let changefreq = 'weekly';
 
       if (page.slug.includes('-to-') && page.slug.includes('-visa-requirements')) {
-        // Visa requirements pages - the bulk of our content
         path = `/visa-requirements/${page.slug}`;
         priority = '0.7';
         changefreq = 'weekly';
       } else if (page.slug.startsWith('countries/')) {
-        // Country overview pages - already handled above
         continue;
       } else if (page.slug.startsWith('blog/')) {
-        // Blog posts
         path = `/${page.slug}`;
         priority = '0.6';
         changefreq = 'monthly';
       } else if (page.slug.endsWith('-visa-free-countries')) {
-        // Visa-free country lists
         path = `/${page.slug}`;
         priority = '0.7';
         changefreq = 'weekly';
       } else {
-        // Other content pages
         path = `/${page.slug}`;
         priority = '0.6';
         changefreq = 'weekly';
@@ -201,28 +217,59 @@ Deno.serve(async (req) => {
     }
     console.log(`Added ${news.length} news articles`);
 
-    // Generate sitemap XML
-    const currentDate = new Date().toISOString().split('T')[0];
-    
-    const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(url => `  <url>
-    <loc>${url.loc}</loc>
-    <lastmod>${currentDate}</lastmod>
-    <changefreq>${url.changefreq}</changefreq>
-    <priority>${url.priority}</priority>
-  </url>`).join('\n')}
-</urlset>`;
-
     console.log(`✅ Generated sitemap with ${urls.length} URLs total`);
 
+    const currentDate = new Date().toISOString().split('T')[0];
+
     if (shouldPublish) {
-      console.log(`Publishing sitemap to Storage: ${SITEMAP_BUCKET}/${SITEMAP_PATH}`);
-      const { error: uploadError } = await supabase.storage
+      // Split URLs into chunks and upload each as a separate sitemap
+      const chunks: { loc: string; changefreq: string; priority: string }[][] = [];
+      for (let i = 0; i < urls.length; i += URLS_PER_SITEMAP) {
+        chunks.push(urls.slice(i, i + URLS_PER_SITEMAP));
+      }
+
+      console.log(`Splitting into ${chunks.length} sitemap files (${URLS_PER_SITEMAP} URLs each)`);
+
+      const sitemapUrls: string[] = [];
+
+      for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i];
+        const sitemapPath = `sitemaps/sitemap-${i + 1}.xml`;
+        const sitemapXml = generateSitemapXml(chunk, currentDate);
+
+        console.log(`Uploading ${sitemapPath} with ${chunk.length} URLs...`);
+
+        const { error: uploadError } = await supabase.storage
+          .from(SITEMAP_BUCKET)
+          .upload(
+            sitemapPath,
+            new Blob([sitemapXml], { type: 'application/xml' }),
+            {
+              upsert: true,
+              contentType: 'application/xml',
+              cacheControl: '3600',
+            }
+          );
+
+        if (uploadError) {
+          console.error(`Failed to upload ${sitemapPath}:`, uploadError);
+          throw new Error(`Storage upload failed for ${sitemapPath}: ${uploadError.message}`);
+        }
+
+        sitemapUrls.push(`${supabaseUrl}/storage/v1/object/public/${SITEMAP_BUCKET}/${sitemapPath}`);
+      }
+
+      // Generate and upload the sitemap index
+      const sitemapIndex = generateSitemapIndex(sitemapUrls, currentDate);
+      const indexPath = 'sitemaps/sitemap-index.xml';
+
+      console.log(`Uploading sitemap index with ${sitemapUrls.length} sitemaps...`);
+
+      const { error: indexUploadError } = await supabase.storage
         .from(SITEMAP_BUCKET)
         .upload(
-          SITEMAP_PATH,
-          new Blob([sitemapXml], { type: 'application/xml' }),
+          indexPath,
+          new Blob([sitemapIndex], { type: 'application/xml' }),
           {
             upsert: true,
             contentType: 'application/xml',
@@ -230,16 +277,22 @@ ${urls.map(url => `  <url>
           }
         );
 
-      if (uploadError) {
-        console.error('Storage upload failed:', uploadError);
-        throw new Error(`Storage upload failed: ${uploadError.message}`);
+      if (indexUploadError) {
+        console.error('Failed to upload sitemap index:', indexUploadError);
+        throw new Error(`Storage upload failed for sitemap index: ${indexUploadError.message}`);
       }
+
+      const indexUrl = `${supabaseUrl}/storage/v1/object/public/${SITEMAP_BUCKET}/${indexPath}`;
+
+      console.log(`✅ Published ${chunks.length} sitemaps and 1 index`);
 
       return new Response(
         JSON.stringify({
           ok: true,
           urlCount: urls.length,
-          publicUrl: SITEMAP_PUBLIC_URL,
+          sitemapCount: chunks.length,
+          indexUrl,
+          sitemapUrls,
           generatedAt: new Date().toISOString(),
         }),
         {
@@ -247,6 +300,9 @@ ${urls.map(url => `  <url>
         }
       );
     }
+
+    // For non-publish requests, return the full sitemap XML directly
+    const sitemapXml = generateSitemapXml(urls, currentDate);
 
     return new Response(sitemapXml, {
       headers: {

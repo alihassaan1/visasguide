@@ -105,12 +105,11 @@ const AnalyticsDashboard = () => {
       if (isHourly) {
         // Hourly aggregation
         const hourlyCounts: Record<string, { date: string, pageViews: number, searches: number }> = {};
-        const hours = trendPeriod === 'yesterday' ? 24 : 24;
         
-        for (let i = hours - 1; i >= 0; i--) {
+        for (let i = 0; i < 24; i++) {
           const hour = trendPeriod === 'yesterday' 
             ? new Date(start.getTime() + i * 60 * 60 * 1000)
-            : subHours(new Date(), i);
+            : subHours(new Date(), 23 - i);
           const key = format(hour, 'HH:00');
           hourlyCounts[key] = { date: key, pageViews: 0, searches: 0 };
         }
@@ -126,31 +125,33 @@ const AnalyticsDashboard = () => {
           }
         });
         
-        return Object.values(hourlyCounts);
+        // Sort by hour
+        return Object.values(hourlyCounts).sort((a, b) => a.date.localeCompare(b.date));
       } else {
-        // Daily aggregation
-        const days = trendPeriod === '7d' ? 7 : trendPeriod === '14d' ? 14 : trendPeriod === '30d' ? 30 : trendPeriod === '60d' ? 60 : trendPeriod === '90d' ? 90 : 365;
-        const dailyCounts: Record<string, { date: string, pageViews: number, searches: number }> = {};
-        
-        for (let i = days - 1; i >= 0; i--) {
-          const date = format(subDays(new Date(), i), trendPeriod === '1y' ? 'MMM yyyy' : 'MMM dd');
-          if (!dailyCounts[date]) {
-            dailyCounts[date] = { date, pageViews: 0, searches: 0 };
-          }
-        }
+        // Daily/Monthly aggregation - directly aggregate from data
+        const aggregation: Record<string, { date: string, sortKey: string, pageViews: number, searches: number }> = {};
+        const useMonthly = trendPeriod === '1y' || trendPeriod === 'all';
         
         data.forEach(event => {
-          const date = format(new Date(event.created_at), trendPeriod === '1y' ? 'MMM yyyy' : 'MMM dd');
-          if (dailyCounts[date]) {
-            if (event.event_type === 'page_view') {
-              dailyCounts[date].pageViews++;
-            } else if (event.event_type === 'search') {
-              dailyCounts[date].searches++;
-            }
+          const eventDate = new Date(event.created_at);
+          const displayDate = format(eventDate, useMonthly ? 'MMM yyyy' : 'MMM dd');
+          const sortKey = format(eventDate, useMonthly ? 'yyyy-MM' : 'yyyy-MM-dd');
+          
+          if (!aggregation[sortKey]) {
+            aggregation[sortKey] = { date: displayDate, sortKey, pageViews: 0, searches: 0 };
+          }
+          
+          if (event.event_type === 'page_view') {
+            aggregation[sortKey].pageViews++;
+          } else if (event.event_type === 'search') {
+            aggregation[sortKey].searches++;
           }
         });
         
-        return Object.values(dailyCounts);
+        // Sort by date and return
+        return Object.values(aggregation)
+          .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+          .map(({ date, pageViews, searches }) => ({ date, pageViews, searches }));
       }
     }
   });

@@ -427,7 +427,7 @@ export default function ManualContentEditor() {
 
             <div className="space-y-2">
               <Label htmlFor="author">Author</Label>
-              <Select value={writerId || ""} onValueChange={(value) => setWriterId(value || null)}>
+              <Select value={writerId || "none"} onValueChange={(value) => setWriterId(value === "none" ? null : value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select an author (optional)">
                     {writerId ? (
@@ -441,7 +441,7 @@ export default function ManualContentEditor() {
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No author</SelectItem>
+                  <SelectItem value="none">No author</SelectItem>
                   {authors.map((author) => (
                     <SelectItem key={author.id} value={author.id}>
                       <div className="flex items-center gap-2">

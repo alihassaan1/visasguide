@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { User, Settings, LogOut } from "lucide-react";
+import { MobileSidebar } from "./AdminSidebar";
 
 export function AdminHeader() {
   const navigate = useNavigate();
@@ -49,23 +50,26 @@ export function AdminHeader() {
   };
 
   return (
-    <header className="bg-card border-b px-6 py-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Complete overview of Visas.Guide performance</p>
+    <header className="bg-card border-b px-4 sm:px-6 py-3 sm:py-4">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <MobileSidebar />
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">Admin Dashboard</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Complete overview of Visas.Guide performance</p>
+          </div>
         </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-2">
+            <Button variant="ghost" className="flex items-center gap-2 shrink-0">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary text-primary-foreground">
                   {getInitials(userEmail)}
                 </AvatarFallback>
               </Avatar>
-              <div className="text-left hidden md:block">
-                <p className="text-sm font-medium">{userEmail}</p>
+              <div className="text-left hidden lg:block">
+                <p className="text-sm font-medium truncate max-w-[120px]">{userEmail}</p>
                 <p className="text-xs text-muted-foreground capitalize">{userRole}</p>
               </div>
             </Button>

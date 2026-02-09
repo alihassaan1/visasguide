@@ -129,7 +129,21 @@ const VisaSidebar = ({ toCountry, fromCountry, requirementType }: VisaSidebarPro
         </Card>
       )}
 
-      {/* Useful Links */}
+      {/* Useful Links - moved below newsletter */}
+
+      {/* Affiliate Banner */}
+      <AffiliateBanner 
+        position="sidebar"
+        title="Get Travel Insurance"
+        description="Protect your trip with comprehensive travel insurance coverage."
+        ctaText="Get a Quote"
+        affiliateLink="https://www.worldnomads.com/?utm_source=visas.guide"
+      />
+
+      {/* Newsletter Signup */}
+      <NewsletterSignup />
+
+      {/* Useful Links - placed after newsletter to avoid clutter near header */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">Useful Links</CardTitle>
@@ -144,7 +158,6 @@ const VisaSidebar = ({ toCountry, fromCountry, requirementType }: VisaSidebarPro
             </span>
             <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
           </Link>
-          
           <Link
             to={`/countries/${fromCountry.slug}`}
             className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors group text-sm"
@@ -154,7 +167,6 @@ const VisaSidebar = ({ toCountry, fromCountry, requirementType }: VisaSidebarPro
             </span>
             <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
           </Link>
-          
           <Link
             to="/visa-search"
             className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors group text-sm"
@@ -164,7 +176,6 @@ const VisaSidebar = ({ toCountry, fromCountry, requirementType }: VisaSidebarPro
             </span>
             <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
           </Link>
-          
           <Link
             to="/passport-index"
             className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors group text-sm"
@@ -176,18 +187,6 @@ const VisaSidebar = ({ toCountry, fromCountry, requirementType }: VisaSidebarPro
           </Link>
         </CardContent>
       </Card>
-
-      {/* Affiliate Banner */}
-      <AffiliateBanner 
-        position="sidebar"
-        title="Get Travel Insurance"
-        description="Protect your trip with comprehensive travel insurance coverage."
-        ctaText="Get a Quote"
-        affiliateLink="https://www.worldnomads.com/?utm_source=visas.guide"
-      />
-
-      {/* Newsletter Signup */}
-      <NewsletterSignup />
     </div>
   );
 };

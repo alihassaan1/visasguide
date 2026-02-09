@@ -67,6 +67,33 @@ sudo nano /etc/nginx/sites-available/visas.guide
 Add this configuration:
 
 ```nginx
+# ── Bot user-agent map (place OUTSIDE the server block) ──
+map $http_user_agent $is_bot {
+    default                         0;
+    "~*googlebot"                   1;
+    "~*bingbot"                     1;
+    "~*yandex"                      1;
+    "~*baiduspider"                 1;
+    "~*facebookexternalhit"         1;
+    "~*twitterbot"                  1;
+    "~*rogerbot"                    1;
+    "~*linkedinbot"                 1;
+    "~*embedly"                     1;
+    "~*quora link preview"          1;
+    "~*showyoubot"                  1;
+    "~*outbrain"                    1;
+    "~*pinterest"                   1;
+    "~*slackbot"                    1;
+    "~*vkShare"                     1;
+    "~*W3C_Validator"               1;
+    "~*whatsapp"                    1;
+    "~*applebot"                    1;
+    "~*duckduckbot"                 1;
+    "~*Sogou"                       1;
+    "~*Semrush"                     1;
+    "~*AhrefsBot"                   1;
+}
+
 server {
     listen 80;
     server_name visas.guide www.visas.guide;
@@ -80,8 +107,37 @@ server {
     gzip_proxied expired no-cache no-store private auth;
     gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml application/javascript application/json;
 
-    # SPA routing - CRITICAL for React Router
+    # ── Prerendering for SEO bots ──
+    # Proxies bot requests to a prerender service (e.g., Prerender.io)
+    # so crawlers receive fully-rendered HTML instead of a JS shell.
+    # Sign up at https://prerender.io and set your token below.
+    #
+    # To enable: replace YOUR_PRERENDER_TOKEN with your actual token
+    # and uncomment the location block below.
+    
+    set $prerender 0;
+    if ($is_bot) {
+        set $prerender 1;
+    }
+    # Don't prerender static assets or API calls
+    if ($uri ~* "\.(js|css|xml|less|png|jpg|jpeg|gif|pdf|doc|txt|ico|rss|zip|mp3|rar|exe|wmv|doc|avi|ppt|mpg|mpeg|tif|wav|mov|psd|ai|xls|mp4|m4a|swf|dat|dmg|iso|flv|m4v|torrent|ttf|woff|woff2|svg|eot)$") {
+        set $prerender 0;
+    }
+
     location / {
+        if ($prerender = 1) {
+            # Option A: Prerender.io (recommended, managed service)
+            # rewrite .* /https://visas.guide$request_uri? break;
+            # proxy_pass https://service.prerender.io;
+            # proxy_set_header X-Prerender-Token YOUR_PRERENDER_TOKEN;
+            
+            # Option B: Self-hosted Prerender (run on same EC2 or separate instance)
+            # proxy_pass http://localhost:3000;
+            # proxy_set_header X-Prerender-Token none;
+            
+            # Until prerender is configured, serve static files normally
+            rewrite .* /index.html break;
+        }
         try_files $uri $uri/ /index.html;
     }
 

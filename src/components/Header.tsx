@@ -87,15 +87,13 @@ const Header = () => {
           {/* Logo */}
           <Link 
             to="/" 
-            className="flex items-center space-x-2"
+            className="flex items-center gap-2"
             aria-label="Visas.Guide - Home"
           >
-            <img 
-              src={logo} 
-              alt="Visas.Guide - Complete Visa Requirements and Travel Information" 
-              className="h-10 sm:h-11 md:h-12 w-auto max-w-[140px] sm:max-w-[180px] md:max-w-[220px] object-contain"
-              title="visas.guide"
-            />
+            <Globe className="h-6 w-6 text-primary" />
+            <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+              visas<span className="text-primary">.guide</span>
+            </span>
           </Link>
 
           {/* Navigation - Hidden on mobile */}

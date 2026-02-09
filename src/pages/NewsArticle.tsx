@@ -15,6 +15,7 @@ import AuthorBio from "@/components/AuthorBio";
 import ArticleSchema from "@/components/ArticleSchema";
 import RelatedContent from "@/components/RelatedContent";
 import SocialShareButtons from "@/components/SocialShareButtons";
+import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
 
 const NewsArticle = () => {
   const { slug } = useParams<{ slug: string }>();

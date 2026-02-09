@@ -129,53 +129,7 @@ const VisaSidebar = ({ toCountry, fromCountry, requirementType }: VisaSidebarPro
         </Card>
       )}
 
-      {/* Useful Links */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Useful Links</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <Link
-            to={`/countries/${toCountry.slug}`}
-            className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors group text-sm"
-          >
-            <span className="group-hover:text-primary transition-colors">
-              {toCountry.name} Travel Guide
-            </span>
-            <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
-          </Link>
-          
-          <Link
-            to={`/countries/${fromCountry.slug}`}
-            className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors group text-sm"
-          >
-            <span className="group-hover:text-primary transition-colors">
-              {fromCountry.name} Passport Guide
-            </span>
-            <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
-          </Link>
-          
-          <Link
-            to="/visa-search"
-            className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors group text-sm"
-          >
-            <span className="group-hover:text-primary transition-colors">
-              Visa Search Tool
-            </span>
-            <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
-          </Link>
-          
-          <Link
-            to="/passport-index"
-            className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors group text-sm"
-          >
-            <span className="group-hover:text-primary transition-colors">
-              Passport Rankings
-            </span>
-            <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
-          </Link>
-        </CardContent>
-      </Card>
+      {/* Useful Links - moved below newsletter */}
 
       {/* Affiliate Banner */}
       <AffiliateBanner 

@@ -144,7 +144,7 @@ Format the content in HTML with proper headings (h2, h3), bullet points, and sec
 3. Required documents
 4. Processing times and fees
 5. Entry requirements and travel tips
-6. Important advisories and updates for 2025
+6. Important advisories and updates for 2026
 
 Format the content in HTML with proper headings (h2, h3), bullet points, and paragraphs. Make it informative and travel-guide style.`;
 

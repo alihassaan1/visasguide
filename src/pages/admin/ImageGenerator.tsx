@@ -8,11 +8,12 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Image, Loader2, Check, X, RefreshCw, Sparkles, ImageOff } from "lucide-react";
+import { Image, Loader2, Check, X, RefreshCw, Sparkles, ImageOff, AlertTriangle } from "lucide-react";
 
 interface Stats {
   total_pages: number;
   missing_images: number;
+  broken_unsplash: number;
   with_images: number;
   percentage_complete: number;
 }
@@ -25,13 +26,15 @@ interface GenerateResult {
   error?: string;
 }
 
+type GenerateMode = "missing" | "broken" | "all";
+
 export default function ImageGenerator() {
   const [batchSize, setBatchSize] = useState<string>("25");
+  const [mode, setMode] = useState<GenerateMode>("missing");
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState<GenerateResult[]>([]);
   const queryClient = useQueryClient();
 
-  // Fetch stats
   const { data: stats, isLoading: statsLoading } = useQuery<Stats>({
     queryKey: ["image-generator-stats"],
     queryFn: async () => {
@@ -44,11 +47,10 @@ export default function ImageGenerator() {
     refetchInterval: isGenerating ? 5000 : false,
   });
 
-  // Generate images mutation
   const generateMutation = useMutation({
-    mutationFn: async (size: number) => {
+    mutationFn: async ({ size, genMode }: { size: number; genMode: GenerateMode }) => {
       const { data, error } = await supabase.functions.invoke("generate-visa-images", {
-        body: { action: "generate", batch_size: size, use_ai: true },
+        body: { action: "generate", batch_size: size, use_ai: true, mode: genMode },
       });
       if (error) throw error;
       return data;
@@ -58,9 +60,9 @@ export default function ImageGenerator() {
       queryClient.invalidateQueries({ queryKey: ["image-generator-stats"] });
       
       if (data.failed === 0) {
-        toast.success(`Successfully added images to ${data.successful} pages!`);
+        toast.success(`Successfully processed ${data.successful} pages!`);
       } else {
-        toast.warning(`Added images to ${data.successful} pages, ${data.failed} failed`);
+        toast.warning(`Processed ${data.successful} pages, ${data.failed} failed`);
       }
     },
     onError: (error: Error) => {
@@ -74,8 +76,10 @@ export default function ImageGenerator() {
   const handleGenerate = () => {
     setIsGenerating(true);
     setResults([]);
-    generateMutation.mutate(parseInt(batchSize));
+    generateMutation.mutate({ size: parseInt(batchSize), genMode: mode });
   };
+
+  const needsWork = (stats?.missing_images || 0) + (stats?.broken_unsplash || 0);
 
   const getSourceBadge = (source?: string) => {
     switch (source) {
@@ -100,12 +104,12 @@ export default function ImageGenerator() {
           Featured Image Generator
         </h1>
         <p className="text-muted-foreground mt-1">
-          Add beautiful destination images to visa guide pages using Unsplash and AI
+          Add and fix featured images for all content pages using Unsplash and AI
         </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Pages</CardTitle>
@@ -120,7 +124,7 @@ export default function ImageGenerator() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">With Images</CardTitle>
+            <CardTitle className="text-sm font-medium">Working Images</CardTitle>
             <Check className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
@@ -144,6 +148,19 @@ export default function ImageGenerator() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Broken URLs</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {statsLoading ? "..." : (stats?.broken_unsplash || 0).toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Deprecated Unsplash</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Completion</CardTitle>
             <Sparkles className="h-4 w-4 text-primary" />
           </CardHeader>
@@ -157,14 +174,28 @@ export default function ImageGenerator() {
       {/* Generation Controls */}
       <Card>
         <CardHeader>
-          <CardTitle>Generate Images</CardTitle>
+          <CardTitle>Generate & Fix Images</CardTitle>
           <CardDescription>
-            Process pages missing featured images. Uses curated Unsplash photos for common destinations 
-            and AI generation (Lovable AI) for less common ones.
+            Process pages with missing or broken featured images. Uses curated Unsplash photos for common 
+            destinations and AI generation for less common ones.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Mode:</span>
+              <Select value={mode} onValueChange={(v) => setMode(v as GenerateMode)}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="missing">Missing Images Only</SelectItem>
+                  <SelectItem value="broken">Fix Broken URLs Only</SelectItem>
+                  <SelectItem value="all">All (Missing + Broken)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">Batch Size:</span>
               <Select value={batchSize} onValueChange={setBatchSize}>
@@ -182,18 +213,18 @@ export default function ImageGenerator() {
 
             <Button 
               onClick={handleGenerate} 
-              disabled={isGenerating || (stats?.missing_images === 0)}
+              disabled={isGenerating || needsWork === 0}
               size="lg"
             >
               {isGenerating ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating...
+                  Processing...
                 </>
               ) : (
                 <>
                   <Sparkles className="mr-2 h-4 w-4" />
-                  Generate {batchSize} Images
+                  Process {batchSize} Pages
                 </>
               )}
             </Button>
@@ -207,9 +238,16 @@ export default function ImageGenerator() {
             </Button>
           </div>
 
-          {stats?.missing_images === 0 && (
+          {needsWork === 0 && (
             <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4 text-green-700 dark:text-green-400">
-              ✓ All pages have featured images!
+              ✓ All pages have working featured images!
+            </div>
+          )}
+
+          {(stats?.broken_unsplash || 0) > 0 && (
+            <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-red-700 dark:text-red-400">
+              ⚠ {stats?.broken_unsplash} pages have broken <code>source.unsplash.com</code> URLs (deprecated). 
+              Use "Fix Broken URLs Only" mode to replace them.
             </div>
           )}
 
@@ -220,6 +258,7 @@ export default function ImageGenerator() {
               <li>Uses curated Unsplash images for 100+ popular destinations (instant, free)</li>
               <li>Falls back to AI image generation for uncommon destinations (requires credits)</li>
               <li>Caches country images to avoid duplicate generations</li>
+              <li><strong>Fix Broken:</strong> Replaces deprecated source.unsplash.com URLs with working images</li>
             </ul>
           </div>
         </CardContent>
@@ -254,7 +293,7 @@ export default function ImageGenerator() {
                         <X className="h-5 w-5 text-red-500" />
                       )}
                     </TableCell>
-                    <TableCell className="font-mono text-sm">
+                    <TableCell className="font-mono text-sm max-w-xs truncate">
                       {result.slug}
                     </TableCell>
                     <TableCell>

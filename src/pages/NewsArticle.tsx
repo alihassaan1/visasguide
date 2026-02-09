@@ -217,7 +217,7 @@ const NewsArticle = () => {
 
       <Header />
       
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 py-8">
         {/* Breadcrumbs */}
         <Breadcrumb className="mb-6">
           <BreadcrumbList>
@@ -249,108 +249,148 @@ const NewsArticle = () => {
           </Link>
         </div>
 
-        {/* Article Header */}
-        <article className="mb-12">
-          <header className="mb-8">
-            <div className="flex flex-wrap gap-2 mb-4">
-              {categories?.slice(0, 3).map((category: string, index: number) => (
-                <Badge key={index} variant="secondary">{category}</Badge>
-              ))}
-              {isRecentlyUpdated && (
-                <Badge className="bg-green-500 text-white">Recently Updated</Badge>
-              )}
-            </div>
-            
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-              {title}
-            </h1>
-            
-            {excerpt && (
-              <p className="text-xl text-muted-foreground mb-6 leading-relaxed">
-                {excerpt}
-              </p>
-            )}
-
-            <div className="flex items-center justify-between flex-wrap gap-4 mb-8">
-              <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  {formatDate(publishedAt!)}
-                </div>
-                {authorName && (
-                  <div className="flex items-center gap-2">
-                    <span>By {authorName}</span>
-                  </div>
-                )}
-                {sourceName && (
-                  <div className="flex items-center gap-2">
-                    <span>Source: {sourceName}</span>
-                  </div>
+        {/* Two Column Layout */}
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content - 2/3 width */}
+          <article className="lg:col-span-2 mb-12">
+            <header className="mb-8">
+              <div className="flex flex-wrap gap-2 mb-4">
+                {categories?.slice(0, 3).map((category: string, index: number) => (
+                  <Badge key={index} variant="secondary">{category}</Badge>
+                ))}
+                {isRecentlyUpdated && (
+                  <Badge className="bg-green-500 text-white">Recently Updated</Badge>
                 )}
               </div>
               
-              <SocialShareButtons
-                url={`https://visas.guide/blog/${slug}`}
-                title={title}
-                description={excerpt || undefined}
-              />
-            </div>
-          </header>
+              <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+                {title}
+              </h1>
+              
+              {excerpt && (
+                <p className="text-xl text-muted-foreground mb-6 leading-relaxed">
+                  {excerpt}
+                </p>
+              )}
 
-          {/* Featured Image */}
-          {featuredImage && (
-            <div className="mb-8">
-              <img 
-                src={featuredImage} 
-                alt={`${title} - Visa and travel news illustration`}
-                className="w-full rounded-lg shadow-lg"
-                loading="lazy"
-              />
-            </div>
-          )}
+              <div className="flex items-center justify-between flex-wrap gap-4 mb-8">
+                <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    {formatDate(publishedAt!)}
+                  </div>
+                  {authorName && (
+                    <div className="flex items-center gap-2">
+                      <span>By {authorName}</span>
+                    </div>
+                  )}
+                  {sourceName && (
+                    <div className="flex items-center gap-2">
+                      <span>Source: {sourceName}</span>
+                    </div>
+                  )}
+                </div>
+                
+                <SocialShareButtons
+                  url={`https://visas.guide/blog/${slug}`}
+                  title={title}
+                  description={excerpt || undefined}
+                />
+              </div>
+            </header>
 
-          {/* Article Content */}
-          <div className="prose prose-lg dark:prose-invert max-w-none">
-            {content ? (
-              <div dangerouslySetInnerHTML={{ __html: formatArticleContent(content) }} />
-            ) : (
-              <div className="text-muted-foreground">
-                <p>Article content is not available. Please visit the original source for the full article.</p>
+            {/* Featured Image */}
+            {featuredImage && (
+              <div className="mb-8">
+                <img 
+                  src={featuredImage} 
+                  alt={`${title} - Visa and travel news illustration`}
+                  className="w-full rounded-lg shadow-lg"
+                  loading="lazy"
+                  onError={(e) => {
+                    // Hide broken images gracefully
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
               </div>
             )}
-          </div>
 
-          {/* Tags */}
-          {tags && tags.length > 0 && (
-            <div className="mt-8 pt-8 border-t">
-              <h3 className="text-sm font-medium text-muted-foreground mb-3">Tags:</h3>
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag: string, index: number) => (
-                  <Badge key={index} variant="outline">{tag}</Badge>
-                ))}
-              </div>
+            {/* Article Content */}
+            <div className="prose prose-lg dark:prose-invert max-w-none">
+              {content ? (
+                <div dangerouslySetInnerHTML={{ __html: formatArticleContent(content) }} />
+              ) : (
+                <div className="text-muted-foreground">
+                  <p>Article content is not available. Please visit the original source for the full article.</p>
+                </div>
+              )}
             </div>
-          )}
 
-          {/* Author Bio - E-E-A-T Signal */}
-          <AuthorBio writerId={writerId} />
+            {/* Tags */}
+            {tags && tags.length > 0 && (
+              <div className="mt-8 pt-8 border-t">
+                <h3 className="text-sm font-medium text-muted-foreground mb-3">Tags:</h3>
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag: string, index: number) => (
+                    <Badge key={index} variant="outline">{tag}</Badge>
+                  ))}
+                </div>
+              </div>
+            )}
 
-          {/* Related Content - Internal Linking */}
-          <RelatedContent
-            currentSlug={slug || ''}
-            contentType="blog"
-            country={categories?.[0]}
-          />
-        </article>
+            {/* Author Bio */}
+            <AuthorBio writerId={writerId} />
 
-        {/* Newsletter Signup */}
-        <div className="my-12">
-          <NewsletterSignup variant="sidebar" />
+            {/* Related Content */}
+            <RelatedContent
+              currentSlug={slug || ''}
+              contentType="blog"
+              country={categories?.[0]}
+            />
+          </article>
+
+          {/* Right Sidebar */}
+          <aside className="lg:col-span-1">
+            <div className="lg:sticky lg:top-20 space-y-6">
+              {/* Ad Zone */}
+              <Card className="bg-muted/30 border-dashed">
+                <CardContent className="p-6 text-center">
+                  <span className="text-xs text-muted-foreground block mb-2">Advertisement</span>
+                  <div className="h-[250px] bg-muted/50 rounded flex items-center justify-center">
+                    {/* Ad placeholder - replace with actual ad code */}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Affiliate Banners */}
+              <AffiliateBannerContainer position="sidebar-right" />
+
+              {/* Newsletter Signup */}
+              <Card>
+                <CardContent className="p-0">
+                  <NewsletterSignup variant="sidebar" />
+                </CardContent>
+              </Card>
+
+              {/* Second Ad Zone */}
+              <Card className="bg-muted/30 border-dashed">
+                <CardContent className="p-6 text-center">
+                  <span className="text-xs text-muted-foreground block mb-2">Advertisement</span>
+                  <div className="h-[250px] bg-muted/50 rounded flex items-center justify-center">
+                    {/* Ad placeholder */}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Affiliate Banners - in-content position */}
+              <AffiliateBannerContainer position="in-content" />
+            </div>
+          </aside>
         </div>
 
-        {/* Related Articles (only for news_articles) */}
+        {/* Related Articles (only for news_articles) - full width below */}
         {relatedArticles && relatedArticles.length > 0 && (
-          <section>
+          <section className="mt-12">
             <h2 className="text-2xl font-bold mb-6">Related Articles</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {relatedArticles.map((related) => (
@@ -361,6 +401,9 @@ const NewsArticle = () => {
                         src={related.featured_image_url} 
                         alt={related.title}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
                       />
                     </div>
                   )}

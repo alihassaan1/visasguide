@@ -43,6 +43,7 @@ const Unsubscribe = () => {
       <SEOHead
         title="Unsubscribe | Visas.Guide"
         description="Unsubscribe from Visas.Guide newsletter"
+        noIndex={true}
       />
       <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center p-4">
         <Card className="w-full max-w-md shadow-xl border-0 bg-card/95 backdrop-blur">
@@ -50,9 +51,9 @@ const Unsubscribe = () => {
             <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
               <Mail className="h-8 w-8 text-primary" />
             </div>
-            <CardTitle className="text-2xl font-bold text-foreground">
+            <h1 className="text-2xl font-bold text-foreground">
               Unsubscribe
-            </CardTitle>
+            </h1>
             <CardDescription className="text-muted-foreground">
               Manage your email preferences
             </CardDescription>

@@ -74,7 +74,7 @@ const PassportRankings = () => {
         canonical="https://visas.guide/passport-index"
         keywords={[
           'passport index',
-          'passport rankings 2025',
+          'passport rankings 2026',
           'strongest passports',
           'passport power rankings',
           'visa free countries',

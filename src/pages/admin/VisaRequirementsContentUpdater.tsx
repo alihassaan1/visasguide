@@ -144,7 +144,7 @@ Format the content in HTML with proper headings (h2, h3), bullet points, and sec
 3. Required documents
 4. Processing times and fees
 5. Entry requirements and travel tips
-6. Important advisories and updates for 2025
+6. Important advisories and updates for 2026
 
 Format the content in HTML with proper headings (h2, h3), bullet points, and paragraphs. Make it informative and travel-guide style.`;
 
@@ -172,8 +172,8 @@ Format the content in HTML with proper headings (h2, h3), bullet points, and par
             slug,
             content: data.content,
             meta_description: `Complete visa guide for ${from.name} passport holders traveling to ${to.name}. Requirements, fees, processing times, and application process.`,
-            meta_title: `${to.name} Visa for ${from.name} Citizens 2025 | Requirements & Guide`,
-            keywords: [`${to.name} visa`, `${from.name} to ${to.name}`, 'visa requirements', 'travel guide', '2025'],
+            meta_title: `${to.name} Visa for ${from.name} Citizens 2026 | Requirements & Guide`,
+            keywords: [`${to.name} visa`, `${from.name} to ${to.name}`, 'visa requirements', 'travel guide', '2026'],
             is_published: true,
             ai_generated: true,
             status: 'published',

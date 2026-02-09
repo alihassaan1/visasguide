@@ -43,7 +43,7 @@ export function formatArticleContent(content: string): string {
   }
   
   // Content is plain text - convert to HTML with formatting
-  let lines = content.split('\n');
+  let lines = cleaned.split('\n');
   let formattedLines: string[] = [];
   
   for (let i = 0; i < lines.length; i++) {

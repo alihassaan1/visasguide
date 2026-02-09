@@ -143,11 +143,15 @@ const NewsPage = () => {
   const renderContentCard = (item: ContentItem) => (
     <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
       {item.featured_image_url && (
-        <div className="aspect-video bg-muted">
+        <div className="aspect-video bg-muted overflow-hidden">
           <img 
             src={item.featured_image_url} 
             alt={item.title}
             className="w-full h-full object-cover"
+            loading="lazy"
+            onError={(e) => {
+              (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+            }}
           />
         </div>
       )}
@@ -288,11 +292,15 @@ const NewsPage = () => {
               {featuredArticles.map((article) => (
                 <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   {article.featured_image_url && (
-                    <div className="aspect-video bg-muted">
+                    <div className="aspect-video bg-muted overflow-hidden">
                       <img 
                         src={article.featured_image_url} 
                         alt={article.title}
                         className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+                        }}
                       />
                     </div>
                   )}

@@ -280,33 +280,6 @@ export default function ContentPage() {
 
           {/* Sidebar - 1/3 width */}
           <aside className="space-y-6">
-            {/* Quick Navigation Card */}
-            <Card className="sticky top-4">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <BookOpen className="h-4 w-4 text-primary" />
-                  Quick Navigation
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <Link to="/visa-finder" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors py-1">
-                  <ChevronRight className="h-3 w-3" />
-                  Visa Finder Tool
-                </Link>
-                <Link to="/countries" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors py-1">
-                  <ChevronRight className="h-3 w-3" />
-                  All Countries
-                </Link>
-                <Link to="/passport-rankings" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors py-1">
-                  <ChevronRight className="h-3 w-3" />
-                  Passport Rankings
-                </Link>
-                <Link to="/news" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors py-1">
-                  <ChevronRight className="h-3 w-3" />
-                  Latest News
-                </Link>
-              </CardContent>
-            </Card>
 
             {/* Ad Zone 1 */}
             <Card className="bg-muted/30 border-dashed">

@@ -62,9 +62,9 @@ const NotFound = () => {
           <div className="max-w-2xl mx-auto text-center">
             {/* 404 Illustration */}
             <div className="mb-8">
-              <span className="text-8xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              <h1 className="text-8xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                 404
-              </span>
+              </h1>
               <p className="text-xl text-muted-foreground mt-4">
                 Oops! This page seems to have traveled to an unknown destination.
               </p>

@@ -248,7 +248,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
     
-    const { action, batch_size = 25, use_ai = true, page_ids } = await req.json();
+    const { action, batch_size = 25, use_ai = true, page_ids, mode = 'missing' } = await req.json();
     
     if (action === 'stats') {
       // Return statistics about missing images
@@ -261,17 +261,24 @@ serve(async (req) => {
         .select('*', { count: 'exact', head: true })
         .or('featured_image_url.is.null,featured_image_url.eq.');
       
+      const { count: brokenUnsplash } = await supabase
+        .from('content_pages')
+        .select('*', { count: 'exact', head: true })
+        .like('featured_image_url', '%source.unsplash%');
+      
       const { count: withImages } = await supabase
         .from('content_pages')
         .select('*', { count: 'exact', head: true })
         .not('featured_image_url', 'is', null)
-        .neq('featured_image_url', '');
+        .neq('featured_image_url', '')
+        .not('featured_image_url', 'like', '%source.unsplash%');
       
       return new Response(JSON.stringify({
         success: true,
         stats: {
           total_pages: totalPages || 0,
           missing_images: missingImages || 0,
+          broken_unsplash: brokenUnsplash || 0,
           with_images: withImages || 0,
           percentage_complete: totalPages ? Math.round(((withImages || 0) / totalPages) * 100) : 0,
         }
@@ -281,18 +288,35 @@ serve(async (req) => {
     }
     
     if (action === 'generate') {
-      // Get pages missing images
-      let query = supabase
-        .from('content_pages')
-        .select('id, slug, title')
-        .or('featured_image_url.is.null,featured_image_url.eq.')
-        .limit(batch_size);
+      let query;
       
       if (page_ids && page_ids.length > 0) {
+        // Specific pages
         query = supabase
           .from('content_pages')
           .select('id, slug, title')
           .in('id', page_ids);
+      } else if (mode === 'broken') {
+        // Fix broken source.unsplash.com URLs
+        query = supabase
+          .from('content_pages')
+          .select('id, slug, title')
+          .like('featured_image_url', '%source.unsplash%')
+          .limit(batch_size);
+      } else if (mode === 'all') {
+        // ALL pages that don't have a working image (missing + broken)
+        query = supabase
+          .from('content_pages')
+          .select('id, slug, title')
+          .or('featured_image_url.is.null,featured_image_url.eq.,featured_image_url.like.%source.unsplash%')
+          .limit(batch_size);
+      } else {
+        // Default: only missing images
+        query = supabase
+          .from('content_pages')
+          .select('id, slug, title')
+          .or('featured_image_url.is.null,featured_image_url.eq.')
+          .limit(batch_size);
       }
       
       const { data: pages, error: fetchError } = await query;

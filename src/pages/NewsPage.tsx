@@ -142,19 +142,27 @@ const NewsPage = () => {
 
   const renderContentCard = (item: ContentItem) => (
     <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-      {item.featured_image_url && (
-        <div className="aspect-video bg-muted overflow-hidden">
+      <div className="aspect-video bg-muted flex items-center justify-center overflow-hidden">
+        {item.featured_image_url ? (
           <img 
             src={item.featured_image_url} 
             alt={item.title}
             className="w-full h-full object-cover"
             loading="lazy"
             onError={(e) => {
-              (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+              const parent = (e.target as HTMLImageElement).parentElement!;
+              (e.target as HTMLImageElement).style.display = 'none';
+              const fallback = document.createElement('div');
+              fallback.className = 'w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5 p-4';
+              fallback.innerHTML = `<span class="text-sm text-muted-foreground text-center font-medium line-clamp-2">${item.title}</span>`;
+              parent.appendChild(fallback);
             }}
           />
-        </div>
-      )}
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5 p-4">
+            <span className="text-sm text-muted-foreground text-center font-medium line-clamp-2">{item.title}</span>
+          </div>
+        )}
       <CardHeader>
         <div className="flex items-center gap-2 mb-2">
           <Badge variant={item.type === 'blog' ? 'default' : 'secondary'}>

@@ -1,19 +1,24 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import SEOHead from "@/components/SEOHead";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 const TermsOfService = () => {
   return (
     <div className="min-h-screen bg-background">
-      <title>Terms of Service | Visas.Guide</title>
-      <meta name="description" content="Terms of Service for Visas.Guide - Read our terms and conditions for using our visa information services." />
+      <SEOHead
+        title="Terms of Service | Visas.Guide"
+        description="Terms of Service for Visas.Guide - Read our terms and conditions for using our visa information and travel documentation services."
+        canonical="https://visas.guide/terms-of-service"
+        noIndex={true}
+      />
       
       <Header />
       
       <main className="container mx-auto px-4 py-12">
         <Card>
           <CardHeader>
-            <CardTitle className="text-3xl md:text-4xl font-bold">Terms of Service</CardTitle>
+            <h1 className="text-3xl md:text-4xl font-bold">Terms of Service</h1>
             <p className="text-muted-foreground mt-2">Last updated: January 2026</p>
           </CardHeader>
           <CardContent className="prose prose-slate max-w-none dark:prose-invert">

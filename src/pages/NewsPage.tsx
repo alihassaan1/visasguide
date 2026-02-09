@@ -163,6 +163,7 @@ const NewsPage = () => {
             <span className="text-sm text-muted-foreground text-center font-medium line-clamp-2">{item.title}</span>
           </div>
         )}
+      </div>
       <CardHeader>
         <div className="flex items-center gap-2 mb-2">
           <Badge variant={item.type === 'blog' ? 'default' : 'secondary'}>

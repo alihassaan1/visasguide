@@ -1,19 +1,24 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import SEOHead from "@/components/SEOHead";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen bg-background">
-      <title>Privacy Policy | Visas.Guide</title>
-      <meta name="description" content="Privacy Policy for Visas.Guide - Learn how we collect, use, and protect your personal information." />
+      <SEOHead
+        title="Privacy Policy | Visas.Guide"
+        description="Privacy Policy for Visas.Guide - Learn how we collect, use, and protect your personal information when using our visa information services."
+        canonical="https://visas.guide/privacy-policy"
+        noIndex={true}
+      />
       
       <Header />
       
       <main className="container mx-auto px-4 py-12">
         <Card>
           <CardHeader>
-            <CardTitle className="text-3xl md:text-4xl font-bold">Privacy Policy</CardTitle>
+            <h1 className="text-3xl md:text-4xl font-bold">Privacy Policy</h1>
             <p className="text-muted-foreground mt-2">Last updated: January 2026</p>
           </CardHeader>
           <CardContent className="prose prose-slate max-w-none dark:prose-invert">

@@ -75,47 +75,16 @@ const menuStructure: MenuItemOrGroup[] = [
       { title: "All Pages", icon: FileText, href: "/admin/content" },
       { title: "Create New", icon: Sparkles, href: "/admin/ai-content-studio" },
       { title: "Image Generator", icon: FileText, href: "/admin/image-generator" },
-    ],
-  },
-  {
-    title: "AI Agent",
-    icon: Bot,
-    children: [
-      { title: "Dashboard", icon: Bot, href: "/admin/agent-dashboard" },
-      { title: "RSS Automation", icon: Activity, href: "/admin/rss-monitoring" },
-      { title: "RSS Feeds", icon: ScrollText, href: "/admin/rss-feeds" },
-      { title: "Agent Logs", icon: Activity, href: "/admin/content-agent-logs" },
-      { title: "API Logs", icon: ScrollText, href: "/admin/api-logs" },
-      { title: "Visa Updater", icon: ClipboardList, href: "/admin/visa-requirements-content-updater" },
+      { title: "Authors", icon: Users, href: "/admin/authors" },
     ],
   },
   {
     title: "Marketing",
     icon: Megaphone,
     children: [
-      { title: "Social Dashboard", icon: Megaphone, href: "/admin/marketing/social" },
-      { title: "Social Posts", icon: FileText, href: "/admin/marketing/posts" },
-      { title: "Platform Settings", icon: Settings, href: "/admin/marketing/platforms" },
       { title: "Newsletter", icon: Mail, href: "/admin/newsletter" },
-      { title: "Ads & Affiliates", icon: DollarSign, href: "/admin/monetization" },
       { title: "Affiliate Manager", icon: Ticket, href: "/admin/affiliate-manager" },
-    ],
-  },
-  {
-    title: "Users",
-    icon: Users,
-    children: [
-      { title: "User Management", icon: Users, href: "/admin/users" },
-      { title: "Authors", icon: Users, href: "/admin/authors" },
-    ],
-  },
-  {
-    title: "Data",
-    icon: Database,
-    children: [
-      { title: "Data Manager", icon: Database, href: "/admin/data" },
-      { title: "Visa Requirements", icon: ClipboardList, href: "/admin/visa-requirements" },
-      { title: "Import Data", icon: Download, href: "/admin/data-import" },
+      { title: "Ads & Affiliates", icon: DollarSign, href: "/admin/monetization" },
     ],
   },
   {
@@ -124,7 +93,6 @@ const menuStructure: MenuItemOrGroup[] = [
     children: [
       { title: "Site Settings", icon: Settings, href: "/admin/settings" },
       { title: "API Keys", icon: Key, href: "/admin/api-settings" },
-      { title: "Menu Manager", icon: MenuIcon, href: "/admin/menu" },
     ],
   },
 ];

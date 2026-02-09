@@ -1,17 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FileText, Sparkles, Eye, DollarSign, Globe, Loader2, Clock, Zap, AlertCircle, CheckCircle2, ShieldCheck, ImageOff, UserX, Wrench } from "lucide-react";
+import { Users, FileText, Sparkles, Eye, DollarSign } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { formatDistanceToNow } from "date-fns";
-import { toast } from "sonner";
-
 export default function AdminDashboard() {
   // Fetch content pages count
   const { data: pageStats, isLoading: pagesLoading } = useQuery({

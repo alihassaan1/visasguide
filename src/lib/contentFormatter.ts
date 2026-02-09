@@ -6,8 +6,14 @@
 export function formatArticleContent(content: string): string {
   if (!content) return '';
   
+  // Strip markdown code fences (```html, ```, etc.) that wrap the content
+  let cleaned = content
+    .replace(/^```\w*\s*\n?/gm, '')
+    .replace(/```\s*$/gm, '')
+    .trim();
+  
   // Check if content is already HTML (contains HTML tags)
-  const hasHTMLTags = /<[^>]+>/.test(content);
+  const hasHTMLTags = /<[^>]+>/.test(cleaned);
   
   if (hasHTMLTags) {
     // Content is already HTML from rich text editor

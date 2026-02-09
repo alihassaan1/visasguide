@@ -355,13 +355,15 @@ const VisaRequirements = () => {
           </div>
 
           {/* Sidebar - 1/3 width */}
-          <div className="lg:col-span-1">
-            <VisaSidebar 
-              toCountry={toCountry} 
-              fromCountry={fromCountry}
-              requirementType={visaRequirement?.requirement_type}
-            />
-          </div>
+          <aside className="lg:col-span-1">
+            <div className="lg:sticky lg:top-20">
+              <VisaSidebar 
+                toCountry={toCountry} 
+                fromCountry={fromCountry}
+                requirementType={visaRequirement?.requirement_type}
+              />
+            </div>
+          </aside>
         </div>
 
         {/* Related Links Section */}

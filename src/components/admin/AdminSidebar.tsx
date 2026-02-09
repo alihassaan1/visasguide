@@ -79,12 +79,45 @@ const menuStructure: MenuItemOrGroup[] = [
     ],
   },
   {
-    title: "Marketing",
+    title: "AI Agent",
+    icon: Bot,
+    children: [
+      { title: "Content Agent", icon: Bot, href: "/admin/agent" },
+      { title: "Agent Logs", icon: ScrollText, href: "/admin/agent-logs" },
+      { title: "Bulk Generator", icon: Sparkles, href: "/admin/bulk-content" },
+    ],
+  },
+  {
+    title: "Social Media",
     icon: Megaphone,
+    children: [
+      { title: "Social Dashboard", icon: Activity, href: "/admin/social-media" },
+      { title: "Social Posts", icon: Megaphone, href: "/admin/social-posts" },
+    ],
+  },
+  {
+    title: "Marketing",
+    icon: Mail,
     children: [
       { title: "Newsletter", icon: Mail, href: "/admin/newsletter" },
       { title: "Affiliate Manager", icon: Ticket, href: "/admin/affiliate-manager" },
       { title: "Ads & Affiliates", icon: DollarSign, href: "/admin/monetization" },
+    ],
+  },
+  {
+    title: "Users",
+    icon: Users,
+    children: [
+      { title: "User Management", icon: Users, href: "/admin/users" },
+      { title: "Freelancers", icon: ClipboardList, href: "/admin/freelancers" },
+    ],
+  },
+  {
+    title: "Data",
+    icon: Database,
+    children: [
+      { title: "Data Manager", icon: Database, href: "/admin/data" },
+      { title: "Data Import", icon: Download, href: "/admin/data-import" },
     ],
   },
   {

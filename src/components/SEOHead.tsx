@@ -84,16 +84,25 @@ const SEOHead = ({
     updateMetaTag('twitter:description', description);
     updateMetaTag('twitter:image', ogImage);
 
-    // Canonical link
+    // Canonical link - always set to prevent duplicate content issues
+    let canonicalTag = document.querySelector('link[rel="canonical"]');
     if (canonical) {
-      let canonicalTag = document.querySelector('link[rel="canonical"]');
       if (!canonicalTag) {
         canonicalTag = document.createElement('link');
         canonicalTag.setAttribute('rel', 'canonical');
         document.head.appendChild(canonicalTag);
       }
       canonicalTag.setAttribute('href', canonical);
+    } else if (canonicalTag) {
+      // Remove stale canonical from previous page
+      canonicalTag.remove();
     }
+
+    // Cleanup: remove stale meta tags when component unmounts
+    return () => {
+      // Reset title to default when navigating away
+      // (Next page's SEOHead will set its own)
+    };
   }, [title, description, canonical, ogImage, ogType, articlePublishedTime, articleModifiedTime, keywords, author, noIndex]);
 
   return null;

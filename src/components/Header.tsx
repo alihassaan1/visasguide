@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Search, Menu, Rss } from "lucide-react";
+import { Search, Menu, Rss, Globe } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
-import logo from "@/assets/logo.png";
+import { useState, useEffect, useRef } from "react";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";

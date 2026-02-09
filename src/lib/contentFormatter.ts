@@ -6,13 +6,18 @@
 export function formatArticleContent(content: string): string {
   if (!content) return '';
   
+  // Strip markdown code fences (```html, ```, etc.) that wrap the content
+  let cleaned = content
+    .replace(/^```\w*\s*\n?/gm, '')
+    .replace(/```\s*$/gm, '')
+    .trim();
+  
   // Check if content is already HTML (contains HTML tags)
-  const hasHTMLTags = /<[^>]+>/.test(content);
+  const hasHTMLTags = /<[^>]+>/.test(cleaned);
   
   if (hasHTMLTags) {
     // Content is already HTML from rich text editor
-    // Just enhance the spacing and styling by adding Tailwind classes to existing tags
-    let formatted = content
+    let formatted = cleaned
       // Add spacing classes to headings
       .replace(/<h1>/gi, '<h1 class="text-3xl font-bold mb-6 mt-8">')
       .replace(/<h2>/gi, '<h2 class="text-2xl font-bold mb-4 mt-8">')
@@ -38,7 +43,7 @@ export function formatArticleContent(content: string): string {
   }
   
   // Content is plain text - convert to HTML with formatting
-  let lines = content.split('\n');
+  let lines = cleaned.split('\n');
   let formattedLines: string[] = [];
   
   for (let i = 0; i < lines.length; i++) {

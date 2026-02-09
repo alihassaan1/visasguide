@@ -17,8 +17,7 @@ export function formatArticleContent(content: string): string {
   
   if (hasHTMLTags) {
     // Content is already HTML from rich text editor
-    // Just enhance the spacing and styling by adding Tailwind classes to existing tags
-    let formatted = content
+    let formatted = cleaned
       // Add spacing classes to headings
       .replace(/<h1>/gi, '<h1 class="text-3xl font-bold mb-6 mt-8">')
       .replace(/<h2>/gi, '<h2 class="text-2xl font-bold mb-4 mt-8">')

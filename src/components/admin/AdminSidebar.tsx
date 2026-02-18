@@ -83,15 +83,15 @@ const menuStructure: MenuItemOrGroup[] = [
     icon: Bot,
     children: [
       { title: "Content Agent", icon: Bot, href: "/admin/agent" },
-      { title: "Agent Logs", icon: ScrollText, href: "/admin/agent-logs" },
+      { title: "Agent Logs", icon: ScrollText, href: "/admin/content-agent-logs" },
     ],
   },
   {
     title: "Social Media",
     icon: Megaphone,
     children: [
-      { title: "Social Dashboard", icon: Activity, href: "/admin/social-media" },
-      { title: "Social Posts", icon: Megaphone, href: "/admin/social-posts" },
+      { title: "Social Dashboard", icon: Activity, href: "/admin/marketing/social" },
+      { title: "Social Posts", icon: Megaphone, href: "/admin/marketing/posts" },
     ],
   },
   {

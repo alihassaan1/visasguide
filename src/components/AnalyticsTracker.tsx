@@ -8,7 +8,7 @@ const AnalyticsTracker = () => {
   useEffect(() => {
     // Track page views
     if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('config', 'GA_MEASUREMENT_ID', {
+      (window as any).gtag('event', 'page_view', {
         page_path: location.pathname + location.search,
       });
     }

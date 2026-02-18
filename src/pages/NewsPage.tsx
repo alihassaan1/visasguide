@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, ExternalLink, Search, Newspaper, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { getBlogFallbackImage, isBrokenImageUrl } from "@/lib/blogImageMap";
 
 interface ContentItem {
   id: string;
@@ -142,27 +143,16 @@ const NewsPage = () => {
 
   const renderContentCard = (item: ContentItem) => (
     <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-      <div className="aspect-video bg-muted flex items-center justify-center overflow-hidden">
-        {item.featured_image_url ? (
-          <img 
-            src={item.featured_image_url} 
-            alt={item.title}
-            className="w-full h-full object-cover"
-            loading="lazy"
-            onError={(e) => {
-              const parent = (e.target as HTMLImageElement).parentElement!;
-              (e.target as HTMLImageElement).style.display = 'none';
-              const fallback = document.createElement('div');
-              fallback.className = 'w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5 p-4';
-              fallback.innerHTML = `<span class="text-sm text-muted-foreground text-center font-medium line-clamp-2">${item.title}</span>`;
-              parent.appendChild(fallback);
-            }}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5 p-4">
-            <span className="text-sm text-muted-foreground text-center font-medium line-clamp-2">{item.title}</span>
-          </div>
-        )}
+    <div className="aspect-video bg-muted overflow-hidden">
+        <img 
+          src={isBrokenImageUrl(item.featured_image_url) ? getBlogFallbackImage(item.slug) : item.featured_image_url!}
+          alt={item.title}
+          className="w-full h-full object-cover"
+          loading="lazy"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = getBlogFallbackImage(item.slug);
+          }}
+        />
       </div>
       <CardHeader>
         <div className="flex items-center gap-2 mb-2">
@@ -300,19 +290,17 @@ const NewsPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredArticles.map((article) => (
                 <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  {article.featured_image_url && (
-                    <div className="aspect-video bg-muted overflow-hidden">
+                  <div className="aspect-video bg-muted overflow-hidden">
                       <img 
-                        src={article.featured_image_url} 
+                        src={isBrokenImageUrl(article.featured_image_url) ? getBlogFallbackImage(article.slug) : article.featured_image_url!}
                         alt={article.title}
                         className="w-full h-full object-cover"
                         loading="lazy"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+                          (e.target as HTMLImageElement).src = getBlogFallbackImage(article.slug);
                         }}
                       />
                     </div>
-                  )}
                   <CardHeader>
                     <div className="flex items-center gap-2 mb-2">
                       <Badge variant="destructive">Featured</Badge>

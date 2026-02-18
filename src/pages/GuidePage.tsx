@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, Calendar, ChevronRight, BookOpen, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatArticleContent } from "@/lib/contentFormatter";
 
 const GuidePage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -180,7 +181,7 @@ const GuidePage = () => {
                         prose-li:text-muted-foreground
                         prose-strong:text-foreground
                         prose-a:text-primary prose-a:no-underline hover:prose-a:underline"
-                      dangerouslySetInnerHTML={{ __html: guide.content }}
+                      dangerouslySetInnerHTML={{ __html: formatArticleContent(guide.content) }}
                     />
                   </CardContent>
                 </Card>

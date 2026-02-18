@@ -1,7 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, ArrowRight, Star, TrendingUp, BookOpen, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Calendar, Clock, ArrowRight, Star, BookOpen, Loader2, Search, FileText, CheckCircle, Lightbulb, Scale } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
@@ -10,10 +11,50 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+// Import destination images for guide thumbnails
+import franceImg from "@/assets/destinations/france.jpg";
+import canadaImg from "@/assets/destinations/canada.jpg";
+import japanImg from "@/assets/destinations/japan.jpg";
+import uaeImg from "@/assets/destinations/uae.jpg";
+import singaporeImg from "@/assets/destinations/singapore.jpg";
+import thailandImg from "@/assets/destinations/thailand.jpg";
+import polandImg from "@/assets/destinations/poland.jpg";
+import icelandImg from "@/assets/destinations/iceland.jpg";
+
+const guideImageMap: Record<string, string> = {
+  'schengen': franceImg,
+  'us-esta': canadaImg,
+  'uk-visitor': polandImg,
+  'japan': japanImg,
+  'australia': singaporeImg,
+  'canada': canadaImg,
+  'travel-insurance': icelandImg,
+  'visa-rejection': uaeImg,
+  'dubai': uaeImg,
+  'thailand': thailandImg,
+};
+
+const getGuideImage = (slug: string): string | null => {
+  for (const [key, img] of Object.entries(guideImageMap)) {
+    if (slug.includes(key)) return img;
+  }
+  return null;
+};
+
+const GUIDES_PER_PAGE = 9;
+
+const categoryConfig: Record<string, { icon: React.ReactNode; label: string }> = {
+  'application': { icon: <FileText className="h-4 w-4" />, label: 'Application' },
+  'requirements': { icon: <CheckCircle className="h-4 w-4" />, label: 'Requirements' },
+  'tips': { icon: <Lightbulb className="h-4 w-4" />, label: 'Tips & Advice' },
+  'comparison': { icon: <Scale className="h-4 w-4" />, label: 'Comparison' },
+};
+
 const VisaGuides = () => {
   const [activeCategory, setActiveCategory] = useState("All Guides");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Fetch guides from database
   const { data: guides, isLoading } = useQuery({
     queryKey: ['visa-guides'],
     queryFn: async () => {
@@ -22,7 +63,6 @@ const VisaGuides = () => {
         .select('*')
         .not('published_at', 'is', null)
         .order('published_at', { ascending: false });
-
       if (error) throw error;
       return data || [];
     }
@@ -35,39 +75,129 @@ const VisaGuides = () => {
 
   const filteredGuides = useMemo(() => {
     if (!guides) return [];
-    if (activeCategory === "All Guides") return guides;
-    return guides.filter(g => g.guide_type === activeCategory);
-  }, [guides, activeCategory]);
+    let result = guides;
+    if (activeCategory !== "All Guides") {
+      result = result.filter(g => g.guide_type === activeCategory);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(g =>
+        g.title.toLowerCase().includes(q) ||
+        g.excerpt?.toLowerCase().includes(q) ||
+        g.guide_type?.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [guides, activeCategory, searchQuery]);
 
-  const featuredGuides = filteredGuides.filter(g => g.is_featured);
-  const regularGuides = filteredGuides.filter(g => !g.is_featured);
+  const totalPages = Math.ceil(filteredGuides.length / GUIDES_PER_PAGE);
+  const paginatedGuides = filteredGuides.slice(
+    (currentPage - 1) * GUIDES_PER_PAGE,
+    currentPage * GUIDES_PER_PAGE
+  );
+
+  const featuredGuides = paginatedGuides.filter(g => g.is_featured);
+  const regularGuides = paginatedGuides.filter(g => !g.is_featured);
+
+  // Reset page when filters change
+  const handleCategoryChange = (cat: string) => {
+    setActiveCategory(cat);
+    setCurrentPage(1);
+  };
 
   const getDifficultyColor = (difficulty: string | null) => {
     switch (difficulty?.toLowerCase()) {
-      case 'easy': return 'bg-green-500/10 text-green-600 border-green-500/30';
-      case 'medium': return 'bg-amber-500/10 text-amber-600 border-amber-500/30';
-      case 'hard': return 'bg-red-500/10 text-red-600 border-red-500/30';
+      case 'easy': return 'bg-emerald-500/10 text-emerald-700 border-emerald-500/30 dark:text-emerald-400';
+      case 'medium': return 'bg-amber-500/10 text-amber-700 border-amber-500/30 dark:text-amber-400';
+      case 'hard': return 'bg-red-500/10 text-red-700 border-red-500/30 dark:text-red-400';
       default: return 'bg-muted text-muted-foreground';
     }
   };
 
-  const getGuideIcon = (type: string | null) => {
-    switch (type) {
-      case 'application': return '📝';
-      case 'requirements': return '📋';
-      case 'comparison': return '⚖️';
-      case 'tips': return '💡';
-      default: return '📖';
-    }
+  const getCategoryInfo = (type: string | null) => {
+    return categoryConfig[type || ''] || { icon: <BookOpen className="h-4 w-4" />, label: type?.replace('_', ' ') || 'Guide' };
   };
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '';
-    return new Date(dateStr).toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
-    });
+    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const GuideCard = ({ guide, isFeatured = false }: { guide: any; isFeatured?: boolean }) => {
+    const image = guide.featured_image_url || getGuideImage(guide.slug);
+    const catInfo = getCategoryInfo(guide.guide_type);
+
+    return (
+      <Link to={`/guides/${guide.slug}`}>
+        <Card className={`group overflow-hidden hover:shadow-xl transition-all duration-300 h-full hover:-translate-y-1 ${isFeatured ? 'border-primary/20' : ''}`}>
+          {/* Image */}
+          <div className="relative aspect-[16/9] overflow-hidden">
+            {image ? (
+              <img
+                src={image}
+                alt={guide.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-primary/10 via-accent/10 to-primary/20 flex items-center justify-center">
+                <BookOpen className="h-12 w-12 text-primary/30" />
+              </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            {isFeatured && (
+              <div className="absolute top-3 left-3">
+                <Badge className="bg-primary text-primary-foreground shadow-lg">
+                  <Star className="h-3 w-3 mr-1 fill-current" /> Featured
+                </Badge>
+              </div>
+            )}
+            {guide.difficulty && (
+              <div className="absolute top-3 right-3">
+                <Badge variant="outline" className={`${getDifficultyColor(guide.difficulty)} bg-white/90 dark:bg-black/60 backdrop-blur-sm`}>
+                  {guide.difficulty}
+                </Badge>
+              </div>
+            )}
+            <div className="absolute bottom-3 left-3">
+              <Badge variant="secondary" className="bg-white/90 dark:bg-black/60 backdrop-blur-sm text-foreground capitalize gap-1">
+                {catInfo.icon}
+                {catInfo.label}
+              </Badge>
+            </div>
+          </div>
+
+          {/* Content */}
+          <CardContent className="p-5">
+            <h3 className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors mb-2 line-clamp-2">
+              {guide.title}
+            </h3>
+            {guide.excerpt && (
+              <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                {guide.excerpt}
+              </p>
+            )}
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <div className="flex items-center gap-3">
+                {guide.published_at && (
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    {formatDate(guide.published_at)}
+                  </span>
+                )}
+                {guide.read_time_minutes && (
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {guide.read_time_minutes} min
+                  </span>
+                )}
+              </div>
+              <ArrowRight className="h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+          </CardContent>
+        </Card>
+      </Link>
+    );
   };
 
   return (
@@ -79,11 +209,10 @@ const VisaGuides = () => {
         keywords={["visa application guide", "how to apply for visa", "schengen visa guide", "ESTA application", "UK visa tips", "visa documentation", "travel visa help"]}
       />
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 p-8 md:p-12 mb-12">
-          <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 p-8 md:p-12 mb-10">
           <div className="relative z-10 max-w-3xl">
             <div className="flex items-center gap-2 mb-4">
               <BookOpen className="h-6 w-6 text-primary" />
@@ -96,25 +225,45 @@ const VisaGuides = () => {
               Comprehensive visa guides, application tips, and travel requirements for destinations worldwide. Written by experts, updated for 2026.
             </p>
           </div>
-          <div className="absolute right-8 bottom-8 opacity-10 text-[200px] font-bold text-primary hidden lg:block">
-            ✈️
+        </div>
+
+        {/* Search & Filters */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search guides..."
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              className="pl-10"
+            />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => {
+              const catInfo = category === "All Guides" ? null : getCategoryInfo(category);
+              return (
+                <Button
+                  key={category}
+                  variant={activeCategory === category ? "default" : "outline"}
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => handleCategoryChange(category)}
+                >
+                  {catInfo?.icon}
+                  {catInfo?.label || category}
+                </Button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Category Filter */}
-        <div className="flex flex-wrap gap-2 mb-12 justify-center">
-          {categories.map((category, index) => (
-            <Button 
-              key={index}
-              variant={activeCategory === category ? "default" : "outline"}
-              size="sm"
-              className="text-sm capitalize"
-              onClick={() => setActiveCategory(category)}
-            >
-              {category.replace('_', ' ')}
-            </Button>
-          ))}
-        </div>
+        {/* Results count */}
+        {!isLoading && (
+          <p className="text-sm text-muted-foreground mb-6">
+            {filteredGuides.length} guide{filteredGuides.length !== 1 ? 's' : ''} found
+            {searchQuery && ` for "${searchQuery}"`}
+          </p>
+        )}
 
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
@@ -125,132 +274,80 @@ const VisaGuides = () => {
           <div className="text-center py-20">
             <BookOpen className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
             <h2 className="text-2xl font-semibold text-foreground mb-2">No guides found</h2>
-            <p className="text-muted-foreground">Check back soon for new visa guides.</p>
+            <p className="text-muted-foreground mb-4">
+              {searchQuery ? `No results for "${searchQuery}". Try a different search.` : 'Check back soon for new visa guides.'}
+            </p>
+            {searchQuery && (
+              <Button variant="outline" onClick={() => { setSearchQuery(""); setCurrentPage(1); }}>
+                Clear Search
+              </Button>
+            )}
           </div>
         ) : (
           <>
             {/* Featured Guides */}
             {featuredGuides.length > 0 && (
-              <section className="mb-16">
-                <div className="flex items-center space-x-2 mb-8">
-                  <Star className="h-6 w-6 text-primary fill-primary/20" />
-                  <h2 className="text-3xl font-bold text-foreground">Featured Guides</h2>
-                </div>
-                <div className="grid lg:grid-cols-3 gap-6">
-                  {featuredGuides.slice(0, 3).map((guide) => (
-                    <Card key={guide.id} className="group hover:shadow-xl transition-all duration-300 border-0 bg-card hover:-translate-y-1 overflow-hidden">
-                      <CardContent className="p-0">
-                        {/* Header with icon */}
-                        <div className="relative bg-gradient-to-br from-primary/5 via-accent/5 to-primary/10 p-8 text-center">
-                          <span className="text-6xl block drop-shadow-lg">{getGuideIcon(guide.guide_type)}</span>
-                          <div className="absolute top-3 left-3">
-                            <Badge className="bg-primary text-primary-foreground shadow-lg">Featured</Badge>
-                          </div>
-                          {guide.difficulty && (
-                            <div className="absolute top-3 right-3">
-                              <Badge variant="outline" className={getDifficultyColor(guide.difficulty)}>
-                                {guide.difficulty}
-                              </Badge>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="p-6">
-                          <div className="flex items-center justify-between mb-3 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>{formatDate(guide.published_at)}</span>
-                            </div>
-                            {guide.read_time_minutes && (
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                <span>{guide.read_time_minutes} min read</span>
-                              </div>
-                            )}
-                          </div>
-
-                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors mb-2 line-clamp-2">
-                            {guide.title}
-                          </h3>
-
-                          <p className="text-sm text-muted-foreground leading-relaxed mb-4 line-clamp-3">
-                            {guide.excerpt}
-                          </p>
-
-                          <Link to={`/guides/${guide.slug}`}>
-                            <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
-                              Read Full Guide
-                              <ArrowRight className="h-4 w-4 ml-2" />
-                            </Button>
-                          </Link>
-                        </div>
-                      </CardContent>
-                    </Card>
+              <section className="mb-12">
+                <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
+                  <Star className="h-5 w-5 text-primary fill-primary/20" />
+                  Featured Guides
+                </h2>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {featuredGuides.map((guide) => (
+                    <GuideCard key={guide.id} guide={guide} isFeatured />
                   ))}
                 </div>
               </section>
             )}
 
-            {/* All Guides */}
+            {/* Regular Guides */}
             {regularGuides.length > 0 && (
-              <section className="mb-16">
-                <div className="flex items-center space-x-2 mb-8">
-                  <TrendingUp className="h-6 w-6 text-primary" />
-                  <h2 className="text-3xl font-bold text-foreground">All Visa Guides</h2>
-                </div>
+              <section className="mb-12">
+                {featuredGuides.length > 0 && (
+                  <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
+                    <BookOpen className="h-5 w-5 text-primary" />
+                    All Visa Guides
+                  </h2>
+                )}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {regularGuides.map((guide) => (
-                    <Card key={guide.id} className="group hover:shadow-lg transition-all duration-300 border bg-card hover:-translate-y-1">
-                      <CardContent className="p-6">
-                        <div className="flex items-start gap-4 mb-4">
-                          <span className="text-3xl">{getGuideIcon(guide.guide_type)}</span>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge variant="outline" className="text-xs capitalize">
-                                {guide.guide_type?.replace('_', ' ') || 'Guide'}
-                              </Badge>
-                              {guide.difficulty && (
-                                <Badge variant="outline" className={`text-xs ${getDifficultyColor(guide.difficulty)}`}>
-                                  {guide.difficulty}
-                                </Badge>
-                              )}
-                            </div>
-                            <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2">
-                              {guide.title}
-                            </h3>
-                          </div>
-                        </div>
-
-                        {guide.excerpt && (
-                          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                            {guide.excerpt}
-                          </p>
-                        )}
-
-                        <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            <span>{formatDate(guide.published_at)}</span>
-                          </div>
-                          {guide.read_time_minutes && (
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              <span>{guide.read_time_minutes} min</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <Link to={`/guides/${guide.slug}`}>
-                          <Button variant="ghost" size="sm" className="w-full justify-between text-primary hover:text-primary-foreground hover:bg-primary transition-all">
-                            Read Guide
-                            <ArrowRight className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                      </CardContent>
-                    </Card>
+                    <GuideCard key={guide.id} guide={guide} />
                   ))}
                 </div>
               </section>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(p => p - 1)}
+                >
+                  Previous
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    className="w-9"
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </Button>
+                ))}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(p => p + 1)}
+                >
+                  Next
+                </Button>
+              </div>
             )}
           </>
         )}

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { Calendar, ArrowRight } from "lucide-react";
 import { format } from "date-fns";
+import { getBlogFallbackImage, isBrokenImageUrl } from "@/lib/blogImageMap";
 
 const LatestBlogPosts = () => {
   const { data: posts, isLoading } = useQuery({
@@ -98,20 +99,17 @@ const LatestBlogPosts = () => {
                 className="group"
               >
                 <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 h-full border-border/50 hover:border-primary/50 bg-card">
-                  {post.featured_image_url ? (
-                    <div className="aspect-video overflow-hidden bg-muted relative">
-                      <img
-                        src={post.featured_image_url}
-                        alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </div>
-                  ) : (
-                    <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                      <Calendar className="w-16 h-16 text-primary/40" />
-                    </div>
-                  )}
+                  <div className="aspect-video overflow-hidden bg-muted relative">
+                    <img
+                      src={isBrokenImageUrl(post.featured_image_url) ? getBlogFallbackImage(post.slug || '') : post.featured_image_url!}
+                      alt={post.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = getBlogFallbackImage(post.slug || '');
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </div>
                   <CardContent className="p-6 space-y-3">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Calendar className="w-4 h-4" />

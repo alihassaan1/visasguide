@@ -84,7 +84,6 @@ const menuStructure: MenuItemOrGroup[] = [
     children: [
       { title: "Content Agent", icon: Bot, href: "/admin/agent" },
       { title: "Agent Logs", icon: ScrollText, href: "/admin/agent-logs" },
-      { title: "Bulk Generator", icon: Sparkles, href: "/admin/bulk-content" },
     ],
   },
   {

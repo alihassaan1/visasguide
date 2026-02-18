@@ -59,100 +59,53 @@ const AnalyticsDashboard = () => {
   const { start: periodStart, end: periodEnd } = getDateRange(trendPeriod);
   const periodLabel = TIME_PERIODS.find(p => p.value === trendPeriod)?.label || '30 Days';
 
-  // Fetch analytics summary with unique visitors and bot traffic - USES SELECTED PERIOD
+  // Fetch analytics summary using server-side aggregation (no 1000-row limit)
   const { data: analyticsSummary } = useQuery({
     queryKey: ['analytics-summary', trendPeriod],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('event_type, created_at, session_duration_seconds, visitor_ip, is_bot')
-        .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString());
+      const { data, error } = await supabase.rpc('get_analytics_summary', {
+        p_start: periodStart.toISOString(),
+        p_end: periodEnd.toISOString()
+      });
       
       if (error) throw error;
       
-      const pageViews = data.filter(e => e.event_type === 'page_view').length;
-      const searches = data.filter(e => e.event_type === 'search').length;
-      const searchEngineReferrals = data.filter(e => e.event_type === 'search_engine_referral').length;
+      const result = data as any;
+      const total = Number(result.total) || 0;
+      const botTraffic = Number(result.botTraffic) || 0;
       
-      const uniqueVisitors = new Set(data.filter(e => e.visitor_ip).map(e => e.visitor_ip)).size;
-      const botTraffic = data.filter(e => e.is_bot === true).length;
-      const botPercentage = data.length > 0 ? Math.round((botTraffic / data.length) * 100) : 0;
-      
-      const sessionsWithDuration = data.filter(e => e.session_duration_seconds && e.session_duration_seconds > 0);
-      const avgSessionDuration = sessionsWithDuration.length > 0 
-        ? Math.round(sessionsWithDuration.reduce((acc, e) => acc + (e.session_duration_seconds || 0), 0) / sessionsWithDuration.length)
-        : 0;
-      
-      return { pageViews, searches, searchEngineReferrals, total: data.length, avgSessionDuration, uniqueVisitors, botPercentage };
+      return {
+        pageViews: Number(result.pageViews) || 0,
+        searches: Number(result.searches) || 0,
+        searchEngineReferrals: Number(result.searchEngineReferrals) || 0,
+        total,
+        avgSessionDuration: Number(result.avgSessionDuration) || 0,
+        uniqueVisitors: Number(result.uniqueVisitors) || 0,
+        botPercentage: total > 0 ? Math.round((botTraffic / total) * 100) : 0
+      };
     }
   });
 
-  // Traffic trend with dynamic period
+  // Traffic trend using server-side aggregation
   const { data: dailyTrend } = useQuery({
     queryKey: ['daily-traffic-trend', trendPeriod],
     queryFn: async () => {
       const { start, end, isHourly } = getDateRange(trendPeriod);
+      const granularity = isHourly ? 'hourly' : (trendPeriod === '1y' || trendPeriod === 'all') ? 'monthly' : 'daily';
       
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('created_at, event_type')
-        .gte('created_at', start.toISOString())
-        .lte('created_at', end.toISOString());
+      const { data, error } = await supabase.rpc('get_traffic_trend', {
+        p_start: start.toISOString(),
+        p_end: end.toISOString(),
+        p_granularity: granularity
+      });
       
       if (error) throw error;
       
-      if (isHourly) {
-        // Hourly aggregation
-        const hourlyCounts: Record<string, { date: string, pageViews: number, searches: number }> = {};
-        
-        for (let i = 0; i < 24; i++) {
-          const hour = trendPeriod === 'yesterday' 
-            ? new Date(start.getTime() + i * 60 * 60 * 1000)
-            : subHours(new Date(), 23 - i);
-          const key = format(hour, 'HH:00');
-          hourlyCounts[key] = { date: key, pageViews: 0, searches: 0 };
-        }
-        
-        data.forEach(event => {
-          const key = format(new Date(event.created_at), 'HH:00');
-          if (hourlyCounts[key]) {
-            if (event.event_type === 'page_view') {
-              hourlyCounts[key].pageViews++;
-            } else if (event.event_type === 'search') {
-              hourlyCounts[key].searches++;
-            }
-          }
-        });
-        
-        // Sort by hour
-        return Object.values(hourlyCounts).sort((a, b) => a.date.localeCompare(b.date));
-      } else {
-        // Daily/Monthly aggregation - directly aggregate from data
-        const aggregation: Record<string, { date: string, sortKey: string, pageViews: number, searches: number }> = {};
-        const useMonthly = trendPeriod === '1y' || trendPeriod === 'all';
-        
-        data.forEach(event => {
-          const eventDate = new Date(event.created_at);
-          const displayDate = format(eventDate, useMonthly ? 'MMM yyyy' : 'MMM dd');
-          const sortKey = format(eventDate, useMonthly ? 'yyyy-MM' : 'yyyy-MM-dd');
-          
-          if (!aggregation[sortKey]) {
-            aggregation[sortKey] = { date: displayDate, sortKey, pageViews: 0, searches: 0 };
-          }
-          
-          if (event.event_type === 'page_view') {
-            aggregation[sortKey].pageViews++;
-          } else if (event.event_type === 'search') {
-            aggregation[sortKey].searches++;
-          }
-        });
-        
-        // Sort by date and return
-        return Object.values(aggregation)
-          .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
-          .map(({ date, pageViews, searches }) => ({ date, pageViews, searches }));
-      }
+      return ((data as any[]) || []).map((item: any) => ({
+        date: item.period,
+        pageViews: Number(item.pageViews) || 0,
+        searches: Number(item.searches) || 0
+      }));
     }
   });
 
@@ -173,130 +126,73 @@ const AnalyticsDashboard = () => {
     refetchInterval: 30000
   });
 
-  // Device type distribution - USES SELECTED PERIOD
+  // Device type distribution using server-side aggregation
   const { data: deviceDistribution } = useQuery({
     queryKey: ['device-distribution', trendPeriod],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('device_type')
-        .not('device_type', 'is', null)
-        .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString());
-      
-      if (error) throw error;
-      
-      const counts: Record<string, number> = {};
-      data.forEach(item => {
-        const type = item.device_type || 'unknown';
-        counts[type] = (counts[type] || 0) + 1;
+      const { data, error } = await supabase.rpc('get_analytics_distribution', {
+        p_start: periodStart.toISOString(),
+        p_end: periodEnd.toISOString(),
+        p_field: 'device_type'
       });
-      
-      return Object.entries(counts).map(([name, value]) => ({ name, value }));
+      if (error) throw error;
+      return (data as any[]) || [];
     }
   });
 
-  // Browser distribution - USES SELECTED PERIOD
+  // Browser distribution using server-side aggregation
   const { data: browserDistribution } = useQuery({
     queryKey: ['browser-distribution', trendPeriod],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('browser_name')
-        .not('browser_name', 'is', null)
-        .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString());
-      
-      if (error) throw error;
-      
-      const counts: Record<string, number> = {};
-      data.forEach(item => {
-        const browser = item.browser_name || 'Unknown';
-        counts[browser] = (counts[browser] || 0) + 1;
+      const { data, error } = await supabase.rpc('get_analytics_distribution', {
+        p_start: periodStart.toISOString(),
+        p_end: periodEnd.toISOString(),
+        p_field: 'browser_name'
       });
-      
-      return Object.entries(counts)
-        .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 6);
+      if (error) throw error;
+      return (data as any[]) || [];
     }
   });
 
-  // OS distribution - USES SELECTED PERIOD
+  // OS distribution using server-side aggregation
   const { data: osDistribution } = useQuery({
     queryKey: ['os-distribution', trendPeriod],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('os_name')
-        .not('os_name', 'is', null)
-        .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString());
-      
-      if (error) throw error;
-      
-      const counts: Record<string, number> = {};
-      data.forEach(item => {
-        const os = item.os_name || 'Unknown';
-        counts[os] = (counts[os] || 0) + 1;
+      const { data, error } = await supabase.rpc('get_analytics_distribution', {
+        p_start: periodStart.toISOString(),
+        p_end: periodEnd.toISOString(),
+        p_field: 'os_name'
       });
-      
-      return Object.entries(counts).map(([name, value]) => ({ name, value }));
+      if (error) throw error;
+      return (data as any[]) || [];
     }
   });
 
-  // Screen resolutions - USES SELECTED PERIOD
+  // Screen resolutions using server-side aggregation
   const { data: screenResolutions } = useQuery({
     queryKey: ['screen-resolutions', trendPeriod],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('screen_width, screen_height')
-        .not('screen_width', 'is', null)
-        .not('screen_height', 'is', null)
-        .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString());
-      
-      if (error) throw error;
-      
-      const counts: Record<string, number> = {};
-      data.forEach(item => {
-        if (item.screen_width && item.screen_height) {
-          const res = `${item.screen_width}x${item.screen_height}`;
-          counts[res] = (counts[res] || 0) + 1;
-        }
+      const { data, error } = await supabase.rpc('get_analytics_distribution', {
+        p_start: periodStart.toISOString(),
+        p_end: periodEnd.toISOString(),
+        p_field: 'screen_resolution'
       });
-      
-      return Object.entries(counts)
-        .map(([resolution, count]) => ({ resolution, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10);
+      if (error) throw error;
+      return (data as any[]) || [];
     }
   });
 
-  // Top device names - USES SELECTED PERIOD
+  // Top device names using server-side aggregation
   const { data: topDevices } = useQuery({
     queryKey: ['top-devices', trendPeriod],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('device_name, device_type')
-        .not('device_name', 'is', null)
-        .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString());
-      
-      if (error) throw error;
-      
-      const counts: Record<string, { name: string, type: string, count: number }> = {};
-      data.forEach(item => {
-        const name = item.device_name || 'Unknown';
-        if (!counts[name]) {
-          counts[name] = { name, type: item.device_type || 'unknown', count: 0 };
-        }
-        counts[name].count++;
+      const { data, error } = await supabase.rpc('get_analytics_distribution', {
+        p_start: periodStart.toISOString(),
+        p_end: periodEnd.toISOString(),
+        p_field: 'device_name'
       });
-      
-      return Object.values(counts).sort((a, b) => b.count - a.count).slice(0, 10);
+      if (error) throw error;
+      return (data as any[]) || [];
     }
   });
 
@@ -354,93 +250,51 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // Affiliate click stats - USES SELECTED PERIOD
+  // Affiliate click stats using server-side aggregation
   const { data: affiliateStats } = useQuery({
     queryKey: ['affiliate-stats', trendPeriod],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('search_term, page_slug')
-        .eq('event_type', 'affiliate_click')
-        .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString());
-      
-      if (error) throw error;
-      
-      const counts: Record<string, number> = {};
-      data.forEach(item => {
-        const affiliate = item.search_term || 'Unknown';
-        counts[affiliate] = (counts[affiliate] || 0) + 1;
+      const { data, error } = await supabase.rpc('get_analytics_distribution', {
+        p_start: periodStart.toISOString(),
+        p_end: periodEnd.toISOString(),
+        p_field: 'affiliate_clicks'
       });
-      
-      const totalClicks = data.length;
-      const topAffiliates = Object.entries(counts)
-        .map(([name, clicks]) => ({ name, clicks }))
-        .sort((a, b) => b.clicks - a.clicks)
-        .slice(0, 5);
-      
-      return { totalClicks, topAffiliates };
+      if (error) throw error;
+      const items = (data as any[]) || [];
+      const totalClicks = items.reduce((acc: number, item: any) => acc + (Number(item.clicks) || 0), 0);
+      return { totalClicks, topAffiliates: items.slice(0, 5) };
     }
   });
 
-  // Bot traffic details - USES SELECTED PERIOD
+  // Bot traffic details using server-side aggregation
   const { data: botTrafficDetails } = useQuery({
     queryKey: ['bot-traffic', trendPeriod],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('user_agent, is_bot')
-        .eq('is_bot', true)
-        .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString());
-      
-      if (error) throw error;
-      
-      const botTypes: Record<string, number> = {};
-      data.forEach(item => {
-        let botName = 'Other Bot';
-        const ua = item.user_agent?.toLowerCase() || '';
-        if (ua.includes('googlebot')) botName = 'Googlebot';
-        else if (ua.includes('bingbot')) botName = 'Bingbot';
-        else if (ua.includes('facebookexternalhit')) botName = 'Facebook';
-        else if (ua.includes('twitterbot')) botName = 'Twitter';
-        else if (ua.includes('linkedinbot')) botName = 'LinkedIn';
-        else if (ua.includes('slurp')) botName = 'Yahoo';
-        else if (ua.includes('duckduckbot')) botName = 'DuckDuckGo';
-        else if (ua.includes('yandex')) botName = 'Yandex';
-        else if (ua.includes('baidu')) botName = 'Baidu';
-        
-        botTypes[botName] = (botTypes[botName] || 0) + 1;
+      const { data, error } = await supabase.rpc('get_analytics_distribution', {
+        p_start: periodStart.toISOString(),
+        p_end: periodEnd.toISOString(),
+        p_field: 'bot_traffic'
       });
-      
-      return Object.entries(botTypes)
-        .map(([name, count]) => ({ name, count }))
-        .sort((a, b) => b.count - a.count);
+      if (error) throw error;
+      return (data as any[]) || [];
     }
   });
 
-  // Traffic sources - USES SELECTED PERIOD
+  // Traffic sources using server-side aggregation
   const { data: trafficSources } = useQuery({
     queryKey: ['traffic-sources', trendPeriod],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('referrer_source')
-        .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString());
-      
-      if (error) throw error;
-      
-      const sources: Record<string, number> = {};
-      data.forEach(item => {
-        const source = item.referrer_source || 'direct';
-        const normalizedSource = normalizeSource(source);
-        sources[normalizedSource] = (sources[normalizedSource] || 0) + 1;
+      const { data, error } = await supabase.rpc('get_analytics_distribution', {
+        p_start: periodStart.toISOString(),
+        p_end: periodEnd.toISOString(),
+        p_field: 'referrer_source'
       });
-      
-      return Object.entries(sources)
-        .map(([name, value]) => ({ name: getSourceDisplayName(name), originalName: name, value }))
-        .sort((a, b) => b.value - a.value);
+      if (error) throw error;
+      return ((data as any[]) || []).map((item: any) => ({
+        name: getSourceDisplayName(normalizeSource(item.name || 'direct')),
+        originalName: item.name,
+        value: Number(item.value) || 0
+      }));
     }
   });
 
@@ -497,29 +351,20 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // Top pages - USES SELECTED PERIOD
+  // Top pages using server-side aggregation
   const { data: topPages } = useQuery({
     queryKey: ['top-pages', trendPeriod],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('page_slug')
-        .eq('event_type', 'page_view')
-        .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString());
-      
-      if (error) throw error;
-      
-      const pageCounts: Record<string, number> = {};
-      data.forEach(item => {
-        const slug = item.page_slug || '/';
-        pageCounts[slug] = (pageCounts[slug] || 0) + 1;
+      const { data, error } = await supabase.rpc('get_analytics_distribution', {
+        p_start: periodStart.toISOString(),
+        p_end: periodEnd.toISOString(),
+        p_field: 'top_pages'
       });
-      
-      return Object.entries(pageCounts)
-        .map(([page, views]) => ({ page, views }))
-        .sort((a, b) => b.views - a.views)
-        .slice(0, 10);
+      if (error) throw error;
+      return ((data as any[]) || []).map((item: any) => ({
+        page: item.slug || '/',
+        views: Number(item.views) || 0
+      }));
     }
   });
 

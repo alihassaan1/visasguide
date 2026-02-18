@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 // Parse user agent to extract device/browser/OS info
@@ -255,30 +255,94 @@ export const trackAffiliateClick = async (affiliateName: string, pageSlug: strin
   });
 };
 
+// Send page exit using sendBeacon (works during unload/tab close)
+const sendPageExit = (slug: string, startTime: number) => {
+  const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+  if (timeSpent < 1) return; // Skip if less than 1 second
+  
+  const deviceInfo = parseUserAgent(navigator.userAgent);
+  const screenInfo = getScreenInfo();
+  
+  const payload = {
+    event_type: 'page_exit',
+    page_slug: slug,
+    session_duration_seconds: timeSpent,
+    device_type: deviceInfo.deviceType,
+    device_name: deviceInfo.deviceName,
+    browser_name: deviceInfo.browserName,
+    os_name: deviceInfo.osName,
+    screen_width: screenInfo.screenWidth,
+    screen_height: screenInfo.screenHeight,
+    is_bot: deviceInfo.isBot
+  };
+
+  // Use sendBeacon for reliable delivery during page unload
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  
+  if (supabaseUrl && supabaseKey) {
+    const url = `${supabaseUrl}/rest/v1/analytics_events`;
+    const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+    
+    // Try sendBeacon first (most reliable during unload)
+    const sent = navigator.sendBeacon?.(
+      `${url}?apikey=${supabaseKey}`,
+      blob
+    );
+    
+    // If sendBeacon not available or failed, try fetch with keepalive
+    if (!sent) {
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(payload),
+        keepalive: true
+      }).catch(() => {}); // Silently fail
+    }
+  }
+};
+
 // Hook to track page views and time spent
 export const usePageTracking = (pageSlug: string) => {
   const startTimeRef = useRef<number>(Date.now());
+  const slugRef = useRef(pageSlug);
 
+  // Keep refs updated
+  useEffect(() => {
+    slugRef.current = pageSlug;
+    startTimeRef.current = Date.now();
+  }, [pageSlug]);
+
+  // Track page view on mount/slug change
   useEffect(() => {
     trackPageView(pageSlug);
+  }, [pageSlug]);
+
+  // Handle visibilitychange and beforeunload for session duration
+  const handleVisibilityChange = useCallback(() => {
+    if (document.visibilityState === 'hidden') {
+      sendPageExit(slugRef.current, startTimeRef.current);
+    }
+  }, []);
+
+  const handleBeforeUnload = useCallback(() => {
+    sendPageExit(slugRef.current, startTimeRef.current);
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
-      const timeSpent = Math.floor((Date.now() - startTimeRef.current) / 1000);
-      const deviceInfo = parseUserAgent(navigator.userAgent);
-      const screenInfo = getScreenInfo();
-      
-      supabase.from('analytics_events').insert({
-        event_type: 'page_exit',
-        page_slug: pageSlug,
-        session_duration_seconds: timeSpent,
-        device_type: deviceInfo.deviceType,
-        device_name: deviceInfo.deviceName,
-        browser_name: deviceInfo.browserName,
-        os_name: deviceInfo.osName,
-        screen_width: screenInfo.screenWidth,
-        screen_height: screenInfo.screenHeight,
-        is_bot: deviceInfo.isBot
-      });
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Also send on unmount (navigation within SPA)
+      sendPageExit(slugRef.current, startTimeRef.current);
     };
-  }, [pageSlug]);
+  }, [handleVisibilityChange, handleBeforeUnload]);
 };

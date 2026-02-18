@@ -1813,6 +1813,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_analytics_distribution: {
+        Args: { p_end: string; p_field: string; p_start: string }
+        Returns: Json
+      }
+      get_analytics_summary: {
+        Args: { p_end: string; p_start: string }
+        Returns: Json
+      }
+      get_traffic_trend: {
+        Args: { p_end: string; p_granularity?: string; p_start: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

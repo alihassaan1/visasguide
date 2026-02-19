@@ -164,7 +164,7 @@ export default function AIContentStudio() {
           keywords: data.metadata?.keywords || keywords,
           is_published: false,
           author_id: userData.user?.id,
-          ai_generated: true,
+          ai_generated: false,
           status: 'draft',
           featured_image_url: featuredImageUrl || null,
         };
@@ -286,7 +286,7 @@ export default function AIContentStudio() {
           meta_title: title,
           keywords,
           is_published: status === 'published',
-          ai_generated: isEditMode ? undefined : true,
+          ai_generated: false,
           status,
           featured_image_url: featuredImageUrl || null
         }).eq('id', draftId);
@@ -303,7 +303,7 @@ export default function AIContentStudio() {
           keywords,
           is_published: status === 'published',
           author_id: userData.user?.id,
-          ai_generated: true,
+          ai_generated: false,
           status,
           featured_image_url: featuredImageUrl || null
         });

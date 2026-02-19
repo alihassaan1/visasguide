@@ -238,12 +238,6 @@ export default function ContentPage() {
               dangerouslySetInnerHTML={{ __html: page.content }}
             />
 
-            {/* In-content Ad Zone */}
-            <div className="my-8 p-4 bg-muted/30 rounded-lg border border-dashed border-muted-foreground/20 text-center">
-              <span className="text-xs text-muted-foreground">Advertisement</span>
-              {/* Ad placeholder - integrate with Google AdSense */}
-            </div>
-
             {/* Social Share Buttons */}
             <div className="mt-10 pt-6 border-t">
               <h3 className="text-sm font-semibold text-muted-foreground mb-4">Share this guide</h3>
@@ -281,16 +275,6 @@ export default function ContentPage() {
           {/* Sidebar - 1/3 width */}
           <aside className="space-y-6">
 
-            {/* Ad Zone 1 */}
-            <Card className="bg-muted/30 border-dashed">
-              <CardContent className="p-6 text-center">
-                <span className="text-xs text-muted-foreground block mb-2">Advertisement</span>
-                <div className="h-[250px] bg-muted/50 rounded flex items-center justify-center">
-                  {/* Ad placeholder */}
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Affiliate Banner */}
             <AffiliateBannerContainer position="sidebar-right" />
 
@@ -308,15 +292,6 @@ export default function ContentPage() {
               maxItems={4}
             />
 
-            {/* Ad Zone 2 */}
-            <Card className="bg-muted/30 border-dashed">
-              <CardContent className="p-6 text-center">
-                <span className="text-xs text-muted-foreground block mb-2">Advertisement</span>
-                <div className="h-[300px] bg-muted/50 rounded flex items-center justify-center">
-                  {/* Ad placeholder */}
-                </div>
-              </CardContent>
-            </Card>
           </aside>
         </div>
       </main>

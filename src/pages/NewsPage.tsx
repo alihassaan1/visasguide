@@ -30,6 +30,8 @@ const NewsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
 
   // Fetch news articles
   const { data: newsArticles, isLoading: newsLoading } = useQuery({
@@ -49,7 +51,7 @@ const NewsPage = () => {
         query = query.contains('categories', [selectedCategory]);
       }
 
-      const { data, error } = await query.limit(20);
+      const { data, error } = await query;
       if (error) throw error;
       return (data || []).map(article => ({ ...article, type: 'news' as const }));
     }
@@ -70,7 +72,7 @@ const NewsPage = () => {
         query = query.or(`title.ilike.%${searchTerm}%,content.ilike.%${searchTerm}%`);
       }
 
-      const { data, error } = await query.limit(20);
+      const { data, error } = await query;
       if (error) throw error;
       return (data || []).map(post => ({ 
         ...post, 
@@ -98,15 +100,31 @@ const NewsPage = () => {
     }
   });
 
-  const categories = [
-    "Visa Updates",
-    "Travel Restrictions", 
-    "Policy Changes",
-    "Immigration News",
-    "Border Updates",
-    "Processing Times",
-    "New Requirements"
-  ];
+  // Fetch actual categories from database
+  const { data: dbCategories } = useQuery({
+    queryKey: ['blog-categories'],
+    queryFn: async () => {
+      const { data: newsData } = await supabase
+        .from('news_articles')
+        .select('categories')
+        .not('published_at', 'is', null)
+        .not('categories', 'is', null);
+      
+      const { data: blogData } = await supabase
+        .from('content_pages')
+        .select('keywords')
+        .like('slug', 'blog/%')
+        .eq('is_published', true)
+        .not('keywords', 'is', null);
+
+      const catSet = new Set<string>();
+      (newsData || []).forEach(a => (a.categories || []).forEach((c: string) => catSet.add(c)));
+      (blogData || []).forEach(p => (p.keywords || []).forEach((k: string) => catSet.add(k)));
+      return Array.from(catSet).sort().slice(0, 12);
+    }
+  });
+
+  const categories = dbCategories || [];
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -379,9 +397,18 @@ const NewsPage = () => {
               ))}
             </div>
           ) : filteredContent && filteredContent.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredContent.map(renderContentCard)}
-            </div>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredContent.slice(0, page * ITEMS_PER_PAGE).map(renderContentCard)}
+              </div>
+              {filteredContent.length > page * ITEMS_PER_PAGE && (
+                <div className="flex justify-center mt-8">
+                  <Button variant="outline" size="lg" onClick={() => setPage(p => p + 1)}>
+                    Load More ({filteredContent.length - page * ITEMS_PER_PAGE} remaining)
+                  </Button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-12">
               <p className="text-muted-foreground text-lg">No content found.</p>

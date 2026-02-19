@@ -9,14 +9,12 @@ export default function AdminDashboard() {
   const { data: pageStats, isLoading: pagesLoading } = useQuery({
     queryKey: ['admin-pages-stats'],
     queryFn: async () => {
-      const [totalRes, aiRes, topPagesRes] = await Promise.all([
+      const [totalRes, topPagesRes] = await Promise.all([
         supabase.from('content_pages').select('id', { count: 'exact', head: true }),
-        supabase.from('content_pages').select('id', { count: 'exact', head: true }).eq('ai_generated', true),
         supabase.from('content_pages').select('id, title, slug, view_count').order('view_count', { ascending: false }).limit(10),
       ]);
       return {
         total: totalRes.count || 0,
-        aiGenerated: aiRes.count || 0,
         topPages: topPagesRes.data || [],
       };
     },
@@ -88,7 +86,6 @@ export default function AdminDashboard() {
   // Calculate derived stats
   const pageViews = analyticsEvents.filter(e => e.event_type === 'page_view');
   const totalViews = pageViews.length;
-  const aiGeneratedPages = pageStats?.aiGenerated || 0;
   const totalPages = pageStats?.total || 0;
 
   // Count views per page slug from analytics
@@ -175,7 +172,7 @@ export default function AdminDashboard() {
           title="Total Pages" 
           value={totalPages} 
           icon={FileText} 
-          description={`${aiGeneratedPages.toLocaleString()} AI-generated (${totalPages > 0 ? Math.round((aiGeneratedPages / totalPages) * 100) : 0}%)`}
+          description="All content pages"
           loading={pagesLoading}
         />
         <StatCard 

@@ -176,6 +176,7 @@ const VisaRequirements = () => {
           `${fromCountry.name} to ${toCountry.name} visa`,
           `${toCountry.name} visa requirements`,
         ]}
+        noIndex={true}
       />
 
       <script

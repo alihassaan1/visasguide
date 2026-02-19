@@ -24,7 +24,7 @@ export default function ContentManager() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [publishedCount, setPublishedCount] = useState(0);
-  const [aiGeneratedCount, setAiGeneratedCount] = useState(0);
+  const [aiGeneratedCount, setAiGeneratedCount] = useState(0); // kept for compatibility
   const [totalViews, setTotalViews] = useState(0);
   const pageSize = 50;
 
@@ -36,16 +36,14 @@ export default function ContentManager() {
   const loadStats = async () => {
     try {
       // Get accurate counts using count: 'exact'
-      const [totalRes, publishedRes, aiRes, viewsRes] = await Promise.all([
+      const [totalRes, publishedRes, viewsRes] = await Promise.all([
         supabase.from("content_pages").select("id", { count: "exact", head: true }),
         supabase.from("content_pages").select("id", { count: "exact", head: true }).eq("is_published", true),
-        supabase.from("content_pages").select("id", { count: "exact", head: true }).eq("ai_generated", true),
         supabase.from("content_pages").select("view_count"),
       ]);
 
       setTotalCount(totalRes.count || 0);
       setPublishedCount(publishedRes.count || 0);
-      setAiGeneratedCount(aiRes.count || 0);
       
       // Sum all view counts
       const views = (viewsRes.data || []).reduce((sum, p) => sum + (p.view_count || 0), 0);
@@ -206,14 +204,6 @@ export default function ContentManager() {
             <CardDescription className="text-xs sm:text-sm">Total Views</CardDescription>
             <CardTitle className="text-2xl sm:text-3xl">
               {totalViews.toLocaleString()}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2 sm:pb-3">
-            <CardDescription className="text-xs sm:text-sm">AI Generated</CardDescription>
-            <CardTitle className="text-3xl">
-              {aiGeneratedCount.toLocaleString()}
             </CardTitle>
           </CardHeader>
         </Card>

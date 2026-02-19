@@ -273,7 +273,7 @@ export default function ManualContentEditor() {
         keywords: keywords.length > 0 ? keywords : null,
         excerpt: excerpt || null,
         is_published: publish && !schedule,
-        ai_generated: false,
+        
         writer_id: writerId || null,
         scheduled_at: schedule && scheduledAt ? new Date(scheduledAt).toISOString() : null,
         updated_at: new Date().toISOString(),

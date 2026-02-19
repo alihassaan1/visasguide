@@ -175,7 +175,7 @@ Format the content in HTML with proper headings (h2, h3), bullet points, and par
             meta_title: `${to.name} Visa for ${from.name} Citizens 2026 | Requirements & Guide`,
             keywords: [`${to.name} visa`, `${from.name} to ${to.name}`, 'visa requirements', 'travel guide', '2026'],
             is_published: true,
-            ai_generated: true,
+            ai_generated: false,
             status: 'published',
           };
 

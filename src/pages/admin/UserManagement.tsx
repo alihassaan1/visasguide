@@ -17,7 +17,6 @@ interface UserWithStats {
   totalPages: number;
   publishedPages: number;
   totalViews: number;
-  aiGenerated: number;
 }
 
 export default function UserManagement() {
@@ -48,14 +47,11 @@ export default function UserManagement() {
 
           const totalViews = pages?.reduce((sum, page) => sum + (page.view_count || 0), 0) || 0;
           const publishedPages = pages?.filter(p => p.is_published).length || 0;
-          const aiGenerated = pages?.filter((p: any) => p.ai_generated).length || 0;
-
           return {
             ...role,
             totalPages: pages?.length || 0,
             publishedPages,
             totalViews,
-            aiGenerated
           };
         })
       );
@@ -137,7 +133,6 @@ export default function UserManagement() {
                   <TableHead>Role</TableHead>
                   <TableHead>Total Pages</TableHead>
                   <TableHead>Published</TableHead>
-                  <TableHead>AI Generated</TableHead>
                   <TableHead>Total Views</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead>Actions</TableHead>
@@ -154,13 +149,6 @@ export default function UserManagement() {
                     </TableCell>
                     <TableCell>{user.totalPages}</TableCell>
                     <TableCell>{user.publishedPages}</TableCell>
-                    <TableCell>
-                      {user.aiGenerated > 0 && (
-                        <Badge variant="secondary" className="text-xs">
-                          {user.aiGenerated}
-                        </Badge>
-                      )}
-                    </TableCell>
                     <TableCell>{user.totalViews.toLocaleString()}</TableCell>
                     <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                     <TableCell>

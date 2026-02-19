@@ -9,5 +9,8 @@ Allow: /
 Disallow: /admin
 Disallow: /admin/
 
+# Disallow thin visa-requirement pages
+Disallow: /visa-requirements/
+
 # Sitemap
 Sitemap: https://visas.guide/sitemap.xml

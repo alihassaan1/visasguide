@@ -11,7 +11,7 @@ export default function FreelancerDashboard() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [myPages, setMyPages] = useState<any[]>([]);
-  const [stats, setStats] = useState({ total: 0, published: 0, views: 0, aiGenerated: 0 });
+  const [stats, setStats] = useState({ total: 0, published: 0, views: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,13 +37,11 @@ export default function FreelancerDashboard() {
       // Calculate stats
       const totalViews = pages?.reduce((sum, page) => sum + (page.view_count || 0), 0) || 0;
       const published = pages?.filter(p => p.is_published).length || 0;
-      const aiGenerated = pages?.filter((p: any) => p.ai_generated).length || 0;
 
       setStats({
         total: pages?.length || 0,
         published,
         views: totalViews,
-        aiGenerated
       });
     } catch (error: any) {
       toast({
@@ -92,18 +90,6 @@ export default function FreelancerDashboard() {
           <CardContent>
             <p className="text-sm text-muted-foreground">
               Avg: {stats.total > 0 ? Math.round(stats.views / stats.total) : 0} per page
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>AI Generated</CardDescription>
-            <CardTitle className="text-3xl">{stats.aiGenerated}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              {stats.total > 0 ? Math.round((stats.aiGenerated / stats.total) * 100) : 0}% of total
             </p>
           </CardContent>
         </Card>
@@ -173,12 +159,6 @@ export default function FreelancerDashboard() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold">{page.title}</h3>
-                      {page.ai_generated && (
-                        <Badge variant="secondary" className="text-xs">
-                          <Sparkles className="mr-1 h-3 w-3" />
-                          AI
-                        </Badge>
-                      )}
                       <Badge variant={page.is_published ? "default" : "outline"}>
                         {page.status || (page.is_published ? 'Published' : 'Draft')}
                       </Badge>

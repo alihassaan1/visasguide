@@ -109,3 +109,6 @@ verify_jwt = false
 
 [functions.rss-feed]
 verify_jwt = false
+
+[functions.bulk-content-upgrade]
+verify_jwt = false

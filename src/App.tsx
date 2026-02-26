@@ -59,6 +59,7 @@ import AuthorManager from "./pages/admin/AuthorManager";
 import AffiliateManager from "./pages/admin/AffiliateManager";
 import ImageGenerator from "./pages/admin/ImageGenerator";
 import QuickWinsDashboard from "./pages/admin/QuickWinsDashboard";
+import AdPerformanceDashboard from "./pages/admin/AdPerformanceDashboard";
 
 import ContentPage from "./pages/ContentPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -155,6 +156,7 @@ const App = () => (
             <Route path="affiliate-manager" element={<AffiliateManager />} />
             <Route path="image-generator" element={<ImageGenerator />} />
             <Route path="quick-wins" element={<QuickWinsDashboard />} />
+            <Route path="ad-performance" element={<AdPerformanceDashboard />} />
             
           </Route>
           

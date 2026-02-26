@@ -34,6 +34,7 @@ import {
   ClipboardList,
   Ticket,
   X,
+  BarChart3,
 } from "lucide-react";
 
 interface MenuItem {
@@ -101,6 +102,7 @@ const menuStructure: MenuItemOrGroup[] = [
       { title: "Newsletter", icon: Mail, href: "/admin/newsletter" },
       { title: "Affiliate Manager", icon: Ticket, href: "/admin/affiliate-manager" },
       { title: "Ads & Affiliates", icon: DollarSign, href: "/admin/monetization" },
+      { title: "Ad Performance", icon: BarChart3, href: "/admin/ad-performance" },
     ],
   },
   {

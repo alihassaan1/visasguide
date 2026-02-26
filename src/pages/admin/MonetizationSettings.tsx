@@ -151,7 +151,7 @@ export default function MonetizationSettings() {
   const addAffiliate = async () => {
     try {
       const { error } = await supabase.from('settings_affiliates').insert({
-        name: 'New Affiliate Banner',
+        name: 'Banner',
         target_url: 'https://example.com',
         position: 'sidebar-right',
         is_active: false,

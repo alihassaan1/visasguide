@@ -5,6 +5,11 @@ import { useVisitorLocation } from "@/hooks/useVisitorLocation";
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
+function ensureProtocol(url: string): string {
+  if (!url) return url;
+  if (/^https?:\/\//i.test(url)) return url;
+  return `https://${url}`;
+}
 interface AffiliateBannerContainerProps {
   position: "sidebar-left" | "sidebar-right" | "horizontal-banner" | "in-content" | "footer";
 }
@@ -130,6 +135,15 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
         visitor_country: countryCode
       });
     }
+
+    // Log to analytics_events for conversion reporting
+    await supabase.from('analytics_events').insert({
+      event_type: 'affiliate_click',
+      page_slug: currentPath,
+      search_term: banner.name,
+      referrer_source: ensureProtocol(banner.target_url),
+      visitor_location: countryCode ? { country: countryCode } : null,
+    });
     
     // Update click count
     await supabase
@@ -154,7 +168,7 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
               title={banner.name}
               description={`Visit ${banner.name}`}
               ctaText="Learn More"
-              affiliateLink={banner.target_url}
+              affiliateLink={ensureProtocol(banner.target_url)}
               position={position.includes("sidebar") ? "sidebar" : "inline"}
               onClick={() => handleClick(banner)}
             />

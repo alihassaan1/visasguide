@@ -15,6 +15,12 @@ import { CountryMultiSelect } from "@/components/admin/CountryMultiSelect";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
+function ensureProtocol(url: string): string {
+  if (!url) return url;
+  if (/^https?:\/\//i.test(url)) return url;
+  return `https://${url}`;
+}
+
 interface AffiliateData {
   id: string;
   name: string;
@@ -401,7 +407,7 @@ export default function MonetizationSettings() {
                         </div>
                         {affiliate.target_url && affiliate.target_url !== 'https://example.com' && (
                           <Button variant="outline" size="sm" className="h-7 text-xs" asChild>
-                            <a href={affiliate.target_url} target="_blank" rel="noopener noreferrer">
+                            <a href={ensureProtocol(affiliate.target_url)} target="_blank" rel="noopener noreferrer">
                               <ExternalLink className="mr-1.5 h-3 w-3" />
                               Preview Link
                             </a>

@@ -34,6 +34,7 @@ import {
   ClipboardList,
   Ticket,
   X,
+  BarChart3,
 } from "lucide-react";
 
 interface MenuItem {

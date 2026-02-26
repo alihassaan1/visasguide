@@ -6,9 +6,20 @@ import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
 function ensureProtocol(url: string): string {
-  if (!url) return url;
-  if (/^https?:\/\//i.test(url)) return url;
-  return `https://${url}`;
+  const input = url?.trim();
+  if (!input) return "";
+
+  const withProtocol = /^https?:\/\//i.test(input) ? input : `https://${input}`;
+
+  try {
+    const parsedUrl = new URL(withProtocol);
+    if (parsedUrl.hostname.toLowerCase() === "bazarid") {
+      parsedUrl.hostname = "bazar.id";
+    }
+    return parsedUrl.toString();
+  } catch {
+    return withProtocol;
+  }
 }
 interface AffiliateBannerContainerProps {
   position: "sidebar-left" | "sidebar-right" | "horizontal-banner" | "in-content" | "footer";

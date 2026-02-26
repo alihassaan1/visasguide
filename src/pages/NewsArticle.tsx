@@ -356,14 +356,11 @@ const NewsArticle = () => {
               <Card className="bg-muted/30 border-dashed">
                 <CardContent className="p-6 text-center">
                   <span className="text-xs text-muted-foreground block mb-2">Advertisement</span>
-                  <div className="h-[250px] bg-muted/50 rounded flex items-center justify-center">
-                    {/* Ad placeholder - replace with actual ad code */}
+                  <div className="rounded overflow-hidden">
+                    <AffiliateBannerContainer position="sidebar-right" />
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Affiliate Banners */}
-              <AffiliateBannerContainer position="sidebar-right" />
 
               {/* Newsletter Signup */}
               <Card>

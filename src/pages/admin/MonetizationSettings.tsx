@@ -450,15 +450,43 @@ export default function MonetizationSettings() {
                           />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <div>
-                            <Label className="text-xs">Show to Countries (empty = all)</Label>
-                            <CountryMultiSelect
-                              value={affiliate.target_countries}
-                              onChange={(value) => updateLocal(affiliate.id, { target_countries: value })}
-                              placeholder="Select target countries..."
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={affiliate.target_countries.length === 0}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  updateLocal(affiliate.id, { target_countries: [] });
+                                }
+                              }}
                             />
+                            <Label className="text-xs font-medium">Show to All Countries</Label>
                           </div>
+
+                          {affiliate.target_countries.length > 0 && (
+                            <div>
+                              <Label className="text-xs">Target Countries</Label>
+                              <CountryMultiSelect
+                                value={affiliate.target_countries}
+                                onChange={(value) => updateLocal(affiliate.id, { target_countries: value })}
+                                placeholder="Select target countries..."
+                              />
+                            </div>
+                          )}
+
+                          {affiliate.target_countries.length === 0 && (
+                            <p className="text-xs text-muted-foreground">
+                              Ad is displayed globally.{' '}
+                              <button
+                                type="button"
+                                className="text-primary hover:underline"
+                                onClick={() => updateLocal(affiliate.id, { target_countries: ['__placeholder'] })}
+                              >
+                                Restrict to specific countries
+                              </button>
+                            </p>
+                          )}
+
                           <div>
                             <Label className="text-xs">Exclude Countries</Label>
                             <CountryMultiSelect

@@ -38,26 +38,16 @@ const AffiliateBanner = ({
         target="_blank"
         rel="sponsored noopener noreferrer"
         onClick={handleClick}
-        className="block bg-card border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+        className="block overflow-hidden rounded-lg hover:opacity-90 transition-opacity"
       >
         {imageUrl && (
-          <div className="aspect-video bg-muted">
-            <img
-              src={imageUrl}
-              alt={title}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-          </div>
+          <img
+            src={imageUrl}
+            alt={title}
+            className="w-full h-auto object-contain"
+            loading="lazy"
+          />
         )}
-        <div className="p-4">
-          <h3 className="font-semibold mb-2 text-sm">{title}</h3>
-          <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{description}</p>
-          <div className="flex items-center gap-1 text-xs text-primary font-medium">
-            {ctaText}
-            <ExternalLink className="h-3 w-3" />
-          </div>
-        </div>
       </a>
     );
   }

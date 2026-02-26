@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import AffiliateBanner from "./AffiliateBanner";
 import { useVisitorLocation } from "@/hooks/useVisitorLocation";
 import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 function ensureProtocol(url: string): string {
   const input = url?.trim();
@@ -113,23 +113,28 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
   });
 
   // Filter banners based on targeting rules
-  const filteredBanners = (banners || [])
+  const eligibleBanners = (banners || [])
     .filter(banner => shouldShowBanner(banner, countryCode, currentPath))
     .sort((a, b) => (b.priority || 0) - (a.priority || 0));
 
-  // Track impressions for visible banners
-  useEffect(() => {
-    if (filteredBanners.length > 0 && !locationLoading) {
-      filteredBanners.forEach(async (banner) => {
-        await supabase
-          .from('settings_affiliates')
-          .update({ impressions: (banner.impressions || 0) + 1 })
-          .eq('id', banner.id);
-      });
-    }
-  }, [filteredBanners.map(b => b.id).join(','), locationLoading]);
+  // Pick one random banner per page load (rotate)
+  const selectedBanner = useMemo(() => {
+    if (eligibleBanners.length === 0) return null;
+    const randomIndex = Math.floor(Math.random() * eligibleBanners.length);
+    return eligibleBanners[randomIndex];
+  }, [eligibleBanners.map(b => b.id).join(',')]);
 
-  if (!filteredBanners || filteredBanners.length === 0) return null;
+  // Track impression for the selected banner
+  useEffect(() => {
+    if (selectedBanner && !locationLoading) {
+      supabase
+        .from('settings_affiliates')
+        .update({ impressions: (selectedBanner.impressions || 0) + 1 })
+        .eq('id', selectedBanner.id);
+    }
+  }, [selectedBanner?.id, locationLoading]);
+
+  if (!selectedBanner) return null;
 
   const containerClass = "w-full";
 
@@ -159,44 +164,44 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
       .eq('id', banner.id);
   };
 
+  const banner = selectedBanner;
+
   return (
     <div className={`${containerClass}`}>
-      {filteredBanners.map((banner) => (
-        <div key={banner.id} className="w-full">
-          {banner.html_embed ? (
-            <div 
-              className="affiliate-embed w-full overflow-hidden"
-              dangerouslySetInnerHTML={{ __html: banner.html_embed }}
-              onClick={() => handleClick(banner)}
+      <div className="w-full">
+        {banner.html_embed ? (
+          <div 
+            className="affiliate-embed w-full overflow-hidden"
+            dangerouslySetInnerHTML={{ __html: banner.html_embed }}
+            onClick={() => handleClick(banner)}
+          />
+        ) : banner.image_url ? (
+          <a
+            href={ensureProtocol(banner.target_url)}
+            target="_blank"
+            rel="sponsored noopener noreferrer"
+            onClick={() => handleClick(banner)}
+            className="block overflow-hidden rounded-lg hover:opacity-90 transition-opacity"
+          >
+            <img
+              src={banner.image_url}
+              alt={banner.name}
+              className="w-full h-auto object-contain"
+              loading="lazy"
             />
-          ) : banner.image_url ? (
-            <a
-              href={ensureProtocol(banner.target_url)}
-              target="_blank"
-              rel="sponsored noopener noreferrer"
-              onClick={() => handleClick(banner)}
-              className="block overflow-hidden rounded-lg hover:opacity-90 transition-opacity"
-            >
-              <img
-                src={banner.image_url}
-                alt={banner.name}
-                className="w-full h-auto object-contain"
-                loading="lazy"
-              />
-            </a>
-          ) : (
-            <AffiliateBanner
-              imageUrl=""
-              title={banner.name}
-              description={`Visit ${banner.name}`}
-              ctaText="Learn More"
-              affiliateLink={ensureProtocol(banner.target_url)}
-              position={position.includes("sidebar") ? "sidebar" : "inline"}
-              onClick={() => handleClick(banner)}
-            />
-          )}
-        </div>
-      ))}
+          </a>
+        ) : (
+          <AffiliateBanner
+            imageUrl=""
+            title={banner.name}
+            description={`Visit ${banner.name}`}
+            ctaText="Learn More"
+            affiliateLink={ensureProtocol(banner.target_url)}
+            position={position.includes("sidebar") ? "sidebar" : "inline"}
+            onClick={() => handleClick(banner)}
+          />
+        )}
+      </div>
     </div>
   );
 }

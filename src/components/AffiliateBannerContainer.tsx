@@ -131,11 +131,7 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
 
   if (!filteredBanners || filteredBanners.length === 0) return null;
 
-  const containerClass = position === "horizontal-banner" 
-    ? "w-full" 
-    : position.includes("sidebar") 
-    ? "w-full max-w-[280px]" 
-    : "w-full";
+  const containerClass = "w-full";
 
   const handleClick = async (banner: AffiliateData) => {
     // Track click with Google Analytics

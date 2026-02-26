@@ -354,7 +354,7 @@ const NewsArticle = () => {
             <div className="lg:sticky lg:top-20 space-y-6">
               {/* Sponsored Ad Zone */}
               <div>
-                <span className="text-xs text-muted-foreground block mb-1">Sponsored</span>
+                <span className="text-xs text-muted-foreground block mb-1 text-center">Sponsored</span>
                 <AffiliateBannerContainer position="sidebar-right" />
               </div>
 

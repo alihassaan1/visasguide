@@ -164,44 +164,44 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
       .eq('id', banner.id);
   };
 
+  const banner = selectedBanner;
+
   return (
     <div className={`${containerClass}`}>
-      {filteredBanners.map((banner) => (
-        <div key={banner.id} className="w-full">
-          {banner.html_embed ? (
-            <div 
-              className="affiliate-embed w-full overflow-hidden"
-              dangerouslySetInnerHTML={{ __html: banner.html_embed }}
-              onClick={() => handleClick(banner)}
+      <div className="w-full">
+        {banner.html_embed ? (
+          <div 
+            className="affiliate-embed w-full overflow-hidden"
+            dangerouslySetInnerHTML={{ __html: banner.html_embed }}
+            onClick={() => handleClick(banner)}
+          />
+        ) : banner.image_url ? (
+          <a
+            href={ensureProtocol(banner.target_url)}
+            target="_blank"
+            rel="sponsored noopener noreferrer"
+            onClick={() => handleClick(banner)}
+            className="block overflow-hidden rounded-lg hover:opacity-90 transition-opacity"
+          >
+            <img
+              src={banner.image_url}
+              alt={banner.name}
+              className="w-full h-auto object-contain"
+              loading="lazy"
             />
-          ) : banner.image_url ? (
-            <a
-              href={ensureProtocol(banner.target_url)}
-              target="_blank"
-              rel="sponsored noopener noreferrer"
-              onClick={() => handleClick(banner)}
-              className="block overflow-hidden rounded-lg hover:opacity-90 transition-opacity"
-            >
-              <img
-                src={banner.image_url}
-                alt={banner.name}
-                className="w-full h-auto object-contain"
-                loading="lazy"
-              />
-            </a>
-          ) : (
-            <AffiliateBanner
-              imageUrl=""
-              title={banner.name}
-              description={`Visit ${banner.name}`}
-              ctaText="Learn More"
-              affiliateLink={ensureProtocol(banner.target_url)}
-              position={position.includes("sidebar") ? "sidebar" : "inline"}
-              onClick={() => handleClick(banner)}
-            />
-          )}
-        </div>
-      ))}
+          </a>
+        ) : (
+          <AffiliateBanner
+            imageUrl=""
+            title={banner.name}
+            description={`Visit ${banner.name}`}
+            ctaText="Learn More"
+            affiliateLink={ensureProtocol(banner.target_url)}
+            position={position.includes("sidebar") ? "sidebar" : "inline"}
+            onClick={() => handleClick(banner)}
+          />
+        )}
+      </div>
     </div>
   );
 }

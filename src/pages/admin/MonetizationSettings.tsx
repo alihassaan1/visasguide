@@ -401,7 +401,7 @@ export default function MonetizationSettings() {
                         </div>
                         {affiliate.target_url && affiliate.target_url !== 'https://example.com' && (
                           <Button variant="outline" size="sm" className="h-7 text-xs" asChild>
-                            <a href={affiliate.target_url} target="_blank" rel="noopener noreferrer">
+                            <a href={ensureProtocol(affiliate.target_url)} target="_blank" rel="noopener noreferrer">
                               <ExternalLink className="mr-1.5 h-3 w-3" />
                               Preview Link
                             </a>

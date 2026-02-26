@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import AffiliateBanner from "./AffiliateBanner";
 import { useVisitorLocation } from "@/hooks/useVisitorLocation";
 import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 function ensureProtocol(url: string): string {
   const input = url?.trim();

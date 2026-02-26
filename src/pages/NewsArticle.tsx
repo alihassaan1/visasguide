@@ -352,15 +352,11 @@ const NewsArticle = () => {
           {/* Right Sidebar */}
           <aside className="lg:col-span-1">
             <div className="lg:sticky lg:top-20 space-y-6">
-              {/* Ad Zone */}
-              <Card className="bg-muted/30 border-dashed">
-                <CardContent className="p-6 text-center">
-                  <span className="text-xs text-muted-foreground block mb-2">Advertisement</span>
-                  <div className="rounded overflow-hidden">
-                    <AffiliateBannerContainer position="sidebar-right" />
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Sponsored Ad Zone */}
+              <div>
+                <span className="text-xs text-muted-foreground block mb-1">Sponsored</span>
+                <AffiliateBannerContainer position="sidebar-right" />
+              </div>
 
               {/* Newsletter Signup */}
               <Card>

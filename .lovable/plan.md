@@ -1,81 +1,55 @@
 
-
-# AdSense Approval Recovery Plan
+# Auto-Resize and Compress Banner Images on Upload
 
 ## The Problem
 
-Google AdSense keeps rejecting the site for "Low value content." Here's the data:
+A 1.5MB high-resolution image is being uploaded as-is to Supabase Storage and served directly to visitors. The sidebar banner only renders at 280px wide, so all those extra pixels are wasted bandwidth that slows page load.
 
-- **38,612 thin visa-requirement pages** (~3,900 chars each) make up 96.5% of published content
-- Only **50 blog posts** and **197 country guides** exist as editorial content
-- **0 published news articles** (3 exist as drafts)
-- The `ai_generated` flag is still visible in the admin dashboard (though not shown publicly)
-- Empty "Advertisement" placeholder boxes appear on content pages, which look unprofessional to AdSense reviewers
-- Hardcoded category filters on the blog page don't match actual content
+## The Solution
 
-## The Strategy
+Add client-side image resizing and WebP conversion in the `ImageUpload` component before uploading to Supabase Storage. This happens transparently -- the user drops a 1.5MB PNG and a ~30-50KB WebP gets uploaded.
 
-Google's main concern is the ratio of useful, unique content vs. templated/thin pages. The fix requires two parallel tracks:
+### How it works:
 
-### Track 1: Hide Thin Content from Google
+1. User selects/drops an image (any size)
+2. The browser draws it onto an off-screen `<canvas>`, scaled down to fit within max dimensions
+3. The canvas exports as WebP at 85% quality (falls back to JPEG if WebP isn't supported)
+4. The compressed blob (typically 20-80KB for banners) is uploaded to Supabase Storage
 
-**Noindex all 38,612 visa-requirement pages** so Google stops counting them as "low value." These pages can still serve visitors who land on them, but Google won't penalize the site for having them.
+### Resize targets by position:
 
-- Add `noIndex={true}` to the SEOHead component on all `/visa-requirements/*` pages
-- Update `robots.txt` to disallow `/visa-requirements/` for crawlers
-- Remove these pages from the sitemap
+The `ImageUpload` component already accepts props, so we add optional `maxWidth` and `maxHeight`:
 
-### Track 2: Boost Editorial Content Quality
+- **Sidebar banners**: 560x800 (2x of 280px display width for retina)
+- **Horizontal banners**: 1200x400
+- **Default/general**: 1200x800
 
-1. **Remove the `ai_generated` flag from the database and all code references**
-   - Set `ai_generated = false` on all existing rows
-   - Remove the "AI Generated" stat card from the admin dashboard
-   - Remove AI badges from FreelancerDashboard and UserManagement
-   - Keep the column but stop displaying it anywhere
-
-2. **Remove empty ad placeholder boxes**
-   - Delete the 3 empty "Advertisement" dashed-border boxes from `ContentPage.tsx` (in-content and 2 sidebar ones)
-   - These empty boxes signal to AdSense reviewers that the site was built specifically to show ads with minimal content
-
-3. **Publish the 3 draft news articles**
-   - Update their status to published so the News section isn't empty
-
-4. **Fix blog page category filters**
-   - Pull actual categories/keywords from the database instead of using the hardcoded list that returns zero results
-
-5. **Add pagination to blog page**
-   - Currently limited to 20 items with no way to browse older content
+The `MonetizationSettings` page will pass appropriate dimensions based on the banner position.
 
 ## Technical Details
 
-### Files to modify:
+### File: `src/components/admin/ImageUpload.tsx`
 
-| File | Change |
-|------|--------|
-| `src/pages/ContentPage.tsx` | Remove 3 empty ad placeholder divs |
-| `src/pages/admin/ContentManager.tsx` | Remove "AI Generated" stat card |
-| `src/pages/admin/AdminDashboard.tsx` | Remove AI generated count query |
-| `src/pages/admin/FreelancerDashboard.tsx` | Remove AI badge from page list |
-| `src/pages/admin/UserManagement.tsx` | Remove AI count from user stats |
-| `src/pages/admin/AIContentStudio.tsx` | Stop setting `ai_generated: true` |
-| `src/pages/admin/ManualContentEditor.tsx` | Remove `ai_generated: false` (use DB default) |
-| `src/pages/admin/VisaRequirementsContentUpdater.tsx` | Stop setting `ai_generated: true` |
-| `src/pages/NewsPage.tsx` | Replace hardcoded categories with DB-driven ones; add pagination |
-| `src/components/VisaRequirementsHero.tsx` or equivalent | Add `noIndex` to visa-requirement SEO |
-| `public/robots.txt` | Add `Disallow: /visa-requirements/` |
+Add a `resizeImage` helper function that:
+- Creates an off-screen canvas
+- Calculates scaled dimensions preserving aspect ratio
+- Draws the image and exports as WebP (quality 0.85)
+- Returns a `File` object ready for upload
+- Always converts to `.webp` extension for the storage path
 
-### Database changes:
+New props added to `ImageUploadProps`:
+- `maxWidth?: number` (default: 1200)
+- `maxHeight?: number` (default: 800)
 
-```text
-UPDATE content_pages SET ai_generated = false WHERE ai_generated = true;
-UPDATE news_articles SET status = 'published', published_at = now() WHERE status = 'draft';
-```
+The `uploadFile` function is modified to call `resizeImage(file, maxWidth, maxHeight)` before uploading. The upload status text changes to "Optimizing..." then "Uploading..." to reflect both steps.
 
-### What this achieves:
+### File: `src/pages/admin/MonetizationSettings.tsx`
 
-- Google sees ~250 quality pages instead of ~40,000 thin ones
-- No visible AI flags anywhere in the system
-- Clean, professional content pages without empty ad boxes
-- Working blog filters and pagination
-- Active news section with published articles
+Pass `maxWidth` and `maxHeight` to the `ImageUpload` component based on the banner's `position` field:
+- `sidebar-left` / `sidebar-right`: maxWidth=560, maxHeight=800
+- `horizontal-banner`: maxWidth=1200, maxHeight=400
+- `in-content` / `footer`: maxWidth=1200, maxHeight=600
 
+### No database or storage changes needed
+
+The compressed WebP files are smaller and upload to the same `content-images` bucket. Storage paths change extension to `.webp` but everything else stays the same.

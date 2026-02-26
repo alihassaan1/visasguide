@@ -117,11 +117,17 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
     .filter(banner => shouldShowBanner(banner, countryCode, currentPath))
     .sort((a, b) => (b.priority || 0) - (a.priority || 0));
 
-  // Pick one random banner per page load (rotate)
+  // Weighted random pick — priority acts as weight (min 1)
   const selectedBanner = useMemo(() => {
     if (eligibleBanners.length === 0) return null;
-    const randomIndex = Math.floor(Math.random() * eligibleBanners.length);
-    return eligibleBanners[randomIndex];
+    const weights = eligibleBanners.map(b => Math.max((b.priority || 0) + 1, 1));
+    const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+    let roll = Math.random() * totalWeight;
+    for (let i = 0; i < eligibleBanners.length; i++) {
+      roll -= weights[i];
+      if (roll <= 0) return eligibleBanners[i];
+    }
+    return eligibleBanners[eligibleBanners.length - 1];
   }, [eligibleBanners.map(b => b.id).join(',')]);
 
   // Track impression for the selected banner

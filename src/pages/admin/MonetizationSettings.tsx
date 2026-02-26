@@ -16,9 +16,20 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 function ensureProtocol(url: string): string {
-  if (!url) return url;
-  if (/^https?:\/\//i.test(url)) return url;
-  return `https://${url}`;
+  const input = url?.trim();
+  if (!input) return "";
+
+  const withProtocol = /^https?:\/\//i.test(input) ? input : `https://${input}`;
+
+  try {
+    const parsedUrl = new URL(withProtocol);
+    if (parsedUrl.hostname.toLowerCase() === "bazarid") {
+      parsedUrl.hostname = "bazar.id";
+    }
+    return parsedUrl.toString();
+  } catch {
+    return withProtocol;
+  }
 }
 
 interface AffiliateData {

@@ -113,23 +113,28 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
   });
 
   // Filter banners based on targeting rules
-  const filteredBanners = (banners || [])
+  const eligibleBanners = (banners || [])
     .filter(banner => shouldShowBanner(banner, countryCode, currentPath))
     .sort((a, b) => (b.priority || 0) - (a.priority || 0));
 
-  // Track impressions for visible banners
-  useEffect(() => {
-    if (filteredBanners.length > 0 && !locationLoading) {
-      filteredBanners.forEach(async (banner) => {
-        await supabase
-          .from('settings_affiliates')
-          .update({ impressions: (banner.impressions || 0) + 1 })
-          .eq('id', banner.id);
-      });
-    }
-  }, [filteredBanners.map(b => b.id).join(','), locationLoading]);
+  // Pick one random banner per page load (rotate)
+  const selectedBanner = useMemo(() => {
+    if (eligibleBanners.length === 0) return null;
+    const randomIndex = Math.floor(Math.random() * eligibleBanners.length);
+    return eligibleBanners[randomIndex];
+  }, [eligibleBanners.map(b => b.id).join(',')]);
 
-  if (!filteredBanners || filteredBanners.length === 0) return null;
+  // Track impression for the selected banner
+  useEffect(() => {
+    if (selectedBanner && !locationLoading) {
+      supabase
+        .from('settings_affiliates')
+        .update({ impressions: (selectedBanner.impressions || 0) + 1 })
+        .eq('id', selectedBanner.id);
+    }
+  }, [selectedBanner?.id, locationLoading]);
+
+  if (!selectedBanner) return null;
 
   const containerClass = "w-full";
 

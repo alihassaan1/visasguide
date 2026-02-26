@@ -13,7 +13,52 @@ interface ImageUploadProps {
   label?: string;
   bucket?: string;
   storagePath?: string;
+  maxWidth?: number;
+  maxHeight?: number;
 }
+
+const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<Blob> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+
+      // Only downscale, never upscale
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return reject(new Error('Canvas not supported'));
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Try WebP first, fall back to JPEG
+      canvas.toBlob(
+        (blob) => {
+          if (blob) return resolve(blob);
+          // Fallback to JPEG
+          canvas.toBlob(
+            (jpegBlob) => {
+              if (jpegBlob) resolve(jpegBlob);
+              else reject(new Error('Failed to compress image'));
+            },
+            'image/jpeg',
+            0.85
+          );
+        },
+        'image/webp',
+        0.85
+      );
+    };
+    img.onerror = () => reject(new Error('Failed to load image'));
+    img.src = URL.createObjectURL(file);
+  });
+};
 
 export const ImageUpload: React.FC<ImageUploadProps> = ({
   value,
@@ -21,10 +66,13 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   label = 'Featured Image',
   bucket = 'content-images',
   storagePath = 'banners',
+  maxWidth = 1200,
+  maxHeight = 800,
 }) => {
   const { toast } = useToast();
   const [previewUrl, setPreviewUrl] = useState(value);
   const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -43,17 +91,25 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       toast({ title: 'Invalid file', description: 'Please upload an image file', variant: 'destructive' });
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: 'File too large', description: 'Max size is 5MB', variant: 'destructive' });
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: 'File too large', description: 'Max size is 10MB', variant: 'destructive' });
       return;
     }
 
     setUploading(true);
     try {
-      const ext = file.name.split('.').pop();
+      // Step 1: Optimize
+      setUploadStatus('Optimizing...');
+      const optimizedBlob = await resizeImage(file, maxWidth, maxHeight);
+      const isWebP = optimizedBlob.type === 'image/webp';
+      const ext = isWebP ? 'webp' : 'jpg';
+
+      // Step 2: Upload
+      setUploadStatus('Uploading...');
       const filePath = `${storagePath}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
-      const { error } = await supabase.storage.from(bucket).upload(filePath, file, {
+      const { error } = await supabase.storage.from(bucket).upload(filePath, optimizedBlob, {
+        contentType: optimizedBlob.type,
         cacheControl: '31536000',
         upsert: false,
       });
@@ -65,13 +121,16 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
       setPreviewUrl(publicUrl);
       onChange(publicUrl);
-      toast({ title: 'Image uploaded successfully' });
+
+      const savedKB = ((file.size - optimizedBlob.size) / 1024).toFixed(0);
+      toast({ title: `Image uploaded (saved ~${savedKB}KB)` });
     } catch (error: any) {
       toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
     } finally {
       setUploading(false);
+      setUploadStatus('');
     }
-  }, [bucket, storagePath, onChange, toast]);
+  }, [bucket, storagePath, maxWidth, maxHeight, onChange, toast]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -132,7 +191,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
               {uploading ? (
                 <div className="flex flex-col items-center gap-2">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <p className="text-sm text-muted-foreground">Uploading...</p>
+                  <p className="text-sm text-muted-foreground">{uploadStatus}</p>
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-2">
@@ -140,7 +199,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                   <p className="text-sm text-muted-foreground">
                     Drop image here or <span className="text-primary font-medium">browse</span>
                   </p>
-                  <p className="text-xs text-muted-foreground/60">PNG, JPG, WebP up to 5MB</p>
+                  <p className="text-xs text-muted-foreground/60">PNG, JPG, WebP up to 10MB · auto-optimized</p>
                 </div>
               )}
               <input

@@ -415,6 +415,8 @@ export default function MonetizationSettings() {
                           onChange={(url) => updateLocal(affiliate.id, { image_url: url })}
                           label="Banner Image"
                           storagePath="banners"
+                          maxWidth={affiliate.position?.startsWith('sidebar') ? 560 : 1200}
+                          maxHeight={affiliate.position === 'horizontal-banner' ? 400 : affiliate.position?.startsWith('sidebar') ? 800 : 600}
                         />
                       </div>
                     </div>

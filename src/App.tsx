@@ -156,6 +156,7 @@ const App = () => (
             <Route path="affiliate-manager" element={<AffiliateManager />} />
             <Route path="image-generator" element={<ImageGenerator />} />
             <Route path="quick-wins" element={<QuickWinsDashboard />} />
+            <Route path="ad-performance" element={<AdPerformanceDashboard />} />
             
           </Route>
           

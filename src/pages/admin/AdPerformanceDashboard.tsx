@@ -1,0 +1,390 @@
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { Eye, MousePointerClick, Percent, Megaphone, ArrowUpDown, TrendingUp } from "lucide-react";
+import { format, subDays } from "date-fns";
+
+type SortKey = "clicks" | "impressions" | "ctr" | "priority";
+type SortDir = "asc" | "desc";
+type DateRange = "7d" | "30d" | "90d" | "all";
+
+const dateRangeOptions: { value: DateRange; label: string }[] = [
+  { value: "7d", label: "7 Days" },
+  { value: "30d", label: "30 Days" },
+  { value: "90d", label: "90 Days" },
+  { value: "all", label: "All Time" },
+];
+
+export default function AdPerformanceDashboard() {
+  const [dateRange, setDateRange] = useState<DateRange>("30d");
+  const [bannerSort, setBannerSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "clicks", dir: "desc" });
+
+  const startDate = useMemo(() => {
+    if (dateRange === "all") return new Date("2020-01-01");
+    const days = dateRange === "7d" ? 7 : dateRange === "30d" ? 30 : 90;
+    return subDays(new Date(), days);
+  }, [dateRange]);
+
+  // Fetch banner ads
+  const { data: banners = [] } = useQuery({
+    queryKey: ["ad-perf-banners"],
+    queryFn: async () => {
+      const { data } = await supabase.from("settings_affiliates").select("*").order("created_at", { ascending: false });
+      return data || [];
+    },
+  });
+
+  // Fetch affiliate widgets with location info
+  const { data: widgets = [] } = useQuery({
+    queryKey: ["ad-perf-widgets"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("affiliate_widgets")
+        .select("*, cities(name), countries(name)")
+        .order("click_count", { ascending: false });
+      return data || [];
+    },
+  });
+
+  // Fetch affiliate click events for time series & top pages
+  const { data: clickEvents = [] } = useQuery({
+    queryKey: ["ad-perf-clicks", dateRange],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("analytics_events")
+        .select("created_at, page_slug, search_term")
+        .eq("event_type", "affiliate_click")
+        .gte("created_at", startDate.toISOString())
+        .order("created_at", { ascending: false })
+        .limit(1000);
+      return data || [];
+    },
+  });
+
+  // Summary stats
+  const totalImpressions = banners.reduce((s, b) => s + (b.impressions || 0), 0);
+  const totalBannerClicks = banners.reduce((s, b) => s + (b.click_count || 0), 0);
+  const totalWidgetClicks = widgets.reduce((s, w) => s + (w.click_count || 0), 0);
+  const totalClicks = totalBannerClicks + totalWidgetClicks;
+  const overallCTR = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : "0.00";
+  const activeAds = banners.filter((b) => b.is_active).length + widgets.filter((w) => w.is_active).length;
+
+  // Time series chart data
+  const chartData = useMemo(() => {
+    const map: Record<string, number> = {};
+    clickEvents.forEach((e) => {
+      const day = format(new Date(e.created_at), "yyyy-MM-dd");
+      map[day] = (map[day] || 0) + 1;
+    });
+    return Object.entries(map)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, clicks]) => ({ date: format(new Date(date), "MMM dd"), clicks }));
+  }, [clickEvents]);
+
+  // Top pages
+  const topPages = useMemo(() => {
+    const map: Record<string, number> = {};
+    clickEvents.forEach((e) => {
+      if (e.page_slug) map[e.page_slug] = (map[e.page_slug] || 0) + 1;
+    });
+    return Object.entries(map)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 10)
+      .map(([slug, clicks]) => ({ slug, clicks }));
+  }, [clickEvents]);
+
+  // Sorted banners
+  const sortedBanners = useMemo(() => {
+    return [...banners].sort((a, b) => {
+      let aVal: number, bVal: number;
+      if (bannerSort.key === "ctr") {
+        aVal = (a.impressions || 0) > 0 ? (a.click_count || 0) / (a.impressions || 1) : 0;
+        bVal = (b.impressions || 0) > 0 ? (b.click_count || 0) / (b.impressions || 1) : 0;
+      } else if (bannerSort.key === "clicks") {
+        aVal = a.click_count || 0;
+        bVal = b.click_count || 0;
+      } else if (bannerSort.key === "impressions") {
+        aVal = a.impressions || 0;
+        bVal = b.impressions || 0;
+      } else {
+        aVal = a.priority || 0;
+        bVal = b.priority || 0;
+      }
+      return bannerSort.dir === "desc" ? bVal - aVal : aVal - bVal;
+    });
+  }, [banners, bannerSort]);
+
+  const toggleSort = (key: SortKey) => {
+    setBannerSort((prev) => ({
+      key,
+      dir: prev.key === key && prev.dir === "desc" ? "asc" : "desc",
+    }));
+  };
+
+  const SortHeader = ({ label, sortKey }: { label: string; sortKey: SortKey }) => (
+    <TableHead className="cursor-pointer select-none" onClick={() => toggleSort(sortKey)}>
+      <div className="flex items-center gap-1">
+        {label}
+        <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
+      </div>
+    </TableHead>
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Ad Performance</h1>
+          <p className="text-muted-foreground">Track banner ads and affiliate widget performance</p>
+        </div>
+        <div className="flex gap-1 rounded-lg border p-1 bg-muted/50">
+          {dateRangeOptions.map((opt) => (
+            <Button
+              key={opt.value}
+              variant={dateRange === opt.value ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setDateRange(opt.value)}
+            >
+              {opt.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10"><Eye className="h-5 w-5 text-primary" /></div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Impressions</p>
+                <p className="text-2xl font-bold">{totalImpressions.toLocaleString()}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10"><MousePointerClick className="h-5 w-5 text-primary" /></div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Clicks</p>
+                <p className="text-2xl font-bold">{totalClicks.toLocaleString()}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10"><Percent className="h-5 w-5 text-primary" /></div>
+              <div>
+                <p className="text-sm text-muted-foreground">Overall CTR</p>
+                <p className="text-2xl font-bold">{overallCTR}%</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10"><Megaphone className="h-5 w-5 text-primary" /></div>
+              <div>
+                <p className="text-sm text-muted-foreground">Active Ads</p>
+                <p className="text-2xl font-bold">{activeAds}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Performance Over Time */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5" /> Affiliate Clicks Over Time</CardTitle>
+          <CardDescription>Daily affiliate click events from analytics</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <XAxis dataKey="date" className="text-xs fill-muted-foreground" />
+                <YAxis className="text-xs fill-muted-foreground" />
+                <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
+                <Bar dataKey="clicks" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-center py-12 text-muted-foreground">No click data for the selected period</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Tabs defaultValue="banners" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="banners">Banner Ads ({banners.length})</TabsTrigger>
+          <TabsTrigger value="widgets">Affiliate Widgets ({widgets.length})</TabsTrigger>
+          <TabsTrigger value="pages">Top Pages</TabsTrigger>
+          <TabsTrigger value="log">Click Log</TabsTrigger>
+        </TabsList>
+
+        {/* Banner Ads Table */}
+        <TabsContent value="banners">
+          <Card>
+            <CardContent className="pt-6">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Position</TableHead>
+                    <TableHead>Status</TableHead>
+                    <SortHeader label="Impressions" sortKey="impressions" />
+                    <SortHeader label="Clicks" sortKey="clicks" />
+                    <SortHeader label="CTR" sortKey="ctr" />
+                    <SortHeader label="Priority" sortKey="priority" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedBanners.map((b) => {
+                    const ctr = (b.impressions || 0) > 0 ? (((b.click_count || 0) / (b.impressions || 1)) * 100).toFixed(2) : "0.00";
+                    return (
+                      <TableRow key={b.id}>
+                        <TableCell className="font-medium">{b.name}</TableCell>
+                        <TableCell><Badge variant="outline">{b.position}</Badge></TableCell>
+                        <TableCell>
+                          <Badge variant={b.is_active ? "default" : "secondary"}>
+                            {b.is_active ? "Active" : "Inactive"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{(b.impressions || 0).toLocaleString()}</TableCell>
+                        <TableCell>{(b.click_count || 0).toLocaleString()}</TableCell>
+                        <TableCell>{ctr}%</TableCell>
+                        <TableCell>{b.priority || 0}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  {banners.length === 0 && (
+                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No banners configured</TableCell></TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Affiliate Widgets Table */}
+        <TabsContent value="widgets">
+          <Card>
+            <CardContent className="pt-6">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Program</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Clicks</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {widgets.map((w: any) => (
+                    <TableRow key={w.id}>
+                      <TableCell className="font-medium">{w.affiliate_program}</TableCell>
+                      <TableCell>{w.cities?.name || w.countries?.name || "Global"}</TableCell>
+                      <TableCell><Badge variant="outline">{w.widget_variant || w.widget_type}</Badge></TableCell>
+                      <TableCell>{(w.click_count || 0).toLocaleString()}</TableCell>
+                      <TableCell>
+                        <Badge variant={w.is_active ? "default" : "secondary"}>
+                          {w.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {widgets.length === 0 && (
+                    <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No widgets configured</TableCell></TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Top Pages */}
+        <TabsContent value="pages">
+          <Card>
+            <CardHeader>
+              <CardTitle>Top Performing Pages</CardTitle>
+              <CardDescription>Pages generating the most affiliate clicks</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {topPages.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Page</TableHead>
+                      <TableHead className="text-right">Clicks</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {topPages.map((p) => (
+                      <TableRow key={p.slug}>
+                        <TableCell className="font-medium">{p.slug}</TableCell>
+                        <TableCell className="text-right">{p.clicks}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p className="text-center py-8 text-muted-foreground">No page click data for the selected period</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Click Activity Log */}
+        <TabsContent value="log">
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Click Activity</CardTitle>
+              <CardDescription>Latest affiliate click events</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {clickEvents.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Time</TableHead>
+                      <TableHead>Page</TableHead>
+                      <TableHead>Banner/Link</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {clickEvents.slice(0, 50).map((e, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="text-muted-foreground text-sm">
+                          {format(new Date(e.created_at), "MMM dd, HH:mm")}
+                        </TableCell>
+                        <TableCell>{e.page_slug || "—"}</TableCell>
+                        <TableCell>{e.search_term || "—"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p className="text-center py-8 text-muted-foreground">No click events for the selected period</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

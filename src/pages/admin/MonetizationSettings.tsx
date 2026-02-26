@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, ExternalLink, Target, Calendar, BarChart3 } from "lucide-react";
+import { Plus, Trash2, ExternalLink, Settings2, Eye, MousePointerClick, Percent } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { CountryMultiSelect } from "@/components/admin/CountryMultiSelect";
@@ -39,7 +39,8 @@ export default function MonetizationSettings() {
   const [gdprConsentCode, setGdprConsentCode] = useState("");
   const [affiliates, setAffiliates] = useState<AffiliateData[]>([]);
   const [loading, setLoading] = useState(false);
-  const [expandedTargeting, setExpandedTargeting] = useState<Record<string, boolean>>({});
+  const [expandedAdvanced, setExpandedAdvanced] = useState<Record<string, boolean>>({});
+  const [editingName, setEditingName] = useState<string | null>(null);
 
   useEffect(() => {
     loadSettings();
@@ -94,7 +95,6 @@ export default function MonetizationSettings() {
           { setting_key: 'adsense_code', setting_value: { code: adsenseCode } },
           { onConflict: 'setting_key' }
         );
-
       if (error) throw error;
       toast({ title: "AdSense code saved successfully" });
     } catch (error: any) {
@@ -113,7 +113,6 @@ export default function MonetizationSettings() {
           { setting_key: 'gdpr_consent_code', setting_value: { code: gdprConsentCode } },
           { onConflict: 'setting_key' }
         );
-
       if (error) throw error;
       toast({ title: "GDPR Consent code saved successfully" });
     } catch (error: any) {
@@ -136,7 +135,6 @@ export default function MonetizationSettings() {
         target_page_patterns: [],
         priority: 0,
       });
-
       if (error) throw error;
       await loadSettings();
       toast({ title: "Affiliate banner added" });
@@ -151,14 +149,10 @@ export default function MonetizationSettings() {
         .from('settings_affiliates')
         .update(updates)
         .eq('id', id);
-
       if (error) throw error;
-
-      setAffiliates(prev => 
+      setAffiliates(prev =>
         prev.map(aff => aff.id === id ? { ...aff, ...updates } : aff)
       );
-
-      toast({ title: "Affiliate banner updated" });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     }
@@ -170,7 +164,6 @@ export default function MonetizationSettings() {
         .from('settings_affiliates')
         .delete()
         .eq('id', id);
-
       if (error) throw error;
       setAffiliates(prev => prev.filter(aff => aff.id !== id));
       toast({ title: "Affiliate banner deleted" });
@@ -184,297 +177,280 @@ export default function MonetizationSettings() {
     return ((clicks / impressions) * 100).toFixed(2) + "%";
   };
 
-  const toggleTargeting = (id: string) => {
-    setExpandedTargeting(prev => ({ ...prev, [id]: !prev[id] }));
-  };
-
   return (
-    <div className="container mx-auto p-3 sm:p-6 max-w-7xl">
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Monetization Settings</h1>
-        <p className="text-muted-foreground">Manage AdSense, affiliate banners, and geo-targeting</p>
+    <div className="container mx-auto p-3 sm:p-6 max-w-5xl">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold mb-1">Monetization</h1>
+        <p className="text-sm text-muted-foreground">Manage ads, banners & affiliate links</p>
       </div>
 
       <Tabs defaultValue="affiliates">
         <TabsList className="flex-wrap h-auto">
-          <TabsTrigger value="gdpr">GDPR Consent</TabsTrigger>
-          <TabsTrigger value="adsense">AdSense</TabsTrigger>
           <TabsTrigger value="affiliates">Affiliate Banners</TabsTrigger>
+          <TabsTrigger value="adsense">AdSense</TabsTrigger>
+          <TabsTrigger value="gdpr">GDPR Consent</TabsTrigger>
         </TabsList>
 
+        {/* GDPR Tab */}
         <TabsContent value="gdpr">
           <Card>
-            <CardHeader>
-              <CardTitle>Google GDPR Consent Banner</CardTitle>
-              <CardDescription>Configure the cookie consent banner for EEA/UK visitors</CardDescription>
+            <CardHeader className="pb-3">
+              <h2 className="text-lg font-semibold">Google GDPR Consent Banner</h2>
+              <p className="text-sm text-muted-foreground">Cookie consent for EEA/UK visitors</p>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <Label>Google CMP Code</Label>
-                <Textarea
-                  value={gdprConsentCode}
-                  onChange={(e) => setGdprConsentCode(e.target.value)}
-                  placeholder="Paste the Google Consent Management Platform code..."
-                  rows={8}
-                  className="font-mono text-xs"
-                />
-              </div>
-              <Button onClick={saveGdprConsent} disabled={loading}>Save GDPR Consent Settings</Button>
+              <Textarea
+                value={gdprConsentCode}
+                onChange={(e) => setGdprConsentCode(e.target.value)}
+                placeholder="Paste the Google CMP code..."
+                rows={8}
+                className="font-mono text-xs"
+              />
+              <Button onClick={saveGdprConsent} disabled={loading}>Save</Button>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* AdSense Tab */}
         <TabsContent value="adsense">
           <Card>
-            <CardHeader>
-              <CardTitle>Google AdSense Settings</CardTitle>
-              <CardDescription>Configure AdSense codes for your site</CardDescription>
+            <CardHeader className="pb-3">
+              <h2 className="text-lg font-semibold">Google AdSense</h2>
+              <p className="text-sm text-muted-foreground">Configure AdSense code</p>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <Label>AdSense Code</Label>
-                <Textarea
-                  value={adsenseCode}
-                  onChange={(e) => setAdsenseCode(e.target.value)}
-                  placeholder="Paste your AdSense code here..."
-                  rows={6}
-                />
-              </div>
-              <Button onClick={saveAdsense} disabled={loading}>Save AdSense Settings</Button>
+              <Textarea
+                value={adsenseCode}
+                onChange={(e) => setAdsenseCode(e.target.value)}
+                placeholder="Paste your AdSense code here..."
+                rows={6}
+              />
+              <Button onClick={saveAdsense} disabled={loading}>Save</Button>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Affiliates Tab */}
         <TabsContent value="affiliates">
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold">Affiliate Banners</h2>
-                <p className="text-muted-foreground">Geo-targeted banners with analytics</p>
-              </div>
-              <Button onClick={addAffiliate}>
-                <Plus className="mr-2 h-4 w-4" />
+              <p className="text-sm text-muted-foreground">{affiliates.length} banner{affiliates.length !== 1 ? 's' : ''}</p>
+              <Button onClick={addAffiliate} size="sm">
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
                 Add Banner
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 gap-4">
-              {affiliates.map((affiliate) => (
-                <Card key={affiliate.id}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <Input
-                          value={affiliate.name}
-                          onChange={(e) => updateAffiliate(affiliate.id, { name: e.target.value })}
-                          className="font-semibold text-lg mb-2"
-                        />
-                        <div className="flex flex-wrap gap-2">
-                          {affiliate.target_countries.length > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              <Target className="mr-1 h-3 w-3" />
-                              {affiliate.target_countries.length} countries
-                            </Badge>
-                          )}
-                          {affiliate.target_page_patterns.length > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              {affiliate.target_page_patterns.length} page patterns
-                            </Badge>
-                          )}
-                          {(affiliate.start_date || affiliate.end_date) && (
-                            <Badge variant="outline" className="text-xs">
-                              <Calendar className="mr-1 h-3 w-3" />
-                              Scheduled
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={affiliate.is_active}
-                          onCheckedChange={(checked) => updateAffiliate(affiliate.id, { is_active: checked })}
-                        />
-                        <Button variant="ghost" size="icon" onClick={() => deleteAffiliate(affiliate.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {affiliates.map((affiliate) => (
+              <Card key={affiliate.id} className="overflow-hidden">
+                {/* Header row: name, stats, toggle, delete */}
+                <div className="flex items-center gap-3 px-4 py-3 border-b bg-muted/30">
+                  <div className="flex-1 min-w-0">
+                    {editingName === affiliate.id ? (
+                      <Input
+                        value={affiliate.name}
+                        onChange={(e) => setAffiliates(prev => prev.map(a => a.id === affiliate.id ? { ...a, name: e.target.value } : a))}
+                        onBlur={() => { updateAffiliate(affiliate.id, { name: affiliate.name }); setEditingName(null); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { updateAffiliate(affiliate.id, { name: affiliate.name }); setEditingName(null); } }}
+                        className="h-7 text-sm font-semibold"
+                        autoFocus
+                      />
+                    ) : (
+                      <button
+                        className="text-sm font-semibold truncate hover:text-primary transition-colors text-left"
+                        onClick={() => setEditingName(affiliate.id)}
+                        title="Click to edit name"
+                      >
+                        {affiliate.name}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Inline stats */}
+                  <div className="hidden sm:flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs gap-1 font-normal">
+                      <Eye className="h-3 w-3" />{affiliate.impressions.toLocaleString()}
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs gap-1 font-normal">
+                      <MousePointerClick className="h-3 w-3" />{affiliate.click_count.toLocaleString()}
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs gap-1 font-normal">
+                      <Percent className="h-3 w-3" />{calculateCTR(affiliate.click_count, affiliate.impressions)}
+                    </Badge>
+                  </div>
+
+                  <Switch
+                    checked={affiliate.is_active}
+                    onCheckedChange={(checked) => updateAffiliate(affiliate.id, { is_active: checked })}
+                  />
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => deleteAffiliate(affiliate.id)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+
+                <CardContent className="p-4 space-y-4">
+                  {/* Core fields: URL, position, image */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
                       <div>
-                        <Label>Target URL</Label>
+                        <Label className="text-xs">Target URL</Label>
                         <Input
                           value={affiliate.target_url}
                           onChange={(e) => updateAffiliate(affiliate.id, { target_url: e.target.value })}
                           placeholder="https://affiliate-link.com"
+                          className="h-8 text-sm"
                         />
                       </div>
-                      <div>
-                        <Label>Position</Label>
-                        <Select
-                          value={affiliate.position}
-                          onValueChange={(value) => updateAffiliate(affiliate.id, { position: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="bg-card border z-50">
-                            <SelectItem value="sidebar-left">Sidebar Left</SelectItem>
-                            <SelectItem value="sidebar-right">Sidebar Right</SelectItem>
-                            <SelectItem value="horizontal-banner">Horizontal Banner</SelectItem>
-                            <SelectItem value="in-content">In-Content</SelectItem>
-                            <SelectItem value="footer">Footer</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-xs">Position</Label>
+                          <Select
+                            value={affiliate.position}
+                            onValueChange={(value) => updateAffiliate(affiliate.id, { position: value })}
+                          >
+                            <SelectTrigger className="h-8 text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-card border z-50">
+                              <SelectItem value="sidebar-left">Sidebar Left</SelectItem>
+                              <SelectItem value="sidebar-right">Sidebar Right</SelectItem>
+                              <SelectItem value="horizontal-banner">Horizontal</SelectItem>
+                              <SelectItem value="in-content">In-Content</SelectItem>
+                              <SelectItem value="footer">Footer</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-xs">Priority</Label>
+                          <Input
+                            type="number"
+                            value={affiliate.priority}
+                            onChange={(e) => updateAffiliate(affiliate.id, { priority: parseInt(e.target.value) || 0 })}
+                            className="h-8 text-sm"
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <Label>Priority</Label>
-                        <Input
-                          type="number"
-                          value={affiliate.priority}
-                          onChange={(e) => updateAffiliate(affiliate.id, { priority: parseInt(e.target.value) || 0 })}
-                          placeholder="0"
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">Higher = shown first</p>
-                      </div>
+                      {affiliate.target_url && affiliate.target_url !== 'https://example.com' && (
+                        <Button variant="outline" size="sm" className="h-7 text-xs" asChild>
+                          <a href={affiliate.target_url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="mr-1.5 h-3 w-3" />
+                            Preview Link
+                          </a>
+                        </Button>
+                      )}
                     </div>
 
-                    {/* Targeting Section */}
-                    <Collapsible open={expandedTargeting[affiliate.id]} onOpenChange={() => toggleTargeting(affiliate.id)}>
-                      <CollapsibleTrigger asChild>
-                        <Button variant="outline" className="w-full justify-between">
-                          <span className="flex items-center">
-                            <Target className="mr-2 h-4 w-4" />
-                            Targeting Options
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {expandedTargeting[affiliate.id] ? 'Hide' : 'Show'}
-                          </span>
-                        </Button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="space-y-4 pt-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <Label>Show to Countries (empty = all)</Label>
-                            <CountryMultiSelect
-                              value={affiliate.target_countries}
-                              onChange={(value) => updateAffiliate(affiliate.id, { target_countries: value })}
-                              placeholder="Select target countries..."
-                            />
-                          </div>
-                          <div>
-                            <Label>Exclude Countries</Label>
-                            <CountryMultiSelect
-                              value={affiliate.exclude_countries}
-                              onChange={(value) => updateAffiliate(affiliate.id, { exclude_countries: value })}
-                              placeholder="Select countries to exclude..."
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <Label>Page URL Patterns (empty = all pages)</Label>
-                          <Textarea
-                            value={affiliate.target_page_patterns.join('\n')}
-                            onChange={(e) => updateAffiliate(affiliate.id, { 
-                              target_page_patterns: e.target.value.split('\n').filter(p => p.trim()) 
-                            })}
-                            placeholder="*-to-thailand*&#10;/visa-guides/*&#10;/united-arab-emirates-*"
-                            rows={3}
-                            className="font-mono text-sm"
-                          />
-                          <p className="text-xs text-muted-foreground mt-1">
-                            One pattern per line. Use * as wildcard. Example: *-to-indonesia* matches all pages with "-to-indonesia" in the URL
-                          </p>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <Label>Start Date (optional)</Label>
-                            <Input
-                              type="datetime-local"
-                              value={affiliate.start_date ? affiliate.start_date.slice(0, 16) : ''}
-                              onChange={(e) => updateAffiliate(affiliate.id, { 
-                                start_date: e.target.value ? new Date(e.target.value).toISOString() : null 
-                              })}
-                            />
-                          </div>
-                          <div>
-                            <Label>End Date (optional)</Label>
-                            <Input
-                              type="datetime-local"
-                              value={affiliate.end_date ? affiliate.end_date.slice(0, 16) : ''}
-                              onChange={(e) => updateAffiliate(affiliate.id, { 
-                                end_date: e.target.value ? new Date(e.target.value).toISOString() : null 
-                              })}
-                            />
-                          </div>
-                        </div>
-                      </CollapsibleContent>
-                    </Collapsible>
-
+                    {/* Image upload */}
                     <div>
-                      <Label>HTML Embed Code (Optional)</Label>
-                      <Textarea
-                        value={affiliate.html_embed || ''}
-                        onChange={(e) => updateAffiliate(affiliate.id, { html_embed: e.target.value })}
-                        placeholder="Paste HTML embed code..."
-                        rows={4}
-                        className="font-mono text-xs"
+                      <ImageUpload
+                        value={affiliate.image_url || ''}
+                        onChange={(url) => updateAffiliate(affiliate.id, { image_url: url })}
+                        label="Banner Image"
+                        storagePath="banners"
                       />
                     </div>
+                  </div>
 
-                    {!affiliate.html_embed && (
+                  {/* Advanced Settings collapsible */}
+                  <Collapsible open={expandedAdvanced[affiliate.id]} onOpenChange={() => setExpandedAdvanced(prev => ({ ...prev, [affiliate.id]: !prev[affiliate.id] }))}>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" size="sm" className="w-full justify-between h-8 text-xs text-muted-foreground hover:text-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <Settings2 className="h-3.5 w-3.5" />
+                          Advanced Settings
+                        </span>
+                        <span>{expandedAdvanced[affiliate.id] ? '▲' : '▼'}</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-4 pt-3">
+                      {/* HTML Embed */}
                       <div>
-                        <Label>Banner Image</Label>
-                        <ImageUpload
-                          value={affiliate.image_url || ''}
-                          onChange={(url) => updateAffiliate(affiliate.id, { image_url: url })}
+                        <Label className="text-xs">HTML Embed Code (optional)</Label>
+                        <Textarea
+                          value={affiliate.html_embed || ''}
+                          onChange={(e) => updateAffiliate(affiliate.id, { html_embed: e.target.value })}
+                          placeholder="Paste HTML embed code..."
+                          rows={3}
+                          className="font-mono text-xs"
                         />
                       </div>
-                    )}
 
-                    {/* Analytics Section */}
-                    <div className="grid grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
-                      <div className="text-center">
-                        <p className="text-sm text-muted-foreground">Impressions</p>
-                        <p className="text-xl font-bold">{affiliate.impressions.toLocaleString()}</p>
+                      {/* Geo targeting */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-xs">Show to Countries (empty = all)</Label>
+                          <CountryMultiSelect
+                            value={affiliate.target_countries}
+                            onChange={(value) => updateAffiliate(affiliate.id, { target_countries: value })}
+                            placeholder="Select target countries..."
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Exclude Countries</Label>
+                          <CountryMultiSelect
+                            value={affiliate.exclude_countries}
+                            onChange={(value) => updateAffiliate(affiliate.id, { exclude_countries: value })}
+                            placeholder="Select countries to exclude..."
+                          />
+                        </div>
                       </div>
-                      <div className="text-center">
-                        <p className="text-sm text-muted-foreground">Clicks</p>
-                        <p className="text-xl font-bold">{affiliate.click_count.toLocaleString()}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm text-muted-foreground">CTR</p>
-                        <p className="text-xl font-bold">{calculateCTR(affiliate.click_count, affiliate.impressions)}</p>
-                      </div>
-                    </div>
 
-                    {affiliate.target_url && (
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={affiliate.target_url} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="mr-2 h-4 w-4" />
-                          Preview Link
-                        </a>
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
+                      {/* Page patterns */}
+                      <div>
+                        <Label className="text-xs">Page URL Patterns (empty = all pages)</Label>
+                        <Textarea
+                          value={affiliate.target_page_patterns.join('\n')}
+                          onChange={(e) => updateAffiliate(affiliate.id, {
+                            target_page_patterns: e.target.value.split('\n').filter(p => p.trim())
+                          })}
+                          placeholder="*-to-thailand*&#10;/visa-guides/*"
+                          rows={2}
+                          className="font-mono text-xs"
+                        />
+                      </div>
 
-              {affiliates.length === 0 && (
-                <Card>
-                  <CardContent className="py-12 text-center">
-                    <p className="text-muted-foreground mb-4">No affiliate banners configured yet</p>
-                    <Button onClick={addAffiliate}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Your First Banner
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+                      {/* Scheduling */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-xs">Start Date</Label>
+                          <Input
+                            type="datetime-local"
+                            value={affiliate.start_date ? affiliate.start_date.slice(0, 16) : ''}
+                            onChange={(e) => updateAffiliate(affiliate.id, {
+                              start_date: e.target.value ? new Date(e.target.value).toISOString() : null
+                            })}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">End Date</Label>
+                          <Input
+                            type="datetime-local"
+                            value={affiliate.end_date ? affiliate.end_date.slice(0, 16) : ''}
+                            onChange={(e) => updateAffiliate(affiliate.id, {
+                              end_date: e.target.value ? new Date(e.target.value).toISOString() : null
+                            })}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </CardContent>
+              </Card>
+            ))}
+
+            {affiliates.length === 0 && (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <p className="text-muted-foreground mb-4">No affiliate banners yet</p>
+                  <Button onClick={addAffiliate}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Your First Banner
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
       </Tabs>

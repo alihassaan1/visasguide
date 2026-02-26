@@ -275,8 +275,11 @@ export default function ContentPage() {
           {/* Sidebar - 1/3 width */}
           <aside className="space-y-6">
 
-            {/* Affiliate Banner */}
-            <AffiliateBannerContainer position="sidebar-right" />
+            {/* Sponsored Banner */}
+            <div>
+              <span className="text-xs text-muted-foreground block mb-1 text-center">Sponsored</span>
+              <AffiliateBannerContainer position="sidebar-right" />
+            </div>
 
             {/* Newsletter Signup */}
             <Card>

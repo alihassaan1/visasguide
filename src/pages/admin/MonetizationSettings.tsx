@@ -196,12 +196,12 @@ export default function MonetizationSettings() {
         .from('settings_affiliates')
         .update({
           name: aff.name,
-          target_url: aff.target_url,
+          target_url: ensureProtocol(aff.target_url),
           html_embed: aff.html_embed,
           image_url: aff.image_url,
           position: aff.position,
           priority: aff.priority,
-          target_countries: aff.target_countries,
+          target_countries: aff.target_countries.filter(c => c !== '__placeholder'),
           exclude_countries: aff.exclude_countries,
           target_page_patterns: aff.target_page_patterns,
           start_date: aff.start_date,

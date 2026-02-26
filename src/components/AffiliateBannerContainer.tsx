@@ -5,6 +5,11 @@ import { useVisitorLocation } from "@/hooks/useVisitorLocation";
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
+function ensureProtocol(url: string): string {
+  if (!url) return url;
+  if (/^https?:\/\//i.test(url)) return url;
+  return `https://${url}`;
+}
 interface AffiliateBannerContainerProps {
   position: "sidebar-left" | "sidebar-right" | "horizontal-banner" | "in-content" | "footer";
 }

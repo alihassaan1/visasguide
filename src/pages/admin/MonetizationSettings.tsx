@@ -15,6 +15,12 @@ import { CountryMultiSelect } from "@/components/admin/CountryMultiSelect";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
+function ensureProtocol(url: string): string {
+  if (!url) return url;
+  if (/^https?:\/\//i.test(url)) return url;
+  return `https://${url}`;
+}
+
 interface AffiliateData {
   id: string;
   name: string;

@@ -110,7 +110,7 @@ const StudentVisa = () => {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Article",
-            "headline": "Student Visa Requirements and Application Guide 2024",
+            "headline": "Student Visa Requirements and Application Guide 2026",
             "description": "Complete guide to student visa requirements, processing times, fees, and application tips for international education opportunities worldwide.",
             "author": {
               "@type": "Organization",

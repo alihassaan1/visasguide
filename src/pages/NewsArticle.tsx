@@ -168,7 +168,10 @@ const NewsArticle = () => {
   const title = article.title;
   const content = article.content;
   const excerpt = article.excerpt;
-  const featuredImage = article.featured_image_url;
+  const rawFeaturedImage = article.featured_image_url;
+  const featuredImage = (!rawFeaturedImage || isBrokenImageUrl(rawFeaturedImage) || rawFeaturedImage.startsWith('/assets'))
+    ? getBlogFallbackImage(slug || '')
+    : rawFeaturedImage;
   const publishedAt = isFromContentPages ? article.created_at : (article as any).published_at;
   const updatedAt = article.updated_at;
   const categories = isFromContentPages 

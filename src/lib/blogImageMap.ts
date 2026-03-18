@@ -24,8 +24,10 @@ import ukImg from "@/assets/blog/uk.jpg";
 import australiaImg from "@/assets/blog/australia.jpg";
 import germanyImg from "@/assets/blog/germany.jpg";
 import defaultVisaImg from "@/assets/blog/default-visa.jpg";
+import middleEastDisruptionsImg from "@/assets/blog/middle-east-air-travel-disruptions.jpg";
 
 const blogImageMap: Record<string, string> = {
+  "middle-east-air-travel-disruptions": middleEastDisruptionsImg,
   jamaica: jamaicaImg,
   "dominican-republic": domRepImg,
   cuba: cubaImg,

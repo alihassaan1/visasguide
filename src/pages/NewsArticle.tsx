@@ -11,6 +11,7 @@ import SEOHead from "@/components/SEOHead";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { formatArticleContent } from "@/lib/contentFormatter";
+import { getBlogFallbackImage, isBrokenImageUrl } from "@/lib/blogImageMap";
 import AuthorBio from "@/components/AuthorBio";
 import ArticleSchema from "@/components/ArticleSchema";
 import RelatedContent from "@/components/RelatedContent";
@@ -167,7 +168,10 @@ const NewsArticle = () => {
   const title = article.title;
   const content = article.content;
   const excerpt = article.excerpt;
-  const featuredImage = article.featured_image_url;
+  const rawFeaturedImage = article.featured_image_url;
+  const featuredImage = (!rawFeaturedImage || isBrokenImageUrl(rawFeaturedImage) || rawFeaturedImage.startsWith('/assets'))
+    ? getBlogFallbackImage(slug || '')
+    : rawFeaturedImage;
   const publishedAt = isFromContentPages ? article.created_at : (article as any).published_at;
   const updatedAt = article.updated_at;
   const categories = isFromContentPages 

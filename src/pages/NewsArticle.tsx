@@ -11,6 +11,7 @@ import SEOHead from "@/components/SEOHead";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { formatArticleContent } from "@/lib/contentFormatter";
+import { getBlogFallbackImage, isBrokenImageUrl } from "@/lib/blogImageMap";
 import AuthorBio from "@/components/AuthorBio";
 import ArticleSchema from "@/components/ArticleSchema";
 import RelatedContent from "@/components/RelatedContent";

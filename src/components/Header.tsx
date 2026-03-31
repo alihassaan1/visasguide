@@ -111,7 +111,7 @@ const Header = () => {
           </nav>
 
             {/* RSS, Search and Mobile Menu */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 shrink-0">
               <Link 
                 to="/rss" 
                 className="hidden sm:flex items-center justify-center h-9 w-9 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
@@ -124,7 +124,7 @@ const Header = () => {
                 <Search className="h-4 w-4 text-muted-foreground" />
                 <Input 
                   placeholder="Search country or visa type..."
-                  className="border-0 bg-transparent p-0 focus-visible:ring-0 w-48"
+                  className="border-0 bg-transparent p-0 focus-visible:ring-0 w-36 lg:w-48"
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
@@ -155,7 +155,7 @@ const Header = () => {
             </div>
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="md:hidden">
+                <Button variant="outline" size="icon" className="lg:hidden">
                   <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>

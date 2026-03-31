@@ -322,7 +322,39 @@ const PassportRankings = () => {
                 </div>
               ) : paginatedCountries.length > 0 ? (
                 <>
-                  <div className="overflow-x-auto">
+                  {/* Top Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b">
+                      <div className="text-sm text-muted-foreground">
+                        Page {currentPage} of {totalPages}
+                      </div>
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <Button variant="outline" size="sm" onClick={() => goToPage(1)} disabled={currentPage === 1}>First</Button>
+                        <Button variant="outline" size="sm" onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <div className="hidden sm:flex gap-1">
+                          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                            let pageNum;
+                            if (totalPages <= 5) pageNum = i + 1;
+                            else if (currentPage <= 3) pageNum = i + 1;
+                            else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
+                            else pageNum = currentPage - 2 + i;
+                            return (
+                              <Button key={pageNum} variant={currentPage === pageNum ? "default" : "outline"} size="sm" onClick={() => goToPage(pageNum)} className="w-9">
+                                {pageNum}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => goToPage(totalPages)} disabled={currentPage === totalPages}>Last</Button>
+                      </div>
+                    </div>
+                  )}
+                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/50">

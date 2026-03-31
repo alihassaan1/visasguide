@@ -82,11 +82,11 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link 
             to="/" 
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 shrink-0"
             aria-label="Visas.Guide - Home"
           >
             <Globe className="h-6 w-6 text-primary" />
@@ -96,20 +96,22 @@ const Header = () => {
           </Link>
 
           {/* Navigation - Hidden on mobile */}
-          <nav className="hidden md:flex items-center space-x-6">
-            {menuItems.map((item) => (
-              <Link 
-                key={item.url}
-                to={item.url} 
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                {item.label}
-              </Link>
-            ))}
+          <nav className="hidden lg:flex items-center justify-center flex-1 min-w-0">
+            <div className="flex items-center space-x-2 xl:space-x-5">
+              {menuItems.map((item) => (
+                <Link 
+                  key={item.url}
+                  to={item.url} 
+                  className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap px-1"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           </nav>
 
             {/* RSS, Search and Mobile Menu */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 shrink-0">
               <Link 
                 to="/rss" 
                 className="hidden sm:flex items-center justify-center h-9 w-9 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
@@ -122,7 +124,7 @@ const Header = () => {
                 <Search className="h-4 w-4 text-muted-foreground" />
                 <Input 
                   placeholder="Search country or visa type..."
-                  className="border-0 bg-transparent p-0 focus-visible:ring-0 w-48"
+                  className="border-0 bg-transparent p-0 focus-visible:ring-0 w-36 lg:w-48"
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
@@ -153,7 +155,7 @@ const Header = () => {
             </div>
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="md:hidden">
+                <Button variant="outline" size="icon" className="lg:hidden">
                   <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>

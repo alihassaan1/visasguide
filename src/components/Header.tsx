@@ -82,11 +82,11 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link 
             to="/" 
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 shrink-0"
             aria-label="Visas.Guide - Home"
           >
             <Globe className="h-6 w-6 text-primary" />
@@ -96,16 +96,18 @@ const Header = () => {
           </Link>
 
           {/* Navigation - Hidden on mobile */}
-          <nav className="hidden md:flex items-center space-x-6">
-            {menuItems.map((item) => (
-              <Link 
-                key={item.url}
-                to={item.url} 
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                {item.label}
-              </Link>
-            ))}
+          <nav className="hidden lg:flex items-center justify-center flex-1 min-w-0">
+            <div className="flex items-center space-x-2 xl:space-x-5">
+              {menuItems.map((item) => (
+                <Link 
+                  key={item.url}
+                  to={item.url} 
+                  className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap px-1"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           </nav>
 
             {/* RSS, Search and Mobile Menu */}

@@ -15,9 +15,12 @@ import japanImg from "@/assets/destinations/japan.jpg";
 import canadaImg from "@/assets/destinations/canada.jpg";
 import pakistanImg from "@/assets/destinations/pakistan.jpg";
 
-// Country hero images mapping
+// Unsplash helper — reliable photo IDs with crop params
+const u = (id: string) => `https://images.unsplash.com/photo-${id}?w=1200&h=400&fit=crop&q=80`;
+
+// Country hero images mapping — comprehensive coverage
 const countryHeroImages: Record<string, string> = {
-  // Generated local images
+  // Local assets
   "angola": angolaImg,
   "poland": polandImg,
   "hungary": hungaryImg,
@@ -33,60 +36,242 @@ const countryHeroImages: Record<string, string> = {
   "japan": japanImg,
   "canada": canadaImg,
   "pakistan": pakistanImg,
-  // Reliable Unsplash URLs for other destinations
-  "united-states": "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=1200&h=400&fit=crop&q=80",
-  "united-kingdom": "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&h=400&fit=crop&q=80",
-  "united-arab-emirates": "https://images.unsplash.com/photo-1518684079-3c830dcef090?w=1200&h=400&fit=crop&q=80",
-  "france": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&h=400&fit=crop&q=80",
-  "germany": "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=1200&h=400&fit=crop&q=80",
-  "australia": "https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?w=1200&h=400&fit=crop&q=80",
-  "italy": "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?w=1200&h=400&fit=crop&q=80",
-  "spain": "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=1200&h=400&fit=crop&q=80",
-  "thailand": "https://images.unsplash.com/photo-1528181304800-259b08848526?w=1200&h=400&fit=crop&q=80",
-  "singapore": "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1200&h=400&fit=crop&q=80",
-  "india": "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=1200&h=400&fit=crop&q=80",
-  "china": "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=1200&h=400&fit=crop&q=80",
-  "brazil": "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=1200&h=400&fit=crop&q=80",
-  "mexico": "https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?w=1200&h=400&fit=crop&q=80",
-  "netherlands": "https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=1200&h=400&fit=crop&q=80",
-  "switzerland": "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?w=1200&h=400&fit=crop&q=80",
-  "portugal": "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=1200&h=400&fit=crop&q=80",
-  "greece": "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=1200&h=400&fit=crop&q=80",
-  "turkey": "https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?w=1200&h=400&fit=crop&q=80",
-  "egypt": "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=1200&h=400&fit=crop&q=80",
-  "south-africa": "https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=1200&h=400&fit=crop&q=80",
-  "new-zealand": "https://images.unsplash.com/photo-1469521669194-babb45599def?w=1200&h=400&fit=crop&q=80",
-  "russia": "https://images.unsplash.com/photo-1513326738677-b964603b136d?w=1200&h=400&fit=crop&q=80",
-  "austria": "https://images.unsplash.com/photo-1516550893923-42d28e5677af?w=1200&h=400&fit=crop&q=80",
-  "belgium": "https://images.unsplash.com/photo-1491557345352-5929e343eb89?w=1200&h=400&fit=crop&q=80",
-  "ireland": "https://images.unsplash.com/photo-1590089415225-401ed6f9db8e?w=1200&h=400&fit=crop&q=80",
-  "sweden": "https://images.unsplash.com/photo-1509356843151-3e7d96241e11?w=1200&h=400&fit=crop&q=80",
-  "norway": "https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=1200&h=400&fit=crop&q=80",
-  "denmark": "https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=1200&h=400&fit=crop&q=80",
-  "finland": "https://images.unsplash.com/photo-1538332576228-eb5b4c4de6f5?w=1200&h=400&fit=crop&q=80",
-  "czech-republic": "https://images.unsplash.com/photo-1541849546-216549ae216d?w=1200&h=400&fit=crop&q=80",
-  "malaysia": "https://images.unsplash.com/photo-1508062878650-88b52897f298?w=1200&h=400&fit=crop&q=80",
-  "vietnam": "https://images.unsplash.com/photo-1557750255-c76072a7aad1?w=1200&h=400&fit=crop&q=80",
-  "indonesia": "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1200&h=400&fit=crop&q=80",
-  "philippines": "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=1200&h=400&fit=crop&q=80",
-  "morocco": "https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?w=1200&h=400&fit=crop&q=80",
-  "kenya": "https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=1200&h=400&fit=crop&q=80",
-  "argentina": "https://images.unsplash.com/photo-1589909202802-8f4aadce1849?w=1200&h=400&fit=crop&q=80",
-  "chile": "https://images.unsplash.com/photo-1478827536114-da961b7f86d2?w=1200&h=400&fit=crop&q=80",
-  "peru": "https://images.unsplash.com/photo-1526392060635-9d6019884377?w=1200&h=400&fit=crop&q=80",
-  "colombia": "https://images.unsplash.com/photo-1533757812935-b67f7f1e58df?w=1200&h=400&fit=crop&q=80",
-  "saudi-arabia": "https://images.unsplash.com/photo-1586724237569-f3d0c1dee8c6?w=1200&h=400&fit=crop&q=80",
-  "qatar": "https://images.unsplash.com/photo-1559304822-9eb2813c9844?w=1200&h=400&fit=crop&q=80",
-  "israel": "https://images.unsplash.com/photo-1544967082-d9d25d867d66?w=1200&h=400&fit=crop&q=80",
-  "jordan": "https://images.unsplash.com/photo-1548786811-dd6e453ccca7?w=1200&h=400&fit=crop&q=80",
-  "croatia": "https://images.unsplash.com/photo-1555990538-1e74b3ab7505?w=1200&h=400&fit=crop&q=80",
-  "romania": "https://images.unsplash.com/photo-1584646098378-0874589d76b1?w=1200&h=400&fit=crop&q=80",
-  "bulgaria": "https://images.unsplash.com/photo-1570939274717-7eda259b50ed?w=1200&h=400&fit=crop&q=80",
-  "ukraine": "https://images.unsplash.com/photo-1561542320-9a18cd340469?w=1200&h=400&fit=crop&q=80",
+
+  // ── A ──
+  "afghanistan": u("1565016004284-e9f4818e37aa"),
+  "albania": u("1555990793-5c79fe1a1f44"),
+  "algeria": u("1571722861498-46157c09c9d9"),
+  "andorra": u("1570107263924-41d2cbf8f59e"),
+  "antigua-and-barbuda": u("1580237072617-a60a52071089"),
+  "argentina": u("1589909202802-8f4aadce1849"),
+  "armenia": u("1559127452-0e8e1f63aee4"),
+  "australia": u("1523482580672-f109ba8cb9be"),
+  "austria": u("1516550893923-42d28e5677af"),
+  "azerbaijan": u("1596627116790-af6f46dddb76"),
+
+  // ── B ──
+  "bahamas": u("1548574505023-7298a1245e40"),
+  "bahrain": u("1596374923764-79ac48f6f1b0"),
+  "bangladesh": u("1596186243107-d23e2d14bf01"),
+  "barbados": u("1578922613715-80c4c4f4f32a"),
+  "belarus": u("1566986990908-fd3e4b8c3a0f"),
+  "belgium": u("1491557345352-5929e343eb89"),
+  "belize": u("1580237072617-a60a52071089"),
+  "benin": u("1578922613715-80c4c4f4f32a"),
+  "bhutan": u("1553856622-d1b352e24dc4"),
+  "bolivia": u("1541410702738-f0ce30fce1fc"),
+  "bosnia-and-herzegovina": u("1555990793-5c79fe1a1f44"),
+  "botswana": u("1516426122078-c23e76319801"),
+  "brazil": u("1483729558449-99ef09a8c325"),
+  "brunei": u("1596374923764-79ac48f6f1b0"),
+  "bulgaria": u("1570939274717-7eda259b50ed"),
+  "burkina-faso": u("1578922613715-80c4c4f4f32a"),
+  "burundi": u("1516426122078-c23e76319801"),
+
+  // ── C ──
+  "cambodia": u("1528127269322-539152af5929"),
+  "cameroon": u("1516426122078-c23e76319801"),
+  "cape-verde": u("1580237072617-a60a52071089"),
+  "central-african-republic": u("1516426122078-c23e76319801"),
+  "chad": u("1516426122078-c23e76319801"),
+  "chile": u("1478827536114-da961b7f86d2"),
+  "china": u("1508804185872-d7badad00f7d"),
+  "colombia": u("1533757812935-b67f7f1e58df"),
+  "comoros": u("1580237072617-a60a52071089"),
+  "congo": u("1516426122078-c23e76319801"),
+  "democratic-republic-of-the-congo": u("1516426122078-c23e76319801"),
+  "costa-rica": u("1519999482648-25049ddd37b1"),
+  "croatia": u("1555990538-1e74b3ab7505"),
+  "cuba": u("1570299437643-e2b15ef23cb6"),
+  "cyprus": u("1562002554-0914fbabf76b"),
+  "czech-republic": u("1541849546-216549ae216d"),
+  "czechia": u("1541849546-216549ae216d"),
+
+  // ── D ──
+  "denmark": u("1513622470522-26c3c8a854bc"),
+  "djibouti": u("1516426122078-c23e76319801"),
+  "dominica": u("1580237072617-a60a52071089"),
+  "dominican-republic": u("1580237072617-a60a52071089"),
+
+  // ── E ──
+  "ecuador": u("1541410702738-f0ce30fce1fc"),
+  "egypt": u("1503177119275-0aa32b3a9368"),
+  "el-salvador": u("1518105779142-d975f22f1b0a"),
+  "equatorial-guinea": u("1516426122078-c23e76319801"),
+  "eritrea": u("1516426122078-c23e76319801"),
+  "estonia": u("1561542320-9a18cd340469"),
+  "eswatini": u("1516426122078-c23e76319801"),
+  "ethiopia": u("1516426122078-c23e76319801"),
+
+  // ── F ──
+  "fiji": u("1580237072617-a60a52071089"),
+  "finland": u("1538332576228-eb5b4c4de6f5"),
+  "france": u("1502602898657-3e91760cbb34"),
+
+  // ── G ──
+  "gabon": u("1516426122078-c23e76319801"),
+  "gambia": u("1516426122078-c23e76319801"),
+  "georgia": u("1565008576549-57569a49371d"),
+  "germany": u("1467269204594-9661b134dd2b"),
+  "ghana": u("1578922613715-80c4c4f4f32a"),
+  "greece": u("1533105079780-92b9be482077"),
+  "grenada": u("1580237072617-a60a52071089"),
+  "guatemala": u("1518105779142-d975f22f1b0a"),
+  "guinea": u("1516426122078-c23e76319801"),
+  "guinea-bissau": u("1516426122078-c23e76319801"),
+  "guyana": u("1541410702738-f0ce30fce1fc"),
+
+  // ── H ──
+  "haiti": u("1580237072617-a60a52071089"),
+  "honduras": u("1518105779142-d975f22f1b0a"),
+
+  // ── I ──
+  "india": u("1524492412937-b28074a5d7da"),
+  "indonesia": u("1537996194471-e657df975ab4"),
+  "iran": u("1565008576549-57569a49371d"),
+  "iraq": u("1565008576549-57569a49371d"),
+  "ireland": u("1590089415225-401ed6f9db8e"),
+  "israel": u("1544967082-d9d25d867d66"),
+  "italy": u("1515542622106-78bda8ba0e5b"),
+
+  // ── J ──
+  "jamaica": u("1580237072617-a60a52071089"),
+  "jordan": u("1548786811-dd6e453ccca7"),
+
+  // ── K ──
+  "kazakhstan": u("1565008576549-57569a49371d"),
+  "kenya": u("1489392191049-fc10c97e64b6"),
+  "kiribati": u("1580237072617-a60a52071089"),
+  "kuwait": u("1596374923764-79ac48f6f1b0"),
+  "kyrgyzstan": u("1565008576549-57569a49371d"),
+
+  // ── L ──
+  "laos": u("1528127269322-539152af5929"),
+  "latvia": u("1561542320-9a18cd340469"),
+  "lebanon": u("1565008576549-57569a49371d"),
+  "lesotho": u("1516426122078-c23e76319801"),
+  "liberia": u("1516426122078-c23e76319801"),
+  "libya": u("1516426122078-c23e76319801"),
+  "liechtenstein": u("1530122037265-a5f1f91d3b99"),
+  "luxembourg": u("1491557345352-5929e343eb89"),
+
+  // ── M ──
+  "madagascar": u("1516426122078-c23e76319801"),
+  "malawi": u("1516426122078-c23e76319801"),
+  "malaysia": u("1508062878650-88b52897f298"),
+  "maldives": u("1514282401047-d79a71a590e8"),
+  "mali": u("1516426122078-c23e76319801"),
+  "malta": u("1562002554-0914fbabf76b"),
+  "marshall-islands": u("1580237072617-a60a52071089"),
+  "mauritania": u("1516426122078-c23e76319801"),
+  "mauritius": u("1580237072617-a60a52071089"),
+  "mexico": u("1518105779142-d975f22f1b0a"),
+  "micronesia": u("1580237072617-a60a52071089"),
+  "moldova": u("1561542320-9a18cd340469"),
+  "monaco": u("1530122037265-a5f1f91d3b99"),
+  "mongolia": u("1565008576549-57569a49371d"),
+  "montenegro": u("1555990793-5c79fe1a1f44"),
+  "morocco": u("1489749798305-4fea3ae63d43"),
+  "mozambique": u("1516426122078-c23e76319801"),
+  "myanmar": u("1528127269322-539152af5929"),
+
+  // ── N ──
+  "namibia": u("1516426122078-c23e76319801"),
+  "nauru": u("1580237072617-a60a52071089"),
+  "nepal": u("1544735716-392fe2489ffa"),
+  "netherlands": u("1534351590666-13e3e96b5017"),
+  "new-zealand": u("1469521669194-babb45599def"),
+  "nicaragua": u("1518105779142-d975f22f1b0a"),
+  "niger": u("1516426122078-c23e76319801"),
+  "nigeria": u("1578922613715-80c4c4f4f32a"),
+  "north-korea": u("1565008576549-57569a49371d"),
+  "north-macedonia": u("1555990793-5c79fe1a1f44"),
+  "norway": u("1531366936337-7c912a4589a7"),
+
+  // ── O ──
+  "oman": u("1596374923764-79ac48f6f1b0"),
+
+  // ── P ──
+  "palau": u("1580237072617-a60a52071089"),
+  "palestine": u("1565008576549-57569a49371d"),
+  "panama": u("1519999482648-25049ddd37b1"),
+  "papua-new-guinea": u("1580237072617-a60a52071089"),
+  "paraguay": u("1541410702738-f0ce30fce1fc"),
+  "peru": u("1526392060635-9d6019884377"),
+  "philippines": u("1518548419970-58e3b4079ab2"),
+  "portugal": u("1555881400-74d7acaacd8b"),
+
+  // ── Q ──
+  "qatar": u("1559304822-9eb2813c9844"),
+
+  // ── R ──
+  "romania": u("1584646098378-0874589d76b1"),
+  "russia": u("1513326738677-b964603b136d"),
+  "rwanda": u("1516426122078-c23e76319801"),
+
+  // ── S ──
+  "saint-kitts-and-nevis": u("1580237072617-a60a52071089"),
+  "saint-lucia": u("1580237072617-a60a52071089"),
+  "saint-vincent-and-the-grenadines": u("1580237072617-a60a52071089"),
+  "samoa": u("1580237072617-a60a52071089"),
+  "san-marino": u("1515542622106-78bda8ba0e5b"),
+  "sao-tome-and-principe": u("1580237072617-a60a52071089"),
+  "saudi-arabia": u("1586724237569-f3d0c1dee8c6"),
+  "senegal": u("1578922613715-80c4c4f4f32a"),
+  "serbia": u("1555990793-5c79fe1a1f44"),
+  "seychelles": u("1580237072617-a60a52071089"),
+  "sierra-leone": u("1516426122078-c23e76319801"),
+  "singapore": u("1525625293386-3f8f99389edd"),
+  "solomon-islands": u("1580237072617-a60a52071089"),
+  "somalia": u("1516426122078-c23e76319801"),
+  "south-africa": u("1580060839134-75a5edca2e99"),
+  "spain": u("1539037116277-4db20889f2d4"),
+  "sri-lanka": u("1528127269322-539152af5929"),
+  "sudan": u("1516426122078-c23e76319801"),
+  "suriname": u("1541410702738-f0ce30fce1fc"),
+  "sweden": u("1509356843151-3e7d96241e11"),
+  "switzerland": u("1530122037265-a5f1f91d3b99"),
+  "syria": u("1565008576549-57569a49371d"),
+
+  // ── T ──
+  "taiwan": u("1528127269322-539152af5929"),
+  "tajikistan": u("1565008576549-57569a49371d"),
+  "tanzania": u("1489392191049-fc10c97e64b6"),
+  "thailand": u("1528181304800-259b08848526"),
+  "timor-leste": u("1528127269322-539152af5929"),
+  "togo": u("1516426122078-c23e76319801"),
+  "tonga": u("1580237072617-a60a52071089"),
+  "trinidad-and-tobago": u("1580237072617-a60a52071089"),
+  "tunisia": u("1489749798305-4fea3ae63d43"),
+  "turkey": u("1541432901042-2d8bd64b4a9b"),
+  "turkmenistan": u("1565008576549-57569a49371d"),
+  "tuvalu": u("1580237072617-a60a52071089"),
+
+  // ── U ──
+  "uganda": u("1489392191049-fc10c97e64b6"),
+  "ukraine": u("1561542320-9a18cd340469"),
+  "united-arab-emirates": u("1518684079-3c830dcef090"),
+  "united-kingdom": u("1513635269975-59663e0ac1ad"),
+  "united-states": u("1485738422979-f5c462d49f74"),
+  "uruguay": u("1541410702738-f0ce30fce1fc"),
+  "uzbekistan": u("1565008576549-57569a49371d"),
+
+  // ── V ──
+  "vanuatu": u("1580237072617-a60a52071089"),
+  "vatican-city": u("1515542622106-78bda8ba0e5b"),
+  "venezuela": u("1541410702738-f0ce30fce1fc"),
+  "vietnam": u("1557750255-c76072a7aad1"),
+
+  // ── Y ──
+  "yemen": u("1565008576549-57569a49371d"),
+
+  // ── Z ──
+  "zambia": u("1516426122078-c23e76319801"),
+  "zimbabwe": u("1516426122078-c23e76319801"),
 };
 
 // Default hero image for countries without specific images
-const defaultHeroImage = "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&h=400&fit=crop&q=80";
+const defaultHeroImage = u("1488646953014-85cb44e25828");
 
 interface CountryHeroProps {
   country: {

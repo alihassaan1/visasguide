@@ -217,6 +217,9 @@ export default function ContentPage() {
                   alt={`${page.title} - comprehensive visa and travel guide illustration`}
                   className="w-full h-[350px] md:h-[450px] object-cover"
                   loading="lazy"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+                  }}
                 />
               </div>
             )}

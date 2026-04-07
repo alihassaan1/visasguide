@@ -105,13 +105,13 @@ const PassportRankings = () => {
         description={`Compare ${totalCountriesCount || 199} passports ranked by global travel freedom in ${CURRENT_YEAR}. See visa-free access, visa on arrival, eVisa, and passport strength scores for every country. Updated ${new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' })}.`}
         canonical="https://visas.guide/passport-index"
         keywords={[
-          'passport index', `passport rankings ${CURRENT_YEAR}`, 'strongest passports',
+          'passport index', 'passport rank', `passport rankings ${CURRENT_YEAR}`, 'strongest passports',
           'passport power rankings', 'visa free countries', 'passport strength',
           'global mobility', 'travel freedom index', 'passport score',
           'visa free access', 'best passports', 'passport comparison',
           'most powerful passport', 'visa on arrival', 'eVisa countries',
           `passport index ${CURRENT_YEAR}`, 'henley passport index',
-          'destination significance score'
+          'destination significance score', 'visa free countries for passport'
         ]}
       />
 

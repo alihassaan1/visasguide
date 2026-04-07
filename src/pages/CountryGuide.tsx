@@ -254,7 +254,7 @@ const CountryGuide = () => {
         title={metaTitle}
         description={metaDescription}
         canonical={`https://visas.guide/countries/${country.slug}`}
-        keywords={[`${country.name} visa`, `${country.name} visa requirements`, `${country.name} visa-free countries`, `${country.name} passport`, `${country.name} evisa`, `travel to ${country.name}`]}
+        keywords={[`${country.name} visa`, `${country.name} visa requirements`, `do I need a visa for ${country.name}`, `is ${country.name} visa free`, `${country.name} visa-free countries`, `${country.name} passport`, `${country.name} evisa`, `travel to ${country.name}`, `${country.name} entry requirements`, `${country.name} visa ${new Date().getFullYear()}`]}
       />
       
       <script

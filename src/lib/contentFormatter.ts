@@ -15,8 +15,11 @@ export function stripEmbeddedSchemas(html: string): string {
 export function formatArticleContent(content: string): string {
   if (!content) return '';
   
+  // Strip embedded JSON-LD schemas to prevent duplicates (e.g. FAQPage)
+  let cleaned = stripEmbeddedSchemas(content);
+  
   // Strip markdown code fences (```html, ```, etc.) that wrap the content
-  let cleaned = content
+  cleaned = cleaned
     .replace(/^```\w*\s*\n?/gm, '')
     .replace(/```\s*$/gm, '')
     .trim();

@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import RelatedContent from '@/components/RelatedContent';
 import { AffiliateBannerContainer } from '@/components/AffiliateBannerContainer';
+import { stripEmbeddedSchemas } from '@/lib/contentFormatter';
 
 // Estimate reading time based on content
 const estimateReadingTime = (content: string): number => {

@@ -282,7 +282,7 @@ const VisaRequirements = () => {
                 {displayContent && (
                   <Card>
                     <CardContent className="prose prose-slate max-w-none pt-6">
-                      <div dangerouslySetInnerHTML={{ __html: displayContent }} />
+                      <div dangerouslySetInnerHTML={{ __html: stripEmbeddedSchemas(displayContent) }} />
                     </CardContent>
                   </Card>
                 )}
@@ -290,7 +290,7 @@ const VisaRequirements = () => {
             ) : displayContent ? (
               <Card>
                 <CardContent className="prose prose-slate max-w-none pt-6">
-                  <div dangerouslySetInnerHTML={{ __html: displayContent }} />
+                  <div dangerouslySetInnerHTML={{ __html: stripEmbeddedSchemas(displayContent) }} />
                 </CardContent>
               </Card>
             ) : isGenerating ? (

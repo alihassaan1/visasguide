@@ -27,6 +27,7 @@ import GetYourGuideWidget from "@/components/GetYourGuideWidget";
 import AffiliateDisclosure from "@/components/AffiliateDisclosure";
 import VisaStatusGrid from "@/components/VisaStatusGrid";
 import ResidencyToggle, { ResidencyType } from "@/components/ResidencyToggle";
+import FAQSchema from "@/components/FAQSchema";
 
 const CountryGuide = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();

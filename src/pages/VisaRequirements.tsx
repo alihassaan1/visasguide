@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { CheckCircle, FileText, AlertCircle, Info, Loader2, MapPin, Globe } from "lucide-react";
 import RelatedVisaLinks from "@/components/RelatedVisaLinks";
+import { stripEmbeddedSchemas } from "@/lib/contentFormatter";
 import InternalLinkingModule from "@/components/InternalLinkingModule";
 import VisaRequirementsHero from "@/components/VisaRequirementsHero";
 import VisaQuickStats from "@/components/VisaQuickStats";
@@ -281,7 +282,7 @@ const VisaRequirements = () => {
                 {displayContent && (
                   <Card>
                     <CardContent className="prose prose-slate max-w-none pt-6">
-                      <div dangerouslySetInnerHTML={{ __html: displayContent }} />
+                      <div dangerouslySetInnerHTML={{ __html: stripEmbeddedSchemas(displayContent) }} />
                     </CardContent>
                   </Card>
                 )}
@@ -289,7 +290,7 @@ const VisaRequirements = () => {
             ) : displayContent ? (
               <Card>
                 <CardContent className="prose prose-slate max-w-none pt-6">
-                  <div dangerouslySetInnerHTML={{ __html: displayContent }} />
+                  <div dangerouslySetInnerHTML={{ __html: stripEmbeddedSchemas(displayContent) }} />
                 </CardContent>
               </Card>
             ) : isGenerating ? (

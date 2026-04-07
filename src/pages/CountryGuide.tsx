@@ -1,4 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { stripEmbeddedSchemas } from "@/lib/contentFormatter";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -555,7 +556,7 @@ const CountryGuide = () => {
                 <CardContent className="p-6">
                   <div 
                     className="prose prose-sm max-w-none dark:prose-invert"
-                    dangerouslySetInnerHTML={{ __html: guideContent.content }}
+                    dangerouslySetInnerHTML={{ __html: stripEmbeddedSchemas(guideContent.content) }}
                   />
                 </CardContent>
               </Card>

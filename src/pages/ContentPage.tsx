@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import RelatedContent from '@/components/RelatedContent';
 import { AffiliateBannerContainer } from '@/components/AffiliateBannerContainer';
+import { stripEmbeddedSchemas } from '@/lib/contentFormatter';
 
 // Estimate reading time based on content
 const estimateReadingTime = (content: string): number => {
@@ -238,7 +239,7 @@ export default function ContentPage() {
                 prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg
                 prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
                 prose-img:rounded-lg prose-img:shadow-md"
-              dangerouslySetInnerHTML={{ __html: page.content }}
+              dangerouslySetInnerHTML={{ __html: stripEmbeddedSchemas(page.content) }}
             />
 
             {/* Social Share Buttons */}

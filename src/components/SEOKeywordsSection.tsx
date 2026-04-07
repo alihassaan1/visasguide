@@ -35,7 +35,7 @@ const SEOKeywordsSection = () => {
       keywords: [
         { text: "Visa-Free Countries", link: "/countries" },
         { text: "eVisa Application", link: "/countries" },
-        { text: "Passport Rankings", link: "/passport-rankings" },
+        { text: "Passport Index & Rankings", link: "/passport-index" },
         { text: "Global Visa Processing Times", link: "/processing-times" },
         { text: `Travel Visa Requirements ${CURRENT_YEAR}`, link: "/countries" },
         { text: "Interactive Visa Map", link: "/visa-finder" },

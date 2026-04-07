@@ -1,4 +1,13 @@
 /**
+ * Strips embedded JSON-LD schema scripts from HTML content to prevent
+ * duplicate structured data (e.g. duplicate FAQPage schemas flagged by Google Search Console)
+ */
+export function stripEmbeddedSchemas(html: string): string {
+  if (!html) return '';
+  return html.replace(/<script\s+type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi, '');
+}
+
+/**
  * Formats article content for proper display
  * - If content is already HTML (from rich text editor), returns it with enhanced spacing
  * - If content is plain text, converts it to formatted HTML

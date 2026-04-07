@@ -101,17 +101,18 @@ const PassportRankings = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead 
-        title={`Passport Index ${CURRENT_YEAR}: World Passport Rankings & Travel Freedom | Visas.Guide`}
-        description={`Compare ${totalCountriesCount || 199} passports ranked by global travel freedom in ${CURRENT_YEAR}. See visa-free access, visa on arrival, eVisa, and passport strength scores for every country. Updated ${new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' })}.`}
+        title={`Passport Index ${CURRENT_YEAR} – World Passport Rankings & Visa-Free Score | Visas.Guide`}
+        description={`Passport Index ${CURRENT_YEAR}: Compare ${totalCountriesCount || 199} passports ranked by visa-free score & travel freedom. See which passport is the strongest, visa-free countries list, and global mobility rankings. Updated ${new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' })}.`}
         canonical="https://visas.guide/passport-index"
         keywords={[
-          'passport index', 'passport rank', `passport rankings ${CURRENT_YEAR}`, 'strongest passports',
-          'passport power rankings', 'visa free countries', 'passport strength',
-          'global mobility', 'travel freedom index', 'passport score',
-          'visa free access', 'best passports', 'passport comparison',
-          'most powerful passport', 'visa on arrival', 'eVisa countries',
-          `passport index ${CURRENT_YEAR}`, 'henley passport index',
-          'destination significance score', 'visa free countries for passport'
+          'passport index', 'passport ranking', 'passport rankings', 'world passport rankings',
+          'passport strength', 'passport power ranking', `passport index ${CURRENT_YEAR}`,
+          `passport rankings ${CURRENT_YEAR}`, 'strongest passports', 'most powerful passport',
+          'visa free countries', 'passport score', 'global mobility',
+          'travel freedom index', 'best passports', 'passport comparison',
+          'visa free access', 'visa on arrival', 'eVisa countries',
+          'henley passport index', 'visa free countries for passport',
+          'passport power rankings', 'destination significance score'
         ]}
       />
 

@@ -180,7 +180,7 @@ const VisaRequirements = () => {
           `${toCountry.name} visa requirements for ${fromCountry.name} citizens`,
           `${toCountry.name} entry requirements`,
         ]}
-        noIndex={true}
+        noIndex={false}
       />
 
       <script

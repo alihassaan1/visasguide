@@ -88,32 +88,35 @@ const LatestNewsSection = () => {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {articles.map((article, index) => (
+          {articles.map((article) => (
             <Link key={article.id} to={`/blog/${article.slug}`}>
-              <Card className={`h-full hover:shadow-lg transition-all duration-300 overflow-hidden group ${index === 0 ? 'md:col-span-2 md:row-span-2' : ''}`}>
-                {article.featured_image_url && (
-                  <div className={`overflow-hidden ${index === 0 ? 'h-48 md:h-64' : 'h-32'}`}>
+              <Card className="h-full hover:shadow-lg transition-all duration-300 overflow-hidden group">
+                <div className="overflow-hidden h-40">
+                  {article.featured_image_url ? (
                     <img 
                       src={article.featured_image_url} 
                       alt={article.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
                     />
-                  </div>
-                )}
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                      <span className="text-muted-foreground text-xs">Visa News</span>
+                    </div>
+                  )}
+                </div>
                 <CardContent className="p-4">
                   {article.categories && article.categories.length > 0 && (
                     <Badge variant="secondary" className="mb-2 text-xs">
                       {article.categories[0]}
                     </Badge>
                   )}
-                  <h3 className={`font-semibold mb-2 group-hover:text-primary transition-colors ${index === 0 ? 'text-lg line-clamp-3' : 'text-sm line-clamp-2'}`}>
+                  <h3 className="font-semibold text-sm mb-2 group-hover:text-primary transition-colors line-clamp-2">
                     {article.title}
                   </h3>
-                  {index === 0 && article.excerpt && (
-                    <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
-                      {article.excerpt}
-                    </p>
-                  )}
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Clock className="h-3 w-3" />
                     {article.published_at && getTimeAgo(article.published_at)}

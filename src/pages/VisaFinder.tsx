@@ -171,7 +171,7 @@ const VisaFinder = () => {
         title="Visa Finder Tool – Check Your Visa Requirements in Seconds | Visas.Guide"
         description="Use our free Visa Finder tool to instantly discover visa requirements based on your nationality, destination, and travel purpose. Get personalized results."
         canonical="https://visas.guide/visa-finder"
-        keywords={["visa finder", "check visa requirements", "do I need a visa", "visa checker tool", "travel visa calculator", "visa eligibility"]}
+        keywords={["visa finder", "visa map", "interactive visa map", "check visa requirements", "do I need a visa", "visa checker tool", "travel visa calculator", "visa eligibility", "browse visas", "visa list", "visa requirements checker"]}
       />
       <Header />
       

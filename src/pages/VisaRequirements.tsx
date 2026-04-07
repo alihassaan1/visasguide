@@ -176,6 +176,9 @@ const VisaRequirements = () => {
           `${toCountry.name} visa for ${fromCountry.name}`,
           `${fromCountry.name} to ${toCountry.name} visa`,
           `${toCountry.name} visa requirements`,
+          `do ${fromCountry.name} citizens need a visa for ${toCountry.name}`,
+          `${toCountry.name} visa requirements for ${fromCountry.name} citizens`,
+          `${toCountry.name} entry requirements`,
         ]}
         noIndex={true}
       />

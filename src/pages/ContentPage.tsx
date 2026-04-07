@@ -238,7 +238,7 @@ export default function ContentPage() {
                 prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg
                 prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
                 prose-img:rounded-lg prose-img:shadow-md"
-              dangerouslySetInnerHTML={{ __html: page.content }}
+              dangerouslySetInnerHTML={{ __html: stripEmbeddedSchemas(page.content) }}
             />
 
             {/* Social Share Buttons */}

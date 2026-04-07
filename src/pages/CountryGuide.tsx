@@ -276,6 +276,16 @@ const CountryGuide = () => {
         }}
       />
 
+      <FAQSchema
+        faqs={[
+          { question: `Do I need a visa for ${country.name}?`, answer: `Visa requirements for ${country.name} depend on your nationality. Many countries enjoy visa-free or visa-on-arrival access. Check our detailed ${country.name} visa requirements guide for your specific passport.` },
+          { question: `How long can I stay in ${country.name} without a visa?`, answer: `The duration of visa-free stays in ${country.name} varies by nationality, typically ranging from 30 to 90 days. Some nationalities require a visa for any length of stay.` },
+          { question: `What documents do I need to travel to ${country.name}?`, answer: `Generally you need a valid passport (with at least 6 months validity), proof of return travel, proof of accommodation, and sufficient funds. Some nationalities also need a visa or eVisa.` },
+          { question: `Is there an eVisa available for ${country.name}?`, answer: `${country.name} may offer eVisa options for certain nationalities. An eVisa allows you to apply online before travel, avoiding embassy visits. Check the specific requirements for your passport.` },
+        ]}
+        pageUrl={`https://visas.guide/countries/${country.slug}`}
+      />
+
       <Header />
       
       <main className="container mx-auto px-4 py-6">

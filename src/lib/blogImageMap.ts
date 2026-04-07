@@ -25,8 +25,10 @@ import australiaImg from "@/assets/blog/australia.jpg";
 import germanyImg from "@/assets/blog/germany.jpg";
 import defaultVisaImg from "@/assets/blog/default-visa.jpg";
 import middleEastDisruptionsImg from "@/assets/blog/middle-east-air-travel-disruptions.jpg";
+import budgetTravelImg from "@/assets/blog/budget-travel-airfare.jpg";
 
 const blogImageMap: Record<string, string> = {
+  "budget-travel-tips-rising-airfare": budgetTravelImg,
   "middle-east-air-travel-disruptions": middleEastDisruptionsImg,
   jamaica: jamaicaImg,
   "dominican-republic": domRepImg,

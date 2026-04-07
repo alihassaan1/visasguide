@@ -229,16 +229,19 @@ export default function ContentPage() {
             <div 
               className="prose prose-lg max-w-none 
                 prose-headings:font-serif prose-headings:text-foreground prose-headings:font-bold
-                prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
-                prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
-                prose-p:text-muted-foreground prose-p:leading-relaxed prose-p:mb-5
+                prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-5 prose-h2:pt-6 prose-h2:border-t prose-h2:border-border/40
+                prose-h3:text-xl prose-h3:mt-10 prose-h3:mb-4
+                prose-h4:text-lg prose-h4:mt-8 prose-h4:mb-3
+                prose-p:text-muted-foreground prose-p:leading-[1.8] prose-p:mb-6
                 prose-a:text-primary prose-a:no-underline hover:prose-a:underline
                 prose-strong:text-foreground prose-strong:font-semibold
-                prose-ul:text-muted-foreground prose-ol:text-muted-foreground
-                prose-li:mb-2
-                prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg
+                prose-ul:text-muted-foreground prose-ul:my-6 prose-ul:space-y-2
+                prose-ol:text-muted-foreground prose-ol:my-6 prose-ol:space-y-2
+                prose-li:mb-2 prose-li:leading-relaxed
+                prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-3 prose-blockquote:px-5 prose-blockquote:rounded-r-lg prose-blockquote:my-8 prose-blockquote:italic
                 prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
-                prose-img:rounded-lg prose-img:shadow-md"
+                prose-img:rounded-lg prose-img:shadow-md prose-img:my-8
+                prose-hr:my-10 prose-hr:border-border/50"
               dangerouslySetInnerHTML={{ __html: stripEmbeddedSchemas(page.content) }}
             />
 

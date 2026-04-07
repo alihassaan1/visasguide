@@ -175,12 +175,16 @@ const GuidePage = () => {
                     <div 
                       className="prose prose-lg max-w-none dark:prose-invert
                         prose-headings:font-bold prose-headings:text-foreground
-                        prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4
-                        prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3
-                        prose-p:text-muted-foreground prose-p:leading-relaxed
-                        prose-li:text-muted-foreground
-                        prose-strong:text-foreground
-                        prose-a:text-primary prose-a:no-underline hover:prose-a:underline"
+                        prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-5 prose-h2:pt-6 prose-h2:border-t prose-h2:border-border/40
+                        prose-h3:text-xl prose-h3:mt-10 prose-h3:mb-4
+                        prose-h4:text-lg prose-h4:mt-8 prose-h4:mb-3
+                        prose-p:text-muted-foreground prose-p:leading-[1.8] prose-p:mb-6
+                        prose-li:text-muted-foreground prose-li:mb-2 prose-li:leading-relaxed
+                        prose-ul:my-6 prose-ul:space-y-2 prose-ol:my-6 prose-ol:space-y-2
+                        prose-strong:text-foreground prose-strong:font-semibold
+                        prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                        prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-3 prose-blockquote:px-5 prose-blockquote:rounded-r-lg prose-blockquote:my-8 prose-blockquote:italic
+                        prose-img:rounded-lg prose-img:shadow-md prose-img:my-8"
                       dangerouslySetInnerHTML={{ __html: formatArticleContent(guide.content) }}
                     />
                   </CardContent>

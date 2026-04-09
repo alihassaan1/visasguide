@@ -12,6 +12,7 @@ import LatestNewsSection from "@/components/LatestNewsSection";
 import OrganizationSchema from "@/components/OrganizationSchema";
 import SiteNavigationSchema from "@/components/SiteNavigationSchema";
 import { CURRENT_YEAR } from "@/lib/constants";
+import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
 
 const Index = () => {
   return (
@@ -57,6 +58,11 @@ const Index = () => {
       <main>
         <HeroSection />
         <DestinationCarousel />
+        
+        <div className="container mx-auto px-4 py-6">
+          <AffiliateBannerContainer position="horizontal-banner" />
+        </div>
+
         <LatestGuidesSection />
         <FeaturedAuthorsSection />
         <LatestNewsSection />

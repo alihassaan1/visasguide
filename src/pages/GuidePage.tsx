@@ -11,6 +11,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, Calendar, ChevronRight, BookOpen, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatArticleContent } from "@/lib/contentFormatter";
+import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
+import NewsletterSignup from "@/components/NewsletterSignup";
 
 const GuidePage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -190,6 +192,11 @@ const GuidePage = () => {
                   </CardContent>
                 </Card>
 
+                {/* In-Content Banner */}
+                <div className="my-8">
+                  <AffiliateBannerContainer position="in-content" />
+                </div>
+
                 {/* Social Share */}
                 <div className="mt-8">
                   <p className="text-sm text-muted-foreground mb-3">Share this guide:</p>
@@ -202,7 +209,10 @@ const GuidePage = () => {
               </article>
 
               {/* Sidebar */}
-              <aside className="space-y-6">
+              <aside className="space-y-6 lg:sticky lg:top-20 self-start">
+                {/* Sidebar Banner */}
+                <AffiliateBannerContainer position="sidebar-right" />
+
                 {/* Related Guides */}
                 {relatedGuides && relatedGuides.length > 0 && (
                   <Card>
@@ -232,6 +242,9 @@ const GuidePage = () => {
                     </CardContent>
                   </Card>
                 )}
+
+                {/* Newsletter */}
+                <NewsletterSignup />
 
                 {/* Quick Links */}
                 <Card>

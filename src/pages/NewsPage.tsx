@@ -12,6 +12,7 @@ import { Calendar, ExternalLink, Search, Newspaper, FileText } from "lucide-reac
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { getBlogFallbackImage, isBrokenImageUrl } from "@/lib/blogImageMap";
+import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
 
 interface ContentItem {
   id: string;
@@ -362,6 +363,11 @@ const NewsPage = () => {
             </div>
           </section>
         )}
+
+        {/* Horizontal Banner */}
+        <div className="my-8">
+          <AffiliateBannerContainer position="horizontal-banner" />
+        </div>
 
         {/* All Content */}
         <section>

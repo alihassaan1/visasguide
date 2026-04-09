@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Mail, Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CURRENT_YEAR } from "@/lib/constants";
+import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
 
 const Footer = () => {
   const { data: footerLinks } = useQuery({
@@ -31,6 +32,10 @@ const Footer = () => {
 
   return (
     <footer className="bg-primary text-primary-foreground">
+      {/* Footer Banner */}
+      <div className="container mx-auto px-4 pt-6">
+        <AffiliateBannerContainer position="footer" />
+      </div>
       <div className="container mx-auto px-4">
         {/* Main Footer Content */}
         <div className="py-16">

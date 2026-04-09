@@ -1832,6 +1832,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_banner_impression: {
+        Args: { p_banner_id: string }
+        Returns: undefined
+      }
       increment_city_view_count: {
         Args: { p_city_id: string }
         Returns: undefined

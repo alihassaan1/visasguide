@@ -130,13 +130,29 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
     return eligibleBanners[eligibleBanners.length - 1];
   }, [eligibleBanners.map(b => b.id).join(',')]);
 
-  // Track impression for the selected banner
+  // Track impression for the selected banner (atomic increment + analytics log)
   useEffect(() => {
     if (selectedBanner && !locationLoading) {
-      supabase
-        .from('settings_affiliates')
-        .update({ impressions: (selectedBanner.impressions || 0) + 1 })
-        .eq('id', selectedBanner.id);
+      // Atomic increment via database function
+      supabase.rpc('increment_banner_impression', { p_banner_id: selectedBanner.id });
+
+      // Log impression event for advertiser reporting
+      supabase.from('analytics_events').insert({
+        event_type: 'banner_impression',
+        page_slug: currentPath,
+        search_term: selectedBanner.name,
+        referrer_source: position,
+        visitor_location: countryCode ? { country: countryCode } : null,
+      });
+
+      // Track with Google Analytics
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'banner_impression', {
+          affiliate_name: selectedBanner.name,
+          banner_position: position,
+          page_path: currentPath,
+        });
+      }
     }
   }, [selectedBanner?.id, locationLoading]);
 
@@ -150,21 +166,22 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
       (window as any).gtag('event', 'affiliate_click', {
         affiliate_name: banner.name,
         affiliate_url: banner.target_url,
+        banner_position: position,
         visitor_country: countryCode
       });
     }
 
     // Log to analytics_events for conversion reporting
-    await supabase.from('analytics_events').insert({
+    supabase.from('analytics_events').insert({
       event_type: 'affiliate_click',
       page_slug: currentPath,
       search_term: banner.name,
       referrer_source: ensureProtocol(banner.target_url),
-      visitor_location: countryCode ? { country: countryCode } : null,
+      visitor_location: countryCode ? { country: countryCode, position } : null,
     });
     
-    // Update click count
-    await supabase
+    // Atomic click count increment
+    supabase
       .from('settings_affiliates')
       .update({ click_count: (banner.click_count || 0) + 1 })
       .eq('id', banner.id);

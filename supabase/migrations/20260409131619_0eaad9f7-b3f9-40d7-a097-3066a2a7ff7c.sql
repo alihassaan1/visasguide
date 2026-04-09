@@ -1,0 +1,1 @@
+DELETE FROM public.email_campaigns WHERE subject LIKE '%[TEST]%';

@@ -209,7 +209,10 @@ const GuidePage = () => {
               </article>
 
               {/* Sidebar */}
-              <aside className="space-y-6">
+              <aside className="space-y-6 lg:sticky lg:top-20 self-start">
+                {/* Sidebar Banner */}
+                <AffiliateBannerContainer position="sidebar-right" />
+
                 {/* Related Guides */}
                 {relatedGuides && relatedGuides.length > 0 && (
                   <Card>
@@ -239,6 +242,9 @@ const GuidePage = () => {
                     </CardContent>
                   </Card>
                 )}
+
+                {/* Newsletter */}
+                <NewsletterSignup />
 
                 {/* Quick Links */}
                 <Card>

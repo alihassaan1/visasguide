@@ -130,13 +130,29 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
     return eligibleBanners[eligibleBanners.length - 1];
   }, [eligibleBanners.map(b => b.id).join(',')]);
 
-  // Track impression for the selected banner
+  // Track impression for the selected banner (atomic increment + analytics log)
   useEffect(() => {
     if (selectedBanner && !locationLoading) {
-      supabase
-        .from('settings_affiliates')
-        .update({ impressions: (selectedBanner.impressions || 0) + 1 })
-        .eq('id', selectedBanner.id);
+      // Atomic increment via database function
+      supabase.rpc('increment_banner_impression', { p_banner_id: selectedBanner.id });
+
+      // Log impression event for advertiser reporting
+      supabase.from('analytics_events').insert({
+        event_type: 'banner_impression',
+        page_slug: currentPath,
+        search_term: selectedBanner.name,
+        referrer_source: position,
+        visitor_location: countryCode ? { country: countryCode } : null,
+      });
+
+      // Track with Google Analytics
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'banner_impression', {
+          affiliate_name: selectedBanner.name,
+          banner_position: position,
+          page_path: currentPath,
+        });
+      }
     }
   }, [selectedBanner?.id, locationLoading]);
 

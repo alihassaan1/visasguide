@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
 
 // Import destination images for guide thumbnails
 import franceImg from "@/assets/destinations/france.jpg";
@@ -299,6 +300,11 @@ const VisaGuides = () => {
                 </div>
               </section>
             )}
+
+            {/* Horizontal Banner */}
+            <div className="my-8">
+              <AffiliateBannerContainer position="horizontal-banner" />
+            </div>
 
             {/* Regular Guides */}
             {regularGuides.length > 0 && (

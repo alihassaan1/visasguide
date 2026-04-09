@@ -21,6 +21,7 @@ import AuthorBio from "@/components/AuthorBio";
 import ArticleSchema from "@/components/ArticleSchema";
 import BreadcrumbSchema from "@/components/BreadcrumbSchema";
 import SocialShareButtons from "@/components/SocialShareButtons";
+import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
 
 const VisaRequirements = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -345,6 +346,9 @@ const VisaRequirements = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* In-Content Banner */}
+            <AffiliateBannerContainer position="in-content" />
 
             {/* Social Share */}
             <div className="flex items-center gap-4">

@@ -13,7 +13,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
-import AffiliateBanner from "@/components/AffiliateBanner";
+import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
 import NewsletterSignup from "@/components/NewsletterSignup";
 
 interface VisaSidebarProps {
@@ -131,14 +131,8 @@ const VisaSidebar = ({ toCountry, fromCountry, requirementType }: VisaSidebarPro
 
       {/* Useful Links - moved below newsletter */}
 
-      {/* Affiliate Banner */}
-      <AffiliateBanner 
-        position="sidebar"
-        title="Get Travel Insurance"
-        description="Protect your trip with comprehensive travel insurance coverage."
-        ctaText="Get a Quote"
-        affiliateLink="https://www.worldnomads.com/?utm_source=visas.guide"
-      />
+      {/* Dynamic Affiliate Banner */}
+      <AffiliateBannerContainer position="sidebar-right" />
 
       {/* Newsletter Signup */}
       <NewsletterSignup />

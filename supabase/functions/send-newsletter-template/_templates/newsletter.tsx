@@ -564,36 +564,27 @@ const primaryBtn = {
   maxWidth: '220px',
 }
 
-const dealItem = {
-  padding: '16px',
-  backgroundColor: '#f9f9f9',
-  borderRadius: '12px',
-  marginBottom: '12px',
-  border: '1px solid #eeeeee',
-}
-
-const dealImg = {
-  borderRadius: '10px',
-}
-
-const dealName = {
-  fontSize: '15px',
+const sponsoredLabel = {
+  fontSize: '11px',
   fontWeight: '600',
-  color: '#1a1a1a',
-  margin: '0 0 4px',
+  color: '#999999',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '1px',
+  margin: '0 0 12px',
+  textAlign: 'center' as const,
 }
 
-const dealDesc = {
-  fontSize: '13px',
-  color: '#666666',
-  margin: '0',
-  lineHeight: '1.4',
+const sponsorImg = {
+  width: '100%',
+  borderRadius: '8px',
+  display: 'block' as const,
 }
 
-const dealArrow = {
-  fontSize: '18px',
-  color: '#0066cc',
-  margin: '0',
+const destCta = {
+  fontSize: '12px',
+  fontWeight: '600',
+  color: '#4da6ff',
+  margin: '8px 0 0',
 }
 
 const toolsSection = {

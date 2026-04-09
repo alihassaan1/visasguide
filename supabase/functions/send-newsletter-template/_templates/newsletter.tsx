@@ -122,7 +122,7 @@ export const NewsletterEmail = ({
                 <Section style={featuredCard}>
                   {blogPosts[0].featured_image_url ? (
                     <Img
-                      src={blogPosts[0].featured_image_url}
+                      src={blogPosts[0].featured_image_url.startsWith('/') ? `https://visas.guide${blogPosts[0].featured_image_url}` : blogPosts[0].featured_image_url}
                       width="100%"
                       height="220"
                       alt={blogPosts[0].title}
@@ -189,8 +189,9 @@ export const NewsletterEmail = ({
                         <Text style={destFlag}>{country.flag_emoji}</Text>
                         <Text style={destName}>{country.name}</Text>
                         {country.visa_free_destinations && country.visa_free_destinations > 0 && (
-                          <Text style={destMeta}>{country.visa_free_destinations} visa-free access</Text>
+                         <Text style={destMeta}>{country.visa_free_destinations} visa-free access</Text>
                         )}
+                        <Text style={destCta}>View Guide →</Text>
                       </Section>
                     </Link>
                   </Column>
@@ -210,6 +211,7 @@ export const NewsletterEmail = ({
                           {country.visa_free_destinations && country.visa_free_destinations > 0 && (
                             <Text style={destMeta}>{country.visa_free_destinations} visa-free access</Text>
                           )}
+                          <Text style={destCta}>View Guide →</Text>
                         </Section>
                       </Link>
                     </Column>
@@ -226,38 +228,23 @@ export const NewsletterEmail = ({
             </Section>
           )}
 
-          {/* Travel Essentials - Affiliate Section */}
+          {/* Our Sponsors */}
           {affiliates.length > 0 && (
             <Section style={section}>
-              <Heading style={sectionHeading}>🎒 Travel Essentials</Heading>
-              <Text style={sectionSub}>Recommended by our travel experts</Text>
+              <Text style={sponsoredLabel}>Sponsored</Text>
               
               {affiliates.map((affiliate, index) => (
                 <Link 
                   key={index}
                   href={trackUrl(affiliate.target_url, `affiliate_${affiliate.name}`)}
-                  style={{ textDecoration: 'none' }}
+                  style={{ textDecoration: 'none', display: 'block', marginBottom: '12px' }}
                 >
-                  <Section style={dealItem}>
-                    <Row>
-                      <Column style={{ width: '64px', verticalAlign: 'middle' }}>
-                        <Img
-                          src={affiliate.image_url}
-                          width="56"
-                          height="56"
-                          alt={affiliate.name}
-                          style={dealImg}
-                        />
-                      </Column>
-                      <Column style={{ paddingLeft: '16px', verticalAlign: 'middle' }}>
-                        <Text style={dealName}>{affiliate.name}</Text>
-                        <Text style={dealDesc}>{affiliate.description}</Text>
-                      </Column>
-                      <Column style={{ width: '40px', textAlign: 'right', verticalAlign: 'middle' }}>
-                        <Text style={dealArrow}>→</Text>
-                      </Column>
-                    </Row>
-                  </Section>
+                  <Img
+                    src={affiliate.image_url}
+                    width="100%"
+                    alt={affiliate.name}
+                    style={sponsorImg}
+                  />
                 </Link>
               ))}
             </Section>
@@ -577,36 +564,27 @@ const primaryBtn = {
   maxWidth: '220px',
 }
 
-const dealItem = {
-  padding: '16px',
-  backgroundColor: '#f9f9f9',
-  borderRadius: '12px',
-  marginBottom: '12px',
-  border: '1px solid #eeeeee',
-}
-
-const dealImg = {
-  borderRadius: '10px',
-}
-
-const dealName = {
-  fontSize: '15px',
+const sponsoredLabel = {
+  fontSize: '11px',
   fontWeight: '600',
-  color: '#1a1a1a',
-  margin: '0 0 4px',
+  color: '#999999',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '1px',
+  margin: '0 0 12px',
+  textAlign: 'center' as const,
 }
 
-const dealDesc = {
-  fontSize: '13px',
-  color: '#666666',
-  margin: '0',
-  lineHeight: '1.4',
+const sponsorImg = {
+  width: '100%',
+  borderRadius: '8px',
+  display: 'block' as const,
 }
 
-const dealArrow = {
-  fontSize: '18px',
-  color: '#0066cc',
-  margin: '0',
+const destCta = {
+  fontSize: '12px',
+  fontWeight: '600',
+  color: '#4da6ff',
+  margin: '8px 0 0',
 }
 
 const toolsSection = {

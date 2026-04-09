@@ -95,7 +95,7 @@ const handler = async (req: Request): Promise<Response> => {
           const trackingPixelUrl = `${supabaseUrl}/functions/v1/track-email-open?cid=${campaignId}&email=${encodeURIComponent(subscriber.email)}`;
           
           const emailResponse = await resend.emails.send({
-            from: `${from_name} <onboarding@resend.dev>`,
+            from: `${from_name} <newsletter@visas.guide>`,
             to: [subscriber.email],
             subject: subject,
             html: `

@@ -1,62 +1,52 @@
 
 
-# Banner Ad Placement Expansion Plan
+# Newsletter Email Redesign Plan
 
-## Current State
+## Issues Identified
 
-Banners are only placed on **5 page types** today:
+1. **Broken blog images**: Featured image URLs are relative paths (e.g., `/blog/middle-east-air-travel-disruptions.jpg`) which don't resolve in email clients. Must be prefixed with `https://visas.guide`.
 
-| Page | Sidebar | In-Content |
-|------|---------|------------|
-| ContentPage (blog articles) | ✅ | ❌ |
-| NewsArticle | ✅ | ✅ |
-| CountryGuide | ✅ | ❌ |
-| CityPage | ✅ | ✅ |
-| VisaRequirements (40,000+ pages) | ❌ (hardcoded AffiliateBanner only) | ❌ |
+2. **Sponsor section broken**: Banner ad images are displayed as tiny 56x56 thumbnails in a text-heavy layout. They should display as full-width clickable banner images (same as the website sidebar), labeled "Our Sponsors" instead of "Travel Essentials".
 
-**Major gaps** — the highest-traffic pages and key listing pages have zero dynamic banner placements.
+3. **Article links (best practice)**: For secondary articles below the featured card, simple text links with a bottom border are the email best practice. Cards add visual weight and compete with the featured story. The current list style is correct -- just needs minor polish (no changes needed here).
 
-## Proposed New Placements
+4. **Country destinations section**: The flag emoji rendering depends on the email client and can look inconsistent. We can add a subtle CTA button per country card for better click-through.
 
-### 1. VisaRequirements Page (highest priority — 40K+ pages)
-- Replace the hardcoded `AffiliateBanner` in `VisaSidebar.tsx` with `AffiliateBannerContainer position="sidebar-right"`
-- Add `AffiliateBannerContainer position="in-content"` after the main visa content section
-- This single change gives banner coverage to the largest page set on the site
+## Changes
 
-### 2. GuidePage (evergreen guides)
-- Add `AffiliateBannerContainer position="sidebar-right"` in a new sidebar column
-- Add `AffiliateBannerContainer position="in-content"` mid-article
-- Restructure layout to two-column (content + sidebar) matching ContentPage pattern
+### File: `supabase/functions/send-newsletter-template/_templates/newsletter.tsx`
 
-### 3. Homepage (Index)
-- Add `AffiliateBannerContainer position="horizontal-banner"` between sections (e.g., after DestinationCarousel or before Footer)
-- High visibility, every visitor sees it
+**Fix 1 -- Prepend base URL to relative image paths**
+- In the featured story image and any blog post image, check if `featured_image_url` starts with `/` and prepend `https://visas.guide`
+- This fixes the broken image alt-text showing instead of the actual image
 
-### 4. VisaGuides Listing Page
-- Add `AffiliateBannerContainer position="horizontal-banner"` between guide cards
+**Fix 2 -- Redesign sponsor/affiliate section**
+- Change heading from "Travel Essentials" / "Recommended by our travel experts" to "Our Sponsors"
+- Replace the current 56x56 thumbnail + text row layout with a full-width image display per sponsor
+- Each sponsor renders as: full-width clickable `<Img>` (same banner image from the database), no description text, just the image with a small "Sponsored" label above
+- Remove the `dealImg`, `dealName`, `dealDesc`, `dealArrow` styles
+- Add new `sponsorImg` style: `width: 100%, borderRadius: 8px, display: block`
 
-### 5. NewsPage (news listing)
-- Add `AffiliateBannerContainer position="horizontal-banner"` between news article rows
+**Fix 3 -- Improve country destination cards**
+- Add a small "View Guide →" text link inside each destination card for a clearer CTA
+- Keep the existing flag + name + visa-free count layout (it renders well)
 
-### 6. Footer-level Banner (site-wide)
-- Add `AffiliateBannerContainer position="footer"` in `Footer.tsx` — appears on every page automatically
+### File: `supabase/functions/send-newsletter-template/index.ts`
 
-## Files to Modify
+**Fix 4 -- Pass full image URLs for affiliates**
+- The `image_url` values from the database are already absolute Supabase storage URLs, so no change needed there
+- For blog posts, transform relative `featured_image_url` to absolute URLs before passing to the template (belt-and-suspenders approach)
 
-| File | Changes |
-|------|---------|
-| `src/components/VisaSidebar.tsx` | Replace hardcoded AffiliateBanner with AffiliateBannerContainer |
-| `src/pages/VisaRequirements.tsx` | Add in-content banner after main content |
-| `src/pages/GuidePage.tsx` | Add two-column layout with sidebar banner + in-content banner |
-| `src/pages/Index.tsx` | Add horizontal banner between sections |
-| `src/pages/VisaGuides.tsx` | Add horizontal banner in listing |
-| `src/pages/NewsPage.tsx` | Add horizontal banner in listing |
-| `src/components/Footer.tsx` | Add footer-position banner (site-wide coverage) |
+### Deployment
+- Redeploy the `send-newsletter-template` edge function after changes
 
-## Impact Summary
+## Summary of Visual Changes
 
-- **Before**: ~4 page types with banners
-- **After**: All major page types covered, including the 40,000+ visa requirements pages
-- Estimated **10-20x increase** in total banner impression inventory
-- All placements use the existing `AffiliateBannerContainer` with geo-targeting, scheduling, and weighted rotation — no new infrastructure needed
+| Section | Before | After |
+|---------|--------|-------|
+| Featured image | Broken (relative URL) | Loads correctly |
+| Secondary articles | Text list | Same (best practice) |
+| Sponsors | Tiny thumbnail + text | Full-width banner image |
+| Sponsor label | "Travel Essentials" | "Our Sponsors" |
+| Country cards | Flag + name | Same + "View Guide →" CTA |
 

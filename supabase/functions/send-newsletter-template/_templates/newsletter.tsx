@@ -122,7 +122,7 @@ export const NewsletterEmail = ({
                 <Section style={featuredCard}>
                   {blogPosts[0].featured_image_url ? (
                     <Img
-                      src={blogPosts[0].featured_image_url}
+                      src={blogPosts[0].featured_image_url.startsWith('/') ? `https://visas.guide${blogPosts[0].featured_image_url}` : blogPosts[0].featured_image_url}
                       width="100%"
                       height="220"
                       alt={blogPosts[0].title}
@@ -189,8 +189,9 @@ export const NewsletterEmail = ({
                         <Text style={destFlag}>{country.flag_emoji}</Text>
                         <Text style={destName}>{country.name}</Text>
                         {country.visa_free_destinations && country.visa_free_destinations > 0 && (
-                          <Text style={destMeta}>{country.visa_free_destinations} visa-free access</Text>
+                         <Text style={destMeta}>{country.visa_free_destinations} visa-free access</Text>
                         )}
+                        <Text style={destCta}>View Guide →</Text>
                       </Section>
                     </Link>
                   </Column>
@@ -210,6 +211,7 @@ export const NewsletterEmail = ({
                           {country.visa_free_destinations && country.visa_free_destinations > 0 && (
                             <Text style={destMeta}>{country.visa_free_destinations} visa-free access</Text>
                           )}
+                          <Text style={destCta}>View Guide →</Text>
                         </Section>
                       </Link>
                     </Column>
@@ -226,38 +228,23 @@ export const NewsletterEmail = ({
             </Section>
           )}
 
-          {/* Travel Essentials - Affiliate Section */}
+          {/* Our Sponsors */}
           {affiliates.length > 0 && (
             <Section style={section}>
-              <Heading style={sectionHeading}>🎒 Travel Essentials</Heading>
-              <Text style={sectionSub}>Recommended by our travel experts</Text>
+              <Text style={sponsoredLabel}>Sponsored</Text>
               
               {affiliates.map((affiliate, index) => (
                 <Link 
                   key={index}
                   href={trackUrl(affiliate.target_url, `affiliate_${affiliate.name}`)}
-                  style={{ textDecoration: 'none' }}
+                  style={{ textDecoration: 'none', display: 'block', marginBottom: '12px' }}
                 >
-                  <Section style={dealItem}>
-                    <Row>
-                      <Column style={{ width: '64px', verticalAlign: 'middle' }}>
-                        <Img
-                          src={affiliate.image_url}
-                          width="56"
-                          height="56"
-                          alt={affiliate.name}
-                          style={dealImg}
-                        />
-                      </Column>
-                      <Column style={{ paddingLeft: '16px', verticalAlign: 'middle' }}>
-                        <Text style={dealName}>{affiliate.name}</Text>
-                        <Text style={dealDesc}>{affiliate.description}</Text>
-                      </Column>
-                      <Column style={{ width: '40px', textAlign: 'right', verticalAlign: 'middle' }}>
-                        <Text style={dealArrow}>→</Text>
-                      </Column>
-                    </Row>
-                  </Section>
+                  <Img
+                    src={affiliate.image_url}
+                    width="100%"
+                    alt={affiliate.name}
+                    style={sponsorImg}
+                  />
                 </Link>
               ))}
             </Section>

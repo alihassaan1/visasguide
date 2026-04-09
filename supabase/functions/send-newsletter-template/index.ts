@@ -115,7 +115,9 @@ serve(async (req) => {
         title: post.title,
         excerpt: post.excerpt || 'Read the full article for more details...',
         slug: post.slug,
-        featured_image_url: post.featured_image_url,
+        featured_image_url: post.featured_image_url
+          ? (post.featured_image_url.startsWith('/') ? `https://visas.guide${post.featured_image_url}` : post.featured_image_url)
+          : null,
       })),
       countryGuides: (countries || []).map(country => ({
         name: country.name,

@@ -13,16 +13,16 @@ interface SiteNavigationSchemaProps {
 
 const defaultNavigationItems: NavigationItem[] = [
   { name: "Home", url: "https://visas.guide/" },
-  { name: "Visa Finder", url: "https://visas.guide/visa-finder" },
-  { name: "Countries", url: "https://visas.guide/countries" },
   { name: "Visa Search", url: "https://visas.guide/visa-search" },
-  { name: "Visa Guides", url: "https://visas.guide/visa-guides" },
-  { name: "News", url: "https://visas.guide/news" },
-  { name: "Passport Rankings", url: "https://visas.guide/passport-rankings" },
+  { name: "Countries", url: "https://visas.guide/countries" },
+  { name: "Visa Guides", url: "https://visas.guide/guides" },
+  { name: "News", url: "https://visas.guide/blog" },
+  { name: "Passport Index", url: "https://visas.guide/passport-index" },
   { name: "Schengen Visa Guide", url: "https://visas.guide/schengen-visa-guide" },
-  { name: "Tourist Visa", url: "https://visas.guide/tourist-visa" },
-  { name: "Business Visa", url: "https://visas.guide/business-visa" },
-  { name: "Student Visa", url: "https://visas.guide/student-visa" },
+  { name: "Processing Times", url: "https://visas.guide/processing-times" },
+  { name: "Tourist Visa", url: "https://visas.guide/visa-types/tourist" },
+  { name: "Business Visa", url: "https://visas.guide/visa-types/business" },
+  { name: "Student Visa", url: "https://visas.guide/visa-types/student" },
   { name: "About Us", url: "https://visas.guide/about" },
   { name: "Contact", url: "https://visas.guide/contact" }
 ];

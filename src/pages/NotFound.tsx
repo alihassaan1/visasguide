@@ -51,7 +51,7 @@ const NotFound = () => {
       <SEOHead
         title="Page Not Found - Visas.Guide"
         description="The page you're looking for doesn't exist. Find visa information, requirements, and travel guides for over 190+ countries on Visas.Guide."
-        canonical={`https://visas.guide${location.pathname}`}
+        
         noIndex={true}
       />
       

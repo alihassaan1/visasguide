@@ -72,7 +72,7 @@ const Index = () => {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
               {[
                 { href: "/processing-times", emoji: "⏱️", label: "Visa Processing Times" },
-                { href: "/passport-rankings", emoji: "🏆", label: "Passport Rankings" },
+                { href: "/passport-index", emoji: "🏆", label: "Passport Rankings" },
                 { href: "/countries/jordan", emoji: "🇯🇴", label: "Jordan & Petra Visa" },
                 { href: "/countries/south-korea", emoji: "🇰🇷", label: "South Korea Visa" },
                 { href: "/countries/montenegro", emoji: "🇲🇪", label: "Montenegro Visa" },

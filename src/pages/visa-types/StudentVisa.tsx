@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { GraduationCap, MapPin, Clock, DollarSign, FileText, CheckCircle, AlertCircle, ArrowRight, BookOpen } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
+import FAQSchema from "@/components/FAQSchema";
+import BreadcrumbSchema from "@/components/BreadcrumbSchema";
 import { Link } from "react-router-dom";
+import { CURRENT_YEAR } from "@/lib/constants";
 
 const StudentVisa = () => {
   const countries = [
@@ -101,24 +105,38 @@ const StudentVisa = () => {
     { level: "Exchange Programs", duration: "1-2 semesters", description: "Short-term study abroad programs" }
   ];
 
+  const studentFaqs = [
+    { question: "Can I work while studying on a student visa?", answer: "Most countries allow students to work part-time during studies (typically 20 hours per week) and full-time during academic breaks. Work rights vary by country and visa conditions." },
+    { question: "How much money do I need to show for a student visa?", answer: "Financial requirements vary by country and institution. Generally, you need to show funds for tuition fees plus living expenses (typically $10,000-$25,000 per year depending on the destination)." },
+    { question: "Can I extend my student visa?", answer: "Yes, most student visas can be extended if you continue your studies or pursue higher education. You must apply before your current visa expires and meet ongoing requirements." },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
-      {/* SEO Structured Data */}
+      <SEOHead
+        title={`Student Visa Guide ${CURRENT_YEAR} – Requirements, Fees & Study Abroad Tips | Visas.Guide`}
+        description={`Complete student visa guide for ${CURRENT_YEAR}. Requirements, processing times, fees, and expert tips for studying abroad in the US, UK, Canada, Australia, and more.`}
+        canonical="https://visas.guide/visa-types/student"
+        keywords={["student visa", "student visa requirements", "study abroad visa", "F-1 visa", "student visa application", "international student visa", "study permit"]}
+      />
+      <FAQSchema faqs={studentFaqs} pageUrl="https://visas.guide/visa-types/student" />
+      <BreadcrumbSchema items={[
+        { name: "Visa Types", url: "/visa-types/student" },
+        { name: "Student Visa", url: "/visa-types/student" },
+      ]} />
+
       <script 
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Article",
-            "headline": "Student Visa Requirements and Application Guide 2026",
+            "headline": `Student Visa Requirements and Application Guide ${CURRENT_YEAR}`,
             "description": "Complete guide to student visa requirements, processing times, fees, and application tips for international education opportunities worldwide.",
-            "author": {
-              "@type": "Organization",
-              "name": "Visas Guide"
-            },
+            "author": { "@type": "Organization", "name": "Visas Guide" },
             "datePublished": "2024-01-01",
             "dateModified": new Date().toISOString().split('T')[0],
-            "mainEntityOfPage": "https://visas.guide/visa-types/student-visa"
+            "mainEntityOfPage": "https://visas.guide/visa-types/student"
           })
         }}
       />

@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Camera, MapPin, Clock, DollarSign, FileText, CheckCircle, AlertCircle, ArrowRight } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
+import FAQSchema from "@/components/FAQSchema";
+import BreadcrumbSchema from "@/components/BreadcrumbSchema";
 import { Link } from "react-router-dom";
+import { CURRENT_YEAR } from "@/lib/constants";
 
 const TouristVisa = () => {
   const countries = [
@@ -90,24 +94,38 @@ const TouristVisa = () => {
     }
   ];
 
+  const touristFaqs = [
+    { question: "How long does it take to get a tourist visa?", answer: "Processing times vary significantly by country and visa type. Electronic visas (eVisas) can be processed within 1-5 business days, while traditional visas may take 2-8 weeks or longer during peak seasons." },
+    { question: "Can I extend my tourist visa?", answer: "Extension policies vary by country. Some destinations allow tourists to extend their stay for additional periods, while others require leaving and re-entering the country. Check specific country requirements." },
+    { question: "What if my tourist visa application is rejected?", answer: "If rejected, you may be able to reapply after addressing the reasons for rejection. Some countries allow appeals, while others require waiting periods. Visa fees are typically non-refundable." },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
-      {/* SEO Structured Data */}
+      <SEOHead
+        title={`Tourist Visa Guide ${CURRENT_YEAR} – Requirements, Fees & Application Tips | Visas.Guide`}
+        description={`Complete tourist visa guide for ${CURRENT_YEAR}. Check requirements, processing times, fees, and expert tips for popular travel destinations worldwide.`}
+        canonical="https://visas.guide/visa-types/tourist"
+        keywords={["tourist visa", "tourist visa requirements", "tourist visa application", "travel visa", "visitor visa", "holiday visa", "tourist visa fees", "tourist visa processing time"]}
+      />
+      <FAQSchema faqs={touristFaqs} pageUrl="https://visas.guide/visa-types/tourist" />
+      <BreadcrumbSchema items={[
+        { name: "Visa Types", url: "/visa-types/tourist" },
+        { name: "Tourist Visa", url: "/visa-types/tourist" },
+      ]} />
+
       <script 
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Article",
-            "headline": "Tourist Visa Requirements and Application Guide 2024",
+            "headline": `Tourist Visa Requirements and Application Guide ${CURRENT_YEAR}`,
             "description": "Complete guide to tourist visa requirements, processing times, fees, and application tips for popular travel destinations worldwide.",
-            "author": {
-              "@type": "Organization",
-              "name": "Visas Guide"
-            },
+            "author": { "@type": "Organization", "name": "Visas Guide" },
             "datePublished": "2024-01-01",
             "dateModified": new Date().toISOString().split('T')[0],
-            "mainEntityOfPage": "https://visas.guide/visa-types/tourist-visa"
+            "mainEntityOfPage": "https://visas.guide/visa-types/tourist"
           })
         }}
       />

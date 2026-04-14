@@ -248,7 +248,7 @@ const ProcessingTimes = () => {
         <section className="mt-12">
           <h2 className="text-2xl font-bold mb-6">Related Visa Resources</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <a href="/passport-rankings" className="block p-5 bg-card rounded-lg border hover:border-primary/50 hover:shadow-md transition-all">
+            <a href="/passport-index" className="block p-5 bg-card rounded-lg border hover:border-primary/50 hover:shadow-md transition-all">
               <h3 className="font-semibold mb-1">🏆 Passport Power Rankings</h3>
               <p className="text-sm text-muted-foreground">Compare passport strength and visa-free access for 199 countries.</p>
             </a>

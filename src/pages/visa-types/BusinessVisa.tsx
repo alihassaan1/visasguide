@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Briefcase, MapPin, Clock, DollarSign, FileText, CheckCircle, AlertCircle, ArrowRight, Users } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
+import FAQSchema from "@/components/FAQSchema";
+import BreadcrumbSchema from "@/components/BreadcrumbSchema";
 import { Link } from "react-router-dom";
+import { CURRENT_YEAR } from "@/lib/constants";
 
 const BusinessVisa = () => {
   const countries = [
@@ -103,24 +107,38 @@ const BusinessVisa = () => {
     }
   ];
 
+  const businessFaqs = [
+    { question: "Can I work for a local company with a business visa?", answer: "Generally no. Business visas typically prohibit receiving payment from local sources or engaging in employment. You may attend meetings and conduct business activities but cannot work for local companies." },
+    { question: "Do I need an invitation letter for a business visa?", answer: "Most countries require a formal invitation letter from the host company or business partner. This letter should include details about the business relationship, purpose of visit, and duration of stay." },
+    { question: "How long can I stay with a business visa?", answer: "Stay duration varies by country and visa type. Typical business visas allow stays of 30-90 days per entry, though some countries offer longer validity periods with multiple entry options." },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
-      {/* SEO Structured Data */}
+      <SEOHead
+        title={`Business Visa Guide ${CURRENT_YEAR} – Requirements, Fees & Application Tips | Visas.Guide`}
+        description={`Complete business visa guide for ${CURRENT_YEAR}. Requirements, processing times, fees, and expert tips for international business travel, meetings, and conferences.`}
+        canonical="https://visas.guide/visa-types/business"
+        keywords={["business visa", "business visa requirements", "business visa application", "work travel visa", "business visitor visa", "commercial visa", "conference visa"]}
+      />
+      <FAQSchema faqs={businessFaqs} pageUrl="https://visas.guide/visa-types/business" />
+      <BreadcrumbSchema items={[
+        { name: "Visa Types", url: "/visa-types/business" },
+        { name: "Business Visa", url: "/visa-types/business" },
+      ]} />
+
       <script 
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Article",
-            "headline": "Business Visa Requirements and Application Guide 2024",
+            "headline": `Business Visa Requirements and Application Guide ${CURRENT_YEAR}`,
             "description": "Complete guide to business visa requirements, processing times, fees, and application tips for international business travel and meetings.",
-            "author": {
-              "@type": "Organization",
-              "name": "Visas Guide"
-            },
+            "author": { "@type": "Organization", "name": "Visas Guide" },
             "datePublished": "2024-01-01",
             "dateModified": new Date().toISOString().split('T')[0],
-            "mainEntityOfPage": "https://visas.guide/visa-types/business-visa"
+            "mainEntityOfPage": "https://visas.guide/visa-types/business"
           })
         }}
       />

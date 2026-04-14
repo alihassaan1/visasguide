@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { Globe, Clock, FileText, CheckCircle, AlertCircle, MapPin } from "lucide-react";
+import FAQSchema from "@/components/FAQSchema";
+import BreadcrumbSchema from "@/components/BreadcrumbSchema";
 
 const schengenCountries = [
   { name: "Austria", slug: "austria", flag: "🇦🇹" },
@@ -67,6 +69,14 @@ const SchengenVisaGuide = () => {
         keywords={["schengen visa", "schengen countries", "schengen visa requirements", "europe visa", "schengen area", "schengen visa application", "schengen visa fees"]}
       />
       
+      <FAQSchema faqs={[
+        { question: "How long does a Schengen visa take to process?", answer: "Schengen visa processing typically takes 10-15 business days from the date of application. However, during peak travel seasons it can take up to 45 days. It's recommended to apply at least 4-6 weeks before your intended travel date." },
+        { question: "Which countries are in the Schengen area?", answer: "The Schengen area consists of 27 European countries: Austria, Belgium, Croatia, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Iceland, Italy, Latvia, Liechtenstein, Lithuania, Luxembourg, Malta, Netherlands, Norway, Poland, Portugal, Slovakia, Slovenia, Spain, Sweden, and Switzerland." },
+        { question: "Can I visit multiple Schengen countries on one visa?", answer: "Yes, a single Schengen visa allows you to travel freely between all 27 Schengen member countries during your authorized stay. You should apply at the embassy of the country where you'll spend the most time, or the country of first entry if spending equal time." },
+      ]} pageUrl="https://visas.guide/schengen-visa-guide" />
+      <BreadcrumbSchema items={[
+        { name: "Schengen Visa Guide", url: "/schengen-visa-guide" },
+      ]} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       
       <Header />

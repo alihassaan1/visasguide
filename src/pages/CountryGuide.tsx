@@ -242,10 +242,14 @@ const CountryGuide = () => {
   const ctrName = countryAbbreviations[country.slug] || country.name;
   
   const metaTitle = guideContent?.meta_title || 
-    `${ctrName} Visa Requirements 2026 | ${country.name !== ctrName ? country.name + ' ' : ''}Entry Guide & Requirements`;
+    (country.slug === 'jordan' 
+      ? `Jordan & Petra Visa Requirements 2026 | Entry Guide & Requirements`
+      : `${ctrName} Visa Requirements 2026 | ${country.name !== ctrName ? country.name + ' ' : ''}Entry Guide & Requirements`);
   
   const metaDescription = guideContent?.meta_description || 
-    `Do you need a visa for ${ctrName}? ✓ Complete ${country.name} visa requirements ✓ Visa-free countries ✓ Application process ✓ Processing times. Updated 2026 guide.`;
+    (country.slug === 'jordan'
+      ? `Do you need a visa to visit Petra & Jordan? ✓ Jordan visa requirements ✓ Petra entry info ✓ Visa-free countries ✓ Application process. Updated 2026 guide.`
+      : `Do you need a visa for ${ctrName}? ✓ Complete ${country.name} visa requirements ✓ Visa-free countries ✓ Application process ✓ Processing times. Updated 2026 guide.`);
 
   const visaFreeCount = country.visa_free_destinations || computedVisaFreeCount || 0;
 
@@ -255,7 +259,15 @@ const CountryGuide = () => {
         title={metaTitle}
         description={metaDescription}
         canonical={`https://visas.guide/countries/${country.slug}`}
-        keywords={[`${country.name} visa`, `${country.name} visa requirements`, `do I need a visa for ${country.name}`, `is ${country.name} visa free`, `${country.name} visa-free countries`, `${country.name} passport`, `${country.name} evisa`, `travel to ${country.name}`, `${country.name} entry requirements`, `${country.name} visa ${new Date().getFullYear()}`]}
+        keywords={[
+          `${country.name} visa`, `${country.name} visa requirements`, `do I need a visa for ${country.name}`, 
+          `is ${country.name} visa free`, `${country.name} visa-free countries`, `${country.name} passport`, 
+          `${country.name} evisa`, `travel to ${country.name}`, `${country.name} entry requirements`, 
+          `${country.name} visa ${new Date().getFullYear()}`,
+          ...(country.slug === 'jordan' ? ['petra visa', 'visa for petra jordan', 'do you need a visa to visit petra', 'jordan petra entry requirements'] : []),
+          ...(country.slug === 'united-kingdom' ? ['do uk citizens need a visa for usa', 'uk visa requirements', 'uk passport visa free'] : []),
+          ...(country.slug === 'united-states' ? ['do uk citizens need a visa for usa', 'do us citizens need a visa for uk', 'us visa requirements'] : []),
+        ]}
       />
       
       <script
@@ -282,6 +294,16 @@ const CountryGuide = () => {
           { question: `How long can I stay in ${country.name} without a visa?`, answer: `The duration of visa-free stays in ${country.name} varies by nationality, typically ranging from 30 to 90 days. Some nationalities require a visa for any length of stay.` },
           { question: `What documents do I need to travel to ${country.name}?`, answer: `Generally you need a valid passport (with at least 6 months validity), proof of return travel, proof of accommodation, and sufficient funds. Some nationalities also need a visa or eVisa.` },
           { question: `Is there an eVisa available for ${country.name}?`, answer: `${country.name} may offer eVisa options for certain nationalities. An eVisa allows you to apply online before travel, avoiding embassy visits. Check the specific requirements for your passport.` },
+          ...(country.slug === 'jordan' ? [
+            { question: 'Do you need a visa to visit Petra?', answer: 'Petra is located in Jordan, so you need a valid Jordanian visa to visit. Many nationalities can get a visa on arrival at Queen Alia International Airport or land borders. The Jordan Pass (starting from 70 JOD) includes your visa fee and Petra entrance, making it the best option for tourists. Citizens of some Arab countries can enter visa-free.' },
+          ] : []),
+          ...(country.slug === 'united-kingdom' ? [
+            { question: 'Do UK citizens need a visa for USA?', answer: 'No, UK citizens do not need a traditional visa for short tourist or business visits to the USA. British passport holders can travel to the US under the Visa Waiver Program (VWP) by obtaining an ESTA (Electronic System for Travel Authorization) online before departure. The ESTA is valid for 2 years and allows stays of up to 90 days.' },
+          ] : []),
+          ...(country.slug === 'united-states' ? [
+            { question: 'Do UK citizens need a visa for USA?', answer: 'No, UK citizens can visit the USA without a visa under the Visa Waiver Program. They need to apply for an ESTA online before travel, which costs $21 and is valid for 2 years, allowing stays of up to 90 days per visit.' },
+            { question: 'Do US citizens need a visa for UK?', answer: 'No, US citizens do not need a visa to visit the United Kingdom for tourism or business stays of up to 6 months. You simply need a valid US passport. For longer stays, work, or study, you will need to apply for the appropriate UK visa.' },
+          ] : []),
         ]}
         pageUrl={`https://visas.guide/countries/${country.slug}`}
       />

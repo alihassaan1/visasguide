@@ -54,8 +54,26 @@ const GUIDES_TO_GENERATE = [
   },
   {
     slug: "travel-insurance-requirements",
-    title: "Travel Insurance Requirements by Country 2025",
+    title: "Travel Insurance Requirements by Country 2026",
     guide_type: "requirements",
+    difficulty: "Easy"
+  },
+  {
+    slug: "south-korea-visa-for-filipinos",
+    title: "South Korea Visa for Filipino Citizens: Complete Guide 2026",
+    guide_type: "application",
+    difficulty: "Medium"
+  },
+  {
+    slug: "montenegro-visa-guide",
+    title: "Montenegro Visa Requirements: Who Needs a Visa in 2026?",
+    guide_type: "requirements",
+    difficulty: "Easy"
+  },
+  {
+    slug: "jordan-petra-visa-guide",
+    title: "Jordan & Petra Visa Guide: Entry Requirements for Tourists 2026",
+    guide_type: "application",
     difficulty: "Easy"
   }
 ];

@@ -112,7 +112,8 @@ const PassportRankings = () => {
           'travel freedom index', 'best passports', 'passport comparison',
           'visa free access', 'visa on arrival', 'eVisa countries',
           'henley passport index', 'visa free countries for passport',
-          'passport power rankings', 'destination significance score'
+          'passport power rankings', 'destination significance score',
+          'global visa wait times', 'passport power ranking'
         ]}
       />
 

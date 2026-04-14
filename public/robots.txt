@@ -1,5 +1,5 @@
 # Visas.Guide - Robots.txt
-# Last updated: 2026-01-14
+# Last updated: 2026-04-14
 
 # Allow all crawlers full access
 User-agent: *
@@ -8,9 +8,6 @@ Allow: /
 # Disallow admin pages for all bots
 Disallow: /admin
 Disallow: /admin/
-
-# Disallow thin visa-requirement pages
-Disallow: /visa-requirements/
 
 # Sitemap
 Sitemap: https://visas.guide/sitemap.xml

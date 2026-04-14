@@ -102,7 +102,15 @@ const PassportRankings = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead 
+      <FAQSchema faqs={[
+        { question: "What is the most powerful passport in the world?", answer: `As of ${CURRENT_YEAR}, passports from countries like Japan, Singapore, and several EU nations consistently rank as the most powerful, offering visa-free or visa-on-arrival access to 190+ destinations worldwide.` },
+        { question: "How is passport ranking calculated?", answer: "Passport rankings are calculated based on the number of destinations a passport holder can access without a prior visa, including visa-free entry, visa-on-arrival, eTA, and eVisa destinations. Each destination is weighted by its significance." },
+        { question: "Which passport has the most visa-free countries?", answer: `The top-ranked passports provide visa-free or visa-on-arrival access to over 190 countries. Check our regularly updated ${CURRENT_YEAR} rankings table for the latest data.` },
+      ]} pageUrl="https://visas.guide/passport-index" />
+      <BreadcrumbSchema items={[
+        { name: "Passport Index", url: "/passport-index" },
+      ]} />
+      <SEOHead
         title={`Passport Index ${CURRENT_YEAR} – World Passport Rankings & Visa-Free Score | Visas.Guide`}
         description={`Passport Index ${CURRENT_YEAR}: Compare ${totalCountriesCount || 199} passports ranked by visa-free score & travel freedom. See which passport is the strongest, visa-free countries list, and global mobility rankings. Updated ${new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' })}.`}
         canonical="https://visas.guide/passport-index"

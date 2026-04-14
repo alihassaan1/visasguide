@@ -168,10 +168,10 @@ const VisaFinder = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="Visa Finder Tool – Check Your Visa Requirements in Seconds | Visas.Guide"
-        description="Use our free Visa Finder tool to instantly discover visa requirements based on your nationality, destination, and travel purpose. Get personalized results."
+        title="Visa Finder & Visa Map – Check Visa Requirements by Country | Visas.Guide"
+        description="Use our free Visa Finder and interactive visa map to instantly check visa requirements by nationality and destination. Find visa-free countries and eVisa options."
         canonical="https://visas.guide/visa-finder"
-        keywords={["visa finder", "visa map", "interactive visa map", "check visa requirements", "do I need a visa", "visa checker tool", "travel visa calculator", "visa eligibility", "browse visas", "visa list", "visa requirements checker"]}
+        keywords={["visa finder", "visa map", "visamap", "interactive visa map", "what countries require visas map", "check visa requirements", "do I need a visa", "visa checker tool", "visa destinations", "visa eligibility", "browse visas", "visa list", "visa requirements checker", "visa worldwide"]}
       />
       <Header />
       

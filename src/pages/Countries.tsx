@@ -76,10 +76,10 @@ const Countries = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="Visa Requirements by Country – Browse 200+ Destinations | Visas.Guide"
-        description="Explore visa requirements for 200+ countries. Find entry rules, visa-free access, eVisa options, and travel documentation for every destination worldwide."
+        title="Visa Requirements by Country – Browse 200+ Visa Destinations | Visas.Guide"
+        description="Explore visa requirements for 200+ visa destinations worldwide. Find entry rules, visa-free access, eVisa options, and travel documentation for every country."
         canonical="https://visas.guide/countries"
-        keywords={["country visa requirements", "visa by country", "travel destinations", "visa information", "country entry requirements", "international travel"]}
+        keywords={["visa destinations", "visa destination", "country visa requirements", "visa by country", "visa requirements by country", "travel visa requirements", "visa information", "country entry requirements", "international travel", "visa worldwide"]}
       />
       <Header />
       

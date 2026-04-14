@@ -122,10 +122,10 @@ const ProcessingTimes = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="Global Visa Processing Times 2026 – Current Wait Times by Country | Visas.Guide"
-        description="Check real-time visa processing times for 100+ countries. Compare current wait times for tourist, business, and student visas worldwide. Updated April 2026."
+        title="Global Visa Processing Times & Wait Times 2026 – By Country | Visas.Guide"
+        description="Check global visa processing times and visa wait times for 100+ countries. Compare current processing times for tourist, business, and student visas. Updated 2026."
         canonical="https://visas.guide/processing-times"
-        keywords={["visa processing time", "visa processing times", "global visa processing times", "global processing times", "visit visa processing time", "visa wait times", "visa application duration", "how long visa takes", "visa processing time by country"]}
+        keywords={["global processing times", "global processing time", "global visa processing times", "global visa processing time", "global visa wait times", "visa processing time", "visa processing times", "processing times", "visa wait times", "visit visa processing time", "visa application duration", "how long visa takes", "visa processing time by country"]}
       />
       <Header />
       

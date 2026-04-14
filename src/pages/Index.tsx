@@ -64,6 +64,33 @@ const Index = () => {
         </div>
 
         <LatestGuidesSection />
+
+        {/* Popular Visa Guides - Internal Linking for SEO */}
+        <section className="py-12 bg-gradient-to-b from-background to-accent/5">
+          <div className="container mx-auto px-4">
+            <h2 className="text-2xl font-bold mb-6 text-center">🔥 Popular Visa Guides</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              {[
+                { href: "/processing-times", emoji: "⏱️", label: "Visa Processing Times" },
+                { href: "/passport-rankings", emoji: "🏆", label: "Passport Rankings" },
+                { href: "/countries/jordan", emoji: "🇯🇴", label: "Jordan & Petra Visa" },
+                { href: "/countries/south-korea", emoji: "🇰🇷", label: "South Korea Visa" },
+                { href: "/countries/montenegro", emoji: "🇲🇪", label: "Montenegro Visa" },
+                { href: "/schengen-visa-guide", emoji: "🇪🇺", label: "Schengen Visa Guide" },
+              ].map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="flex flex-col items-center gap-2 p-4 bg-card rounded-lg border hover:border-primary/50 hover:shadow-md transition-all text-center"
+                >
+                  <span className="text-2xl">{link.emoji}</span>
+                  <span className="text-sm font-medium">{link.label}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <FeaturedAuthorsSection />
         <LatestNewsSection />
         

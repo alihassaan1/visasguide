@@ -243,6 +243,37 @@ const ProcessingTimes = () => {
             </CardContent>
           </Card>
         </section>
+
+        {/* Internal Links Section */}
+        <section className="mt-12">
+          <h2 className="text-2xl font-bold mb-6">Related Visa Resources</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="/passport-rankings" className="block p-5 bg-card rounded-lg border hover:border-primary/50 hover:shadow-md transition-all">
+              <h3 className="font-semibold mb-1">🏆 Passport Power Rankings</h3>
+              <p className="text-sm text-muted-foreground">Compare passport strength and visa-free access for 199 countries.</p>
+            </a>
+            <a href="/countries/jordan" className="block p-5 bg-card rounded-lg border hover:border-primary/50 hover:shadow-md transition-all">
+              <h3 className="font-semibold mb-1">🇯🇴 Jordan & Petra Visa Guide</h3>
+              <p className="text-sm text-muted-foreground">Entry requirements and visa options for visiting Jordan and Petra.</p>
+            </a>
+            <a href="/countries/south-korea" className="block p-5 bg-card rounded-lg border hover:border-primary/50 hover:shadow-md transition-all">
+              <h3 className="font-semibold mb-1">🇰🇷 South Korea Visa Guide</h3>
+              <p className="text-sm text-muted-foreground">Complete visa requirements and application process for South Korea.</p>
+            </a>
+            <a href="/countries/montenegro" className="block p-5 bg-card rounded-lg border hover:border-primary/50 hover:shadow-md transition-all">
+              <h3 className="font-semibold mb-1">🇲🇪 Montenegro Visa Guide</h3>
+              <p className="text-sm text-muted-foreground">Who needs a visa for Montenegro? Check requirements by nationality.</p>
+            </a>
+            <a href="/visa-guides" className="block p-5 bg-card rounded-lg border hover:border-primary/50 hover:shadow-md transition-all">
+              <h3 className="font-semibold mb-1">📚 All Visa Guides</h3>
+              <p className="text-sm text-muted-foreground">Browse our complete collection of visa application guides and tips.</p>
+            </a>
+            <a href="/countries" className="block p-5 bg-card rounded-lg border hover:border-primary/50 hover:shadow-md transition-all">
+              <h3 className="font-semibold mb-1">🌍 All Countries</h3>
+              <p className="text-sm text-muted-foreground">Explore visa requirements for 200+ countries worldwide.</p>
+            </a>
+          </div>
+        </section>
       </main>
 
       <Footer />

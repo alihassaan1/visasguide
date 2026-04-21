@@ -77,6 +77,7 @@ const menuStructure: MenuItemOrGroup[] = [
       { title: "Create New", icon: Sparkles, href: "/admin/ai-content-studio" },
       { title: "Image Generator", icon: FileText, href: "/admin/image-generator" },
       { title: "Authors", icon: Users, href: "/admin/authors" },
+      { title: "Policy Tracker", icon: Bell, href: "/admin/policy-tracker" },
     ],
   },
   {

@@ -1754,6 +1754,106 @@ export type Database = {
         }
         Relationships: []
       }
+      visa_policy_changes: {
+        Row: {
+          affected_country_ids: string[] | null
+          announcement_date: string
+          change_type: Database["public"]["Enums"]["visa_policy_change_type"]
+          country_id: string | null
+          created_at: string
+          effective_date: string | null
+          full_description: string | null
+          id: string
+          is_published: boolean
+          is_verified: boolean
+          metadata: Json | null
+          news_article_id: string | null
+          published_at: string | null
+          rss_queue_id: string | null
+          severity: Database["public"]["Enums"]["visa_policy_severity"]
+          source_name: string | null
+          source_type: Database["public"]["Enums"]["visa_policy_source_type"]
+          source_url: string | null
+          summary: string
+          title: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          affected_country_ids?: string[] | null
+          announcement_date?: string
+          change_type: Database["public"]["Enums"]["visa_policy_change_type"]
+          country_id?: string | null
+          created_at?: string
+          effective_date?: string | null
+          full_description?: string | null
+          id?: string
+          is_published?: boolean
+          is_verified?: boolean
+          metadata?: Json | null
+          news_article_id?: string | null
+          published_at?: string | null
+          rss_queue_id?: string | null
+          severity?: Database["public"]["Enums"]["visa_policy_severity"]
+          source_name?: string | null
+          source_type?: Database["public"]["Enums"]["visa_policy_source_type"]
+          source_url?: string | null
+          summary: string
+          title: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          affected_country_ids?: string[] | null
+          announcement_date?: string
+          change_type?: Database["public"]["Enums"]["visa_policy_change_type"]
+          country_id?: string | null
+          created_at?: string
+          effective_date?: string | null
+          full_description?: string | null
+          id?: string
+          is_published?: boolean
+          is_verified?: boolean
+          metadata?: Json | null
+          news_article_id?: string | null
+          published_at?: string | null
+          rss_queue_id?: string | null
+          severity?: Database["public"]["Enums"]["visa_policy_severity"]
+          source_name?: string | null
+          source_type?: Database["public"]["Enums"]["visa_policy_source_type"]
+          source_url?: string | null
+          summary?: string
+          title?: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visa_policy_changes_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visa_policy_changes_news_article_id_fkey"
+            columns: ["news_article_id"]
+            isOneToOne: false
+            referencedRelation: "news_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visa_policy_changes_rss_queue_id_fkey"
+            columns: ["rss_queue_id"]
+            isOneToOne: false
+            referencedRelation: "rss_article_queue"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       visa_requirements: {
         Row: {
           fee_usd: number | null
@@ -1859,6 +1959,17 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      visa_policy_change_type:
+        | "visa_free_added"
+        | "visa_free_removed"
+        | "evisa_launched"
+        | "fee_change"
+        | "processing_time_change"
+        | "entry_ban"
+        | "requirement_change"
+        | "policy_announcement"
+      visa_policy_severity: "info" | "update" | "warning" | "critical"
+      visa_policy_source_type: "official" | "news" | "manual"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1987,6 +2098,18 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      visa_policy_change_type: [
+        "visa_free_added",
+        "visa_free_removed",
+        "evisa_launched",
+        "fee_change",
+        "processing_time_change",
+        "entry_ban",
+        "requirement_change",
+        "policy_announcement",
+      ],
+      visa_policy_severity: ["info", "update", "warning", "critical"],
+      visa_policy_source_type: ["official", "news", "manual"],
     },
   },
 } as const

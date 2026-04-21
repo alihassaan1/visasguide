@@ -75,6 +75,8 @@ import Unsubscribe from "./pages/Unsubscribe";
 import About from "./pages/About";
 import EditorialPolicy from "./pages/EditorialPolicy";
 import AffiliateDisclosure from "./pages/AffiliateDisclosure";
+import PolicyUpdates from "./pages/PolicyUpdates";
+import PolicyTracker from "./pages/admin/PolicyTracker";
 
 const queryClient = new QueryClient();
 
@@ -113,6 +115,7 @@ const App = () => (
           <Route path="/about" element={<About />} />
           <Route path="/editorial-policy" element={<EditorialPolicy />} />
           <Route path="/affiliate-disclosure" element={<AffiliateDisclosure />} />
+          <Route path="/policy-updates" element={<PolicyUpdates />} />
           <Route path="/schengen-visa-guide" element={<SchengenVisaGuide />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
           <Route path="/rss" element={<RSSFeed />} />
@@ -157,6 +160,7 @@ const App = () => (
             <Route path="image-generator" element={<ImageGenerator />} />
             <Route path="quick-wins" element={<QuickWinsDashboard />} />
             <Route path="ad-performance" element={<AdPerformanceDashboard />} />
+            <Route path="policy-tracker" element={<PolicyTracker />} />
             
           </Route>
           

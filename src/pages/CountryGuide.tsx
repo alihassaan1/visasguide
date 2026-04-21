@@ -28,6 +28,7 @@ import AffiliateDisclosure from "@/components/AffiliateDisclosure";
 import VisaStatusGrid from "@/components/VisaStatusGrid";
 import ResidencyToggle, { ResidencyType } from "@/components/ResidencyToggle";
 import FAQSchema from "@/components/FAQSchema";
+import CountryPolicyTimeline from "@/components/CountryPolicyTimeline";
 
 const CountryGuide = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
@@ -337,6 +338,9 @@ const CountryGuide = () => {
 
         {/* Visa Alert Ticker */}
         <VisaAlertTicker countryId={country.id} countryName={country.name} />
+
+        {/* Recent visa policy changes timeline */}
+        <CountryPolicyTimeline countryId={country.id} countrySlug={country.slug} countryName={country.name} />
 
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6">

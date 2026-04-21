@@ -9,6 +9,7 @@ import QuickLinks from "@/components/QuickLinks";
 import LatestGuidesSection from "@/components/LatestGuidesSection";
 import FeaturedAuthorsSection from "@/components/FeaturedAuthorsSection";
 import LatestNewsSection from "@/components/LatestNewsSection";
+import BreakingPolicyUpdates from "@/components/BreakingPolicyUpdates";
 import OrganizationSchema from "@/components/OrganizationSchema";
 import SiteNavigationSchema from "@/components/SiteNavigationSchema";
 import { CURRENT_YEAR } from "@/lib/constants";
@@ -92,6 +93,7 @@ const Index = () => {
         </section>
 
         <FeaturedAuthorsSection />
+        <BreakingPolicyUpdates />
         <LatestNewsSection />
         
         <div className="container mx-auto px-4">

@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "System can insert policy changes" ON public.visa_policy_changes;

@@ -35,6 +35,7 @@ import {
   Ticket,
   X,
   BarChart3,
+  Bell,
 } from "lucide-react";
 
 interface MenuItem {

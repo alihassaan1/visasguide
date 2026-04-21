@@ -17,10 +17,16 @@ const StickyNewsletterCTA = () => {
       setIsVisible(true);
     }, 10000);
 
-    return () => clearTimeout(showTimer);
-  }, []);
+    // Auto-hide after 15 seconds of being visible
+    const hideTimer = setTimeout(() => {
+      setIsVisible(false);
+    }, 25000);
 
-  // No auto-close - stays visible until user dismisses or subscribes
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
+  }, []);
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();

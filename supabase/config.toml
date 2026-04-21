@@ -112,3 +112,9 @@ verify_jwt = false
 
 [functions.bulk-content-upgrade]
 verify_jwt = false
+
+[functions.policy-detector]
+verify_jwt = false
+
+[functions.policy-article-generator]
+verify_jwt = false

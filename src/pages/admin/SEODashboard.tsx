@@ -63,8 +63,9 @@ interface SitemapStatus {
   error?: string;
 }
 
+const SITEMAP_INDEX_URL = 'https://visas.guide/sitemap.xml';
 const SITEMAP_STORAGE_PUBLIC_URL =
-  'https://awiytryceqehqapytfgn.supabase.co/storage/v1/object/public/content-images/sitemaps/sitemap-full.xml';
+  'https://awiytryceqehqapytfgn.supabase.co/storage/v1/object/public/content-images/sitemaps/sitemap-1.xml';
 
 export default function SEODashboard() {
   const { toast } = useToast();

@@ -118,3 +118,7 @@ verify_jwt = false
 
 [functions.policy-article-generator]
 verify_jwt = false
+
+[functions.serve-sitemap]
+verify_jwt = false
+

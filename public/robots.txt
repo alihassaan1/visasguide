@@ -1,13 +1,37 @@
 # Visas.Guide - Robots.txt
-# Last updated: 2026-04-14
+# Last updated: 2026-05-04
 
-# Allow all crawlers full access
+# Default: allow everything except admin
 User-agent: *
 Allow: /
-
-# Disallow admin pages for all bots
 Disallow: /admin
 Disallow: /admin/
 
-# Sitemap
+# Be explicit so GSC stops flagging legacy URLs as blocked
+Allow: /visa-requirements/
+Allow: /countries/
+Allow: /cities/
+Allow: /visa-types/
+Allow: /news/
+Allow: /blog/
+Allow: /sitemaps/
+Allow: /sitemap.xml
+Allow: /rss
+Allow: /feed
+
+# Explicit Googlebot rules (mirror of default, eliminates ambiguity)
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+
+# Sitemap (same-host)
 Sitemap: https://visas.guide/sitemap.xml

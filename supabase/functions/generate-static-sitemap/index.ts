@@ -186,8 +186,12 @@ Deno.serve(async (req) => {
         changefreq = 'weekly';
       }
 
+      const fullLoc = `${BASE_URL}${path}`;
+      if (seenPaths.has(fullLoc)) continue;
+      seenPaths.add(fullLoc);
+
       urls.push({
-        loc: `${BASE_URL}${path}`,
+        loc: fullLoc,
         changefreq,
         priority,
       });

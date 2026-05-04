@@ -29,11 +29,21 @@ const VisaRequirements = () => {
   const queryClient = useQueryClient();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<string | null>(null);
-  
-  // Parse slug to get from and to country slugs
-  const slugParts = slug?.split("-to-");
-  const fromSlug = slugParts?.[0];
-  const toSlug = slugParts?.[1]?.replace(/-visa-requirements$/, '');
+
+  // Normalize: strip the redundant trailing "-visa-requirements" so the canonical URL
+  // is always /visa-requirements/{from}-to-{to}. Redirect duplicates to consolidate SEO.
+  const normalizedSlug = slug?.replace(/-visa-requirements$/, '') || '';
+
+  useEffect(() => {
+    if (slug && slug !== normalizedSlug) {
+      window.history.replaceState(null, '', `/visa-requirements/${normalizedSlug}`);
+    }
+  }, [slug, normalizedSlug]);
+
+  // Parse normalized slug to get from and to country slugs
+  const slugParts = normalizedSlug.split("-to-");
+  const fromSlug = slugParts[0];
+  const toSlug = slugParts[1];
 
   usePageTracking(`visa-requirements-${slug}`);
 

@@ -269,18 +269,23 @@ export default function SEODashboard() {
 
   const checkSitemapHealth = async () => {
     try {
-      // Check the *actual* sitemap file served to bots (stored in Supabase Storage).
-      const response = await fetch(SITEMAP_STORAGE_PUBLIC_URL, { cache: 'no-store' });
-      if (!response.ok) throw new Error(`Sitemap fetch failed (${response.status})`);
+      // Read each chunk from storage and total the <url> entries.
+      let totalUrls = 0;
+      let chunksFound = 0;
+      for (let i = 1; i <= 10; i++) {
+        const chunkUrl = `https://awiytryceqehqapytfgn.supabase.co/storage/v1/object/public/content-images/sitemaps/sitemap-${i}.xml`;
+        const res = await fetch(chunkUrl, { cache: 'no-store' });
+        if (!res.ok) break;
+        const xml = await res.text();
+        totalUrls += (xml.match(/<url>/g) || []).length;
+        chunksFound++;
+      }
+      if (chunksFound === 0) throw new Error('No sitemap chunks found');
 
-      const xml = await response.text();
-      // Fast count: number of <url> entries.
-      const urlCount = (xml.match(/<url>/g) || []).length;
-      const isHealthy = urlCount > 10000; // sanity threshold; expected is 40k+
-
+      const isHealthy = totalUrls > 10000;
       setSitemapStatus({
         isHealthy,
-        urlCount,
+        urlCount: totalUrls,
         lastChecked: new Date(),
         error: isHealthy ? undefined : 'Sitemap appears truncated (too few URLs).',
       });

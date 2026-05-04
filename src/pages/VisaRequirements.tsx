@@ -29,13 +29,23 @@ const VisaRequirements = () => {
   const queryClient = useQueryClient();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<string | null>(null);
-  
-  // Parse slug to get from and to country slugs
-  const slugParts = slug?.split("-to-");
-  const fromSlug = slugParts?.[0];
-  const toSlug = slugParts?.[1]?.replace(/-visa-requirements$/, '');
 
-  usePageTracking(`visa-requirements-${slug}`);
+  // Normalize: strip the redundant trailing "-visa-requirements" so the canonical URL
+  // is always /visa-requirements/{from}-to-{to}. Redirect duplicates to consolidate SEO.
+  const normalizedSlug = slug?.replace(/-visa-requirements$/, '') || '';
+
+  useEffect(() => {
+    if (slug && slug !== normalizedSlug) {
+      window.history.replaceState(null, '', `/visa-requirements/${normalizedSlug}`);
+    }
+  }, [slug, normalizedSlug]);
+
+  // Parse normalized slug to get from and to country slugs
+  const slugParts = normalizedSlug.split("-to-");
+  const fromSlug = slugParts[0];
+  const toSlug = slugParts[1];
+
+  usePageTracking(`visa-requirements-${normalizedSlug}`);
 
   // Fetch countries
   const { data: countries = [] } = useQuery({
@@ -171,7 +181,7 @@ const VisaRequirements = () => {
       <SEOHead
         title={pageTitle}
         description={metaDescription}
-        canonical={`https://visas.guide/visa-requirements/${slug}`}
+        canonical={`https://visas.guide/visa-requirements/${normalizedSlug}`}
         keywords={[
           `${toCountry.name} visa`,
           `${toCountry.name} visa for ${fromCountry.name}`,
@@ -196,7 +206,7 @@ const VisaRequirements = () => {
             "publisher": { "@type": "Organization", "name": "Visas Guide" },
             "mainEntityOfPage": {
               "@type": "WebPage",
-              "@id": `https://visas.guide/visa-requirements/${slug}`
+              "@id": `https://visas.guide/visa-requirements/${normalizedSlug}`
             }
           })
         }}
@@ -354,7 +364,7 @@ const VisaRequirements = () => {
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground">Share this guide:</span>
               <SocialShareButtons 
-                url={`https://visas.guide/visa-requirements/${slug}`}
+                url={`https://visas.guide/visa-requirements/${normalizedSlug}`}
                 title={pageTitle}
               />
             </div>
@@ -385,14 +395,14 @@ const VisaRequirements = () => {
         <ArticleSchema
           title={pageTitle}
           description={metaDescription}
-          url={`https://visas.guide/visa-requirements/${slug}`}
+          url={`https://visas.guide/visa-requirements/${normalizedSlug}`}
           keywords={[`${toCountry.name} visa`, `${fromCountry.name} to ${toCountry.name}`, "visa requirements"]}
         />
         <BreadcrumbSchema
           items={[
             { name: "Visa Requirements", url: "/visa-search" },
             { name: fromCountry.name, url: `/countries/${fromSlug}` },
-            { name: `${fromCountry.name} to ${toCountry.name}`, url: `/visa-requirements/${slug}` },
+            { name: `${fromCountry.name} to ${toCountry.name}`, url: `/visa-requirements/${normalizedSlug}` },
           ]}
           showVisual={false}
         />

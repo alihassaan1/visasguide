@@ -158,13 +158,19 @@ Deno.serve(async (req) => {
       [{ column: 'is_published', value: true, operator: 'eq' }]
     );
     
+    const seenPaths = new Set<string>();
     for (const page of contentPages) {
       let path = '';
       let priority = '0.7';
       let changefreq = 'weekly';
 
-      if (page.slug.includes('-to-') && page.slug.includes('-visa-requirements')) {
-        path = `/visa-requirements/${page.slug}`;
+      if (page.slug.includes('-to-')) {
+        // Normalize: strip leading "visa-requirements/" prefix and trailing "-visa-requirements" suffix
+        // so every country pair has ONE canonical URL: /visa-requirements/{from}-to-{to}
+        const normalized = page.slug
+          .replace(/^visa-requirements\//, '')
+          .replace(/-visa-requirements$/, '');
+        path = `/visa-requirements/${normalized}`;
         priority = '0.7';
         changefreq = 'weekly';
       } else if (page.slug.startsWith('countries/')) {
@@ -183,8 +189,12 @@ Deno.serve(async (req) => {
         changefreq = 'weekly';
       }
 
+      const fullLoc = `${BASE_URL}${path}`;
+      if (seenPaths.has(fullLoc)) continue;
+      seenPaths.add(fullLoc);
+
       urls.push({
-        loc: `${BASE_URL}${path}`,
+        loc: fullLoc,
         changefreq,
         priority,
       });
@@ -256,7 +266,7 @@ Deno.serve(async (req) => {
           throw new Error(`Storage upload failed for ${sitemapPath}: ${uploadError.message}`);
         }
 
-        sitemapUrls.push(`${supabaseUrl}/storage/v1/object/public/${SITEMAP_BUCKET}/${sitemapPath}`);
+        sitemapUrls.push(`${BASE_URL}/sitemaps/sitemap-${i + 1}.xml`);
       }
 
       // Generate and upload the sitemap index

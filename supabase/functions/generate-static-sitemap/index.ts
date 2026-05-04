@@ -158,13 +158,16 @@ Deno.serve(async (req) => {
       [{ column: 'is_published', value: true, operator: 'eq' }]
     );
     
+    const seenPaths = new Set<string>();
     for (const page of contentPages) {
       let path = '';
       let priority = '0.7';
       let changefreq = 'weekly';
 
-      if (page.slug.includes('-to-') && page.slug.includes('-visa-requirements')) {
-        path = `/visa-requirements/${page.slug}`;
+      if (page.slug.includes('-to-')) {
+        // Normalize: strip a trailing -visa-requirements so each country pair has ONE canonical URL
+        const normalized = page.slug.replace(/-visa-requirements$/, '');
+        path = `/visa-requirements/${normalized}`;
         priority = '0.7';
         changefreq = 'weekly';
       } else if (page.slug.startsWith('countries/')) {

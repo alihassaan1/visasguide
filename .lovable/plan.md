@@ -1,130 +1,69 @@
+I found this second export is a Google Search Console “Crawled - currently not indexed” file. In plan mode I can inspect but cannot modify or republish yet.
 
+Key findings so far:
+- The uploaded XLSX did not expose row data cleanly through the document parser, but the filename/status points to the GSC crawled-not-indexed issue rather than a robots block.
+- The sitemap generator still has the same critical coverage bug: only slugs containing both `-to-` and `-visa-requirements` are classified as visa requirement URLs. Database counts show:
+  - `content_pages`: 39,998 published
+  - published `*-to-*` visa slugs: 39,710
+  - published slugs currently matching the strict sitemap condition: only 1,098
+  - That leaves roughly 38,600 visa pages incorrectly emitted or inconsistently discoverable.
+- The static `public/sitemap.xml` currently points sitemap chunks to Supabase Storage URLs, not `https://visas.guide/...`. This is risky for Google/Bing sitemap processing and matches the prior robots/sitemap-domain issue.
+- The live app has a route for `/visa-requirements/:slug`, but canonical URLs are based on the incoming URL slug. If Google discovers both `/visa-requirements/a-to-b` and `/visa-requirements/a-to-b-visa-requirements`, they can look like separate duplicate pages, which is a common cause of crawled-not-indexed.
 
-# Visa Policy Tracker System
+Plan to fix this issue:
 
-## Goal
-Build an automated system that detects, logs, publishes, and surfaces every visa policy change globally — making visas.guide the authoritative timeline for visa policy updates.
+1. Normalize visa requirement URLs everywhere
+   - Update `supabase/functions/generate-static-sitemap/index.ts` so every published content slug containing `-to-` is emitted as:
+     `/visa-requirements/{from}-to-{to}`
+   - Strip a trailing `-visa-requirements` before writing the sitemap URL.
+   - This creates one canonical URL per country pair and avoids duplicate variants.
 
-## Architecture Overview
+2. Fix sitemap index chunk URLs to same-domain URLs
+   - Change generated sitemap index entries from:
+     `https://awiytryceqehqapytfgn.supabase.co/storage/.../sitemap-N.xml`
+     to:
+     `https://visas.guide/sitemaps/sitemap-N.xml`
+   - Keep Supabase Storage as the backing store, but ensure search engines see same-host sitemap chunk URLs.
 
-```text
-  Sources                Detection              Storage              Distribution
-  ───────                ─────────              ───────              ────────────
-  RSS feeds      ─┐                        ┌─ visa_policy_changes ─┬─ Country page timeline
-  Gov sites      ─┼─►  policy-detector  ──►│                       ├─ Auto-generated article
-  News articles  ─┤    edge function       │  + linked              ├─ Homepage "Latest Changes"
-  Manual entry   ─┘    (LLM extraction)    └─ news_articles row     ├─ Newsletter digest
-                                                                    ├─ Social post (existing)
-                                                                    └─ /policy-updates hub page
-```
+3. Add/adjust sitemap serving for `/sitemaps/sitemap-N.xml`
+   - Add an edge-function route capable of streaming individual sitemap XML files from Supabase Storage with:
+     - `Content-Type: application/xml; charset=utf-8`
+     - cache headers suitable for crawlers
+     - 404 for invalid sitemap names
+   - Then wire the app/hosting route so `https://visas.guide/sitemaps/sitemap-1.xml` resolves to that XML instead of the React SPA shell.
 
-## Phase 1 — Database Schema (Migration)
+4. Canonicalize visa requirement pages in React
+   - Update `src/pages/VisaRequirements.tsx` to compute the normalized slug by stripping a trailing `-visa-requirements`.
+   - Set `<link rel="canonical">` to `https://visas.guide/visa-requirements/{normalizedSlug}`.
+   - Keep the page able to load either URL variant for backward compatibility.
 
-Create `visa_policy_changes` table:
-- `id`, `country_id` (the country making the change)
-- `affected_country_ids` (array — countries whose citizens are affected; null = all)
-- `change_type` enum: `visa_free_added`, `visa_free_removed`, `evisa_launched`, `fee_change`, `processing_time_change`, `entry_ban`, `requirement_change`, `policy_announcement`
-- `title`, `summary` (short), `full_description` (long, used in article)
-- `effective_date`, `announcement_date`
-- `severity`: `info` | `update` | `warning` | `critical`
-- `source_url`, `source_name`, `source_type` (`official` | `news` | `manual`)
-- `news_article_id` (FK to auto-generated article)
-- `is_verified`, `verified_by`, `verified_at`
-- `is_published`, `created_at`, `updated_at`
-- Indexes on `country_id`, `effective_date`, `change_type`
+5. Add route-level redirects for duplicate visa URL variants
+   - If a visitor or bot lands on `/visa-requirements/{slug}-visa-requirements`, redirect to `/visa-requirements/{slug}`.
+   - This consolidates crawl signals and reduces “Duplicate, Google chose different canonical” / “Crawled - currently not indexed” risk.
 
-RLS: public read for `is_published = true`; admin manage.
+6. Add the missing static sitemap route entries
+   - Ensure routes such as `/visa-types/tourist`, `/visa-types/business`, `/visa-types/student`, `/policy-updates`, `/schengen-visa-guide`, `/rss`, `/feed`, and author pages that should be indexed are handled consistently in sitemap generation if they are public SEO targets.
+   - Keep admin/private utility pages out of the sitemap and out of public navigation.
 
-## Phase 2 — Detection & Auto-Publishing (Edge Functions)
+7. Update the SEO dashboard checks
+   - Update `src/pages/admin/SEODashboard.tsx` so it checks the actual public sitemap entry point and same-domain chunks instead of the old Supabase Storage URL.
+   - Adjust health expectations to the current URL count, around 40k+ URLs after the fix.
 
-**`policy-detector`** (cron every 30 min)
-- Reads from existing `rss_article_queue` (already in DB)
-- For each new article, calls LLM (DeepSeek/Lovable AI) with extraction prompt: *"Is this a visa policy change? If yes, extract: country, affected countries, change type, effective date, summary, severity"*
-- If detected → inserts into `visa_policy_changes` (unverified) and queues an article generation task
+8. Republish and verify
+   - Deploy the updated edge function(s).
+   - Regenerate/publish the sitemap via `generate-static-sitemap?publish=1`.
+   - Verify:
+     - `https://visas.guide/sitemap.xml` returns a valid sitemap index.
+     - Each `<loc>` in the index is on `https://visas.guide/sitemaps/...`.
+     - `https://visas.guide/sitemaps/sitemap-1.xml` returns XML, not HTML.
+     - Sample visa pages from the GSC problem set return indexable pages with a self-referential canonical.
 
-**`policy-article-generator`** (triggered by new policy_changes row)
-- Uses existing AI infrastructure (`generate-visa-content` pattern)
-- Generates a 600–900 word SEO article with:
-  - Title formula: `"[Country] [Change Type]: New Visa [Rules/Fees/Policy] Effective [Date] [Year]"`
-  - Slug: `/news/{country-slug}-visa-policy-{date}-{short-slug}`
-  - Schema: ArticleSchema + FAQSchema (auto-generated Q&A from the change)
-  - Internal links to the country page and timeline
-  - Source citation block
-- Inserts into `news_articles`, links back via `news_article_id`
+9. Submit to search engines
+   - Resubmit `https://visas.guide/sitemap.xml` in Google Search Console and Bing Webmaster Tools.
+   - Trigger IndexNow for a sample of corrected URLs and the sitemap entry point.
 
-**`policy-verifier`** (admin-triggered or auto for low-severity)
-- High-severity (entry_ban, fee_change >50%) → flagged for manual review in admin
-- Low-severity (announcement, info) → auto-publish after 30-min cooling period
-- Manual entries skip verification
-
-## Phase 3 — Public-Facing Surfaces
-
-1. **`/policy-updates` hub page** (new route)
-   - Filterable timeline: by country, change type, date range, severity
-   - SEO target: "visa policy updates 2026", "latest visa changes"
-   - Sortable table view + card view toggle
-   - RSS feed at `/policy-updates/rss.xml`
-
-2. **Country page timeline section** (extend `CountryGuide.tsx`)
-   - "Recent Visa Policy Changes for [Country]" section
-   - Shows last 10 changes with date, summary, link to full article
-   - "View all policy history" link → `/policy-updates?country=X`
-
-3. **Homepage widget** (extend `Index.tsx`)
-   - Replace or supplement existing news section with "Breaking Visa Updates" — last 4 critical/warning items
-
-4. **VisaAlertTicker integration** (existing component)
-   - Critical/warning policy changes auto-create site-wide alerts via existing `site_settings` alerts mechanism
-
-5. **Newsletter** (extend existing weekly newsletter)
-   - Add "This Week's Policy Changes" section pulling latest verified entries
-
-## Phase 4 — Admin Dashboard
-
-New admin page `/admin/policy-tracker`:
-- **Inbox tab**: unverified detections from policy-detector → approve / reject / edit
-- **All Changes tab**: searchable table of all logged changes
-- **Manual Entry tab**: form to log a change manually (then auto-generates article)
-- **Sources tab**: manage trusted government RSS/sites added to detection
-- **Stats**: detections per week, verification rate, top contributing sources
-
-## Phase 5 — SEO Schema
-
-- Each policy article: `NewsArticle` + `GovernmentService` schema
-- Country timeline: `ItemList` schema with each change as `Event` (uses `effective_date`)
-- Hub page: `Dataset` schema (signals to Google this is a structured data resource — strong for Google Discover)
-
-## Automation Workflow Summary
-
-| Trigger | Action | Output |
-|---|---|---|
-| RSS fetch (existing) | New article in queue | — |
-| Cron 30min | `policy-detector` scans queue | Inserts unverified `visa_policy_changes` row |
-| New row inserted | `policy-article-generator` runs | Creates draft `news_articles` row |
-| Severity = info/update | Auto-publish after 30min | Article live + indexed via existing IndexNow |
-| Severity = warning/critical | Flag in admin Inbox | Awaits human approval |
-| Article published | Existing social-content-publisher | Posts to LinkedIn etc. |
-| Weekly cron | Newsletter includes top changes | Email sent |
-
-## Implementation Order (recommended sequence)
-1. Migration: `visa_policy_changes` table + indexes + RLS
-2. `policy-detector` edge function (reuse rss_article_queue)
-3. `policy-article-generator` edge function
-4. Admin Inbox UI (`/admin/policy-tracker`)
-5. `/policy-updates` hub page + RSS feed
-6. Country page timeline section
-7. Homepage widget + newsletter integration
-8. Schema markup polish + sitemap inclusion
-9. Cron schedules for detector + auto-publish
-
-## Key Dependencies (already in project — no new infra needed)
-- LOVABLE_API_KEY (Lovable AI gateway) for extraction + article generation
-- Existing `rss_article_queue`, `news_articles`, `site_settings` tables
-- Existing IndexNow, sitemap, social publisher pipelines
-- Existing FAQSchema, ArticleSchema, BreadcrumbSchema components
-
-## Out of Scope (future phases)
-- Direct scraping of government embassy sites (legal/maintenance burden — phase 2)
-- Multi-language policy translations
-- Email alerts per-country subscription (would need new subscriber preferences table)
-
+Expected impact:
+- Google will have a cleaner, same-domain sitemap structure.
+- The 39k+ visa requirement pages will be discoverable through a consistent canonical URL format.
+- Duplicate URL variants will stop competing with each other.
+- This should reduce the “Crawled - currently not indexed” bucket over the next reprocessing cycle, although Google’s indexing recovery is not immediate and may take days to weeks.

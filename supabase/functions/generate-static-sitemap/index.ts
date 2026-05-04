@@ -263,7 +263,7 @@ Deno.serve(async (req) => {
           throw new Error(`Storage upload failed for ${sitemapPath}: ${uploadError.message}`);
         }
 
-        sitemapUrls.push(`${supabaseUrl}/storage/v1/object/public/${SITEMAP_BUCKET}/${sitemapPath}`);
+        sitemapUrls.push(`${BASE_URL}/sitemaps/sitemap-${i + 1}.xml`);
       }
 
       // Generate and upload the sitemap index

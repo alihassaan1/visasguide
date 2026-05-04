@@ -165,8 +165,11 @@ Deno.serve(async (req) => {
       let changefreq = 'weekly';
 
       if (page.slug.includes('-to-')) {
-        // Normalize: strip a trailing -visa-requirements so each country pair has ONE canonical URL
-        const normalized = page.slug.replace(/-visa-requirements$/, '');
+        // Normalize: strip leading "visa-requirements/" prefix and trailing "-visa-requirements" suffix
+        // so every country pair has ONE canonical URL: /visa-requirements/{from}-to-{to}
+        const normalized = page.slug
+          .replace(/^visa-requirements\//, '')
+          .replace(/-visa-requirements$/, '');
         path = `/visa-requirements/${normalized}`;
         priority = '0.7';
         changefreq = 'weekly';

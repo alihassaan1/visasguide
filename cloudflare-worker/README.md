@@ -19,6 +19,8 @@ Real user → │ Cloudflare Worker @ edge    │ → Lovable origin (unchanged)
 - Real users: untouched, zero added latency.
 - Bots: get fully-rendered HTML with correct `<title>`, meta description,
   canonical, OG tags, and JSON-LD that React/SEOHead injected after hydration.
+- `/robots.txt`: served directly by the worker with explicit `Allow: /` rules for
+  Googlebot, Google InspectionTool, Bingbot, and all other crawlers.
 - Cached at the Cloudflare edge for 10 minutes per URL.
 
 ## One-time setup (≈5 minutes)
@@ -78,5 +80,6 @@ Hard-coded in the worker:
 | Symptom | Cause | Fix |
 |---|---|---|
 | `curl -A Googlebot ...` still shows homepage title | Worker route not bound, or token missing → worker falls back to origin | Re-check route + `PRERENDER_TOKEN` secret |
+| GSC still says blocked by robots.txt | Old robots response cached or Worker route not deployed | Deploy worker, then test `curl -A Googlebot https://visas.guide/robots.txt` |
 | 402 / quota error in worker logs | Prerender.io free tier exhausted | Upgrade plan or rotate to Rendertron self-hosted |
 | Real users report slowness | Route accidentally matches non-bots | Confirm `BOT_UA_REGEX` not being modified; check worker tail logs |

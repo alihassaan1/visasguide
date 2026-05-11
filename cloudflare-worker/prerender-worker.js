@@ -38,6 +38,47 @@ const BOT_UA_REGEX = new RegExp(
 // Asset extensions we never want to send through the prerender service.
 const ASSET_EXT_REGEX = /\.(js|css|xml|less|png|jpe?g|gif|pdf|doc|txt|ico|rss|zip|mp[34]|wav|flv|svg|webp|avif|woff2?|ttf|otf|eot|json|map|webmanifest)(\?.*)?$/i;
 
+const PUBLIC_ROBOTS_TXT = `# Visas.Guide - Robots.txt
+# Last updated: 2026-05-11
+
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+
+User-agent: Google-InspectionTool
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Googlebot-News
+Allow: /
+
+User-agent: Googlebot-Video
+Allow: /
+
+User-agent: GoogleOther
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+
+Sitemap: https://visas.guide/sitemap.xml
+`;
+
 function isBot(request) {
   const ua = (request.headers.get('user-agent') || '').toLowerCase();
   if (!ua) return false;
@@ -108,6 +149,18 @@ async function proxyToPrerender(request, env) {
 
 export default {
   async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+
+    if (url.pathname === '/robots.txt') {
+      return new Response(PUBLIC_ROBOTS_TXT, {
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Cache-Control': 'public, max-age=300, s-maxage=300',
+          'X-Robots-Tag': 'all'
+        }
+      });
+    }
+
     if (shouldPrerender(request)) {
       return proxyToPrerender(request, env);
     }

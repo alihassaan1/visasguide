@@ -1,37 +1,86 @@
 # Visas.Guide - Robots.txt
-# Last updated: 2026-05-04
+# Last updated: 2026-05-11
 
-# Default: allow everything except admin
-User-agent: *
+# Critical SEO rule: every public URL is crawlable.
+# Only admin surfaces are excluded because they are not public SEO pages.
+
+User-agent: Googlebot
 Allow: /
-Disallow: /admin
-Disallow: /admin/
-
-# Be explicit so GSC stops flagging legacy URLs as blocked
 Allow: /visa-requirements/
 Allow: /countries/
-Allow: /cities/
 Allow: /visa-types/
-Allow: /news/
 Allow: /blog/
+Allow: /news/
+Allow: /guides/
+Allow: /author/
 Allow: /sitemaps/
 Allow: /sitemap.xml
 Allow: /rss
 Allow: /feed
+Disallow: /admin
+Disallow: /admin/
 
-# Explicit Googlebot rules (mirror of default, eliminates ambiguity)
-User-agent: Googlebot
+User-agent: Google-InspectionTool
 Allow: /
+Allow: /visa-requirements/
+Allow: /countries/
+Allow: /visa-types/
+Allow: /blog/
+Allow: /news/
+Allow: /guides/
+Allow: /author/
+Allow: /sitemaps/
+Allow: /sitemap.xml
+Allow: /rss
+Allow: /feed
 Disallow: /admin
 Disallow: /admin/
 
 User-agent: Googlebot-Image
 Allow: /
 
+User-agent: Googlebot-News
+Allow: /
+
+User-agent: Googlebot-Video
+Allow: /
+
+User-agent: GoogleOther
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /
+
 User-agent: Bingbot
 Allow: /
+Allow: /visa-requirements/
+Allow: /countries/
+Allow: /visa-types/
+Allow: /blog/
+Allow: /news/
+Allow: /guides/
+Allow: /author/
+Allow: /sitemaps/
+Allow: /sitemap.xml
+Allow: /rss
+Allow: /feed
 Disallow: /admin
 Disallow: /admin/
 
-# Sitemap (same-host)
+User-agent: *
+Allow: /
+Allow: /visa-requirements/
+Allow: /countries/
+Allow: /visa-types/
+Allow: /blog/
+Allow: /news/
+Allow: /guides/
+Allow: /author/
+Allow: /sitemaps/
+Allow: /sitemap.xml
+Allow: /rss
+Allow: /feed
+Disallow: /admin
+Disallow: /admin/
+
 Sitemap: https://visas.guide/sitemap.xml

@@ -1,69 +1,64 @@
-I found this second export is a Google Search Console “Crawled - currently not indexed” file. In plan mode I can inspect but cannot modify or republish yet.
+# Plan: 10 Trending, SEO-Optimized Blog Posts (May 2026)
 
-Key findings so far:
-- The uploaded XLSX did not expose row data cleanly through the document parser, but the filename/status points to the GSC crawled-not-indexed issue rather than a robots block.
-- The sitemap generator still has the same critical coverage bug: only slugs containing both `-to-` and `-visa-requirements` are classified as visa requirement URLs. Database counts show:
-  - `content_pages`: 39,998 published
-  - published `*-to-*` visa slugs: 39,710
-  - published slugs currently matching the strict sitemap condition: only 1,098
-  - That leaves roughly 38,600 visa pages incorrectly emitted or inconsistently discoverable.
-- The static `public/sitemap.xml` currently points sitemap chunks to Supabase Storage URLs, not `https://visas.guide/...`. This is risky for Google/Bing sitemap processing and matches the prior robots/sitemap-domain issue.
-- The live app has a route for `/visa-requirements/:slug`, but canonical URLs are based on the incoming URL slug. If Google discovers both `/visa-requirements/a-to-b` and `/visa-requirements/a-to-b-visa-requirements`, they can look like separate duplicate pages, which is a common cause of crawled-not-indexed.
+## Note on ETIAS
+ETIAS will be handled as a **separate dedicated section/hub** in a future prompt — excluded from this batch to avoid cannibalizing that future cluster. Replaced with another high-traffic trending topic.
 
-Plan to fix this issue:
+## Topic selection (current + high search intent, May 2026)
 
-1. Normalize visa requirement URLs everywhere
-   - Update `supabase/functions/generate-static-sitemap/index.ts` so every published content slug containing `-to-` is emitted as:
-     `/visa-requirements/{from}-to-{to}`
-   - Strip a trailing `-visa-requirements` before writing the sitemap URL.
-   - This creates one canonical URL per country pair and avoids duplicate variants.
+1. **EU Entry/Exit System (EES) Explained — What Travelers Must Know in 2026** (live now, huge confusion = high search volume)
+2. **UK ETA in 2026 — Full Country List, £16 Fee & Application Walkthrough**
+3. **US B1/B2 Visitor Visa 2026 — Wait Times by Embassy & Interview Waiver Rules**
+4. **Schengen Visa Fee Increase 2026 — New €90 Cost & Application Changes**
+5. **Digital Nomad Visas 2026 — Top 15 Countries Ranked (Income, Tax, Duration)**
+6. **Dubai & UAE Visit Visa 2026 — 5-Year Multi-Entry, Costs & Application Steps**
+7. **Japan eVisa 2026 — Expanded Country Eligibility & Step-by-Step Guide**
+8. **Thailand DTV (Destination Thailand Visa) 2026 — 5-Year Remote Worker Guide**
+9. **China 240-Hour Visa-Free Transit 2026 — Updated Eligible Countries & Ports**
+10. **Saudi Arabia eVisa 2026 — Tourist, Umrah & Stopover Visa Complete Guide** (replaces ETIAS slot — major growth market, high intent)
 
-2. Fix sitemap index chunk URLs to same-domain URLs
-   - Change generated sitemap index entries from:
-     `https://awiytryceqehqapytfgn.supabase.co/storage/.../sitemap-N.xml`
-     to:
-     `https://visas.guide/sitemaps/sitemap-N.xml`
-   - Keep Supabase Storage as the backing store, but ensure search engines see same-host sitemap chunk URLs.
+## Article structure (each post)
 
-3. Add/adjust sitemap serving for `/sitemaps/sitemap-N.xml`
-   - Add an edge-function route capable of streaming individual sitemap XML files from Supabase Storage with:
-     - `Content-Type: application/xml; charset=utf-8`
-     - cache headers suitable for crawlers
-     - 404 for invalid sitemap names
-   - Then wire the app/hosting route so `https://visas.guide/sitemaps/sitemap-1.xml` resolves to that XML instead of the React SPA shell.
+Target **1,800–2,400 words**, human editorial voice (per `seo-human-content-strategy` memory — no "In conclusion", no AI tells, real author byline, ai_generated=false).
 
-4. Canonicalize visa requirement pages in React
-   - Update `src/pages/VisaRequirements.tsx` to compute the normalized slug by stripping a trailing `-visa-requirements`.
-   - Set `<link rel="canonical">` to `https://visas.guide/visa-requirements/{normalizedSlug}`.
-   - Keep the page able to load either URL variant for backward compatibility.
+```
+- H1 title (≤60 chars, "2026" + primary keyword)
+- Hook intro (real-world framing, May 2026 dateline)
+- Quick Facts box (fee, processing time, validity, eligibility)
+- H2: What Changed in 2026 / Why It Matters Now
+- H2: Who Needs It / Eligibility
+- H2: Step-by-Step Application
+- H2: Costs & Processing Times (table)
+- H2: Common Mistakes & Rejection Reasons
+- H2: FAQ (5–7 Q&As → FAQ-schema-ready)
+- Author byline + dateline
+- 2–3 contextual internal links to existing /countries or /visa pages
+```
 
-5. Add route-level redirects for duplicate visa URL variants
-   - If a visitor or bot lands on `/visa-requirements/{slug}-visa-requirements`, redirect to `/visa-requirements/{slug}`.
-   - This consolidates crawl signals and reduces “Duplicate, Google chose different canonical” / “Crawled - currently not indexed” risk.
+## SEO fields populated per post
 
-6. Add the missing static sitemap route entries
-   - Ensure routes such as `/visa-types/tourist`, `/visa-types/business`, `/visa-types/student`, `/policy-updates`, `/schengen-visa-guide`, `/rss`, `/feed`, and author pages that should be indexed are handled consistently in sitemap generation if they are public SEO targets.
-   - Keep admin/private utility pages out of the sitemap and out of public navigation.
+- `title`, `slug` (kebab-case, keyword-first)
+- `seo_title` (≤60 chars), `seo_description` (≤160 chars)
+- `excerpt` (140–160 chars, distinct from meta)
+- `categories`, `tags` (5–8 long-tail)
+- `featured_image_url` (Unsplash with `?w=1200&h=630&fit=crop&q=80` per memory)
+- `author_id` rotated across real bylines from `authors` table
+- `published_at` staggered over last 5 days (natural cadence)
+- `ai_generated = false`, `source_type = 'manual'`, `status = 'published'`
 
-7. Update the SEO dashboard checks
-   - Update `src/pages/admin/SEODashboard.tsx` so it checks the actual public sitemap entry point and same-domain chunks instead of the old Supabase Storage URL.
-   - Adjust health expectations to the current URL count, around 40k+ URLs after the fix.
+## Execution
 
-8. Republish and verify
-   - Deploy the updated edge function(s).
-   - Regenerate/publish the sitemap via `generate-static-sitemap?publish=1`.
-   - Verify:
-     - `https://visas.guide/sitemap.xml` returns a valid sitemap index.
-     - Each `<loc>` in the index is on `https://visas.guide/sitemaps/...`.
-     - `https://visas.guide/sitemaps/sitemap-1.xml` returns XML, not HTML.
-     - Sample visa pages from the GSC problem set return indexable pages with a self-referential canonical.
+1. Query `authors` table; pick 3–4 real bylines to rotate.
+2. Generate articles via Lovable AI Gateway (`google/gemini-3-flash-preview`) with strict editorial system prompt enforcing structure, May 2026 currency, no AI tells, internal-link suggestions.
+3. Bulk-insert into `news_articles` with all SEO fields via `psql`.
+4. Trigger `auto-indexnow` for the 10 new `/blog/{slug}` URLs.
+5. Verify: count published rows, spot-check 2 posts at `/blog` and `/blog/{slug}` in preview.
 
-9. Submit to search engines
-   - Resubmit `https://visas.guide/sitemap.xml` in Google Search Console and Bing Webmaster Tools.
-   - Trigger IndexNow for a sample of corrected URLs and the sitemap entry point.
+## Out of scope
 
-Expected impact:
-- Google will have a cleaner, same-domain sitemap structure.
-- The 39k+ visa requirement pages will be discoverable through a consistent canonical URL format.
-- Duplicate URL variants will stop competing with each other.
-- This should reduce the “Crawled - currently not indexed” bucket over the next reprocessing cycle, although Google’s indexing recovery is not immediate and may take days to weeks.
+- ETIAS content (reserved for dedicated hub — separate prompt)
+- New components, layout, schema, or CMS changes
+- Country guides in `content_pages` (this batch is news/blog only)
+
+## Deliverable
+
+10 published articles live at `/blog/{slug}`, surfacing on homepage's Latest Updates section, included in sitemap, and submitted to IndexNow.

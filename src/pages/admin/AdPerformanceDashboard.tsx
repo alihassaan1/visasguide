@@ -201,23 +201,66 @@ export default function AdPerformanceDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Ad Performance</h1>
           <p className="text-muted-foreground">Track banner ads and affiliate widget performance</p>
         </div>
-        <div className="flex gap-1 rounded-lg border p-1 bg-muted/50">
-          {dateRangeOptions.map((opt) => (
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex gap-1 rounded-lg border p-1 bg-muted/50">
+            {dateRangeOptions.map((opt) => (
+              <Button
+                key={opt.value}
+                variant={dateRange === opt.value ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setDateRange(opt.value)}
+              >
+                {opt.label}
+              </Button>
+            ))}
             <Button
-              key={opt.value}
-              variant={dateRange === opt.value ? "default" : "ghost"}
+              variant={dateRange === "custom" ? "default" : "ghost"}
               size="sm"
-              onClick={() => setDateRange(opt.value)}
+              onClick={() => setDateRange("custom")}
             >
-              {opt.label}
+              Custom
             </Button>
-          ))}
+          </div>
+          {dateRange === "custom" && (
+            <div className="flex items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("justify-start font-normal", !customStart && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {customStart ? format(customStart, "MMM dd, yyyy") : "Start"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={customStart} onSelect={setCustomStart} initialFocus className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+              <span className="text-muted-foreground text-sm">to</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("justify-start font-normal", !customEnd && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {customEnd ? format(customEnd, "MMM dd, yyyy") : "End"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={customEnd} onSelect={setCustomEnd} initialFocus className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
         </div>
+      </div>
+
+      <div className="text-xs text-muted-foreground">
+        Showing range: <span className="font-medium text-foreground">{format(startDate, "MMM dd, yyyy")}</span> → <span className="font-medium text-foreground">{format(endDate, "MMM dd, yyyy")}</span>
+        {" · "}Range impressions: <span className="font-medium text-foreground">{rangeImpressions.toLocaleString()}</span>
+        {" · "}Range clicks: <span className="font-medium text-foreground">{rangeClicks.toLocaleString()}</span>
+        {" · "}Range CTR: <span className="font-medium text-foreground">{rangeCTR}%</span>
       </div>
 
       {/* Summary Cards */}

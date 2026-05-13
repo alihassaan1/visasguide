@@ -6,13 +6,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Eye, MousePointerClick, Percent, Megaphone, ArrowUpDown, TrendingUp } from "lucide-react";
-import { format, subDays } from "date-fns";
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Eye, MousePointerClick, Percent, Megaphone, ArrowUpDown, TrendingUp, CalendarIcon } from "lucide-react";
+import { format, subDays, startOfDay, endOfDay } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 type SortKey = "clicks" | "impressions" | "ctr" | "priority";
 type SortDir = "asc" | "desc";
-type DateRange = "7d" | "30d" | "90d" | "all";
+type DateRange = "7d" | "30d" | "90d" | "all" | "custom";
 
 const dateRangeOptions: { value: DateRange; label: string }[] = [
   { value: "7d", label: "7 Days" },
@@ -23,13 +26,21 @@ const dateRangeOptions: { value: DateRange; label: string }[] = [
 
 export default function AdPerformanceDashboard() {
   const [dateRange, setDateRange] = useState<DateRange>("30d");
+  const [customStart, setCustomStart] = useState<Date | undefined>(subDays(new Date(), 14));
+  const [customEnd, setCustomEnd] = useState<Date | undefined>(new Date());
   const [bannerSort, setBannerSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "clicks", dir: "desc" });
 
-  const startDate = useMemo(() => {
-    if (dateRange === "all") return new Date("2020-01-01");
+  const { startDate, endDate } = useMemo(() => {
+    if (dateRange === "custom") {
+      return {
+        startDate: customStart ? startOfDay(customStart) : subDays(new Date(), 30),
+        endDate: customEnd ? endOfDay(customEnd) : new Date(),
+      };
+    }
+    if (dateRange === "all") return { startDate: new Date("2020-01-01"), endDate: new Date() };
     const days = dateRange === "7d" ? 7 : dateRange === "30d" ? 30 : 90;
-    return subDays(new Date(), days);
-  }, [dateRange]);
+    return { startDate: subDays(new Date(), days), endDate: new Date() };
+  }, [dateRange, customStart, customEnd]);
 
   // Fetch banner ads
   const { data: banners = [] } = useQuery({

@@ -311,25 +311,29 @@ export default function AdPerformanceDashboard() {
         </Card>
       </div>
 
-      {/* Performance Over Time */}
+      {/* Per-Day Banner Trends — for GA comparison */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5" /> Affiliate Clicks Over Time</CardTitle>
-          <CardDescription>Daily affiliate click events from analytics</CardDescription>
+          <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5" /> Banner Impressions & Clicks Per Day</CardTitle>
+          <CardDescription>
+            Per-day counts from analytics_events. Compare these to Google Analytics for the same date range.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
+          {dailyTrend.length > 0 ? (
+            <ResponsiveContainer width="100%" height={320}>
+              <LineChart data={dailyTrend}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                 <XAxis dataKey="date" className="text-xs fill-muted-foreground" />
                 <YAxis className="text-xs fill-muted-foreground" />
                 <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
-                <Bar dataKey="clicks" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              </BarChart>
+                <Legend />
+                <Line type="monotone" dataKey="impressions" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="clicks" stroke="hsl(var(--destructive))" strokeWidth={2} dot={false} />
+              </LineChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-center py-12 text-muted-foreground">No click data for the selected period</p>
+            <p className="text-center py-12 text-muted-foreground">No banner events for the selected period</p>
           )}
         </CardContent>
       </Card>
@@ -337,6 +341,7 @@ export default function AdPerformanceDashboard() {
       <Tabs defaultValue="banners" className="space-y-4">
         <TabsList>
           <TabsTrigger value="banners">Banner Ads ({banners.length})</TabsTrigger>
+          <TabsTrigger value="trends">Per-Day Trends</TabsTrigger>
           <TabsTrigger value="widgets">Affiliate Widgets ({widgets.length})</TabsTrigger>
           <TabsTrigger value="pages">Top Pages</TabsTrigger>
           <TabsTrigger value="log">Click Log</TabsTrigger>

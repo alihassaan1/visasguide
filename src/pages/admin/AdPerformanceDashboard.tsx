@@ -63,22 +63,36 @@ export default function AdPerformanceDashboard() {
     },
   });
 
-  // Fetch affiliate click events for time series & top pages
   const { data: clickEvents = [] } = useQuery({
-    queryKey: ["ad-perf-clicks", dateRange],
+    queryKey: ["ad-perf-clicks", startDate.toISOString(), endDate.toISOString()],
     queryFn: async () => {
       const { data } = await supabase
         .from("analytics_events")
         .select("created_at, page_slug, search_term")
         .eq("event_type", "affiliate_click")
         .gte("created_at", startDate.toISOString())
+        .lte("created_at", endDate.toISOString())
         .order("created_at", { ascending: false })
-        .limit(1000);
+        .limit(5000);
       return data || [];
     },
   });
 
-  // Summary stats
+  const { data: impressionEvents = [] } = useQuery({
+    queryKey: ["ad-perf-impressions", startDate.toISOString(), endDate.toISOString()],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("analytics_events")
+        .select("created_at, search_term, referrer_source")
+        .eq("event_type", "banner_impression")
+        .gte("created_at", startDate.toISOString())
+        .lte("created_at", endDate.toISOString())
+        .order("created_at", { ascending: false })
+        .limit(10000);
+      return data || [];
+    },
+  });
+
   const totalImpressions = banners.reduce((s, b) => s + (b.impressions || 0), 0);
   const totalBannerClicks = banners.reduce((s, b) => s + (b.click_count || 0), 0);
   const totalWidgetClicks = widgets.reduce((s, w) => s + (w.click_count || 0), 0);
@@ -86,17 +100,55 @@ export default function AdPerformanceDashboard() {
   const overallCTR = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : "0.00";
   const activeAds = banners.filter((b) => b.is_active).length + widgets.filter((w) => w.is_active).length;
 
-  // Time series chart data
-  const chartData = useMemo(() => {
-    const map: Record<string, number> = {};
+  const rangeImpressions = impressionEvents.length;
+  const rangeClicks = clickEvents.length;
+  const rangeCTR = rangeImpressions > 0 ? ((rangeClicks / rangeImpressions) * 100).toFixed(2) : "0.00";
+
+  const dailyTrend = useMemo(() => {
+    const map: Record<string, { impressions: number; clicks: number }> = {};
+    impressionEvents.forEach((e) => {
+      const day = format(new Date(e.created_at), "yyyy-MM-dd");
+      map[day] = map[day] || { impressions: 0, clicks: 0 };
+      map[day].impressions += 1;
+    });
     clickEvents.forEach((e) => {
       const day = format(new Date(e.created_at), "yyyy-MM-dd");
-      map[day] = (map[day] || 0) + 1;
+      map[day] = map[day] || { impressions: 0, clicks: 0 };
+      map[day].clicks += 1;
     });
     return Object.entries(map)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, clicks]) => ({ date: format(new Date(date), "MMM dd"), clicks }));
-  }, [clickEvents]);
+      .map(([date, v]) => ({
+        date: format(new Date(date), "MMM dd"),
+        impressions: v.impressions,
+        clicks: v.clicks,
+        ctr: v.impressions > 0 ? Number(((v.clicks / v.impressions) * 100).toFixed(2)) : 0,
+      }));
+  }, [impressionEvents, clickEvents]);
+
+  const bannerRangeBreakdown = useMemo(() => {
+    const map: Record<string, { impressions: number; clicks: number }> = {};
+    impressionEvents.forEach((e) => {
+      const name = e.search_term || "(unknown)";
+      map[name] = map[name] || { impressions: 0, clicks: 0 };
+      map[name].impressions += 1;
+    });
+    clickEvents.forEach((e) => {
+      const name = e.search_term || "(unknown)";
+      map[name] = map[name] || { impressions: 0, clicks: 0 };
+      map[name].clicks += 1;
+    });
+    return Object.entries(map)
+      .map(([name, v]) => ({
+        name,
+        impressions: v.impressions,
+        clicks: v.clicks,
+        ctr: v.impressions > 0 ? ((v.clicks / v.impressions) * 100).toFixed(2) : "0.00",
+      }))
+      .sort((a, b) => b.impressions - a.impressions);
+  }, [impressionEvents, clickEvents]);
+
+  const chartData = dailyTrend.map((d) => ({ date: d.date, clicks: d.clicks }));
 
   // Top pages
   const topPages = useMemo(() => {

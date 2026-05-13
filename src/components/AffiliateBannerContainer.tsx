@@ -154,7 +154,7 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
         });
       }
     }
-  }, [selectedBanner?.id, locationLoading]);
+  }, [selectedBanner?.id, locationLoading, currentPath]);
 
   if (!selectedBanner) return null;
 

@@ -40,8 +40,8 @@ const About = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="About Us - Visas.Guide | Your Trusted Visa Information Source"
-        description="Learn about Visas.Guide, our mission to simplify global travel, and meet our team of visa experts who help millions of travelers navigate visa requirements worldwide."
+        title="About Visas.Guide — Trusted Visa Information"
+        description="Learn about Visas.Guide and our team of visa experts who help travelers navigate visa requirements for 200+ countries worldwide."
         canonical="https://visas.guide/about"
         keywords={["about visas guide", "visa information team", "travel experts", "visa specialists"]}
       />

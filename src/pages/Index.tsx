@@ -19,8 +19,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={`Visa Guide ${CURRENT_YEAR} – Travel Visa Requirements, Visa Destinations & eVisa Info | Visas.Guide`}
-        description="Your complete visa guide for 200+ countries. Check travel visa requirements, visa-free destinations, eVisa options, and global visa processing times. Trusted by travelers worldwide."
+        title={`Visa Guide ${CURRENT_YEAR} — Requirements & eVisa Info | Visas.Guide`}
+        description="Visa requirements, eVisa info, and processing times for 200+ countries. Trusted by travelers worldwide."
         canonical="https://visas.guide/"
         keywords={["visa guide", "travel visa requirements", "visa requirements", "visa destinations", "visa destination", "visa map", "visamap", "visa worldwide", "visa list", "visa list by country", "visa requirements by country", "visa-free countries", "evisa", "passport information", "travel documentation", "visa application guide", "schengen visa", "tourist visa", "business visa", "global visa processing times", "passport index", "passport ranking", "passport rankings", "world passport rankings", "passport power ranking"]}
       />

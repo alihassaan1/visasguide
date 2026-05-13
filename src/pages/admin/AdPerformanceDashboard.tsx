@@ -6,13 +6,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Eye, MousePointerClick, Percent, Megaphone, ArrowUpDown, TrendingUp } from "lucide-react";
-import { format, subDays } from "date-fns";
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Eye, MousePointerClick, Percent, Megaphone, ArrowUpDown, TrendingUp, CalendarIcon } from "lucide-react";
+import { format, subDays, startOfDay, endOfDay } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 type SortKey = "clicks" | "impressions" | "ctr" | "priority";
 type SortDir = "asc" | "desc";
-type DateRange = "7d" | "30d" | "90d" | "all";
+type DateRange = "7d" | "30d" | "90d" | "all" | "custom";
 
 const dateRangeOptions: { value: DateRange; label: string }[] = [
   { value: "7d", label: "7 Days" },
@@ -23,13 +26,21 @@ const dateRangeOptions: { value: DateRange; label: string }[] = [
 
 export default function AdPerformanceDashboard() {
   const [dateRange, setDateRange] = useState<DateRange>("30d");
+  const [customStart, setCustomStart] = useState<Date | undefined>(subDays(new Date(), 14));
+  const [customEnd, setCustomEnd] = useState<Date | undefined>(new Date());
   const [bannerSort, setBannerSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "clicks", dir: "desc" });
 
-  const startDate = useMemo(() => {
-    if (dateRange === "all") return new Date("2020-01-01");
+  const { startDate, endDate } = useMemo(() => {
+    if (dateRange === "custom") {
+      return {
+        startDate: customStart ? startOfDay(customStart) : subDays(new Date(), 30),
+        endDate: customEnd ? endOfDay(customEnd) : new Date(),
+      };
+    }
+    if (dateRange === "all") return { startDate: new Date("2020-01-01"), endDate: new Date() };
     const days = dateRange === "7d" ? 7 : dateRange === "30d" ? 30 : 90;
-    return subDays(new Date(), days);
-  }, [dateRange]);
+    return { startDate: subDays(new Date(), days), endDate: new Date() };
+  }, [dateRange, customStart, customEnd]);
 
   // Fetch banner ads
   const { data: banners = [] } = useQuery({
@@ -52,22 +63,36 @@ export default function AdPerformanceDashboard() {
     },
   });
 
-  // Fetch affiliate click events for time series & top pages
   const { data: clickEvents = [] } = useQuery({
-    queryKey: ["ad-perf-clicks", dateRange],
+    queryKey: ["ad-perf-clicks", startDate.toISOString(), endDate.toISOString()],
     queryFn: async () => {
       const { data } = await supabase
         .from("analytics_events")
         .select("created_at, page_slug, search_term")
         .eq("event_type", "affiliate_click")
         .gte("created_at", startDate.toISOString())
+        .lte("created_at", endDate.toISOString())
         .order("created_at", { ascending: false })
-        .limit(1000);
+        .limit(5000);
       return data || [];
     },
   });
 
-  // Summary stats
+  const { data: impressionEvents = [] } = useQuery({
+    queryKey: ["ad-perf-impressions", startDate.toISOString(), endDate.toISOString()],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("analytics_events")
+        .select("created_at, search_term, referrer_source")
+        .eq("event_type", "banner_impression")
+        .gte("created_at", startDate.toISOString())
+        .lte("created_at", endDate.toISOString())
+        .order("created_at", { ascending: false })
+        .limit(10000);
+      return data || [];
+    },
+  });
+
   const totalImpressions = banners.reduce((s, b) => s + (b.impressions || 0), 0);
   const totalBannerClicks = banners.reduce((s, b) => s + (b.click_count || 0), 0);
   const totalWidgetClicks = widgets.reduce((s, w) => s + (w.click_count || 0), 0);
@@ -75,17 +100,55 @@ export default function AdPerformanceDashboard() {
   const overallCTR = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : "0.00";
   const activeAds = banners.filter((b) => b.is_active).length + widgets.filter((w) => w.is_active).length;
 
-  // Time series chart data
-  const chartData = useMemo(() => {
-    const map: Record<string, number> = {};
+  const rangeImpressions = impressionEvents.length;
+  const rangeClicks = clickEvents.length;
+  const rangeCTR = rangeImpressions > 0 ? ((rangeClicks / rangeImpressions) * 100).toFixed(2) : "0.00";
+
+  const dailyTrend = useMemo(() => {
+    const map: Record<string, { impressions: number; clicks: number }> = {};
+    impressionEvents.forEach((e) => {
+      const day = format(new Date(e.created_at), "yyyy-MM-dd");
+      map[day] = map[day] || { impressions: 0, clicks: 0 };
+      map[day].impressions += 1;
+    });
     clickEvents.forEach((e) => {
       const day = format(new Date(e.created_at), "yyyy-MM-dd");
-      map[day] = (map[day] || 0) + 1;
+      map[day] = map[day] || { impressions: 0, clicks: 0 };
+      map[day].clicks += 1;
     });
     return Object.entries(map)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, clicks]) => ({ date: format(new Date(date), "MMM dd"), clicks }));
-  }, [clickEvents]);
+      .map(([date, v]) => ({
+        date: format(new Date(date), "MMM dd"),
+        impressions: v.impressions,
+        clicks: v.clicks,
+        ctr: v.impressions > 0 ? Number(((v.clicks / v.impressions) * 100).toFixed(2)) : 0,
+      }));
+  }, [impressionEvents, clickEvents]);
+
+  const bannerRangeBreakdown = useMemo(() => {
+    const map: Record<string, { impressions: number; clicks: number }> = {};
+    impressionEvents.forEach((e) => {
+      const name = e.search_term || "(unknown)";
+      map[name] = map[name] || { impressions: 0, clicks: 0 };
+      map[name].impressions += 1;
+    });
+    clickEvents.forEach((e) => {
+      const name = e.search_term || "(unknown)";
+      map[name] = map[name] || { impressions: 0, clicks: 0 };
+      map[name].clicks += 1;
+    });
+    return Object.entries(map)
+      .map(([name, v]) => ({
+        name,
+        impressions: v.impressions,
+        clicks: v.clicks,
+        ctr: v.impressions > 0 ? ((v.clicks / v.impressions) * 100).toFixed(2) : "0.00",
+      }))
+      .sort((a, b) => b.impressions - a.impressions);
+  }, [impressionEvents, clickEvents]);
+
+  const chartData = dailyTrend.map((d) => ({ date: d.date, clicks: d.clicks }));
 
   // Top pages
   const topPages = useMemo(() => {
@@ -138,23 +201,66 @@ export default function AdPerformanceDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Ad Performance</h1>
           <p className="text-muted-foreground">Track banner ads and affiliate widget performance</p>
         </div>
-        <div className="flex gap-1 rounded-lg border p-1 bg-muted/50">
-          {dateRangeOptions.map((opt) => (
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex gap-1 rounded-lg border p-1 bg-muted/50">
+            {dateRangeOptions.map((opt) => (
+              <Button
+                key={opt.value}
+                variant={dateRange === opt.value ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setDateRange(opt.value)}
+              >
+                {opt.label}
+              </Button>
+            ))}
             <Button
-              key={opt.value}
-              variant={dateRange === opt.value ? "default" : "ghost"}
+              variant={dateRange === "custom" ? "default" : "ghost"}
               size="sm"
-              onClick={() => setDateRange(opt.value)}
+              onClick={() => setDateRange("custom")}
             >
-              {opt.label}
+              Custom
             </Button>
-          ))}
+          </div>
+          {dateRange === "custom" && (
+            <div className="flex items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("justify-start font-normal", !customStart && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {customStart ? format(customStart, "MMM dd, yyyy") : "Start"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={customStart} onSelect={setCustomStart} initialFocus className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+              <span className="text-muted-foreground text-sm">to</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("justify-start font-normal", !customEnd && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {customEnd ? format(customEnd, "MMM dd, yyyy") : "End"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={customEnd} onSelect={setCustomEnd} initialFocus className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
         </div>
+      </div>
+
+      <div className="text-xs text-muted-foreground">
+        Showing range: <span className="font-medium text-foreground">{format(startDate, "MMM dd, yyyy")}</span> → <span className="font-medium text-foreground">{format(endDate, "MMM dd, yyyy")}</span>
+        {" · "}Range impressions: <span className="font-medium text-foreground">{rangeImpressions.toLocaleString()}</span>
+        {" · "}Range clicks: <span className="font-medium text-foreground">{rangeClicks.toLocaleString()}</span>
+        {" · "}Range CTR: <span className="font-medium text-foreground">{rangeCTR}%</span>
       </div>
 
       {/* Summary Cards */}
@@ -205,25 +311,29 @@ export default function AdPerformanceDashboard() {
         </Card>
       </div>
 
-      {/* Performance Over Time */}
+      {/* Per-Day Banner Trends — for GA comparison */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5" /> Affiliate Clicks Over Time</CardTitle>
-          <CardDescription>Daily affiliate click events from analytics</CardDescription>
+          <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5" /> Banner Impressions & Clicks Per Day</CardTitle>
+          <CardDescription>
+            Per-day counts from analytics_events. Compare these to Google Analytics for the same date range.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
+          {dailyTrend.length > 0 ? (
+            <ResponsiveContainer width="100%" height={320}>
+              <LineChart data={dailyTrend}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                 <XAxis dataKey="date" className="text-xs fill-muted-foreground" />
                 <YAxis className="text-xs fill-muted-foreground" />
                 <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
-                <Bar dataKey="clicks" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              </BarChart>
+                <Legend />
+                <Line type="monotone" dataKey="impressions" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="clicks" stroke="hsl(var(--destructive))" strokeWidth={2} dot={false} />
+              </LineChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-center py-12 text-muted-foreground">No click data for the selected period</p>
+            <p className="text-center py-12 text-muted-foreground">No banner events for the selected period</p>
           )}
         </CardContent>
       </Card>
@@ -231,6 +341,7 @@ export default function AdPerformanceDashboard() {
       <Tabs defaultValue="banners" className="space-y-4">
         <TabsList>
           <TabsTrigger value="banners">Banner Ads ({banners.length})</TabsTrigger>
+          <TabsTrigger value="trends">Per-Day Trends</TabsTrigger>
           <TabsTrigger value="widgets">Affiliate Widgets ({widgets.length})</TabsTrigger>
           <TabsTrigger value="pages">Top Pages</TabsTrigger>
           <TabsTrigger value="log">Click Log</TabsTrigger>
@@ -280,7 +391,76 @@ export default function AdPerformanceDashboard() {
           </Card>
         </TabsContent>
 
-        {/* Affiliate Widgets Table */}
+        {/* Per-Day Trends */}
+        <TabsContent value="trends">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Daily Breakdown</CardTitle>
+                <CardDescription>Compare these numbers to GA's banner_impression / affiliate_click events</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {dailyTrend.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Impressions</TableHead>
+                        <TableHead className="text-right">Clicks</TableHead>
+                        <TableHead className="text-right">CTR</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {[...dailyTrend].reverse().map((d) => (
+                        <TableRow key={d.date}>
+                          <TableCell className="font-medium">{d.date}</TableCell>
+                          <TableCell className="text-right">{d.impressions.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">{d.clicks.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">{d.ctr}%</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-center py-8 text-muted-foreground">No events in this range</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Per-Banner (in range)</CardTitle>
+                <CardDescription>Event-log impressions and clicks per banner for the selected dates</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {bannerRangeBreakdown.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Banner</TableHead>
+                        <TableHead className="text-right">Impr.</TableHead>
+                        <TableHead className="text-right">Clicks</TableHead>
+                        <TableHead className="text-right">CTR</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {bannerRangeBreakdown.map((b) => (
+                        <TableRow key={b.name}>
+                          <TableCell className="font-medium">{b.name}</TableCell>
+                          <TableCell className="text-right">{b.impressions.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">{b.clicks.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">{b.ctr}%</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-center py-8 text-muted-foreground">No banner events in this range</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
         <TabsContent value="widgets">
           <Card>
             <CardContent className="pt-6">

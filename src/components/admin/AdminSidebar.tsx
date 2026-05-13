@@ -319,13 +319,15 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     </div>
   );
 
+  // When used inside the mobile Sheet (onClose provided), render content directly.
+  if (onClose) {
+    return sidebarContent;
+  }
+
   return (
-    <>
-      {/* Desktop Sidebar */}
-      <div className="hidden md:block w-64 bg-card border-r min-h-screen p-4">
-        {sidebarContent}
-      </div>
-    </>
+    <div className="hidden md:block w-64 bg-card border-r min-h-screen p-4">
+      {sidebarContent}
+    </div>
   );
 }
 

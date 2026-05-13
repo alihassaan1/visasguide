@@ -1,0 +1,43 @@
+# Visas.Guide
+
+> Visas.Guide is a global travel visa information platform covering visa requirements, eVisa applications, processing times, and passport rankings for 200+ countries. We help travelers navigate visa rules, policy updates, and destination guides.
+
+## Core Pages
+
+- [Home](https://visas.guide/): Visa requirements and travel guides for 200+ countries.
+- [About](https://visas.guide/about): Our mission, editorial team, and methodology.
+- [Editorial Policy](https://visas.guide/editorial-policy): How we research, write, and verify visa information.
+- [Affiliate Disclosure](https://visas.guide/affiliate-disclosure): How we monetize and partner with travel brands.
+- [Contact](https://visas.guide/contact): Get in touch with our team.
+
+## Visa Tools & Guides
+
+- [Countries](https://visas.guide/countries): Browse visa requirements by country.
+- [Visa Finder](https://visas.guide/visa-finder): Find visa requirements based on your passport and destination.
+- [Visa Requirements](https://visas.guide/visa-requirements): Detailed visa requirements lookup.
+- [Processing Times](https://visas.guide/processing-times): Current global visa processing time estimates.
+- [Passport Rankings](https://visas.guide/passport-index): World passport power rankings and visa-free access.
+- [Schengen Visa Guide](https://visas.guide/schengen-visa-guide): Complete guide to the Schengen visa.
+- [Visa Guides](https://visas.guide/visa-guides): In-depth country and visa-type guides.
+
+## Visa Types
+
+- [Tourist Visa](https://visas.guide/visa-types/tourist-visa): Tourist visa info across destinations.
+- [Business Visa](https://visas.guide/visa-types/business-visa): Business travel visa requirements.
+- [Student Visa](https://visas.guide/visa-types/student-visa): Student visa guides by country.
+
+## News & Updates
+
+- [News](https://visas.guide/news): Latest visa news and policy changes.
+- [Policy Updates](https://visas.guide/policy-updates): Breaking visa policy updates worldwide.
+- [RSS Feed](https://visas.guide/rss.xml): Subscribe to our news feed.
+
+## Trust & Legal
+
+- [Privacy Policy](https://visas.guide/privacy-policy)
+- [Terms of Service](https://visas.guide/terms-of-service)
+- [Cookie Policy](https://visas.guide/cookie-policy)
+
+## Optional
+
+- [Sitemap](https://visas.guide/sitemap.xml): Full URL index for search engines.

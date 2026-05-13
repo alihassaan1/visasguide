@@ -391,7 +391,76 @@ export default function AdPerformanceDashboard() {
           </Card>
         </TabsContent>
 
-        {/* Affiliate Widgets Table */}
+        {/* Per-Day Trends */}
+        <TabsContent value="trends">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Daily Breakdown</CardTitle>
+                <CardDescription>Compare these numbers to GA's banner_impression / affiliate_click events</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {dailyTrend.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Impressions</TableHead>
+                        <TableHead className="text-right">Clicks</TableHead>
+                        <TableHead className="text-right">CTR</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {[...dailyTrend].reverse().map((d) => (
+                        <TableRow key={d.date}>
+                          <TableCell className="font-medium">{d.date}</TableCell>
+                          <TableCell className="text-right">{d.impressions.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">{d.clicks.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">{d.ctr}%</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-center py-8 text-muted-foreground">No events in this range</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Per-Banner (in range)</CardTitle>
+                <CardDescription>Event-log impressions and clicks per banner for the selected dates</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {bannerRangeBreakdown.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Banner</TableHead>
+                        <TableHead className="text-right">Impr.</TableHead>
+                        <TableHead className="text-right">Clicks</TableHead>
+                        <TableHead className="text-right">CTR</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {bannerRangeBreakdown.map((b) => (
+                        <TableRow key={b.name}>
+                          <TableCell className="font-medium">{b.name}</TableCell>
+                          <TableCell className="text-right">{b.impressions.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">{b.clicks.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">{b.ctr}%</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-center py-8 text-muted-foreground">No banner events in this range</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
         <TabsContent value="widgets">
           <Card>
             <CardContent className="pt-6">

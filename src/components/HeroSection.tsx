@@ -43,6 +43,10 @@ const HeroSection = () => {
         <img 
           src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=80"
           alt="Airplane on runway at sunset - travel visa guide"
+          width={1920}
+          height={1080}
+          fetchPriority="high"
+          decoding="async"
           className="w-full h-full object-cover"
         />
         {/* Lighter, brighter overlays */}

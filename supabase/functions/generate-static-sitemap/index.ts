@@ -61,12 +61,22 @@ async function fetchAllRows(
   return allRows;
 }
 
-function generateSitemapXml(urls: { loc: string; changefreq: string; priority: string }[], currentDate: string): string {
+type SitemapUrl = { loc: string; changefreq: string; priority: string; lastmod?: string };
+
+function toLastmod(value: string | undefined, fallback: string): string {
+  if (!value) return fallback;
+  // Use full ISO 8601 timestamp (W3C Datetime) so Google sees granular freshness
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return fallback;
+  return d.toISOString();
+}
+
+function generateSitemapXml(urls: SitemapUrl[], currentDate: string): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map(url => `  <url>
     <loc>${url.loc}</loc>
-    <lastmod>${currentDate}</lastmod>
+    <lastmod>${url.lastmod || currentDate}</lastmod>
     <changefreq>${url.changefreq}</changefreq>
     <priority>${url.priority}</priority>
   </url>`).join('\n')}

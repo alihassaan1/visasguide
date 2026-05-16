@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { ThinCityEnricher } from "@/components/admin/ThinCityEnricher";
 
 const PROMPT_TEMPLATES = [
   {
@@ -349,6 +350,10 @@ export default function AIContentStudio() {
       <div className="mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">AI Content Studio</h1>
         <p className="text-muted-foreground">Generate SEO-optimized visa guides and articles with AI</p>
+      </div>
+
+      <div className="mb-6">
+        <ThinCityEnricher />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">

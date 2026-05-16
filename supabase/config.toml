@@ -125,3 +125,6 @@ verify_jwt = false
 
 [functions.gsc-fetch-data]
 verify_jwt = true
+
+[functions.enrich-thin-cities]
+verify_jwt = true

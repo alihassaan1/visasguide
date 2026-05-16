@@ -61,12 +61,22 @@ async function fetchAllRows(
   return allRows;
 }
 
-function generateSitemapXml(urls: { loc: string; changefreq: string; priority: string }[], currentDate: string): string {
+type SitemapUrl = { loc: string; changefreq: string; priority: string; lastmod?: string };
+
+function toLastmod(value: string | undefined, fallback: string): string {
+  if (!value) return fallback;
+  // Use full ISO 8601 timestamp (W3C Datetime) so Google sees granular freshness
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return fallback;
+  return d.toISOString();
+}
+
+function generateSitemapXml(urls: SitemapUrl[], currentDate: string): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map(url => `  <url>
     <loc>${url.loc}</loc>
-    <lastmod>${currentDate}</lastmod>
+    <lastmod>${url.lastmod || currentDate}</lastmod>
     <changefreq>${url.changefreq}</changefreq>
     <priority>${url.priority}</priority>
   </url>`).join('\n')}
@@ -93,7 +103,8 @@ Deno.serve(async (req) => {
     const shouldPublish = url.searchParams.get('publish') === '1' || url.searchParams.get('publish') === 'true';
 
     console.log('Starting comprehensive sitemap generation...');
-    const urls: { loc: string; changefreq: string; priority: string }[] = [];
+    const urls: SitemapUrl[] = [];
+    const nowIso = new Date().toISOString();
 
     // Static pages
     const staticPages = [
@@ -122,23 +133,25 @@ Deno.serve(async (req) => {
         loc: `${BASE_URL}${page.path}`,
         changefreq: page.changefreq,
         priority: page.priority,
+        lastmod: nowIso,
       });
     }
     console.log(`Added ${staticPages.length} static pages`);
 
     // Fetch ALL countries with pagination
-    const countries = await fetchAllRows('countries', 'slug', undefined, 'name');
+    const countries = await fetchAllRows('countries', 'slug, updated_at', undefined, 'name');
     for (const country of countries) {
       urls.push({
         loc: `${BASE_URL}/countries/${country.slug}`,
         changefreq: 'daily',
         priority: '0.8',
+        lastmod: toLastmod(country.updated_at, nowIso),
       });
     }
     console.log(`Added ${countries.length} country pages`);
 
     // Fetch ALL cities with country slugs using pagination
-    const cities = await fetchAllRows('cities', 'slug, countries(slug)', undefined, 'name');
+    const cities = await fetchAllRows('cities', 'slug, updated_at, countries(slug)', undefined, 'name');
     for (const city of cities) {
       const countrySlug = (city.countries as any)?.slug;
       if (countrySlug) {
@@ -146,6 +159,7 @@ Deno.serve(async (req) => {
           loc: `${BASE_URL}/${countrySlug}/${city.slug}`,
           changefreq: 'weekly',
           priority: '0.6',
+          lastmod: toLastmod(city.updated_at, nowIso),
         });
       }
     }
@@ -165,8 +179,6 @@ Deno.serve(async (req) => {
       let changefreq = 'weekly';
 
       if (page.slug.includes('-to-')) {
-        // Normalize: strip leading "visa-requirements/" prefix and trailing "-visa-requirements" suffix
-        // so every country pair has ONE canonical URL: /visa-requirements/{from}-to-{to}
         const normalized = page.slug
           .replace(/^visa-requirements\//, '')
           .replace(/-visa-requirements$/, '');
@@ -197,17 +209,19 @@ Deno.serve(async (req) => {
         loc: fullLoc,
         changefreq,
         priority,
+        lastmod: toLastmod(page.updated_at, nowIso),
       });
     }
     console.log(`Added ${contentPages.length} content pages`);
 
     // Fetch ALL guides with pagination
-    const guides = await fetchAllRows('guides', 'slug');
+    const guides = await fetchAllRows('guides', 'slug, updated_at');
     for (const guide of guides) {
       urls.push({
         loc: `${BASE_URL}/guides/${guide.slug}`,
         changefreq: 'monthly',
         priority: '0.7',
+        lastmod: toLastmod(guide.updated_at, nowIso),
       });
     }
     console.log(`Added ${guides.length} guide pages`);
@@ -215,7 +229,7 @@ Deno.serve(async (req) => {
     // Fetch ALL published news articles with pagination
     const news = await fetchAllRows(
       'news_articles', 
-      'slug, published_at',
+      'slug, published_at, updated_at',
       [{ column: 'status', value: 'published', operator: 'eq' }]
     );
     for (const article of news) {
@@ -223,6 +237,7 @@ Deno.serve(async (req) => {
         loc: `${BASE_URL}/blog/${article.slug}`,
         changefreq: 'monthly',
         priority: '0.5',
+        lastmod: toLastmod(article.updated_at || article.published_at, nowIso),
       });
     }
     console.log(`Added ${news.length} news articles`);

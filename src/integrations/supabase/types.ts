@@ -1004,6 +1004,63 @@ export type Database = {
         }
         Relationships: []
       }
+      gsc_url_index_status: {
+        Row: {
+          coverage_state: string | null
+          created_at: string
+          google_canonical: string | null
+          id: string
+          indexing_state: string | null
+          inspected_at: string
+          last_crawl_time: string | null
+          page_fetch_state: string | null
+          page_url: string
+          raw_response: Json | null
+          referring_urls: string[] | null
+          robots_txt_state: string | null
+          sitemap: string[] | null
+          updated_at: string
+          user_canonical: string | null
+          verdict: string | null
+        }
+        Insert: {
+          coverage_state?: string | null
+          created_at?: string
+          google_canonical?: string | null
+          id?: string
+          indexing_state?: string | null
+          inspected_at?: string
+          last_crawl_time?: string | null
+          page_fetch_state?: string | null
+          page_url: string
+          raw_response?: Json | null
+          referring_urls?: string[] | null
+          robots_txt_state?: string | null
+          sitemap?: string[] | null
+          updated_at?: string
+          user_canonical?: string | null
+          verdict?: string | null
+        }
+        Update: {
+          coverage_state?: string | null
+          created_at?: string
+          google_canonical?: string | null
+          id?: string
+          indexing_state?: string | null
+          inspected_at?: string
+          last_crawl_time?: string | null
+          page_fetch_state?: string | null
+          page_url?: string
+          raw_response?: Json | null
+          referring_urls?: string[] | null
+          robots_txt_state?: string | null
+          sitemap?: string[] | null
+          updated_at?: string
+          user_canonical?: string | null
+          verdict?: string | null
+        }
+        Relationships: []
+      }
       guides: {
         Row: {
           content: string

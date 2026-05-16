@@ -122,3 +122,6 @@ verify_jwt = false
 [functions.serve-sitemap]
 verify_jwt = false
 
+
+[functions.gsc-fetch-data]
+verify_jwt = true

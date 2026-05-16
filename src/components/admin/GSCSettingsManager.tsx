@@ -23,6 +23,7 @@ export function GSCSettingsManager() {
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [inspecting, setInspecting] = useState(false);
   const [settings, setSettings] = useState<GSCSettings>({
     client_email: "",
     private_key: "",
@@ -383,7 +384,51 @@ export function GSCSettingsManager() {
             ) : (
               <RefreshCw className="h-4 w-4 mr-2" />
             )}
-            Sync Data Now
+            Sync Performance Data
+          </Button>
+
+          <Button
+            onClick={async () => {
+              setInspecting(true);
+              try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) throw new Error('Not authenticated');
+                const res = await fetch(
+                  `https://awiytryceqehqapytfgn.supabase.co/functions/v1/gsc-fetch-data`,
+                  {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${session.access_token}`,
+                    },
+                    body: JSON.stringify({ action: 'inspect', limit: 50 }),
+                  }
+                );
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Inspection failed');
+                toast({
+                  title: 'URL Inspection Complete',
+                  description: `Inspected ${data.inspected}/${data.total} URLs (${data.failed} failed). Results saved to gsc_url_index_status.`,
+                });
+              } catch (e) {
+                toast({
+                  title: 'Inspection Failed',
+                  description: e instanceof Error ? e.message : 'Unknown error',
+                  variant: 'destructive',
+                });
+              } finally {
+                setInspecting(false);
+              }
+            }}
+            disabled={inspecting || !isConfigured}
+            variant="outline"
+          >
+            {inspecting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <CheckCircle className="h-4 w-4 mr-2" />
+            )}
+            Inspect URLs (50)
           </Button>
         </div>
 

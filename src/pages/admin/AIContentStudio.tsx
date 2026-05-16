@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { ThinCityEnricher } from "@/components/admin/ThinCityEnricher";
+import { VisaPageDifferentiator } from "@/components/admin/VisaPageDifferentiator";
 
 const PROMPT_TEMPLATES = [
   {

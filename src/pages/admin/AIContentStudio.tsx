@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { ThinCityEnricher } from "@/components/admin/ThinCityEnricher";
 
 const PROMPT_TEMPLATES = [
   {

@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { ThinCityEnricher } from "@/components/admin/ThinCityEnricher";
+import { VisaPageDifferentiator } from "@/components/admin/VisaPageDifferentiator";
 
 const PROMPT_TEMPLATES = [
   {
@@ -354,6 +355,10 @@ export default function AIContentStudio() {
 
       <div className="mb-6">
         <ThinCityEnricher />
+      </div>
+
+      <div className="mb-6">
+        <VisaPageDifferentiator />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">

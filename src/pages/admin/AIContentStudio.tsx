@@ -357,6 +357,10 @@ export default function AIContentStudio() {
         <ThinCityEnricher />
       </div>
 
+      <div className="mb-6">
+        <VisaPageDifferentiator />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Prompt Templates Sidebar */}
         <Card className="lg:col-span-1">

@@ -22,7 +22,7 @@ function ensureProtocol(url: string): string {
   }
 }
 interface AffiliateBannerContainerProps {
-  position: "sidebar-left" | "sidebar-right" | "horizontal-banner" | "in-content" | "footer";
+  position: "sidebar-right" | "horizontal-banner" | "in-content" | "footer";
 }
 
 interface AffiliateData {
@@ -34,6 +34,7 @@ interface AffiliateData {
   is_active: boolean;
   click_count: number;
   position: string;
+  positions: string[] | null;
   target_countries: string[] | null;
   exclude_countries: string[] | null;
   target_page_patterns: string[] | null;

@@ -1616,6 +1616,7 @@ export type Database = {
           is_active: boolean
           name: string
           position: string
+          positions: string[]
           priority: number | null
           start_date: string | null
           target_countries: string[] | null
@@ -1635,6 +1636,7 @@ export type Database = {
           is_active?: boolean
           name: string
           position?: string
+          positions?: string[]
           priority?: number | null
           start_date?: string | null
           target_countries?: string[] | null
@@ -1654,6 +1656,7 @@ export type Database = {
           is_active?: boolean
           name?: string
           position?: string
+          positions?: string[]
           priority?: number | null
           start_date?: string | null
           target_countries?: string[] | null

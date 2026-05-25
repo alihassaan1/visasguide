@@ -41,6 +41,7 @@ interface AffiliateData {
   is_active: boolean;
   click_count: number;
   position: string;
+  positions: string[];
   target_countries: string[];
   exclude_countries: string[];
   target_page_patterns: string[];
@@ -49,6 +50,13 @@ interface AffiliateData {
   end_date: string | null;
   impressions: number;
 }
+
+const POSITION_OPTIONS: { value: string; label: string }[] = [
+  { value: "sidebar-right", label: "Sidebar Right" },
+  { value: "horizontal-banner", label: "Horizontal" },
+  { value: "in-content", label: "In-Content" },
+  { value: "footer", label: "Footer" },
+];
 
 export default function MonetizationSettings() {
   const { toast } = useToast();

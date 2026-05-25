@@ -107,14 +107,20 @@ export default function MonetizationSettings() {
         .select('*')
         .order('priority', { ascending: false });
 
-      setAffiliates((affiliateData || []).map(aff => ({
-        ...aff,
-        target_countries: aff.target_countries || [],
-        exclude_countries: aff.exclude_countries || [],
-        target_page_patterns: aff.target_page_patterns || [],
-        priority: aff.priority || 0,
-        impressions: aff.impressions || 0,
-      })));
+      setAffiliates((affiliateData || []).map(aff => {
+        const positions = (aff as any).positions && (aff as any).positions.length > 0
+          ? (aff as any).positions
+          : (aff.position ? [aff.position] : []);
+        return {
+          ...aff,
+          positions,
+          target_countries: aff.target_countries || [],
+          exclude_countries: aff.exclude_countries || [],
+          target_page_patterns: aff.target_page_patterns || [],
+          priority: aff.priority || 0,
+          impressions: aff.impressions || 0,
+        };
+      }));
     } catch (error: any) {
       console.error('Error loading settings:', error);
     }

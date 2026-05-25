@@ -32,6 +32,10 @@ const Footer = () => {
 
   return (
     <footer className="bg-primary text-primary-foreground">
+      {/* Horizontal Banner - site-wide */}
+      <div className="container mx-auto px-4 pt-6">
+        <AffiliateBannerContainer position="horizontal-banner" />
+      </div>
       {/* Footer Banner */}
       <div className="container mx-auto px-4 pt-6">
         <AffiliateBannerContainer position="footer" />

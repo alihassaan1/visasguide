@@ -405,34 +405,44 @@ export default function MonetizationSettings() {
                             className="h-8 text-sm"
                           />
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <Label className="text-xs">Position</Label>
-                            <Select
-                              value={affiliate.position}
-                              onValueChange={(value) => updateLocal(affiliate.id, { position: value })}
-                            >
-                              <SelectTrigger className="h-8 text-sm">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-card border z-50">
-                                <SelectItem value="sidebar-left">Sidebar Left</SelectItem>
-                                <SelectItem value="sidebar-right">Sidebar Right</SelectItem>
-                                <SelectItem value="horizontal-banner">Horizontal</SelectItem>
-                                <SelectItem value="in-content">In-Content</SelectItem>
-                                <SelectItem value="footer">Footer</SelectItem>
-                              </SelectContent>
-                            </Select>
+                        <div>
+                          <Label className="text-xs">Positions (pick one or more)</Label>
+                          <div className="mt-1 flex flex-wrap gap-1.5">
+                            {POSITION_OPTIONS.map((opt) => {
+                              const selected = affiliate.positions.includes(opt.value);
+                              return (
+                                <button
+                                  key={opt.value}
+                                  type="button"
+                                  onClick={() => {
+                                    const next = selected
+                                      ? affiliate.positions.filter((p) => p !== opt.value)
+                                      : [...affiliate.positions, opt.value];
+                                    updateLocal(affiliate.id, { positions: next });
+                                  }}
+                                  className={`px-2.5 py-1 rounded-md border text-xs transition-colors ${
+                                    selected
+                                      ? 'bg-primary text-primary-foreground border-primary'
+                                      : 'bg-background hover:bg-muted border-input text-foreground'
+                                  }`}
+                                >
+                                  {opt.label}
+                                </button>
+                              );
+                            })}
                           </div>
-                          <div>
-                            <Label className="text-xs">Priority</Label>
-                            <Input
-                              type="number"
-                              value={affiliate.priority}
-                              onChange={(e) => updateLocal(affiliate.id, { priority: parseInt(e.target.value) || 0 })}
-                              className="h-8 text-sm"
-                            />
-                          </div>
+                          {affiliate.positions.length === 0 && (
+                            <p className="text-xs text-destructive mt-1">Select at least one position.</p>
+                          )}
+                        </div>
+                        <div>
+                          <Label className="text-xs">Priority</Label>
+                          <Input
+                            type="number"
+                            value={affiliate.priority}
+                            onChange={(e) => updateLocal(affiliate.id, { priority: parseInt(e.target.value) || 0 })}
+                            className="h-8 text-sm"
+                          />
                         </div>
                         {affiliate.target_url && affiliate.target_url !== 'https://example.com' && (
                           <Button variant="outline" size="sm" className="h-7 text-xs" asChild>
@@ -450,8 +460,8 @@ export default function MonetizationSettings() {
                           onChange={(url) => updateLocal(affiliate.id, { image_url: url })}
                           label="Banner Image"
                           storagePath="banners"
-                          maxWidth={affiliate.position?.startsWith('sidebar') ? 800 : 1200}
-                          maxHeight={affiliate.position === 'horizontal-banner' ? 400 : affiliate.position?.startsWith('sidebar') ? 1200 : 600}
+                          maxWidth={affiliate.positions.some(p => p.startsWith('sidebar')) ? 800 : 1200}
+                          maxHeight={affiliate.positions.includes('horizontal-banner') ? 400 : affiliate.positions.some(p => p.startsWith('sidebar')) ? 1200 : 600}
                         />
                       </div>
                     </div>

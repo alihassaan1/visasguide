@@ -1989,6 +1989,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_affiliate_click: {
+        Args: { p_banner_id: string }
+        Returns: undefined
+      }
       increment_banner_impression: {
         Args: { p_banner_id: string }
         Returns: undefined

@@ -102,11 +102,13 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
   const { data: banners } = useQuery({
     queryKey: ["affiliate-banners", position],
     queryFn: async () => {
+      // Match banners whose positions array contains this slot,
+      // OR whose legacy single `position` field equals it (back-compat).
       const { data, error } = await supabase
         .from("settings_affiliates")
         .select("*")
-        .eq("position", position)
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .or(`positions.cs.{${position}},position.eq.${position}`);
 
       if (error) throw error;
       return (data || []) as AffiliateData[];

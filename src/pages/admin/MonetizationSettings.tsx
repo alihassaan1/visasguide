@@ -168,6 +168,7 @@ export default function MonetizationSettings() {
         name: 'Banner',
         target_url: 'https://example.com',
         position: 'sidebar-right',
+        positions: ['sidebar-right'],
         is_active: false,
         html_embed: '',
         target_countries: [],

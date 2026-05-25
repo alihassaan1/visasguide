@@ -50,7 +50,7 @@ const CityPage = () => {
         .from('settings_affiliates')
         .select('*')
         .eq('is_active', true)
-        .in('position', ['in-content', 'horizontal-banner']);
+        .or('positions.ov.{in-content,horizontal-banner},position.in.(in-content,horizontal-banner)');
       
       if (error) throw error;
       return data || [];

@@ -22,7 +22,7 @@ function ensureProtocol(url: string): string {
   }
 }
 interface AffiliateBannerContainerProps {
-  position: "sidebar-left" | "sidebar-right" | "horizontal-banner" | "in-content" | "footer";
+  position: "sidebar-right" | "horizontal-banner" | "in-content" | "footer";
 }
 
 interface AffiliateData {
@@ -34,6 +34,7 @@ interface AffiliateData {
   is_active: boolean;
   click_count: number;
   position: string;
+  positions: string[] | null;
   target_countries: string[] | null;
   exclude_countries: string[] | null;
   target_page_patterns: string[] | null;
@@ -101,11 +102,13 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
   const { data: banners } = useQuery({
     queryKey: ["affiliate-banners", position],
     queryFn: async () => {
+      // Match banners whose positions array contains this slot,
+      // OR whose legacy single `position` field equals it (back-compat).
       const { data, error } = await supabase
         .from("settings_affiliates")
         .select("*")
-        .eq("position", position)
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .or(`positions.cs.{${position}},position.eq.${position}`);
 
       if (error) throw error;
       return (data || []) as AffiliateData[];

@@ -179,13 +179,25 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
       referrer_source: ensureProtocol(banner.target_url),
       visitor_location: countryCode ? { country: countryCode, position } : null,
     });
-    
-    // Atomic click count increment
-    supabase
-      .from('settings_affiliates')
-      .update({ click_count: (banner.click_count || 0) + 1 })
-      .eq('id', banner.id);
+
+    // Atomic click count increment (RPC bypasses RLS for anon visitors)
+    supabase.rpc('increment_affiliate_click', { p_banner_id: banner.id });
   };
+
+  // Detect iframe/embed clicks via window blur (React onClick doesn't fire on iframes)
+  useEffect(() => {
+    if (!selectedBanner?.html_embed) return;
+    let clicked = false;
+    const onBlur = () => {
+      if (document.activeElement?.tagName === 'IFRAME' && !clicked) {
+        clicked = true;
+        handleClick(selectedBanner);
+        setTimeout(() => { clicked = false; }, 2000);
+      }
+    };
+    window.addEventListener('blur', onBlur);
+    return () => window.removeEventListener('blur', onBlur);
+  }, [selectedBanner?.id]);
 
   const banner = selectedBanner;
 

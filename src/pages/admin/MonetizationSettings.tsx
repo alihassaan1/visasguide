@@ -218,6 +218,7 @@ export default function MonetizationSettings() {
 
     setSavingIds(prev => new Set(prev).add(id));
     try {
+      const positions = (aff.positions || []).filter(Boolean);
       const { error } = await supabase
         .from('settings_affiliates')
         .update({
@@ -225,7 +226,9 @@ export default function MonetizationSettings() {
           target_url: ensureProtocol(aff.target_url),
           html_embed: aff.html_embed,
           image_url: aff.image_url,
-          position: aff.position,
+          // Keep legacy `position` in sync with the first selected slot for back-compat
+          position: positions[0] || aff.position || 'sidebar-right',
+          positions,
           priority: aff.priority,
           target_countries: aff.target_countries.filter(c => c !== '__placeholder'),
           exclude_countries: aff.exclude_countries,

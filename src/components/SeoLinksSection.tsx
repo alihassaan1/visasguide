@@ -47,11 +47,11 @@ const SeoLinksSection = () => {
   ];
 
   return (
-    <section className="bg-[#0f172a] border-t border-slate-800">
+    <section className="bg-[#f5f6f8] border-t border-[#e8eaed]">
       <div className="container mx-auto px-4 py-12">
         <div className="flex items-center gap-2 mb-6">
-          <Globe2 className="h-4 w-4 text-slate-400" />
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <Globe2 className="h-4 w-4 text-gray-400" />
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500">
             Browse visa requirements by country
           </h2>
         </div>
@@ -59,13 +59,13 @@ const SeoLinksSection = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-6 gap-y-8">
           {REGION_ORDER.filter((r) => grouped[r]?.length).map((region) => (
             <div key={region}>
-              <h3 className="text-sm font-semibold text-white mb-3">{region}</h3>
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">{region}</h3>
               <ul className="space-y-1.5">
                 {grouped[region].map((c) => (
                   <li key={c.slug}>
                     <Link
                       to={`/countries/${c.slug}`}
-                      className="text-xs text-slate-300 hover:text-blue-400 transition-colors"
+                      className="text-xs text-gray-600 hover:text-blue-500 transition-colors"
                     >
                       {c.name} Visa Requirements
                     </Link>
@@ -76,8 +76,8 @@ const SeoLinksSection = () => {
           ))}
         </div>
 
-        <div className="mt-10 pt-6 border-t border-slate-800">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">
+        <div className="mt-10 pt-6 border-t border-[#e8eaed]">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
             Visa types & tools
           </h3>
           <div className="flex flex-wrap gap-x-5 gap-y-2">
@@ -85,7 +85,7 @@ const SeoLinksSection = () => {
               <Link
                 key={l.url}
                 to={l.url}
-                className="text-xs text-slate-300 hover:text-blue-400 transition-colors"
+                className="text-xs text-gray-600 hover:text-blue-500 transition-colors"
               >
                 {l.label}
               </Link>

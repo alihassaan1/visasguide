@@ -148,6 +148,47 @@ export default function AdPerformanceDashboard() {
       .sort((a, b) => b.impressions - a.impressions);
   }, [impressionEvents, clickEvents]);
 
+  // Per-banner × per-slot breakdown (uses referrer_source for impressions,
+  // visitor_location.position for clicks — both written by AffiliateBannerContainer).
+  const slotBreakdown = useMemo(() => {
+    const map: Record<string, { name: string; slot: string; impressions: number; clicks: number }> = {};
+    const keyFor = (name: string, slot: string) => `${name}::${slot}`;
+
+    impressionEvents.forEach((e: any) => {
+      const name = e.search_term || "(unknown)";
+      const slot = e.referrer_source || "(unspecified)";
+      const k = keyFor(name, slot);
+      map[k] = map[k] || { name, slot, impressions: 0, clicks: 0 };
+      map[k].impressions += 1;
+    });
+    clickEvents.forEach((e: any) => {
+      const name = e.search_term || "(unknown)";
+      const slot =
+        (e.visitor_location && typeof e.visitor_location === "object" && (e.visitor_location as any).position) ||
+        "(unspecified)";
+      const k = keyFor(name, slot);
+      map[k] = map[k] || { name, slot, impressions: 0, clicks: 0 };
+      map[k].clicks += 1;
+    });
+
+    return Object.values(map)
+      .map((r) => ({
+        ...r,
+        ctr: r.impressions > 0 ? ((r.clicks / r.impressions) * 100).toFixed(2) : "0.00",
+      }))
+      .sort((a, b) => b.impressions - a.impressions || b.clicks - a.clicks);
+  }, [impressionEvents, clickEvents]);
+
+  // Banners with more than one assigned slot — flagged in the breakdown UI.
+  const multiSlotBannerNames = useMemo(() => {
+    const set = new Set<string>();
+    banners.forEach((b: any) => {
+      const slots = new Set<string>([...(b.positions || []), ...(b.position ? [b.position] : [])]);
+      if (slots.size > 1) set.add(b.name);
+    });
+    return set;
+  }, [banners]);
+
   const chartData = dailyTrend.map((d) => ({ date: d.date, clicks: d.clicks }));
 
   // Top pages

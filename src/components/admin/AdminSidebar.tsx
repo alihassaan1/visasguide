@@ -36,6 +36,7 @@ import {
   X,
   BarChart3,
   Bell,
+  Image as ImageIcon,
 } from "lucide-react";
 
 interface MenuItem {
@@ -53,15 +54,11 @@ interface MenuGroup {
 type MenuItemOrGroup = MenuItem | MenuGroup;
 
 const isMenuGroup = (item: MenuItemOrGroup): item is MenuGroup => {
-  return 'children' in item;
+  return "children" in item;
 };
 
 const menuStructure: MenuItemOrGroup[] = [
-  {
-    title: "Dashboard",
-    icon: LayoutDashboard,
-    href: "/admin/dashboard",
-  },
+  { title: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
   {
     title: "Analytics",
     icon: TrendingUp,
@@ -76,7 +73,7 @@ const menuStructure: MenuItemOrGroup[] = [
     children: [
       { title: "All Pages", icon: FileText, href: "/admin/content" },
       { title: "Create New", icon: Sparkles, href: "/admin/ai-content-studio" },
-      { title: "Image Generator", icon: FileText, href: "/admin/image-generator" },
+      { title: "Image Generator", icon: ImageIcon, href: "/admin/image-generator" },
       { title: "Authors", icon: Users, href: "/admin/authors" },
       { title: "Policy Tracker", icon: Bell, href: "/admin/policy-tracker" },
     ],
@@ -134,16 +131,8 @@ const menuStructure: MenuItemOrGroup[] = [
 ];
 
 const adminOnlyItems: MenuItem[] = [
-  {
-    title: "Developer Agent",
-    icon: Code,
-    href: "/admin/developer-agent",
-  },
-  {
-    title: "Developer Settings",
-    icon: FileCode,
-    href: "/admin/developer-settings",
-  },
+  { title: "Developer Agent", icon: Code, href: "/admin/developer-agent" },
+  { title: "Developer Settings", icon: FileCode, href: "/admin/developer-settings" },
 ];
 
 interface AdminSidebarProps {
@@ -151,7 +140,7 @@ interface AdminSidebarProps {
   onClose?: () => void;
 }
 
-export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
+export function AdminSidebar({ onClose }: AdminSidebarProps) {
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [openGroups, setOpenGroups] = useState<string[]>([]);
@@ -160,70 +149,92 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     checkAdminRole();
   }, []);
 
-  // Auto-expand group containing active route
   useEffect(() => {
     const currentPath = location.pathname;
     menuStructure.forEach((item) => {
       if (isMenuGroup(item)) {
-        const hasActiveChild = item.children.some(child => currentPath === child.href);
+        const hasActiveChild = item.children.some((child) => currentPath === child.href);
         if (hasActiveChild && !openGroups.includes(item.title)) {
-          setOpenGroups(prev => [...prev, item.title]);
+          setOpenGroups((prev) => [...prev, item.title]);
         }
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
   const checkAdminRole = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
-
     const { data: roles } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', session.user.id)
-      .eq('role', 'admin');
-
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", session.user.id)
+      .eq("role", "admin");
     setIsAdmin(roles && roles.length > 0);
   };
 
   const toggleGroup = (title: string) => {
-    setOpenGroups(prev => 
-      prev.includes(title) 
-        ? prev.filter(t => t !== title)
-        : [...prev, title]
+    setOpenGroups((prev) =>
+      prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]
     );
   };
 
   const isActiveRoute = (href: string) => location.pathname === href;
+  const isGroupActive = (group: MenuGroup) =>
+    group.children.some((child) => location.pathname === child.href);
 
-  const isGroupActive = (group: MenuGroup) => {
-    return group.children.some(child => location.pathname === child.href);
-  };
+  const handleLinkClick = () => onClose?.();
 
-  const handleLinkClick = () => {
-    if (onClose) {
-      onClose();
-    }
-  };
-
-  const renderMenuItem = (item: MenuItem) => {
+  const renderTopItem = (item: MenuItem) => {
     const Icon = item.icon;
     const isActive = isActiveRoute(item.href);
-    
     return (
       <Link
         key={item.href}
         to={item.href}
         onClick={handleLinkClick}
         className={cn(
-          "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+          "group relative flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium transition-colors",
           isActive
-            ? "bg-primary text-primary-foreground"
+            ? "bg-primary/10 text-primary"
             : "text-muted-foreground hover:bg-muted hover:text-foreground"
         )}
       >
-        <Icon className="h-4 w-4" />
-        {item.title}
+        <span
+          className={cn(
+            "absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r bg-primary transition-opacity",
+            isActive ? "opacity-100" : "opacity-0"
+          )}
+        />
+        <Icon className="h-4 w-4 shrink-0" />
+        <span className="truncate">{item.title}</span>
+      </Link>
+    );
+  };
+
+  const renderChildItem = (item: MenuItem) => {
+    const Icon = item.icon;
+    const isActive = isActiveRoute(item.href);
+    return (
+      <Link
+        key={item.href}
+        to={item.href}
+        onClick={handleLinkClick}
+        className={cn(
+          "group relative flex items-center gap-2.5 rounded-md py-1.5 pl-9 pr-2.5 text-[13px] transition-colors",
+          isActive
+            ? "bg-primary/10 font-medium text-primary"
+            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+        )}
+      >
+        <span
+          className={cn(
+            "absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r bg-primary transition-opacity",
+            isActive ? "opacity-100" : "opacity-0"
+          )}
+        />
+        <Icon className="h-3.5 w-3.5 shrink-0 opacity-70" />
+        <span className="truncate">{item.title}</span>
       </Link>
     );
   };
@@ -234,104 +245,98 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     const hasActiveChild = isGroupActive(group);
 
     return (
-      <Collapsible
-        key={group.title}
-        open={isOpen}
-        onOpenChange={() => toggleGroup(group.title)}
-      >
+      <Collapsible key={group.title} open={isOpen} onOpenChange={() => toggleGroup(group.title)}>
         <CollapsibleTrigger
           className={cn(
-            "flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+            "group flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-[13px] font-medium transition-colors",
             hasActiveChild
-              ? "bg-muted text-foreground"
+              ? "text-foreground"
               : "text-muted-foreground hover:bg-muted hover:text-foreground"
           )}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <Icon className="h-4 w-4" />
-            {group.title}
+            <span className="truncate">{group.title}</span>
           </div>
-          <ChevronRight className={cn(
-            "h-4 w-4 transition-transform duration-200",
-            isOpen && "rotate-90"
-          )} />
+          <ChevronRight
+            className={cn(
+              "h-3.5 w-3.5 opacity-60 transition-transform duration-200",
+              isOpen && "rotate-90"
+            )}
+          />
         </CollapsibleTrigger>
-        <CollapsibleContent className="pl-4 mt-1 space-y-1">
-          {group.children.map((child) => {
-            const ChildIcon = child.icon;
-            const isActive = isActiveRoute(child.href);
-            
-            return (
-              <Link
-                key={child.href}
-                to={child.href}
-                onClick={handleLinkClick}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
-              >
-                <ChildIcon className="h-3.5 w-3.5" />
-                {child.title}
-              </Link>
-            );
-          })}
+        <CollapsibleContent className="mt-0.5 space-y-0.5">
+          {group.children.map(renderChildItem)}
         </CollapsibleContent>
       </Collapsible>
     );
   };
 
   const sidebarContent = (
-    <div className="flex flex-col h-full">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-foreground mb-1">Admin Panel</h2>
-          <p className="text-sm text-muted-foreground">Visas.Guide CMS</p>
-        </div>
+    <div className="flex h-full flex-col">
+      {/* Brand */}
+      <div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
+        <Link to="/admin/dashboard" className="flex items-center gap-2" onClick={handleLinkClick}>
+          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-sm">
+            <Globe className="h-4 w-4" />
+          </div>
+          <div className="leading-tight">
+            <p className="text-sm font-semibold">visas.guide</p>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Admin Console
+            </p>
+          </div>
+        </Link>
         {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose} className="md:hidden">
-            <X className="h-5 w-5" />
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 md:hidden">
+            <X className="h-4 w-4" />
           </Button>
         )}
       </div>
 
-      <ScrollArea className="flex-1 -mx-4 px-4">
-        <nav className="space-y-1">
-          {menuStructure.map((item) => 
-            isMenuGroup(item) ? renderMenuGroup(item) : renderMenuItem(item)
+      {/* Nav */}
+      <ScrollArea className="flex-1">
+        <nav className="space-y-0.5 px-3 py-4">
+          <p className="px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+            Workspace
+          </p>
+          {menuStructure.map((item) =>
+            isMenuGroup(item) ? renderMenuGroup(item) : renderTopItem(item)
           )}
 
-          {/* Admin-only section */}
           {isAdmin && (
-            <>
-              <div className="pt-4 mt-4 border-t">
-                <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                  Admin Only
-                </p>
-                {adminOnlyItems.map(renderMenuItem)}
-              </div>
-            </>
+            <div className="pt-4">
+              <p className="px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                Developer
+              </p>
+              <div className="space-y-0.5">{adminOnlyItems.map(renderTopItem)}</div>
+            </div>
           )}
         </nav>
       </ScrollArea>
+
+      {/* Footer */}
+      <div className="shrink-0 border-t px-4 py-3">
+        <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            All systems normal
+          </span>
+          <span>v2026.5</span>
+        </div>
+      </div>
     </div>
   );
 
-  // When used inside the mobile Sheet (onClose provided), render content directly.
-  if (onClose) {
-    return sidebarContent;
-  }
+  if (onClose) return sidebarContent;
 
   return (
-    <div className="hidden md:block w-64 bg-card border-r min-h-screen p-4">
+    <aside className="hidden h-screen w-60 shrink-0 border-r bg-card md:sticky md:top-0 md:block">
       {sidebarContent}
-    </div>
+    </aside>
   );
 }
 
-// Mobile Sidebar using Sheet
 export function MobileSidebar() {
   const [open, setOpen] = useState(false);
 
@@ -342,7 +347,7 @@ export function MobileSidebar() {
           <MenuIcon className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-72 p-4 bg-card">
+      <SheetContent side="left" className="w-72 bg-card p-0">
         <AdminSidebar onClose={() => setOpen(false)} />
       </SheetContent>
     </Sheet>

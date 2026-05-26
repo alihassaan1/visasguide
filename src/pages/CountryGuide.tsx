@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, DollarSign, FileText, Globe, Users, MapPin, TrendingUp, Plane, CheckCircle, ChevronDown, ChevronUp, Grid } from "lucide-react";
+import { Clock, DollarSign, FileText, Globe, Users, MapPin, TrendingUp, Plane, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import SEOHead from "@/components/SEOHead";
@@ -25,8 +25,6 @@ import VisaAlertTicker from "@/components/VisaAlertTicker";
 import CityCards from "@/components/CityCards";
 import GetYourGuideWidget from "@/components/GetYourGuideWidget";
 import AffiliateDisclosure from "@/components/AffiliateDisclosure";
-import VisaStatusGrid from "@/components/VisaStatusGrid";
-import ResidencyToggle, { ResidencyType } from "@/components/ResidencyToggle";
 import FAQSchema from "@/components/FAQSchema";
 import CountryPolicyTimeline from "@/components/CountryPolicyTimeline";
 import StickyVisaCheckBar from "@/components/StickyVisaCheckBar";
@@ -37,8 +35,6 @@ const CountryGuide = () => {
   const navigate = useNavigate();
   const [selectedPassportCountry, setSelectedPassportCountry] = useState<string>("");
   const [showAllVisitors, setShowAllVisitors] = useState(false);
-  const [showVisaGrid, setShowVisaGrid] = useState(false);
-  const [residency, setResidency] = useState<ResidencyType>("none");
   
   usePageTracking(`countries/${countrySlug}`);
   
@@ -458,37 +454,6 @@ const CountryGuide = () => {
                   )}
                 </div>
               </CardContent>
-            </Card>
-
-            {/* Where Can Citizens Travel - Visa Status Grid */}
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Grid className="h-5 w-5" />
-                    Where Can {country.name} Citizens Travel?
-                  </CardTitle>
-                  <Button
-                    variant={showVisaGrid ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setShowVisaGrid(!showVisaGrid)}
-                  >
-                    {showVisaGrid ? "Hide Grid" : "Show Visa Grid"}
-                  </Button>
-                </div>
-              </CardHeader>
-              {showVisaGrid && (
-                <CardContent>
-                  <div className="mb-4">
-                    <ResidencyToggle value={residency} onChange={setResidency} compact />
-                  </div>
-                  <VisaStatusGrid 
-                    fromCountryId={country.id} 
-                    fromCountrySlug={country.slug}
-                    residency={residency}
-                  />
-                </CardContent>
-              )}
             </Card>
 
             {processingTimes && processingTimes.length > 0 && (

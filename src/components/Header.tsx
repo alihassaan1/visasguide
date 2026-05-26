@@ -112,17 +112,53 @@ const Header = () => {
           </Link>
 
           {/* Navigation - Hidden on mobile */}
-          <nav className="hidden lg:flex items-center justify-center flex-1 min-w-0">
+          <nav className="hidden lg:flex items-center justify-center flex-1 min-w-0" ref={dropdownRef}>
             <div className="flex items-center space-x-2 xl:space-x-5">
-              {menuItems.map((item) => (
-                <Link 
-                  key={item.url}
-                  to={item.url} 
-                  className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap px-1"
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {menuItems.map((item) => {
+                if (item.children && item.children.length > 0) {
+                  const isOpen = openDropdown === item.url;
+                  return (
+                    <div
+                      key={item.url}
+                      className="relative"
+                      onMouseEnter={() => setOpenDropdown(item.url)}
+                      onMouseLeave={() => setOpenDropdown(null)}
+                    >
+                      <button
+                        className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap px-1 flex items-center gap-1"
+                        onClick={() => navigate(item.url)}
+                        aria-expanded={isOpen}
+                      >
+                        {item.label}
+                        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      {isOpen && (
+                        <div className="absolute top-full left-0 mt-1 w-56 bg-background border rounded-lg shadow-lg z-50 py-2">
+                          {item.children.map((child) => (
+                            <Link
+                              key={child.url}
+                              to={child.url}
+                              className="block px-4 py-2 text-sm hover:bg-muted hover:text-primary transition-colors"
+                              onClick={() => setOpenDropdown(null)}
+                            >
+                              {child.label}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                return (
+                  <Link 
+                    key={item.url}
+                    to={item.url} 
+                    className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap px-1"
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
             </div>
           </nav>
 

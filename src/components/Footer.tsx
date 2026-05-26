@@ -167,10 +167,6 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* SEO keyword cloud */}
-        <FooterKeywordCloud />
-
-
         {/* Bottom Bar */}
         <div className="border-t border-primary-foreground/20 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
@@ -188,7 +184,8 @@ const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>
+      </footer>
+    </>
   );
 };
 

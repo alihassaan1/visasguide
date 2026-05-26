@@ -20,7 +20,9 @@ const Header = () => {
   const [countries, setCountries] = useState<any[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchCountries = async () => {

@@ -172,12 +172,12 @@ const Header = () => {
             <div className="flex items-center space-x-2 shrink-0">
               <Link 
                 to="/rss" 
-                className="hidden sm:flex items-center justify-center h-9 w-9 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+                className="hidden xl:flex items-center justify-center h-9 w-9 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                 title="Subscribe to RSS Feed"
               >
                 <Rss className="h-4 w-4 text-primary" />
               </Link>
-              <div className="hidden sm:block relative" ref={searchRef}>
+              <div className="hidden xl:block relative" ref={searchRef}>
               <div className="flex items-center space-x-2 bg-muted rounded-lg px-3 py-2">
                 <Search className="h-4 w-4 text-muted-foreground" />
                 <Input 
@@ -213,7 +213,7 @@ const Header = () => {
             </div>
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="lg:hidden">
+                <Button variant="outline" size="icon" className="xl:hidden">
                   <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>

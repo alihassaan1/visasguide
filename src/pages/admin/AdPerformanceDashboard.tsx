@@ -382,11 +382,64 @@ export default function AdPerformanceDashboard() {
       <Tabs defaultValue="banners" className="space-y-4">
         <TabsList>
           <TabsTrigger value="banners">Banner Ads ({banners.length})</TabsTrigger>
+          <TabsTrigger value="slots">By Slot</TabsTrigger>
           <TabsTrigger value="trends">Per-Day Trends</TabsTrigger>
           <TabsTrigger value="widgets">Affiliate Widgets ({widgets.length})</TabsTrigger>
           <TabsTrigger value="pages">Top Pages</TabsTrigger>
           <TabsTrigger value="log">Click Log</TabsTrigger>
         </TabsList>
+
+        {/* Per-banner × per-slot breakdown */}
+        <TabsContent value="slots">
+          <Card>
+            <CardHeader>
+              <CardTitle>Impressions & Clicks by Slot</CardTitle>
+              <CardDescription>
+                For banners assigned to multiple placements, this splits performance by slot
+                (sidebar-right, horizontal-banner, in-content, footer). Based on analytics_events
+                within the selected date range.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Banner</TableHead>
+                    <TableHead>Slot</TableHead>
+                    <TableHead className="text-right">Impressions</TableHead>
+                    <TableHead className="text-right">Clicks</TableHead>
+                    <TableHead className="text-right">CTR</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {slotBreakdown.map((row) => (
+                    <TableRow key={`${row.name}-${row.slot}`}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {row.name}
+                          {multiSlotBannerNames.has(row.name) && (
+                            <Badge variant="outline" className="text-[10px]">multi-slot</Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell><Badge variant="secondary">{row.slot}</Badge></TableCell>
+                      <TableCell className="text-right">{row.impressions.toLocaleString()}</TableCell>
+                      <TableCell className="text-right">{row.clicks.toLocaleString()}</TableCell>
+                      <TableCell className="text-right">{row.ctr}%</TableCell>
+                    </TableRow>
+                  ))}
+                  {slotBreakdown.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        No banner events in this range
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* Banner Ads Table */}
         <TabsContent value="banners">

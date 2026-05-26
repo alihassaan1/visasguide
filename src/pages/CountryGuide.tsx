@@ -686,7 +686,15 @@ const CountryGuide = () => {
           ].filter(Boolean)}
         />
       </main>
-      
+
+      <StickyVisaCheckBar
+        countries={allCountries || []}
+        destinationName={ctrName}
+        destinationSlug={country.slug}
+        selectedPassport={selectedPassportCountry}
+        onSelectPassport={setSelectedPassportCountry}
+      />
+
       <Footer />
     </div>
   );

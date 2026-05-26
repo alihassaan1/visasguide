@@ -5,9 +5,7 @@ import NewsletterSignup from "@/components/NewsletterSignup";
 import SEOHead from "@/components/SEOHead";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import DestinationCarousel from "@/components/DestinationCarousel";
-import QuickLinks from "@/components/QuickLinks";
 import LatestGuidesSection from "@/components/LatestGuidesSection";
-import FeaturedAuthorsSection from "@/components/FeaturedAuthorsSection";
 import LatestNewsSection from "@/components/LatestNewsSection";
 import BreakingPolicyUpdates from "@/components/BreakingPolicyUpdates";
 import OrganizationSchema from "@/components/OrganizationSchema";
@@ -94,15 +92,10 @@ const Index = () => {
           </div>
         </section>
 
-        <div className="bg-muted/30">
-          <FeaturedAuthorsSection />
-        </div>
         <BreakingPolicyUpdates />
         <LatestNewsSection />
-        
+
         <div className="container mx-auto px-4">
-          <QuickLinks />
-          
           <div className="py-12">
             <NewsletterSignup variant="default" />
           </div>

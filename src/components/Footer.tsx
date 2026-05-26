@@ -4,6 +4,7 @@ import { Mail, Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-re
 import { Link } from "react-router-dom";
 import { CURRENT_YEAR } from "@/lib/constants";
 import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
+import FooterKeywordCloud from "@/components/FooterKeywordCloud";
 
 const Footer = () => {
   const { data: footerLinks } = useQuery({
@@ -163,6 +164,10 @@ const Footer = () => {
             </div>
           </div>
         </div>
+
+        {/* SEO keyword cloud */}
+        <FooterKeywordCloud />
+
 
         {/* Bottom Bar */}
         <div className="border-t border-primary-foreground/20 py-6">

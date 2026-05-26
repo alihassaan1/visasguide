@@ -4,24 +4,54 @@ import { supabase } from "@/integrations/supabase/client";
 import { Users, FileText, Sparkles, Eye, DollarSign } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
+
+// Build last 6 months bucket boundaries
+const buildLast6Months = () => {
+  const now = new Date();
+  return Array.from({ length: 6 }, (_, i) => {
+    const start = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() - (5 - i) + 1, 1);
+    return {
+      month: start.toLocaleString('default', { month: 'short' }),
+      startISO: start.toISOString(),
+      endISO: end.toISOString(),
+    };
+  });
+};
+
 export default function AdminDashboard() {
-  // Fetch content pages count
+  // Total content pages (published only — matches what users see)
   const { data: pageStats, isLoading: pagesLoading } = useQuery({
     queryKey: ['admin-pages-stats'],
     queryFn: async () => {
-      const [totalRes, topPagesRes] = await Promise.all([
+      const [totalRes, publishedRes, topPagesRes] = await Promise.all([
         supabase.from('content_pages').select('id', { count: 'exact', head: true }),
+        supabase.from('content_pages').select('id', { count: 'exact', head: true }).eq('is_published', true),
         supabase.from('content_pages').select('id, title, slug, view_count').order('view_count', { ascending: false }).limit(10),
       ]);
       return {
         total: totalRes.count || 0,
+        published: publishedRes.count || 0,
         topPages: topPagesRes.data || [],
       };
     },
     staleTime: 30000,
   });
 
-  // Fetch newsletter subscribers count
+  // Total page views — use count query so we aren't capped at 1000 rows
+  const { data: totalViews = 0, isLoading: viewsLoading } = useQuery({
+    queryKey: ['admin-total-views'],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('analytics_events')
+        .select('*', { count: 'exact', head: true })
+        .eq('event_type', 'page_view');
+      return count || 0;
+    },
+    staleTime: 30000,
+  });
+
+  // Newsletter subscribers
   const { data: subsCount = 0, isLoading: subsLoading } = useQuery({
     queryKey: ['admin-subscribers-count'],
     queryFn: async () => {
@@ -34,9 +64,9 @@ export default function AdminDashboard() {
     staleTime: 30000,
   });
 
-  // Fetch user roles count (freelancers)
-  const { data: freelancerCount = 0, isLoading: freelancersLoading } = useQuery({
-    queryKey: ['admin-freelancers-count'],
+  // Team members (all assigned roles)
+  const { data: teamCount = 0, isLoading: teamLoading } = useQuery({
+    queryKey: ['admin-team-count'],
     queryFn: async () => {
       const { count } = await supabase
         .from('user_roles')
@@ -46,7 +76,7 @@ export default function AdminDashboard() {
     staleTime: 30000,
   });
 
-  // Fetch affiliate clicks
+  // Affiliate clicks
   const { data: affiliateClicks = 0, isLoading: affiliatesLoading } = useQuery({
     queryKey: ['admin-affiliate-clicks'],
     queryFn: async () => {
@@ -58,7 +88,7 @@ export default function AdminDashboard() {
     staleTime: 30000,
   });
 
-  // Fetch AI generations count
+  // AI generations
   const { data: aiGenerationsCount = 0, isLoading: aiLoading } = useQuery({
     queryKey: ['admin-ai-generations-count'],
     queryFn: async () => {
@@ -70,74 +100,61 @@ export default function AdminDashboard() {
     staleTime: 30000,
   });
 
-  // Fetch analytics events
-  const { data: analyticsEvents = [], isLoading: analyticsLoading } = useQuery({
-    queryKey: ['admin-analytics-events'],
+  // Monthly traffic — one count query per month so we aren't capped at 1000 rows
+  const months = buildLast6Months();
+  const { data: monthlyTraffic = [], isLoading: trafficLoading } = useQuery({
+    queryKey: ['admin-monthly-traffic'],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('analytics_events')
-        .select('event_type, page_slug, created_at');
-      return data || [];
+      const results = await Promise.all(
+        months.map(async (m) => {
+          const { count } = await supabase
+            .from('analytics_events')
+            .select('*', { count: 'exact', head: true })
+            .eq('event_type', 'page_view')
+            .gte('created_at', m.startISO)
+            .lt('created_at', m.endISO);
+          return { month: m.month, views: count || 0 };
+        })
+      );
+      return results;
     },
-    staleTime: 30000,
+    staleTime: 60000,
   });
 
-
-  // Calculate derived stats
-  const pageViews = analyticsEvents.filter(e => e.event_type === 'page_view');
-  const totalViews = pageViews.length;
-  const totalPages = pageStats?.total || 0;
-
-  // Count views per page slug from analytics
-  const pageViewCounts: Record<string, number> = {};
-  pageViews.forEach(view => {
-    if (view.page_slug) {
-      pageViewCounts[view.page_slug] = (pageViewCounts[view.page_slug] || 0) + 1;
-    }
+  // Content growth — posts published per month
+  const { data: monthlyPosts = [], isLoading: postsLoading } = useQuery({
+    queryKey: ['admin-monthly-posts'],
+    queryFn: async () => {
+      const results = await Promise.all(
+        months.map(async (m) => {
+          const { count } = await supabase
+            .from('content_pages')
+            .select('*', { count: 'exact', head: true })
+            .eq('is_published', true)
+            .gte('created_at', m.startISO)
+            .lt('created_at', m.endISO);
+          return { month: m.month, posts: count || 0 };
+        })
+      );
+      return results;
+    },
+    staleTime: 60000,
   });
 
-  // Get top pages with actual view counts (from query)
-  const topPages = (pageStats?.topPages || []).map(page => ({
-    ...page,
-    view_count: pageViewCounts[page.slug] || page.view_count || 0
-  })).sort((a, b) => b.view_count - a.view_count);
+  const totalPages = pageStats?.published || pageStats?.total || 0;
+  const topPages = pageStats?.topPages || [];
+  const avgViews = totalPages > 0 ? Math.round(totalViews / totalPages) : 0;
 
-  // Generate monthly data from actual analytics
-  const last6Months = Array.from({ length: 6 }, (_, i) => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - (5 - i));
-    return {
-      month: date.toLocaleString('default', { month: 'short' }),
-      year: date.getFullYear(),
-      monthNum: date.getMonth()
-    };
-  });
-
-  const monthlyData = last6Months.map(({ month, year, monthNum }) => {
-    const monthViews = pageViews.filter((view: any) => {
-      const viewDate = new Date(view.created_at);
-      return viewDate.getMonth() === monthNum && viewDate.getFullYear() === year;
-    }).length;
-    
-    return {
-      month,
-      views: monthViews,
-      posts: 0
-    };
-  });
-
-  const isLoading = pagesLoading || analyticsLoading;
-
-  const StatCard = ({ 
-    title, 
-    value, 
-    icon: Icon, 
-    description, 
-    loading 
-  }: { 
-    title: string; 
-    value: number | string; 
-    icon: any; 
+  const StatCard = ({
+    title,
+    value,
+    icon: Icon,
+    description,
+    loading,
+  }: {
+    title: string;
+    value: number | string;
+    icon: any;
     description: string;
     loading?: boolean;
   }) => (
@@ -168,47 +185,49 @@ export default function AdminDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        <StatCard 
-          title="Total Pages" 
-          value={totalPages} 
-          icon={FileText} 
-          description="All content pages"
+        <StatCard
+          title="Published Pages"
+          value={totalPages}
+          icon={FileText}
+          description={pageStats && pageStats.total !== pageStats.published
+            ? `${pageStats.total.toLocaleString()} total (incl. drafts)`
+            : "All content pages"}
           loading={pagesLoading}
         />
-        <StatCard 
-          title="Total Views" 
-          value={totalViews} 
-          icon={Eye} 
-          description={`Avg: ${totalPages > 0 ? Math.round(totalViews / totalPages) : 0} per page`}
-          loading={analyticsLoading}
+        <StatCard
+          title="Total Page Views"
+          value={totalViews}
+          icon={Eye}
+          description={`Avg: ${avgViews.toLocaleString()} per page`}
+          loading={viewsLoading || pagesLoading}
         />
-        <StatCard 
-          title="Newsletter Subscribers" 
-          value={subsCount} 
-          icon={Users} 
+        <StatCard
+          title="Newsletter Subscribers"
+          value={subsCount}
+          icon={Users}
           description="Active subscribers"
           loading={subsLoading}
         />
-        <StatCard 
-          title="AI Content Generated" 
-          value={aiGenerationsCount} 
-          icon={Sparkles} 
+        <StatCard
+          title="AI Content Generated"
+          value={aiGenerationsCount}
+          icon={Sparkles}
           description="AI generations"
           loading={aiLoading}
         />
-        <StatCard 
-          title="Affiliate Clicks" 
-          value={affiliateClicks} 
-          icon={DollarSign} 
+        <StatCard
+          title="Affiliate Clicks"
+          value={affiliateClicks}
+          icon={DollarSign}
           description="Total tracked clicks"
           loading={affiliatesLoading}
         />
-        <StatCard 
-          title="Active Freelancers" 
-          value={freelancerCount} 
-          icon={Users} 
-          description="Content creators"
-          loading={freelancersLoading}
+        <StatCard
+          title="Team Members"
+          value={teamCount}
+          icon={Users}
+          description="Admins & contributors with roles"
+          loading={teamLoading}
         />
       </div>
 
@@ -220,11 +239,11 @@ export default function AdminDashboard() {
             <CardDescription>Page views over the last 6 months</CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
+            {trafficLoading ? (
               <Skeleton className="h-[300px] w-full" />
             ) : (
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={monthlyData}>
+                <LineChart data={monthlyTraffic}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
@@ -242,11 +261,11 @@ export default function AdminDashboard() {
             <CardDescription>Posts published per month</CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
+            {postsLoading ? (
               <Skeleton className="h-[300px] w-full" />
             ) : (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={monthlyData}>
+                <BarChart data={monthlyPosts}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />

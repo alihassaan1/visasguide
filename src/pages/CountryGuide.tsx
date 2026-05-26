@@ -29,6 +29,8 @@ import VisaStatusGrid from "@/components/VisaStatusGrid";
 import ResidencyToggle, { ResidencyType } from "@/components/ResidencyToggle";
 import FAQSchema from "@/components/FAQSchema";
 import CountryPolicyTimeline from "@/components/CountryPolicyTimeline";
+import StickyVisaCheckBar from "@/components/StickyVisaCheckBar";
+import { useDetectedCountry } from "@/hooks/useDetectedCountry";
 
 const CountryGuide = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
@@ -119,6 +121,16 @@ const CountryGuide = () => {
       return data || [];
     }
   });
+
+  // Auto-detect user's passport country via IP geolocation
+  const detectedCode = useDetectedCountry();
+  useEffect(() => {
+    if (selectedPassportCountry || !detectedCode || !allCountries?.length) return;
+    const match = allCountries.find(c => c.code?.toUpperCase() === detectedCode);
+    if (match && match.slug !== countrySlug) {
+      setSelectedPassportCountry(match.id);
+    }
+  }, [detectedCode, allCountries, selectedPassportCountry, countrySlug]);
 
   const { data: visaRequirements } = useQuery({
     queryKey: ['visa-requirements', country?.id],
@@ -588,135 +600,56 @@ const CountryGuide = () => {
           <div className="space-y-5">
             {/* Country Quick Facts */}
             <Card className="overflow-hidden">
-              {/* Gradient Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                    <Globe className="h-4 w-4 text-white" />
-                  </div>
-                  <h3 className="font-semibold text-white">Quick Facts</h3>
-                </div>
-              </div>
+              <CardHeader className="pb-3 border-b">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  Quick Facts
+                </CardTitle>
+              </CardHeader>
               <CardContent className="p-0">
-                <div className="divide-y divide-border">
-                  {/* Capital */}
-                  <div className="flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors">
-                    <span className="text-muted-foreground flex items-center gap-2.5 text-sm">
-                      <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                        <MapPin className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <dl className="divide-y divide-border">
+                  {[
+                    { icon: MapPin, label: "Capital", value: country.capital },
+                    { icon: DollarSign, label: "Currency", value: country.currency },
+                    { icon: Globe, label: "Region", value: country.region },
+                    { icon: FileText, label: "Language", value: country.language },
+                    { icon: Users, label: "Population", value: country.population ? formatNumber(country.population) : null },
+                    country.tourism_revenue_usd ? { icon: DollarSign, label: "Tourism Revenue", value: `$${formatNumber(country.tourism_revenue_usd)}` } : null,
+                    country.peak_travel_months ? { icon: TrendingUp, label: "Peak Season", value: country.peak_travel_months } : null,
+                  ].filter(Boolean).map((row, i) => {
+                    const Icon = (row as any).icon;
+                    return (
+                      <div key={i} className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
+                        <dt className="flex items-center gap-2 text-muted-foreground">
+                          <Icon className="h-4 w-4" />
+                          {(row as any).label}
+                        </dt>
+                        <dd className="font-medium text-foreground text-right truncate max-w-[60%]">
+                          {(row as any).value || "N/A"}
+                        </dd>
                       </div>
-                      Capital
-                    </span>
-                    <span className="font-semibold text-blue-600 dark:text-blue-400">{country.capital || 'N/A'}</span>
-                  </div>
-                  
-                  {/* Currency */}
-                  <div className="flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors">
-                    <span className="text-muted-foreground flex items-center gap-2.5 text-sm">
-                      <div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                        <DollarSign className="h-4 w-4 text-green-600 dark:text-green-400" />
-                      </div>
-                      Currency
-                    </span>
-                    <span className="font-semibold text-green-600 dark:text-green-400">{country.currency || 'N/A'}</span>
-                  </div>
-                  
-                  {/* Region */}
-                  <div className="flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors">
-                    <span className="text-muted-foreground flex items-center gap-2.5 text-sm">
-                      <div className="h-8 w-8 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
-                        <Globe className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-                      </div>
-                      Region
-                    </span>
-                    <span className="font-semibold text-teal-600 dark:text-teal-400">{country.region || 'N/A'}</span>
-                  </div>
-                  
-                  {/* Language */}
-                  <div className="flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors">
-                    <span className="text-muted-foreground flex items-center gap-2.5 text-sm">
-                      <div className="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                        <FileText className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                      </div>
-                      Language
-                    </span>
-                    <span className="font-semibold text-purple-600 dark:text-purple-400">{country.language || 'N/A'}</span>
-                  </div>
-                  
-                  {/* Population */}
-                  <div className="flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors">
-                    <span className="text-muted-foreground flex items-center gap-2.5 text-sm">
-                      <div className="h-8 w-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                        <Users className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                      </div>
-                      Population
-                    </span>
-                    <span className="font-semibold text-orange-600 dark:text-orange-400">
-                      {country.population ? formatNumber(country.population) : 'N/A'}
-                    </span>
-                  </div>
-                  
-                  {/* Tourism Revenue */}
-                  {country.tourism_revenue_usd && (
-                    <div className="flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors">
-                      <span className="text-muted-foreground flex items-center gap-2.5 text-sm">
-                        <div className="h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                          <DollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                        </div>
-                        Tourism Revenue
-                      </span>
-                      <span className="font-semibold text-emerald-600 dark:text-emerald-400">${formatNumber(country.tourism_revenue_usd)}</span>
-                    </div>
-                  )}
-                  
-                  {/* Peak Season */}
-                  {country.peak_travel_months && (
-                    <div className="flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors">
-                      <span className="text-muted-foreground flex items-center gap-2.5 text-sm">
-                        <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                          <TrendingUp className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                        </div>
-                        Peak Season
-                      </span>
-                      <span className="font-semibold text-amber-600 dark:text-amber-400 text-right text-sm max-w-[120px]">{country.peak_travel_months}</span>
-                    </div>
-                  )}
-                </div>
+                    );
+                  })}
+                </dl>
               </CardContent>
             </Card>
 
             {/* Top Visitor Origins */}
             {country.top_source_countries && country.top_source_countries.length > 0 && (
-              <Card className="overflow-hidden">
-                {/* Gradient Header */}
-                <div className="bg-gradient-to-r from-teal-600 to-cyan-600 px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                      <Users className="h-4 w-4 text-white" />
-                    </div>
-                    <h3 className="font-semibold text-white">Top Visitor Origins</h3>
-                  </div>
-                </div>
+              <Card>
+                <CardHeader className="pb-3 border-b">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    Top Visitor Origins
+                  </CardTitle>
+                </CardHeader>
                 <CardContent className="p-4">
                   <div className="flex flex-wrap gap-2">
-                    {country.top_source_countries.slice(0, 5).map((c, i) => {
-                      const badgeColors = [
-                        'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800',
-                        'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
-                        'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border-purple-200 dark:border-purple-800',
-                        'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 border-orange-200 dark:border-orange-800',
-                        'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300 border-pink-200 dark:border-pink-800',
-                      ];
-                      return (
-                        <Badge 
-                          key={i} 
-                          variant="outline" 
-                          className={`text-xs font-medium px-3 py-1.5 border ${badgeColors[i % badgeColors.length]}`}
-                        >
-                          {c}
-                        </Badge>
-                      );
-                    })}
+                    {country.top_source_countries.slice(0, 5).map((c, i) => (
+                      <Badge key={i} variant="secondary" className="text-xs font-medium px-3 py-1.5">
+                        {c}
+                      </Badge>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -753,7 +686,15 @@ const CountryGuide = () => {
           ].filter(Boolean)}
         />
       </main>
-      
+
+      <StickyVisaCheckBar
+        countries={allCountries || []}
+        destinationName={ctrName}
+        destinationSlug={country.slug}
+        selectedPassport={selectedPassportCountry}
+        onSelectPassport={setSelectedPassportCountry}
+      />
+
       <Footer />
     </div>
   );

@@ -74,9 +74,9 @@ export function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="flex min-h-screen w-full bg-muted/30">
       <AdminSidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <AdminHeader />
         <main className="flex-1 overflow-auto">
           <AdminErrorBoundary fallbackTitle="Dashboard Error">

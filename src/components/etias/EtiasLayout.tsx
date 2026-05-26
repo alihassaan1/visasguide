@@ -5,7 +5,7 @@ import EtiasNav from "./EtiasNav";
 import EtiasScamWarning from "./EtiasScamWarning";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import GetYourGuideWidget from "@/components/GetYourGuideWidget";
-import AffiliateBannerContainer from "@/components/AffiliateBannerContainer";
+import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
 import BreadcrumbSchema from "@/components/BreadcrumbSchema";
 
 interface EtiasLayoutProps {
@@ -31,10 +31,10 @@ const EtiasLayout = ({ children, breadcrumbs }: EtiasLayoutProps) => {
               <p className="text-sm text-muted-foreground mb-3">
                 We'll email you the moment ETIAS goes live and whenever rules change.
               </p>
-              <NewsletterSignup variant="inline" />
+              <NewsletterSignup variant="sidebar" />
             </div>
             <AffiliateBannerContainer position="sidebar" />
-            <GetYourGuideWidget widgetType="city" />
+            <GetYourGuideWidget position="sidebar" />
           </aside>
         </div>
       </main>

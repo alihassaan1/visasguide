@@ -587,7 +587,8 @@ export default function MonetizationSettings() {
                         <Button
                           size="sm"
                           onClick={() => saveAffiliate(affiliate.id)}
-                          disabled={isSaving}
+                          disabled={isSaving || affiliate.positions.length === 0}
+                          title={affiliate.positions.length === 0 ? 'Select at least one placement to save' : undefined}
                         >
                           <Save className="mr-1.5 h-3.5 w-3.5" />
                           {isSaving ? 'Saving...' : 'Save Changes'}

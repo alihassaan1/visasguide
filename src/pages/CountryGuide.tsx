@@ -460,37 +460,6 @@ const CountryGuide = () => {
               </CardContent>
             </Card>
 
-            {/* Where Can Citizens Travel - Visa Status Grid */}
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Grid className="h-5 w-5" />
-                    Where Can {country.name} Citizens Travel?
-                  </CardTitle>
-                  <Button
-                    variant={showVisaGrid ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setShowVisaGrid(!showVisaGrid)}
-                  >
-                    {showVisaGrid ? "Hide Grid" : "Show Visa Grid"}
-                  </Button>
-                </div>
-              </CardHeader>
-              {showVisaGrid && (
-                <CardContent>
-                  <div className="mb-4">
-                    <ResidencyToggle value={residency} onChange={setResidency} compact />
-                  </div>
-                  <VisaStatusGrid 
-                    fromCountryId={country.id} 
-                    fromCountrySlug={country.slug}
-                    residency={residency}
-                  />
-                </CardContent>
-              )}
-            </Card>
-
             {processingTimes && processingTimes.length > 0 && (
               <Card>
                 <CardHeader className="pb-3">

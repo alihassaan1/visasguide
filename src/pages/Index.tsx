@@ -66,33 +66,37 @@ const Index = () => {
 
         <LatestGuidesSection />
 
-        {/* Popular Visa Guides - Internal Linking for SEO */}
-        <section className="py-12 bg-gradient-to-b from-background to-accent/5">
+        {/* Popular Visa Guides — compact chips strip merged into Quick Access flow */}
+        <section className="py-8 bg-background border-y border-border/40">
           <div className="container mx-auto px-4">
-            <h2 className="text-2xl font-bold mb-6 text-center">🔥 Popular Visa Guides</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="flex flex-wrap items-center gap-2 justify-center">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mr-2">
+                Popular:
+              </span>
               {[
-                { href: "/processing-times", emoji: "⏱️", label: "Visa Processing Times" },
+                { href: "/processing-times", emoji: "⏱️", label: "Processing Times" },
                 { href: "/passport-index", emoji: "🏆", label: "Passport Rankings" },
-                { href: "/countries/jordan", emoji: "🇯🇴", label: "Jordan & Petra Visa" },
-                { href: "/countries/south-korea", emoji: "🇰🇷", label: "South Korea Visa" },
-                { href: "/countries/montenegro", emoji: "🇲🇪", label: "Montenegro Visa" },
-                { href: "/schengen-visa-guide", emoji: "🇪🇺", label: "Schengen Visa Guide" },
+                { href: "/countries/jordan", emoji: "🇯🇴", label: "Jordan" },
+                { href: "/countries/south-korea", emoji: "🇰🇷", label: "South Korea" },
+                { href: "/countries/montenegro", emoji: "🇲🇪", label: "Montenegro" },
+                { href: "/schengen-visa-guide", emoji: "🇪🇺", label: "Schengen Visa" },
               ].map((link) => (
                 <a
                   key={link.href}
                   href={link.href}
-                  className="flex flex-col items-center gap-2 p-4 bg-card rounded-lg border hover:border-primary/50 hover:shadow-md transition-all text-center"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted/50 hover:bg-primary/10 hover:text-primary rounded-full text-sm transition-colors"
                 >
-                  <span className="text-2xl">{link.emoji}</span>
-                  <span className="text-sm font-medium">{link.label}</span>
+                  <span className="font-emoji">{link.emoji}</span>
+                  <span>{link.label}</span>
                 </a>
               ))}
             </div>
           </div>
         </section>
 
-        <FeaturedAuthorsSection />
+        <div className="bg-muted/30">
+          <FeaturedAuthorsSection />
+        </div>
         <BreakingPolicyUpdates />
         <LatestNewsSection />
         

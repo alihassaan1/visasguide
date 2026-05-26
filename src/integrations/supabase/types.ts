@@ -879,6 +879,63 @@ export type Database = {
           },
         ]
       }
+      etias_country_pages: {
+        Row: {
+          country_name: string
+          country_slug: string
+          created_at: string
+          faqs: Json | null
+          featured_image_url: string | null
+          id: string
+          intro: string | null
+          is_published: boolean
+          nationality: string
+          processing_details: string | null
+          published_at: string | null
+          seo_description: string | null
+          seo_title: string | null
+          special_notes: string | null
+          updated_at: string
+          who_qualifies: string | null
+        }
+        Insert: {
+          country_name: string
+          country_slug: string
+          created_at?: string
+          faqs?: Json | null
+          featured_image_url?: string | null
+          id?: string
+          intro?: string | null
+          is_published?: boolean
+          nationality: string
+          processing_details?: string | null
+          published_at?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          special_notes?: string | null
+          updated_at?: string
+          who_qualifies?: string | null
+        }
+        Update: {
+          country_name?: string
+          country_slug?: string
+          created_at?: string
+          faqs?: Json | null
+          featured_image_url?: string | null
+          id?: string
+          intro?: string | null
+          is_published?: boolean
+          nationality?: string
+          processing_details?: string | null
+          published_at?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          special_notes?: string | null
+          updated_at?: string
+          who_qualifies?: string | null
+        }
+        Relationships: []
+      }
       file_change_history: {
         Row: {
           applied_at: string

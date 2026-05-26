@@ -68,7 +68,7 @@ export default function AdPerformanceDashboard() {
     queryFn: async () => {
       const { data } = await supabase
         .from("analytics_events")
-        .select("created_at, page_slug, search_term")
+        .select("created_at, page_slug, search_term, visitor_location")
         .eq("event_type", "affiliate_click")
         .gte("created_at", startDate.toISOString())
         .lte("created_at", endDate.toISOString())
@@ -147,6 +147,47 @@ export default function AdPerformanceDashboard() {
       }))
       .sort((a, b) => b.impressions - a.impressions);
   }, [impressionEvents, clickEvents]);
+
+  // Per-banner × per-slot breakdown (uses referrer_source for impressions,
+  // visitor_location.position for clicks — both written by AffiliateBannerContainer).
+  const slotBreakdown = useMemo(() => {
+    const map: Record<string, { name: string; slot: string; impressions: number; clicks: number }> = {};
+    const keyFor = (name: string, slot: string) => `${name}::${slot}`;
+
+    impressionEvents.forEach((e: any) => {
+      const name = e.search_term || "(unknown)";
+      const slot = e.referrer_source || "(unspecified)";
+      const k = keyFor(name, slot);
+      map[k] = map[k] || { name, slot, impressions: 0, clicks: 0 };
+      map[k].impressions += 1;
+    });
+    clickEvents.forEach((e: any) => {
+      const name = e.search_term || "(unknown)";
+      const slot =
+        (e.visitor_location && typeof e.visitor_location === "object" && (e.visitor_location as any).position) ||
+        "(unspecified)";
+      const k = keyFor(name, slot);
+      map[k] = map[k] || { name, slot, impressions: 0, clicks: 0 };
+      map[k].clicks += 1;
+    });
+
+    return Object.values(map)
+      .map((r) => ({
+        ...r,
+        ctr: r.impressions > 0 ? ((r.clicks / r.impressions) * 100).toFixed(2) : "0.00",
+      }))
+      .sort((a, b) => b.impressions - a.impressions || b.clicks - a.clicks);
+  }, [impressionEvents, clickEvents]);
+
+  // Banners with more than one assigned slot — flagged in the breakdown UI.
+  const multiSlotBannerNames = useMemo(() => {
+    const set = new Set<string>();
+    banners.forEach((b: any) => {
+      const slots = new Set<string>([...(b.positions || []), ...(b.position ? [b.position] : [])]);
+      if (slots.size > 1) set.add(b.name);
+    });
+    return set;
+  }, [banners]);
 
   const chartData = dailyTrend.map((d) => ({ date: d.date, clicks: d.clicks }));
 
@@ -341,11 +382,64 @@ export default function AdPerformanceDashboard() {
       <Tabs defaultValue="banners" className="space-y-4">
         <TabsList>
           <TabsTrigger value="banners">Banner Ads ({banners.length})</TabsTrigger>
+          <TabsTrigger value="slots">By Slot</TabsTrigger>
           <TabsTrigger value="trends">Per-Day Trends</TabsTrigger>
           <TabsTrigger value="widgets">Affiliate Widgets ({widgets.length})</TabsTrigger>
           <TabsTrigger value="pages">Top Pages</TabsTrigger>
           <TabsTrigger value="log">Click Log</TabsTrigger>
         </TabsList>
+
+        {/* Per-banner × per-slot breakdown */}
+        <TabsContent value="slots">
+          <Card>
+            <CardHeader>
+              <CardTitle>Impressions & Clicks by Slot</CardTitle>
+              <CardDescription>
+                For banners assigned to multiple placements, this splits performance by slot
+                (sidebar-right, horizontal-banner, in-content, footer). Based on analytics_events
+                within the selected date range.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Banner</TableHead>
+                    <TableHead>Slot</TableHead>
+                    <TableHead className="text-right">Impressions</TableHead>
+                    <TableHead className="text-right">Clicks</TableHead>
+                    <TableHead className="text-right">CTR</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {slotBreakdown.map((row) => (
+                    <TableRow key={`${row.name}-${row.slot}`}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {row.name}
+                          {multiSlotBannerNames.has(row.name) && (
+                            <Badge variant="outline" className="text-[10px]">multi-slot</Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell><Badge variant="secondary">{row.slot}</Badge></TableCell>
+                      <TableCell className="text-right">{row.impressions.toLocaleString()}</TableCell>
+                      <TableCell className="text-right">{row.clicks.toLocaleString()}</TableCell>
+                      <TableCell className="text-right">{row.ctr}%</TableCell>
+                    </TableRow>
+                  ))}
+                  {slotBreakdown.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        No banner events in this range
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* Banner Ads Table */}
         <TabsContent value="banners">

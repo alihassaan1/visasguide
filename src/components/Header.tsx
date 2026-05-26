@@ -117,8 +117,9 @@ const Header = () => {
           </Link>
 
           {/* Navigation - Hidden on mobile */}
-          <nav className="hidden lg:flex items-center justify-center flex-1 min-w-0" ref={dropdownRef}>
-            <div className="flex items-center space-x-2 xl:space-x-5">
+          <nav className="hidden xl:flex items-center justify-center flex-1 min-w-0" ref={dropdownRef}>
+            <div className="flex items-center gap-4 2xl:gap-6">
+
               {menuItems.map((item) => {
                 if (item.children && item.children.length > 0) {
                   const isOpen = openDropdown === item.url;

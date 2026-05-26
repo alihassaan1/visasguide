@@ -78,6 +78,11 @@ import EditorialPolicy from "./pages/EditorialPolicy";
 import AffiliateDisclosure from "./pages/AffiliateDisclosure";
 import PolicyUpdates from "./pages/PolicyUpdates";
 import PolicyTracker from "./pages/admin/PolicyTracker";
+import EtiasHub from "./pages/etias/EtiasHub";
+import EtiasSubPage from "./pages/etias/EtiasSubPage";
+import EtiasCountryPage from "./pages/etias/EtiasCountryPage";
+import EtiasTimelinePage from "./pages/etias/EtiasTimelinePage";
+import EtiasNewsHub from "./pages/etias/EtiasNewsHub";
 
 const queryClient = new QueryClient();
 
@@ -118,6 +123,14 @@ const App = () => (
           <Route path="/affiliate-disclosure" element={<AffiliateDisclosure />} />
           <Route path="/policy-updates" element={<PolicyUpdates />} />
           <Route path="/schengen-visa-guide" element={<SchengenVisaGuide />} />
+
+          {/* ETIAS hub */}
+          <Route path="/etias" element={<EtiasHub />} />
+          <Route path="/etias/news" element={<EtiasNewsHub />} />
+          <Route path="/etias/timeline" element={<EtiasTimelinePage />} />
+          <Route path="/etias/for/:countrySlug" element={<EtiasCountryPage />} />
+          <Route path="/etias/:slug" element={<EtiasSubPage />} />
+
           <Route path="/unsubscribe" element={<Unsubscribe />} />
           <Route path="/rss" element={<RSSFeed />} />
           <Route path="/feed" element={<Feed />} />

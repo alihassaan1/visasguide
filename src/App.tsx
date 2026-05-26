@@ -57,6 +57,7 @@ import RSSFeedManager from "./pages/admin/RSSFeedManager";
 import RSSMonitoringDashboard from "./pages/admin/RSSMonitoringDashboard";
 import AuthorManager from "./pages/admin/AuthorManager";
 import AffiliateManager from "./pages/admin/AffiliateManager";
+import BannerSlotDebugger from "./pages/admin/BannerSlotDebugger";
 import ImageGenerator from "./pages/admin/ImageGenerator";
 import QuickWinsDashboard from "./pages/admin/QuickWinsDashboard";
 import AdPerformanceDashboard from "./pages/admin/AdPerformanceDashboard";
@@ -157,6 +158,7 @@ const App = () => (
             <Route path="rss-monitoring" element={<RSSMonitoringDashboard />} />
             <Route path="authors" element={<AuthorManager />} />
             <Route path="affiliate-manager" element={<AffiliateManager />} />
+            <Route path="banner-debug" element={<BannerSlotDebugger />} />
             <Route path="image-generator" element={<ImageGenerator />} />
             <Route path="quick-wins" element={<QuickWinsDashboard />} />
             <Route path="ad-performance" element={<AdPerformanceDashboard />} />

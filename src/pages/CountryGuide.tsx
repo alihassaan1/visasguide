@@ -28,6 +28,7 @@ import AffiliateDisclosure from "@/components/AffiliateDisclosure";
 import FAQSchema from "@/components/FAQSchema";
 import CountryPolicyTimeline from "@/components/CountryPolicyTimeline";
 import StickyVisaCheckBar from "@/components/StickyVisaCheckBar";
+import RelatedSearches from "@/components/RelatedSearches";
 import { useDetectedCountry } from "@/hooks/useDetectedCountry";
 
 const CountryGuide = () => {
@@ -634,6 +635,13 @@ const CountryGuide = () => {
               currentSlug={country.slug}
               contentType="country"
               country={country.slug}
+            />
+
+            {/* Related Searches — SEO internal linking */}
+            <RelatedSearches
+              countryId={country.id}
+              countrySlug={country.slug}
+              countryName={country.name}
             />
           </div>
         </div>

@@ -83,6 +83,7 @@ import EtiasSubPage from "./pages/etias/EtiasSubPage";
 import EtiasCountryPage from "./pages/etias/EtiasCountryPage";
 import EtiasTimelinePage from "./pages/etias/EtiasTimelinePage";
 import EtiasNewsHub from "./pages/etias/EtiasNewsHub";
+import EtiasGenerator from "./pages/admin/EtiasGenerator";
 
 const queryClient = new QueryClient();
 
@@ -176,6 +177,7 @@ const App = () => (
             <Route path="quick-wins" element={<QuickWinsDashboard />} />
             <Route path="ad-performance" element={<AdPerformanceDashboard />} />
             <Route path="policy-tracker" element={<PolicyTracker />} />
+            <Route path="etias-generator" element={<EtiasGenerator />} />
             
           </Route>
           

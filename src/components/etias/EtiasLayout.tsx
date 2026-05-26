@@ -33,7 +33,7 @@ const EtiasLayout = ({ children, breadcrumbs }: EtiasLayoutProps) => {
               </p>
               <NewsletterSignup variant="sidebar" />
             </div>
-            <AffiliateBannerContainer position="sidebar" />
+            <AffiliateBannerContainer position="sidebar-right" />
             <GetYourGuideWidget position="sidebar" />
           </aside>
         </div>

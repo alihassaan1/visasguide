@@ -65,7 +65,7 @@ const SeoLinksSection = () => {
                   <li key={c.slug}>
                     <Link
                       to={`/countries/${c.slug}`}
-                      className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                      className="text-xs text-muted-foreground hover:text-blue-500 transition-colors"
                     >
                       {c.name} Visa Requirements
                     </Link>

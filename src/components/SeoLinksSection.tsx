@@ -47,7 +47,7 @@ const SeoLinksSection = () => {
   ];
 
   return (
-    <section className="bg-[#f5f6f8] border-t border-[#e8eaed]">
+    <section className="bg-[#e8eaed] border-t border-[#d1d5db]">
       <div className="container mx-auto px-4 py-12">
         <div className="flex items-center gap-2 mb-6">
           <Globe2 className="h-4 w-4 text-gray-400" />

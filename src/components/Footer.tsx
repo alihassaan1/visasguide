@@ -4,7 +4,7 @@ import { Mail, Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-re
 import { Link } from "react-router-dom";
 import { CURRENT_YEAR } from "@/lib/constants";
 import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
-import FooterKeywordCloud from "@/components/FooterKeywordCloud";
+import SeoLinksSection from "@/components/SeoLinksSection";
 
 const Footer = () => {
   const { data: footerLinks } = useQuery({
@@ -32,7 +32,9 @@ const Footer = () => {
   });
 
   return (
-    <footer className="bg-primary text-primary-foreground">
+    <>
+      <SeoLinksSection />
+      <footer className="bg-primary text-primary-foreground">
       {/* Horizontal Banner - site-wide */}
       <div className="container mx-auto px-4 pt-6">
         <AffiliateBannerContainer position="horizontal-banner" />
@@ -165,10 +167,6 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* SEO keyword cloud */}
-        <FooterKeywordCloud />
-
-
         {/* Bottom Bar */}
         <div className="border-t border-primary-foreground/20 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
@@ -186,7 +184,8 @@ const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>
+      </footer>
+    </>
   );
 };
 

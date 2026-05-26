@@ -10,6 +10,7 @@ interface MenuItem {
   label: string;
   url: string;
   order: number;
+  children?: MenuItem[];
 }
 
 const Header = () => {

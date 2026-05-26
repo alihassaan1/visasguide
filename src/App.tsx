@@ -57,6 +57,7 @@ import RSSFeedManager from "./pages/admin/RSSFeedManager";
 import RSSMonitoringDashboard from "./pages/admin/RSSMonitoringDashboard";
 import AuthorManager from "./pages/admin/AuthorManager";
 import AffiliateManager from "./pages/admin/AffiliateManager";
+import BannerSlotDebugger from "./pages/admin/BannerSlotDebugger";
 import ImageGenerator from "./pages/admin/ImageGenerator";
 import QuickWinsDashboard from "./pages/admin/QuickWinsDashboard";
 import AdPerformanceDashboard from "./pages/admin/AdPerformanceDashboard";

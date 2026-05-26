@@ -152,7 +152,7 @@ const CountryHero = ({ country, visaFreeCount }: CountryHeroProps) => {
   const tourists = formatNumber(country.annual_tourists);
 
   return (
-    <section className="relative w-full rounded-2xl overflow-hidden mb-6 min-h-[360px] sm:min-h-[420px] flex flex-col justify-end">
+    <section className="relative w-full rounded-2xl overflow-hidden mb-6 min-h-[420px] sm:min-h-[420px] flex flex-col justify-end">
       {/* Background Image */}
       <img
         src={heroImage}
@@ -165,12 +165,12 @@ const CountryHero = ({ country, visaFreeCount }: CountryHeroProps) => {
       />
 
       {/* Stronger overlay for legibility */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/20" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/30" />
       <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
 
       {/* Region tag — top left */}
       {(country.region || country.continent) && (
-        <div className="absolute top-4 left-4 z-10">
+        <div className="absolute top-4 left-4 right-4 z-10">
           <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md text-white text-xs font-medium px-3 py-1 rounded-full border border-white/20">
             <Globe2 className="h-3 w-3" />
             {country.region || country.continent}
@@ -179,9 +179,9 @@ const CountryHero = ({ country, visaFreeCount }: CountryHeroProps) => {
       )}
 
       {/* Bottom content stack */}
-      <div className="relative z-10 p-5 sm:p-7 md:p-9 space-y-5">
+      <div className="relative z-10 p-4 sm:p-7 md:p-9 space-y-4 sm:space-y-5">
         {/* Title row */}
-        <div className="flex items-end gap-4 sm:gap-5">
+        <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-5">
           <span
             className="text-5xl sm:text-6xl md:text-7xl drop-shadow-2xl leading-none"
             style={{ fontFamily: "'Segoe UI Emoji', 'Noto Color Emoji', sans-serif" }}
@@ -189,7 +189,7 @@ const CountryHero = ({ country, visaFreeCount }: CountryHeroProps) => {
             {flagEmoji}
           </span>
           <div className="min-w-0">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white drop-shadow-lg leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white drop-shadow-lg leading-tight break-words">
               {country.name}
             </h1>
             <p className="text-sm sm:text-base text-white/85 mt-1">

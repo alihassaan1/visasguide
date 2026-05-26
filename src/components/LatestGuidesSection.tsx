@@ -217,19 +217,12 @@ const LatestGuidesSection = () => {
                           loading="lazy"
                         />
                         {/* Gradient overlay for text readability */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                        {/* Flag badge */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                        {/* Subtle flag badge only */}
                         <div className="absolute top-3 left-3">
-                          <Badge variant="secondary" className="bg-white/90 text-foreground font-medium shadow-sm">
-                            <span className="mr-1 font-emoji">{flag}</span>
-                            <MapPin className="h-3 w-3 inline" />
-                          </Badge>
-                        </div>
-                        {/* Updated badge */}
-                        <div className="absolute bottom-3 left-3">
-                          <Badge className="bg-primary/90 text-primary-foreground text-xs">
-                            Updated {formatDate(guide.updated_at)}
-                          </Badge>
+                          <span className="bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 text-sm shadow-sm font-emoji">
+                            {flag}
+                          </span>
                         </div>
                       </>
                     ) : (
@@ -239,25 +232,22 @@ const LatestGuidesSection = () => {
                     )}
                   </div>
                   <CardContent className="p-4">
-                    <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                    <h3 className="font-semibold text-lg mb-1.5 line-clamp-2 group-hover:text-primary transition-colors">
                       {guide.title}
                     </h3>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                      {guide.writer && <span>By {guide.writer.name}</span>}
+                      {guide.writer && <span className="text-muted-foreground/40">•</span>}
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        Updated {formatDate(guide.updated_at)}
+                      </span>
+                    </div>
                     {guide.excerpt && (
-                      <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
+                      <p className="text-muted-foreground text-sm line-clamp-2">
                         {guide.excerpt}
                       </p>
                     )}
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      {!image && (
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {formatDate(guide.updated_at)}
-                        </div>
-                      )}
-                      {guide.writer && (
-                        <span className={!image ? '' : 'ml-auto'}>By {guide.writer.name}</span>
-                      )}
-                    </div>
                   </CardContent>
                 </Card>
               </Link>

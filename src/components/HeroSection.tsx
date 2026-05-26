@@ -49,17 +49,17 @@ const HeroSection = () => {
           decoding="async"
           className="w-full h-full object-cover"
         />
-        {/* Lighter, brighter overlays */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
+        {/* Darker left-to-right overlay for better text contrast */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/15" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10" />
       </div>
 
       <div className="container mx-auto px-4 py-16 md:py-24 relative z-10">
         <div className="max-w-2xl">
           {/* Main heading - White text with shadows */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4 drop-shadow-lg">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.05] tracking-tight mb-5 drop-shadow-lg">
             Your Complete Guide to{" "}
-            <span className="text-transparent bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text">
+            <span className="text-transparent bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text">
               Travel Visas
             </span>
           </h1>
@@ -103,24 +103,18 @@ const HeroSection = () => {
           </div>
 
           {/* Trust Indicators - Glass-morphism pills */}
-          <div className="flex flex-wrap gap-3 md:gap-4 mt-8 text-sm">
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/10">
-              <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                <Globe className="h-4 w-4 text-emerald-400" />
-              </div>
-              <span className="font-medium text-white">190+ Countries</span>
+          <div className="flex flex-wrap gap-2 md:gap-3 mt-8 text-sm">
+            <div className="flex items-center gap-2 bg-white/95 rounded-full px-4 py-2 shadow-sm">
+              <Globe className="h-4 w-4 text-emerald-600" />
+              <span className="font-semibold text-foreground">190+ Countries</span>
             </div>
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/10">
-              <div className="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center">
-                <Shield className="h-4 w-4 text-teal-400" />
-              </div>
-              <span className="font-medium text-white">2M+ Travelers</span>
+            <div className="flex items-center gap-2 bg-white/95 rounded-full px-4 py-2 shadow-sm">
+              <Shield className="h-4 w-4 text-teal-600" />
+              <span className="font-semibold text-foreground">2M+ Travelers</span>
             </div>
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/10">
-              <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center">
-                <Clock className="h-4 w-4 text-cyan-400" />
-              </div>
-              <span className="font-medium text-white">Updated Daily</span>
+            <div className="flex items-center gap-2 bg-white/95 rounded-full px-4 py-2 shadow-sm">
+              <Clock className="h-4 w-4 text-cyan-600" />
+              <span className="font-semibold text-foreground">Updated Daily</span>
             </div>
           </div>
         </div>

@@ -68,31 +68,22 @@ const DestinationCarousel = () => {
                 />
                 
                 {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                
-                {/* Rank Badge - Top Left */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+
+                {/* Single subtle rank badge */}
                 <div className="absolute top-3 left-3">
-                  <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                  <span className="bg-white/15 backdrop-blur-md text-white text-[11px] font-medium px-2 py-0.5 rounded-full border border-white/20">
                     #{index + 1}
                   </span>
                 </div>
-                
-                {/* Visa Free Badge - Top Right */}
-                {destination.visaFree > 0 && (
-                  <div className="absolute top-3 right-3">
-                    <span className="bg-visa-success/90 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
-                      {destination.visaFree} visa-free
-                    </span>
-                  </div>
-                )}
-                
+
                 {/* Content - Bottom */}
                 <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4">
-                  <h3 className="text-white font-bold text-sm md:text-lg leading-tight mb-1 group-hover:text-primary-light transition-colors">
+                  <h3 className="text-white font-semibold text-sm md:text-lg leading-tight mb-0.5 group-hover:text-primary-light transition-colors">
                     {destination.name}
                   </h3>
-                  <p className="text-white/70 text-xs md:text-sm">
-                    {destination.code} • Explore visa info
+                  <p className="text-white/75 text-[11px] md:text-xs">
+                    {destination.visaFree > 0 ? `${destination.visaFree} visa-free entries` : 'Explore visa info'}
                   </p>
                 </div>
               </div>

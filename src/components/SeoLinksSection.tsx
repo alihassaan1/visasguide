@@ -85,7 +85,7 @@ const SeoLinksSection = () => {
               <Link
                 key={l.url}
                 to={l.url}
-                className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                className="text-xs text-muted-foreground hover:text-blue-500 transition-colors"
               >
                 {l.label}
               </Link>

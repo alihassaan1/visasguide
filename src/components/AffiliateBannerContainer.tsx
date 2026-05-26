@@ -159,10 +159,6 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
     }
   }, [selectedBanner?.id, locationLoading, currentPath]);
 
-  if (!selectedBanner) return null;
-
-  const containerClass = "w-full";
-
   const handleClick = async (banner: AffiliateData) => {
     // Track click with Google Analytics
     if (typeof window !== 'undefined' && (window as any).gtag) {
@@ -201,6 +197,10 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
     window.addEventListener('blur', onBlur);
     return () => window.removeEventListener('blur', onBlur);
   }, [selectedBanner?.id]);
+
+  if (!selectedBanner) return null;
+
+  const containerClass = "w-full";
 
   const banner = selectedBanner;
 

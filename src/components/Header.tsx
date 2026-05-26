@@ -1,16 +1,16 @@
 import { Button } from "@/components/ui/button";
-import { Search, Menu, Rss, Globe } from "lucide-react";
+import { Search, Menu, Rss, Globe, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 interface MenuItem {
   label: string;
   url: string;
   order: number;
+  children?: MenuItem[];
 }
 
 const Header = () => {
@@ -20,7 +20,9 @@ const Header = () => {
   const [countries, setCountries] = useState<any[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -45,13 +47,24 @@ const Header = () => {
         const items = data.setting_value as unknown as MenuItem[];
         setMenuItems(items.sort((a, b) => a.order - b.order));
       } else {
-        // Default menu items
+        // Default menu items with ETIAS dropdown
         setMenuItems([
           { label: "Countries", url: "/countries", order: 0 },
           { label: "Visa Search", url: "/visa-search", order: 1 },
-          { label: "Guides", url: "/guides", order: 2 },
-          { label: "Blog", url: "/blog", order: 3 },
-          { label: "Passport Index Rankings", url: "/passport-index", order: 4 }
+          {
+            label: "ETIAS",
+            url: "/etias",
+            order: 2,
+            children: [
+              { label: "What is ETIAS", url: "/etias", order: 0 },
+              { label: "Apply", url: "/etias/application", order: 1 },
+              { label: "Countries", url: "/etias/countries", order: 2 },
+              { label: "FAQ", url: "/etias/faq", order: 3 },
+            ]
+          },
+          { label: "Guides", url: "/guides", order: 3 },
+          { label: "Blog", url: "/blog", order: 4 },
+          { label: "Passport Index Rankings", url: "/passport-index", order: 5 }
         ]);
       }
     };
@@ -62,6 +75,9 @@ const Header = () => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setSearchOpen(false);
+      }
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpenDropdown(null);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -96,17 +112,53 @@ const Header = () => {
           </Link>
 
           {/* Navigation - Hidden on mobile */}
-          <nav className="hidden lg:flex items-center justify-center flex-1 min-w-0">
+          <nav className="hidden lg:flex items-center justify-center flex-1 min-w-0" ref={dropdownRef}>
             <div className="flex items-center space-x-2 xl:space-x-5">
-              {menuItems.map((item) => (
-                <Link 
-                  key={item.url}
-                  to={item.url} 
-                  className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap px-1"
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {menuItems.map((item) => {
+                if (item.children && item.children.length > 0) {
+                  const isOpen = openDropdown === item.url;
+                  return (
+                    <div
+                      key={item.url}
+                      className="relative"
+                      onMouseEnter={() => setOpenDropdown(item.url)}
+                      onMouseLeave={() => setOpenDropdown(null)}
+                    >
+                      <button
+                        className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap px-1 flex items-center gap-1"
+                        onClick={() => navigate(item.url)}
+                        aria-expanded={isOpen}
+                      >
+                        {item.label}
+                        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      {isOpen && (
+                        <div className="absolute top-full left-0 mt-1 w-56 bg-background border rounded-lg shadow-lg z-50 py-2">
+                          {item.children.map((child) => (
+                            <Link
+                              key={child.url}
+                              to={child.url}
+                              className="block px-4 py-2 text-sm hover:bg-muted hover:text-primary transition-colors"
+                              onClick={() => setOpenDropdown(null)}
+                            >
+                              {child.label}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                return (
+                  <Link 
+                    key={item.url}
+                    to={item.url} 
+                    className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap px-1"
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
             </div>
           </nav>
 
@@ -163,17 +215,48 @@ const Header = () => {
                 <SheetHeader>
                   <SheetTitle>Menu</SheetTitle>
                 </SheetHeader>
-                <nav className="flex flex-col space-y-4 mt-6">
-                  {menuItems.map((item) => (
-                    <Link 
-                      key={item.url}
-                      to={item.url} 
-                      className="text-lg font-medium hover:text-primary transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
+                <nav className="flex flex-col space-y-1 mt-6">
+                  {menuItems.map((item) => {
+                    if (item.children && item.children.length > 0) {
+                      const isOpen = openDropdown === item.url;
+                      return (
+                        <div key={item.url} className="flex flex-col">
+                          <button
+                            className="text-lg font-medium hover:text-primary transition-colors text-left flex items-center justify-between py-2"
+                            onClick={() => setOpenDropdown(isOpen ? null : item.url)}
+                            aria-expanded={isOpen}
+                          >
+                            {item.label}
+                            <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                          </button>
+                          {isOpen && (
+                            <div className="pl-4 flex flex-col space-y-1 border-l-2 border-muted ml-2">
+                              {item.children.map((child) => (
+                                <Link
+                                  key={child.url}
+                                  to={child.url}
+                                  className="text-base text-muted-foreground hover:text-primary transition-colors py-1"
+                                  onClick={() => setMobileMenuOpen(false)}
+                                >
+                                  {child.label}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                    return (
+                      <Link 
+                        key={item.url}
+                        to={item.url} 
+                        className="text-lg font-medium hover:text-primary transition-colors py-2"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {item.label}
+                      </Link>
+                    );
+                  })}
                 </nav>
               </SheetContent>
             </Sheet>

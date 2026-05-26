@@ -36,6 +36,18 @@ const Header = () => {
   }, []);
 
   useEffect(() => {
+    const etiasItem: MenuItem = {
+      label: "ETIAS",
+      url: "/etias",
+      order: 2,
+      children: [
+        { label: "What is ETIAS", url: "/etias", order: 0 },
+        { label: "Apply", url: "/etias/application", order: 1 },
+        { label: "Countries", url: "/etias/countries", order: 2 },
+        { label: "FAQ", url: "/etias/faq", order: 3 },
+      ],
+    };
+
     const fetchMenuItems = async () => {
       const { data } = await supabase
         .from('site_settings')
@@ -44,24 +56,16 @@ const Header = () => {
         .single();
 
       if (data?.setting_value && Array.isArray(data.setting_value)) {
-        const items = data.setting_value as unknown as MenuItem[];
+        const items = (data.setting_value as unknown as MenuItem[]).slice();
+        if (!items.some((i) => i.url === '/etias')) {
+          items.push(etiasItem);
+        }
         setMenuItems(items.sort((a, b) => a.order - b.order));
       } else {
-        // Default menu items with ETIAS dropdown
         setMenuItems([
           { label: "Countries", url: "/countries", order: 0 },
           { label: "Visa Search", url: "/visa-search", order: 1 },
-          {
-            label: "ETIAS",
-            url: "/etias",
-            order: 2,
-            children: [
-              { label: "What is ETIAS", url: "/etias", order: 0 },
-              { label: "Apply", url: "/etias/application", order: 1 },
-              { label: "Countries", url: "/etias/countries", order: 2 },
-              { label: "FAQ", url: "/etias/faq", order: 3 },
-            ]
-          },
+          etiasItem,
           { label: "Guides", url: "/guides", order: 3 },
           { label: "Blog", url: "/blog", order: 4 },
           { label: "Passport Index Rankings", url: "/passport-index", order: 5 }
@@ -70,6 +74,7 @@ const Header = () => {
     };
     fetchMenuItems();
   }, []);
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

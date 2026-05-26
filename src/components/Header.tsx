@@ -47,13 +47,24 @@ const Header = () => {
         const items = data.setting_value as unknown as MenuItem[];
         setMenuItems(items.sort((a, b) => a.order - b.order));
       } else {
-        // Default menu items
+        // Default menu items with ETIAS dropdown
         setMenuItems([
           { label: "Countries", url: "/countries", order: 0 },
           { label: "Visa Search", url: "/visa-search", order: 1 },
-          { label: "Guides", url: "/guides", order: 2 },
-          { label: "Blog", url: "/blog", order: 3 },
-          { label: "Passport Index Rankings", url: "/passport-index", order: 4 }
+          {
+            label: "ETIAS",
+            url: "/etias",
+            order: 2,
+            children: [
+              { label: "What is ETIAS", url: "/etias", order: 0 },
+              { label: "Apply", url: "/etias/application", order: 1 },
+              { label: "Countries", url: "/etias/countries", order: 2 },
+              { label: "FAQ", url: "/etias/faq", order: 3 },
+            ]
+          },
+          { label: "Guides", url: "/guides", order: 3 },
+          { label: "Blog", url: "/blog", order: 4 },
+          { label: "Passport Index Rankings", url: "/passport-index", order: 5 }
         ]);
       }
     };

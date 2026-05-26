@@ -215,17 +215,48 @@ const Header = () => {
                 <SheetHeader>
                   <SheetTitle>Menu</SheetTitle>
                 </SheetHeader>
-                <nav className="flex flex-col space-y-4 mt-6">
-                  {menuItems.map((item) => (
-                    <Link 
-                      key={item.url}
-                      to={item.url} 
-                      className="text-lg font-medium hover:text-primary transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
+                <nav className="flex flex-col space-y-1 mt-6">
+                  {menuItems.map((item) => {
+                    if (item.children && item.children.length > 0) {
+                      const isOpen = openDropdown === item.url;
+                      return (
+                        <div key={item.url} className="flex flex-col">
+                          <button
+                            className="text-lg font-medium hover:text-primary transition-colors text-left flex items-center justify-between py-2"
+                            onClick={() => setOpenDropdown(isOpen ? null : item.url)}
+                            aria-expanded={isOpen}
+                          >
+                            {item.label}
+                            <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                          </button>
+                          {isOpen && (
+                            <div className="pl-4 flex flex-col space-y-1 border-l-2 border-muted ml-2">
+                              {item.children.map((child) => (
+                                <Link
+                                  key={child.url}
+                                  to={child.url}
+                                  className="text-base text-muted-foreground hover:text-primary transition-colors py-1"
+                                  onClick={() => setMobileMenuOpen(false)}
+                                >
+                                  {child.label}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                    return (
+                      <Link 
+                        key={item.url}
+                        to={item.url} 
+                        className="text-lg font-medium hover:text-primary transition-colors py-2"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {item.label}
+                      </Link>
+                    );
+                  })}
                 </nav>
               </SheetContent>
             </Sheet>

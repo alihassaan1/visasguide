@@ -68,7 +68,7 @@ export default function AdPerformanceDashboard() {
     queryFn: async () => {
       const { data } = await supabase
         .from("analytics_events")
-        .select("created_at, page_slug, search_term")
+        .select("created_at, page_slug, search_term, visitor_location")
         .eq("event_type", "affiliate_click")
         .gte("created_at", startDate.toISOString())
         .lte("created_at", endDate.toISOString())

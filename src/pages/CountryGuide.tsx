@@ -333,8 +333,8 @@ const CountryGuide = () => {
           </BreadcrumbList>
         </Breadcrumb>
 
-        {/* Country Hero */}
-        <CountryHero country={country} />
+        {/* Country Hero — now includes overlay stats + passport-check CTA */}
+        <CountryHero country={country} visaFreeCount={visaFreeCount} />
 
         {/* Visa Alert Ticker */}
         <VisaAlertTicker countryId={country.id} countryName={country.name} />
@@ -346,40 +346,7 @@ const CountryGuide = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6">
           {/* Main Content - Left Column */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Visa Summary Cards - Simplified 4 key stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <Card className="border-0 bg-gradient-to-br from-primary/10 to-primary/5">
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-primary">#{country.passport_rank || 'N/A'}</div>
-                  <div className="text-xs text-muted-foreground mt-1">Passport Rank</div>
-                </CardContent>
-              </Card>
-              
-              <Card className="border-0 bg-gradient-to-br from-green-500/10 to-green-500/5">
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-green-600">{visaFreeCount}</div>
-                  <div className="text-xs text-muted-foreground mt-1">Visa-Free Access</div>
-                </CardContent>
-              </Card>
-              
-              <Card className="border-0 bg-gradient-to-br from-blue-500/10 to-blue-500/5">
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {country.annual_tourists ? formatNumber(country.annual_tourists) : 'N/A'}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">Annual Tourists</div>
-                </CardContent>
-              </Card>
-              
-              <Card className="border-0 bg-gradient-to-br from-orange-500/10 to-orange-500/5">
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-orange-600">
-                    {country.tourism_rank ? `#${country.tourism_rank}` : 'N/A'}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">Tourism Rank</div>
-                </CardContent>
-              </Card>
-            </div>
+
 
             {/* Popular Cities */}
             <CityCards 
@@ -389,7 +356,8 @@ const CountryGuide = () => {
             />
 
             {/* Check Your Visa CTA */}
-            <Card className="bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
+            <Card id="check-visa" className="bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20 scroll-mt-24">
+
               <CardContent className="p-5">
                 <h3 className="text-lg font-bold flex items-center gap-2 mb-3">
                   <Users className="h-5 w-5 text-primary" />

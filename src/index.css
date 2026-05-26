@@ -155,3 +155,31 @@ All colors MUST be HSL.
     font-style: normal !important;
   }
 }
+
+/* Article tables (Quick Facts and similar in-content tables) */
+@layer components {
+  .prose table {
+    @apply w-full my-8 border border-border rounded-lg overflow-hidden text-sm border-collapse;
+  }
+  .prose thead {
+    @apply bg-muted/60;
+  }
+  .prose thead th {
+    @apply px-4 py-3 text-left font-semibold text-foreground border-b border-border;
+  }
+  .prose tbody tr {
+    @apply border-b border-border last:border-0;
+  }
+  .prose tbody tr:nth-child(even) {
+    @apply bg-muted/30;
+  }
+  .prose tbody th {
+    @apply px-4 py-3 text-left font-semibold text-foreground bg-muted/40 align-top w-[40%] sm:w-[30%] border-r border-border;
+  }
+  .prose tbody td {
+    @apply px-4 py-3 text-foreground align-top;
+  }
+  .prose table p {
+    @apply m-0;
+  }
+}

@@ -250,23 +250,14 @@ export const NewsletterEmail = ({
                   <Link
                     key={a.target_url}
                     href={track(a.target_url, `aff_${a.name}`)}
-                    style={{ textDecoration: 'none', color: 'inherit' }}
+                    style={{ textDecoration: 'none', color: 'inherit', display: 'block', marginBottom: '14px' }}
                   >
-                    <Row style={affRow}>
-                      <Column style={{ width: '64px', verticalAlign: 'middle' }}>
-                        <Img
-                          src={a.image_url || `${SITE_URL}/favicon.png`}
-                          alt={a.name}
-                          width="56"
-                          height="56"
-                          style={affLogo}
-                        />
-                      </Column>
-                      <Column style={{ verticalAlign: 'middle', paddingLeft: '12px' }}>
-                        <Text style={affName}>{a.name}</Text>
-                        <Text style={affDesc}>{a.description}</Text>
-                      </Column>
-                    </Row>
+                    <Img
+                      src={a.image_url || `${SITE_URL}/favicon.png`}
+                      alt={a.name}
+                      width="536"
+                      style={affBanner}
+                    />
                   </Link>
                 ))}
               </Section>

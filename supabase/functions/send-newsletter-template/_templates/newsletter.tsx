@@ -20,7 +20,7 @@ interface BlogPost {
   title: string;
   excerpt: string;
   slug: string;
-  featured_image_url?: string;
+  featured_image_url?: string | null;
 }
 
 interface CountryGuide {
@@ -47,641 +47,559 @@ interface NewsletterEmailProps {
   subscriberEmail?: string;
 }
 
+const SUPABASE_URL = 'https://awiytryceqehqapytfgn.supabase.co';
+const SITE_URL = 'https://visas.guide';
+const FALLBACK_IMG =
+  'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=1200&h=630&fit=crop&q=80';
+
 export const NewsletterEmail = ({
-  subscriberName = "Traveler",
+  subscriberName = 'Traveler',
   blogPosts = [],
   countryGuides = [],
   affiliates = [],
-  unsubscribeUrl = "https://visas.guide/unsubscribe",
-  campaignId = "",
-  subscriberEmail = "",
+  unsubscribeUrl = `${SITE_URL}/unsubscribe`,
+  campaignId = '',
+  subscriberEmail = '',
 }: NewsletterEmailProps) => {
-  // FIXED: Correct Supabase project ID for tracking
-  const SUPABASE_URL = "https://awiytryceqehqapytfgn.supabase.co";
-  
-  const trackUrl = (url: string, linkName: string) => {
-    return `${SUPABASE_URL}/functions/v1/track-email-click?url=${encodeURIComponent(url)}&cid=${campaignId}&email=${encodeURIComponent(subscriberEmail)}&link=${encodeURIComponent(linkName)}`;
-  };
+  const track = (url: string, linkName: string) =>
+    `${SUPABASE_URL}/functions/v1/track-email-click?url=${encodeURIComponent(
+      url
+    )}&cid=${campaignId}&email=${encodeURIComponent(subscriberEmail)}&link=${encodeURIComponent(linkName)}`;
 
-  const trackingPixelUrl = `${SUPABASE_URL}/functions/v1/track-email-open?cid=${campaignId}&email=${encodeURIComponent(subscriberEmail)}`;
+  const pixelUrl = `${SUPABASE_URL}/functions/v1/track-email-open?cid=${campaignId}&email=${encodeURIComponent(subscriberEmail)}`;
 
-  // Get current date for dynamic content
   const today = new Date();
-  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const currentMonth = monthNames[today.getMonth()];
+  const issueDate = today.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
+  const featured = blogPosts[0];
+  const rest = blogPosts.slice(1, 4);
+  const featuredImg =
+    featured?.featured_image_url && featured.featured_image_url.startsWith('http')
+      ? featured.featured_image_url
+      : FALLBACK_IMG;
 
   return (
     <Html>
       <Head />
       <Preview>
-        {subscriberName}, your weekly visa updates are here! New destinations, travel tips & more 🌍
+        {subscriberName}, your weekly visa briefing — new guides, destinations and travel intel inside.
       </Preview>
       <Body style={main}>
-        <Container style={container}>
-          
-          {/* Clean Header with Logo */}
-          <Section style={header}>
-            <Link href={trackUrl("https://visas.guide", "logo")}>
-              <Img
-                src="https://visas.guide/favicon.png"
-                width="48"
-                height="48"
-                alt="Visas Guide"
-                style={{ display: 'block', margin: '0 auto 12px' }}
-              />
-            </Link>
-            <Text style={headerTagline}>Your Trusted Visa Information Source</Text>
+        <Container style={wrapper}>
+          {/* Brand bar */}
+          <Section style={brandBar}>
+            <Row>
+              <Column>
+                <Link href={track(SITE_URL, 'logo')} style={brandLink}>
+                  visas<span style={brandDot}>.</span>guide
+                </Link>
+              </Column>
+              <Column align="right">
+                <Text style={issueMeta}>Weekly Briefing · {issueDate}</Text>
+              </Column>
+            </Row>
           </Section>
 
-          {/* Personal Greeting with Travel Quote */}
-          <Section style={greetingSection}>
-            <Heading style={greetingTitle}>
-              Hi {subscriberName}! 👋
-            </Heading>
-            <Text style={greetingText}>
-              Ready to explore the world? Here are this week's top visa updates and destination guides curated just for you.
-            </Text>
-          </Section>
-
-          {/* Travel Tip of the Week */}
-          <Section style={tipSection}>
-            <Text style={tipIcon}>💡</Text>
-            <Text style={tipTitle}>Travel Tip of the Week</Text>
-            <Text style={tipText}>
-              Always keep digital copies of your passport and visa in cloud storage. It can save your trip if documents are lost!
-            </Text>
-          </Section>
-
-          {/* Featured Story - Large Image Card */}
-          {blogPosts.length > 0 && (
-            <Section style={section}>
-              <Link 
-                href={trackUrl(`https://visas.guide/blog/${blogPosts[0].slug}`, `featured_${blogPosts[0].slug}`)}
-                style={{ textDecoration: 'none' }}
-              >
-                <Section style={featuredCard}>
-                  {blogPosts[0].featured_image_url ? (
-                    <Img
-                      src={blogPosts[0].featured_image_url.startsWith('/') ? `https://visas.guide${blogPosts[0].featured_image_url}` : blogPosts[0].featured_image_url}
-                      width="100%"
-                      height="220"
-                      alt={blogPosts[0].title}
-                      style={featuredImg}
-                    />
-                  ) : (
-                    <Section style={placeholderImg}>
-                      <Text style={placeholderEmoji}>✈️</Text>
-                    </Section>
-                  )}
-                  <Section style={featuredBody}>
-                    <Text style={featuredLabel}>✨ Featured Story</Text>
-                    <Heading style={featuredTitle}>{blogPosts[0].title}</Heading>
-                    <Text style={featuredExcerpt}>
-                      {blogPosts[0].excerpt?.substring(0, 120)}...
-                    </Text>
-                    <Text style={readMoreBtn}>Read full article →</Text>
-                  </Section>
-                </Section>
-              </Link>
+          <Container style={card}>
+            {/* Hero */}
+            <Section style={hero}>
+              <Text style={kicker}>The Visas Guide Weekly</Text>
+              <Heading as="h1" style={heroTitle}>
+                Hi {subscriberName}, here's where the world is open this week.
+              </Heading>
+              <Text style={heroSubtitle}>
+                A short, useful read — fresh visa updates, destination guides, and one travel tip you can actually use.
+              </Text>
             </Section>
-          )}
 
-          {/* More Articles - Clean List */}
-          {blogPosts.length > 1 && (
-            <Section style={section}>
-              <Heading style={sectionHeading}>📚 More to Explore</Heading>
-              {blogPosts.slice(1, 4).map((post, index) => (
-                <Link 
-                  key={index}
-                  href={trackUrl(`https://visas.guide/blog/${post.slug}`, `article_${post.slug}`)}
-                  style={{ textDecoration: 'none' }}
+            <Hr style={hr} />
+
+            {/* Featured story */}
+            {featured && (
+              <Section style={{ padding: '0 32px' }}>
+                <Text style={sectionLabel}>Featured story</Text>
+                <Link
+                  href={track(`${SITE_URL}/blog/${featured.slug}`, `featured_${featured.slug}`)}
+                  style={{ textDecoration: 'none', color: 'inherit' }}
                 >
-                  <Section style={articleItem}>
-                    <Row>
-                      <Column style={{ width: '80%', verticalAlign: 'middle' }}>
-                        <Text style={articleTitle}>{post.title}</Text>
-                        <Text style={articleExcerpt}>{post.excerpt?.substring(0, 60)}...</Text>
+                  <Img
+                    src={featuredImg}
+                    alt={featured.title}
+                    width="536"
+                    height="280"
+                    style={featuredImage}
+                  />
+                  <Heading as="h2" style={featuredTitle}>
+                    {featured.title}
+                  </Heading>
+                  <Text style={featuredExcerpt}>
+                    {featured.excerpt || 'Read the full briefing on Visas Guide.'}
+                  </Text>
+                  <Text style={readMore}>Read the full story →</Text>
+                </Link>
+              </Section>
+            )}
+
+            {/* More stories */}
+            {rest.length > 0 && (
+              <Section style={{ padding: '8px 32px 0' }}>
+                <Hr style={hrLight} />
+                <Text style={sectionLabel}>Also worth your time</Text>
+                {rest.map((post) => (
+                  <Link
+                    key={post.slug}
+                    href={track(`${SITE_URL}/blog/${post.slug}`, `story_${post.slug}`)}
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
+                    <Row style={storyRow}>
+                      <Column style={{ width: '110px', verticalAlign: 'top' }}>
+                        <Img
+                          src={
+                            post.featured_image_url && post.featured_image_url.startsWith('http')
+                              ? post.featured_image_url
+                              : FALLBACK_IMG
+                          }
+                          alt={post.title}
+                          width="100"
+                          height="74"
+                          style={storyThumb}
+                        />
                       </Column>
-                      <Column style={{ width: '20%', textAlign: 'right', verticalAlign: 'middle' }}>
-                        <Text style={articleArrow}>→</Text>
+                      <Column style={{ verticalAlign: 'top', paddingLeft: '12px' }}>
+                        <Text style={storyTitle}>{post.title}</Text>
+                        <Text style={storyExcerpt}>
+                          {(post.excerpt || '').slice(0, 110)}
+                          {post.excerpt && post.excerpt.length > 110 ? '…' : ''}
+                        </Text>
                       </Column>
                     </Row>
-                  </Section>
-                </Link>
-              ))}
-            </Section>
-          )}
-
-          {/* Destinations - Improved Grid */}
-          {countryGuides.length > 0 && (
-            <Section style={destinationSection}>
-              <Heading style={sectionHeadingWhite}>🌍 Popular Destinations</Heading>
-              <Text style={sectionSubWhite}>Check visa requirements for trending countries</Text>
-              
-              <Row>
-                {countryGuides.slice(0, 2).map((country, index) => (
-                  <Column key={index} style={{ width: '50%', padding: '8px' }}>
-                    <Link 
-                      href={trackUrl(`https://visas.guide/countries/${country.slug}`, `dest_${country.slug}`)}
-                      style={{ textDecoration: 'none' }}
-                    >
-                      <Section style={destCard}>
-                        <Text style={destFlag}>{country.flag_emoji}</Text>
-                        <Text style={destName}>{country.name}</Text>
-                        {country.visa_free_destinations && country.visa_free_destinations > 0 && (
-                         <Text style={destMeta}>{country.visa_free_destinations} visa-free access</Text>
-                        )}
-                        <Text style={destCta}>View Guide →</Text>
-                      </Section>
-                    </Link>
-                  </Column>
+                  </Link>
                 ))}
-              </Row>
-              {countryGuides.length > 2 && (
+              </Section>
+            )}
+
+            {/* Destinations */}
+            {countryGuides.length > 0 && (
+              <Section style={{ padding: '24px 32px 0' }}>
+                <Hr style={hrLight} />
+                <Text style={sectionLabel}>Trending destinations</Text>
                 <Row>
-                  {countryGuides.slice(2, 4).map((country, index) => (
-                    <Column key={index} style={{ width: '50%', padding: '8px' }}>
-                      <Link 
-                        href={trackUrl(`https://visas.guide/countries/${country.slug}`, `dest_${country.slug}`)}
-                        style={{ textDecoration: 'none' }}
+                  {countryGuides.slice(0, 4).map((c) => (
+                    <Column key={c.slug} style={destCol} align="center">
+                      <Link
+                        href={track(`${SITE_URL}/${c.slug}`, `dest_${c.slug}`)}
+                        style={destLink}
                       >
-                        <Section style={destCard}>
-                          <Text style={destFlag}>{country.flag_emoji}</Text>
-                          <Text style={destName}>{country.name}</Text>
-                          {country.visa_free_destinations && country.visa_free_destinations > 0 && (
-                            <Text style={destMeta}>{country.visa_free_destinations} visa-free access</Text>
-                          )}
-                          <Text style={destCta}>View Guide →</Text>
-                        </Section>
+                        <Text style={destFlag}>{c.flag_emoji || '🌍'}</Text>
+                        <Text style={destName}>{c.name}</Text>
+                        {typeof c.visa_free_destinations === 'number' && (
+                          <Text style={destMeta}>
+                            {c.visa_free_destinations} visa-free
+                          </Text>
+                        )}
                       </Link>
                     </Column>
                   ))}
                 </Row>
-              )}
-              
-              <Button 
-                style={primaryBtn}
-                href={trackUrl("https://visas.guide/countries", "all_countries")}
+              </Section>
+            )}
+
+            {/* Travel tip */}
+            <Section style={{ padding: '28px 32px 0' }}>
+              <Hr style={hrLight} />
+              <div style={tipBox}>
+                <Text style={tipLabel}>💡 Travel tip of the week</Text>
+                <Text style={tipText}>
+                  Save a PDF copy of your passport and active visas to a folder you can access
+                  offline. If your phone dies or roaming fails, you'll still have everything you
+                  need at immigration.
+                </Text>
+              </div>
+            </Section>
+
+            {/* CTA */}
+            <Section style={{ padding: '28px 32px 8px', textAlign: 'center' as const }}>
+              <Button
+                href={track(`${SITE_URL}/blog`, 'main_cta')}
+                style={ctaButton}
               >
-                Explore All Countries
+                Read more on Visas Guide
               </Button>
+              <Text style={ctaSub}>
+                Or check{' '}
+                <Link href={track(`${SITE_URL}/etias`, 'cta_etias')} style={inlineLink}>
+                  ETIAS updates
+                </Link>{' '}
+                ·{' '}
+                <Link href={track(`${SITE_URL}/visa-news`, 'cta_news')} style={inlineLink}>
+                  Latest visa news
+                </Link>
+              </Text>
             </Section>
-          )}
 
-          {/* Our Sponsors */}
-          {affiliates.length > 0 && (
-            <Section style={section}>
-              <Text style={sponsoredLabel}>Sponsored</Text>
-              
-              {affiliates.map((affiliate, index) => (
-                <Link 
-                  key={index}
-                  href={trackUrl(affiliate.target_url, `affiliate_${affiliate.name}`)}
-                  style={{ textDecoration: 'none', display: 'block', marginBottom: '12px' }}
-                >
-                  <Img
-                    src={affiliate.image_url}
-                    width="100%"
-                    alt={affiliate.name}
-                    style={sponsorImg}
-                  />
-                </Link>
-              ))}
-            </Section>
-          )}
-
-          {/* Quick Tools */}
-          <Section style={toolsSection}>
-            <Heading style={toolsTitle}>🛠️ Quick Tools</Heading>
-            <Row>
-              <Column style={{ width: '33%', textAlign: 'center', padding: '8px' }}>
-                <Link href={trackUrl("https://visas.guide/visa-search", "tool_finder")} style={{ textDecoration: 'none' }}>
-                  <Section style={toolCard}>
-                    <Text style={toolEmoji}>🔍</Text>
-                    <Text style={toolLabel}>Visa Finder</Text>
-                  </Section>
-                </Link>
-              </Column>
-              <Column style={{ width: '33%', textAlign: 'center', padding: '8px' }}>
-                <Link href={trackUrl("https://visas.guide/passport-rankings", "tool_passport")} style={{ textDecoration: 'none' }}>
-                  <Section style={toolCard}>
-                    <Text style={toolEmoji}>📊</Text>
-                    <Text style={toolLabel}>Rankings</Text>
-                  </Section>
-                </Link>
-              </Column>
-              <Column style={{ width: '33%', textAlign: 'center', padding: '8px' }}>
-                <Link href={trackUrl("https://visas.guide/schengen-visa-guide", "tool_schengen")} style={{ textDecoration: 'none' }}>
-                  <Section style={toolCard}>
-                    <Text style={toolEmoji}>🇪🇺</Text>
-                    <Text style={toolLabel}>Schengen</Text>
-                  </Section>
-                </Link>
-              </Column>
-            </Row>
-          </Section>
+            {/* Sponsored */}
+            {affiliates.length > 0 && (
+              <Section style={{ padding: '24px 32px 0' }}>
+                <Hr style={hrLight} />
+                <Text style={sectionLabel}>Sponsored — partner picks</Text>
+                {affiliates.slice(0, 2).map((a) => (
+                  <Link
+                    key={a.target_url}
+                    href={track(a.target_url, `aff_${a.name}`)}
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
+                    <Row style={affRow}>
+                      <Column style={{ width: '64px', verticalAlign: 'middle' }}>
+                        <Img
+                          src={a.image_url || `${SITE_URL}/favicon.png`}
+                          alt={a.name}
+                          width="56"
+                          height="56"
+                          style={affLogo}
+                        />
+                      </Column>
+                      <Column style={{ verticalAlign: 'middle', paddingLeft: '12px' }}>
+                        <Text style={affName}>{a.name}</Text>
+                        <Text style={affDesc}>{a.description}</Text>
+                      </Column>
+                    </Row>
+                  </Link>
+                ))}
+              </Section>
+            )}
+          </Container>
 
           {/* Footer */}
           <Section style={footer}>
-            <Hr style={footerDivider} />
-            
-            <Text style={footerBrand}>Visas Guide</Text>
-            <Text style={footerTagline}>Your trusted source for global visa information</Text>
-            
-            <Row style={{ marginTop: '20px' }}>
-              <Column align="center">
-                <Link href={trackUrl("https://facebook.com/visasguide", "social_fb")} style={socialLink}>Facebook</Link>
-                <Text style={socialDot}> • </Text>
-                <Link href={trackUrl("https://instagram.com/visasguide", "social_ig")} style={socialLink}>Instagram</Link>
-                <Text style={socialDot}> • </Text>
-                <Link href={trackUrl("https://twitter.com/visasguide", "social_tw")} style={socialLink}>Twitter</Link>
-              </Column>
-            </Row>
-            
+            <Text style={footerBrand}>visas.guide</Text>
             <Text style={footerText}>
-              You're receiving this because you subscribed to visa updates at visas.guide
+              You're receiving this because you subscribed at visas.guide. We send one briefing
+              per week — no spam, ever.
             </Text>
-            
-            <Row style={{ marginTop: '16px' }}>
-              <Column align="center">
-                <Link href={trackUrl("https://visas.guide/contact", "manage_prefs")} style={footerLink}>Contact Us</Link>
-                <Text style={footerDot}> | </Text>
-                <Link href={unsubscribeUrl} style={footerLink}>Unsubscribe</Link>
-                <Text style={footerDot}> | </Text>
-                <Link href={trackUrl("https://visas.guide/privacy-policy", "privacy")} style={footerLink}>Privacy Policy</Link>
-              </Column>
-            </Row>
-            
-            <Text style={footerAddress}>
-              5900 Balcones Drive, STE 100, Austin, TX 78731
+            <Text style={footerLinks}>
+              <Link href={track(SITE_URL, 'footer_home')} style={footerLink}>
+                Home
+              </Link>
+              {' · '}
+              <Link href={track(`${SITE_URL}/about`, 'footer_about')} style={footerLink}>
+                About
+              </Link>
+              {' · '}
+              <Link href={track(`${SITE_URL}/contact`, 'footer_contact')} style={footerLink}>
+                Contact
+              </Link>
+              {' · '}
+              <Link href={unsubscribeUrl} style={footerLink}>
+                Unsubscribe
+              </Link>
             </Text>
-            <Text style={copyright}>© {today.getFullYear()} Visas Guide. All rights reserved.</Text>
+            <Text style={footerLegal}>
+              © {today.getFullYear()} Visas Guide. All rights reserved.
+            </Text>
           </Section>
 
-          {/* Tracking Pixel */}
-          <Img src={trackingPixelUrl} width="1" height="1" alt="" style={{ display: 'none' }} />
+          {/* Open tracking pixel */}
+          <Img src={pixelUrl} width="1" height="1" alt="" style={{ display: 'none' }} />
         </Container>
       </Body>
     </Html>
   );
-}
+};
 
-export default NewsletterEmail
+export default NewsletterEmail;
 
-// Clean, modern email styles
-const main = {
-  backgroundColor: '#f5f5f5',
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-}
+// ===== Styles =====
+const main: React.CSSProperties = {
+  backgroundColor: '#f4f5f7',
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+  margin: 0,
+  padding: '24px 0',
+};
 
-const container = {
-  backgroundColor: '#ffffff',
-  margin: '0 auto',
+const wrapper: React.CSSProperties = {
   maxWidth: '600px',
-  borderRadius: '8px',
-  overflow: 'hidden',
-}
+  margin: '0 auto',
+  padding: '0 12px',
+};
 
-const header = {
-  padding: '32px 24px 16px',
-  backgroundColor: '#ffffff',
-  textAlign: 'center' as const,
-}
+const brandBar: React.CSSProperties = {
+  padding: '4px 8px 16px',
+};
 
-const headerTagline = {
-  fontSize: '13px',
-  color: '#888888',
-  margin: '0',
-  letterSpacing: '0.3px',
-}
-
-const greetingSection = {
-  padding: '8px 24px 24px',
-}
-
-const greetingTitle = {
-  fontSize: '26px',
-  fontWeight: '700',
-  color: '#1a1a1a',
-  margin: '0 0 12px',
-  lineHeight: '1.2',
-}
-
-const greetingText = {
-  fontSize: '16px',
-  color: '#555555',
-  margin: '0',
-  lineHeight: '1.6',
-}
-
-const tipSection = {
-  margin: '0 24px 24px',
-  padding: '20px',
-  backgroundColor: '#fff8e6',
-  borderRadius: '12px',
-  borderLeft: '4px solid #f5a623',
-}
-
-const tipIcon = {
-  fontSize: '24px',
-  margin: '0 0 8px',
-}
-
-const tipTitle = {
-  fontSize: '14px',
-  fontWeight: '700',
-  color: '#1a1a1a',
-  margin: '0 0 8px',
-  textTransform: 'uppercase' as const,
-  letterSpacing: '0.5px',
-}
-
-const tipText = {
-  fontSize: '14px',
-  color: '#555555',
-  margin: '0',
-  lineHeight: '1.5',
-}
-
-const section = {
-  padding: '0 24px 32px',
-}
-
-const sectionHeading = {
+const brandLink: React.CSSProperties = {
   fontSize: '20px',
-  fontWeight: '700',
-  color: '#1a1a1a',
-  margin: '0 0 16px',
-}
-
-const sectionSub = {
-  fontSize: '14px',
-  color: '#777777',
-  margin: '-8px 0 16px',
-}
-
-const featuredCard = {
-  borderRadius: '16px',
-  overflow: 'hidden',
-  backgroundColor: '#f9f9f9',
-  border: '1px solid #eeeeee',
-}
-
-const featuredImg = {
-  display: 'block',
-  width: '100%',
-  objectFit: 'cover' as const,
-}
-
-const placeholderImg = {
-  backgroundColor: '#0066cc',
-  height: '180px',
-  textAlign: 'center' as const,
-  paddingTop: '60px',
-}
-
-const placeholderEmoji = {
-  fontSize: '64px',
-  margin: '0',
-}
-
-const featuredBody = {
-  padding: '24px',
-}
-
-const featuredLabel = {
-  fontSize: '12px',
-  fontWeight: '600',
-  color: '#0066cc',
-  textTransform: 'uppercase' as const,
-  letterSpacing: '0.5px',
-  margin: '0 0 8px',
-}
-
-const featuredTitle = {
-  fontSize: '20px',
-  fontWeight: '700',
-  color: '#1a1a1a',
-  margin: '0 0 12px',
-  lineHeight: '1.3',
-}
-
-const featuredExcerpt = {
-  fontSize: '15px',
-  color: '#555555',
-  margin: '0 0 16px',
-  lineHeight: '1.5',
-}
-
-const readMoreBtn = {
-  fontSize: '14px',
-  fontWeight: '600',
-  color: '#0066cc',
-  margin: '0',
-}
-
-const articleItem = {
-  padding: '16px 0',
-  borderBottom: '1px solid #eeeeee',
-}
-
-const articleTitle = {
-  fontSize: '15px',
-  fontWeight: '600',
-  color: '#1a1a1a',
-  margin: '0 0 4px',
-  lineHeight: '1.4',
-}
-
-const articleExcerpt = {
-  fontSize: '13px',
-  color: '#888888',
-  margin: '0',
-}
-
-const articleArrow = {
-  fontSize: '20px',
-  color: '#0066cc',
-  margin: '0',
-}
-
-const destinationSection = {
-  padding: '32px 16px',
-  backgroundColor: '#0a2540',
-}
-
-const sectionHeadingWhite = {
-  fontSize: '22px',
-  fontWeight: '700',
-  color: '#ffffff',
-  margin: '0 0 8px',
-  textAlign: 'center' as const,
-}
-
-const sectionSubWhite = {
-  fontSize: '14px',
-  color: '#a0aec0',
-  margin: '0 0 24px',
-  textAlign: 'center' as const,
-}
-
-const destCard = {
-  backgroundColor: '#1a3a5c',
-  borderRadius: '12px',
-  padding: '24px 16px',
-  textAlign: 'center' as const,
-}
-
-const destFlag = {
-  fontSize: '40px',
-  margin: '0 0 10px',
-}
-
-const destName = {
-  fontSize: '15px',
-  fontWeight: '600',
-  color: '#ffffff',
-  margin: '0 0 6px',
-}
-
-const destMeta = {
-  fontSize: '12px',
-  color: '#a0aec0',
-  margin: '0',
-}
-
-const primaryBtn = {
-  backgroundColor: '#0066cc',
-  borderRadius: '8px',
-  color: '#ffffff',
-  fontSize: '15px',
-  fontWeight: '600',
+  fontWeight: 700,
+  color: '#0f172a',
   textDecoration: 'none',
-  padding: '14px 28px',
-  display: 'block',
-  textAlign: 'center' as const,
-  margin: '24px auto 0',
-  maxWidth: '220px',
-}
+  letterSpacing: '-0.01em',
+};
 
-const sponsoredLabel = {
-  fontSize: '11px',
-  fontWeight: '600',
-  color: '#999999',
-  textTransform: 'uppercase' as const,
-  letterSpacing: '1px',
-  margin: '0 0 12px',
-  textAlign: 'center' as const,
-}
+const brandDot: React.CSSProperties = {
+  color: '#16a34a',
+};
 
-const sponsorImg = {
-  width: '100%',
-  borderRadius: '8px',
-  display: 'block' as const,
-}
-
-const destCta = {
+const issueMeta: React.CSSProperties = {
   fontSize: '12px',
-  fontWeight: '600',
-  color: '#4da6ff',
-  margin: '8px 0 0',
-}
+  color: '#64748b',
+  margin: 0,
+  textTransform: 'uppercase',
+  letterSpacing: '0.06em',
+};
 
-const toolsSection = {
-  padding: '32px 24px',
-  backgroundColor: '#f9f9f9',
-}
-
-const toolsTitle = {
-  fontSize: '18px',
-  fontWeight: '700',
-  color: '#1a1a1a',
-  margin: '0 0 20px',
-  textAlign: 'center' as const,
-}
-
-const toolCard = {
+const card: React.CSSProperties = {
   backgroundColor: '#ffffff',
-  borderRadius: '12px',
-  padding: '20px 12px',
-  border: '1px solid #eeeeee',
-}
+  borderRadius: '14px',
+  border: '1px solid #e5e7eb',
+  overflow: 'hidden',
+  padding: '0',
+};
 
-const toolEmoji = {
+const hero: React.CSSProperties = {
+  padding: '36px 32px 8px',
+};
+
+const kicker: React.CSSProperties = {
+  fontSize: '12px',
+  color: '#16a34a',
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '0.1em',
+  margin: '0 0 12px',
+};
+
+const heroTitle: React.CSSProperties = {
   fontSize: '28px',
+  lineHeight: '1.2',
+  color: '#0f172a',
+  fontWeight: 700,
+  margin: '0 0 12px',
+  letterSpacing: '-0.02em',
+};
+
+const heroSubtitle: React.CSSProperties = {
+  fontSize: '15px',
+  lineHeight: '1.6',
+  color: '#475569',
+  margin: 0,
+};
+
+const hr: React.CSSProperties = {
+  borderColor: '#e5e7eb',
+  margin: '24px 32px 16px',
+};
+
+const hrLight: React.CSSProperties = {
+  borderColor: '#eef2f7',
+  margin: '20px 0',
+};
+
+const sectionLabel: React.CSSProperties = {
+  fontSize: '11px',
+  color: '#64748b',
+  textTransform: 'uppercase',
+  letterSpacing: '0.1em',
+  fontWeight: 600,
+  margin: '0 0 12px',
+};
+
+const featuredImage: React.CSSProperties = {
+  width: '100%',
+  height: 'auto',
+  borderRadius: '10px',
+  display: 'block',
+  marginBottom: '14px',
+  objectFit: 'cover' as const,
+};
+
+const featuredTitle: React.CSSProperties = {
+  fontSize: '20px',
+  lineHeight: '1.3',
+  color: '#0f172a',
+  fontWeight: 700,
   margin: '0 0 8px',
-}
+  letterSpacing: '-0.01em',
+};
 
-const toolLabel = {
-  fontSize: '13px',
-  fontWeight: '600',
-  color: '#1a1a1a',
-  margin: '0',
-}
+const featuredExcerpt: React.CSSProperties = {
+  fontSize: '14px',
+  lineHeight: '1.6',
+  color: '#475569',
+  margin: '0 0 8px',
+};
 
-const footer = {
-  padding: '32px 24px',
-  backgroundColor: '#ffffff',
-  textAlign: 'center' as const,
-}
+const readMore: React.CSSProperties = {
+  fontSize: '14px',
+  color: '#16a34a',
+  fontWeight: 600,
+  margin: 0,
+};
 
-const footerDivider = {
-  borderColor: '#eeeeee',
-  margin: '0 0 24px',
-}
+const storyRow: React.CSSProperties = {
+  marginBottom: '16px',
+};
 
-const footerBrand = {
-  fontSize: '18px',
-  fontWeight: '700',
-  color: '#1a1a1a',
+const storyThumb: React.CSSProperties = {
+  width: '100px',
+  height: '74px',
+  borderRadius: '8px',
+  objectFit: 'cover' as const,
+  display: 'block',
+};
+
+const storyTitle: React.CSSProperties = {
+  fontSize: '15px',
+  lineHeight: '1.35',
+  color: '#0f172a',
+  fontWeight: 600,
   margin: '0 0 4px',
-}
+};
 
-const footerTagline = {
+const storyExcerpt: React.CSSProperties = {
   fontSize: '13px',
-  color: '#888888',
-  margin: '0',
-}
-
-const socialLink = {
-  fontSize: '13px',
-  color: '#0066cc',
-  textDecoration: 'none',
-}
-
-const socialDot = {
-  fontSize: '13px',
-  color: '#cccccc',
-  display: 'inline',
-}
-
-const footerText = {
-  fontSize: '12px',
-  color: '#999999',
-  margin: '20px 0 0',
   lineHeight: '1.5',
-}
+  color: '#64748b',
+  margin: 0,
+};
 
-const footerLink = {
-  fontSize: '12px',
-  color: '#666666',
-  textDecoration: 'underline',
-}
+const destCol: React.CSSProperties = {
+  padding: '8px 4px',
+  width: '25%',
+};
 
-const footerDot = {
-  fontSize: '12px',
-  color: '#cccccc',
-  display: 'inline',
-}
+const destLink: React.CSSProperties = {
+  textDecoration: 'none',
+  color: 'inherit',
+  display: 'block',
+};
 
-const footerAddress = {
+const destFlag: React.CSSProperties = {
+  fontSize: '28px',
+  margin: '0 0 4px',
+  lineHeight: 1,
+};
+
+const destName: React.CSSProperties = {
+  fontSize: '13px',
+  fontWeight: 600,
+  color: '#0f172a',
+  margin: '0 0 2px',
+};
+
+const destMeta: React.CSSProperties = {
   fontSize: '11px',
-  color: '#aaaaaa',
-  margin: '16px 0 0',
-}
+  color: '#64748b',
+  margin: 0,
+};
 
-const copyright = {
+const tipBox: React.CSSProperties = {
+  backgroundColor: '#f0fdf4',
+  border: '1px solid #bbf7d0',
+  borderRadius: '10px',
+  padding: '16px 18px',
+};
+
+const tipLabel: React.CSSProperties = {
+  fontSize: '13px',
+  fontWeight: 700,
+  color: '#15803d',
+  margin: '0 0 6px',
+};
+
+const tipText: React.CSSProperties = {
+  fontSize: '14px',
+  lineHeight: '1.6',
+  color: '#166534',
+  margin: 0,
+};
+
+const ctaButton: React.CSSProperties = {
+  backgroundColor: '#16a34a',
+  color: '#ffffff',
+  fontSize: '15px',
+  fontWeight: 600,
+  textDecoration: 'none',
+  padding: '12px 28px',
+  borderRadius: '8px',
+  display: 'inline-block',
+};
+
+const ctaSub: React.CSSProperties = {
+  fontSize: '13px',
+  color: '#64748b',
+  margin: '14px 0 0',
+};
+
+const inlineLink: React.CSSProperties = {
+  color: '#16a34a',
+  textDecoration: 'none',
+  fontWeight: 600,
+};
+
+const affRow: React.CSSProperties = {
+  marginBottom: '12px',
+};
+
+const affLogo: React.CSSProperties = {
+  width: '56px',
+  height: '56px',
+  borderRadius: '8px',
+  objectFit: 'cover' as const,
+  border: '1px solid #e5e7eb',
+};
+
+const affName: React.CSSProperties = {
+  fontSize: '14px',
+  fontWeight: 600,
+  color: '#0f172a',
+  margin: '0 0 2px',
+};
+
+const affDesc: String = '';
+
+// (use object below; the const above kept to avoid renaming references)
+const _affDescStyle: React.CSSProperties = {
+  fontSize: '13px',
+  color: '#64748b',
+  margin: 0,
+};
+
+const footer: React.CSSProperties = {
+  padding: '24px 8px 8px',
+  textAlign: 'center' as const,
+};
+
+const footerBrand: React.CSSProperties = {
+  fontSize: '14px',
+  fontWeight: 700,
+  color: '#0f172a',
+  margin: '0 0 8px',
+};
+
+const footerText: React.CSSProperties = {
+  fontSize: '12px',
+  lineHeight: '1.6',
+  color: '#64748b',
+  margin: '0 0 12px',
+};
+
+const footerLinks: React.CSSProperties = {
+  fontSize: '12px',
+  color: '#94a3b8',
+  margin: '0 0 8px',
+};
+
+const footerLink: React.CSSProperties = {
+  color: '#475569',
+  textDecoration: 'none',
+};
+
+const footerLegal: React.CSSProperties = {
   fontSize: '11px',
-  color: '#aaaaaa',
-  margin: '8px 0 0',
-}
+  color: '#94a3b8',
+  margin: 0,
+};

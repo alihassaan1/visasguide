@@ -378,7 +378,8 @@ const AnalyticsDashboard = () => {
         .select('visitor_location')
         .not('visitor_location', 'is', null)
         .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString());
+        .lte('created_at', periodEnd.toISOString())
+        .limit(100000);
       
       if (error) throw error;
       

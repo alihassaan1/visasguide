@@ -428,7 +428,7 @@ const AnalyticsDashboard = () => {
 
   // Top visa searches
   const { data: topSearches } = useQuery({
-    queryKey: ['top-searches'],
+    queryKey: ['top-searches', trendPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
@@ -439,7 +439,9 @@ const AnalyticsDashboard = () => {
           to_country:countries!analytics_events_to_country_id_fkey(name, code, flag_emoji)
         `)
         .eq('event_type', 'search')
-        .limit(100);
+        .gte('created_at', periodStart.toISOString())
+        .lte('created_at', periodEnd.toISOString())
+        .limit(100000);
       
       if (error) throw error;
       

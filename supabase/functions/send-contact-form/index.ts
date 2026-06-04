@@ -59,7 +59,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send confirmation email to the user
     const confirmationEmail = await resend.emails.send({
-      from: "Visas.Guide <noreply@visas.guide>",
+      from: "Visas.Guide <info@visas.guide>",
       to: [email],
       subject: "We received your message - Visas.Guide",
       html: `

@@ -326,14 +326,16 @@ const AnalyticsDashboard = () => {
 
   // Search engine keywords
   const { data: searchEngineQueries } = useQuery({
-    queryKey: ['search-engine-queries'],
+    queryKey: ['search-engine-queries', trendPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
         .select('search_engine_query, referrer_source')
         .not('search_engine_query', 'is', null)
+        .gte('created_at', periodStart.toISOString())
+        .lte('created_at', periodEnd.toISOString())
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(100000);
       
       if (error) throw error;
       

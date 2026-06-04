@@ -17,6 +17,8 @@ import VisaGuides from "./pages/VisaGuides";
 import CountryGuide from "./pages/CountryGuide";
 import CityPage from "./pages/CityPage";
 import GuidePage from "./pages/GuidePage";
+import ThingsToDo from "./pages/ThingsToDo";
+import ThingsToDoIndex from "./pages/ThingsToDoIndex";
 
 import NewsPage from "./pages/NewsPage";
 import NewsArticle from "./pages/NewsArticle";
@@ -124,6 +126,8 @@ const App = () => (
           <Route path="/affiliate-disclosure" element={<AffiliateDisclosure />} />
           <Route path="/policy-updates" element={<PolicyUpdates />} />
           <Route path="/schengen-visa-guide" element={<SchengenVisaGuide />} />
+          <Route path="/things-to-do" element={<ThingsToDoIndex />} />
+          <Route path="/things-to-do/:countrySlug" element={<ThingsToDo />} />
 
           {/* ETIAS hub */}
           <Route path="/etias" element={<EtiasHub />} />

@@ -159,14 +159,39 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
     }
   }, [selectedBanner?.id, locationLoading, currentPath]);
 
+  const detectClickSource = (): string => {
+    if (typeof window === "undefined") return "website";
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const utm = (params.get("utm_source") || "").toLowerCase();
+      const utmMedium = (params.get("utm_medium") || "").toLowerCase();
+      if (utm === "newsletter" || utm === "email" || utmMedium === "email") return "newsletter";
+      const socialSources = ["facebook", "fb", "instagram", "ig", "twitter", "x", "linkedin", "li", "tiktok", "youtube", "yt", "pinterest", "reddit", "threads"];
+      if (socialSources.includes(utm) || utmMedium === "social") return "social";
+      const ref = document.referrer || "";
+      if (ref) {
+        const host = (() => { try { return new URL(ref).hostname.toLowerCase(); } catch { return ""; } })();
+        if (/facebook\.com|instagram\.com|twitter\.com|x\.com|linkedin\.com|t\.co|tiktok\.com|youtube\.com|youtu\.be|pinterest\.com|reddit\.com|threads\.net/.test(host)) {
+          return "social";
+        }
+      }
+      return "website";
+    } catch {
+      return "website";
+    }
+  };
+
   const handleClick = async (banner: AffiliateData) => {
+    const source = detectClickSource();
+
     // Track click with Google Analytics
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', 'affiliate_click', {
         affiliate_name: banner.name,
         affiliate_url: banner.target_url,
         banner_position: position,
-        visitor_country: countryCode
+        visitor_country: countryCode,
+        click_source: source,
       });
     }
 
@@ -176,7 +201,7 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
       page_slug: currentPath,
       search_term: banner.name,
       referrer_source: ensureProtocol(banner.target_url),
-      visitor_location: countryCode ? { country: countryCode, position } : null,
+      visitor_location: { country: countryCode || null, position, source },
     });
 
     // Atomic click count increment (RPC bypasses RLS for anon visitors)

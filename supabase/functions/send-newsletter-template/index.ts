@@ -148,7 +148,7 @@ serve(async (req) => {
 
     // Send the email - personalized subject line
     const { data: emailData, error: emailError } = await resend.emails.send({
-      from: "Visas Guide <newsletter@visas.guide>",
+      from: "Visas Guide <info@visas.guide>",
       to: [email],
       subject: subject,
       html,

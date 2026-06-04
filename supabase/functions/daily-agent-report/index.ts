@@ -49,7 +49,7 @@ serve(async (req) => {
       .eq("setting_key", "admin_email")
       .single();
 
-    const adminEmail = (emailSettings?.setting_value as any)?.email || "admin@visas.guide";
+    const adminEmail = (emailSettings?.setting_value as any)?.email || "info@visas.guide";
 
     // Calculate date range for last 24 hours
     const now = new Date();
@@ -306,7 +306,7 @@ serve(async (req) => {
 
     // Send email via Resend
     const { data: emailResult, error: emailError } = await resend.emails.send({
-      from: "AI Agent <agent@visas.guide>",
+      from: "AI Agent <info@visas.guide>",
       to: [adminEmail],
       subject: `📊 Daily Agent Report - ${stats.contentCreated} pages, $${stats.apiCostUSD.toFixed(2)} spent`,
       html: emailHtml,

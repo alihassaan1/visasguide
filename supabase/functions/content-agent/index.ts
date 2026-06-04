@@ -63,7 +63,7 @@ async function checkAndSendMilestoneAlert(supabase: any) {
       .eq("setting_key", "admin_email")
       .single();
 
-    const adminEmail = (emailSettings?.setting_value as any)?.email || "admin@visas.guide";
+    const adminEmail = (emailSettings?.setting_value as any)?.email || "info@visas.guide";
 
     // Send milestone email
     const resend = new Resend(resendApiKey);
@@ -157,7 +157,7 @@ async function checkAndSendMilestoneAlert(supabase: any) {
     `;
 
     await resend.emails.send({
-      from: "AI Agent <agent@visas.guide>",
+      from: "AI Agent <info@visas.guide>",
       to: [adminEmail],
       subject: `🎉 Milestone: ${newlyReachedMilestone}% Visa Content Coverage Reached!`,
       html: emailHtml,

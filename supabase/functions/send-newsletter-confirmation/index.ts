@@ -23,7 +23,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { name, email }: NewsletterConfirmationRequest = await req.json();
 
     const emailResponse = await resend.emails.send({
-      from: "Visas Guide <newsletter@visas.guide>",
+      from: "Visas Guide <info@visas.guide>",
       to: [email],
       subject: "Welcome to Visas.Guide Newsletter! 🌍",
       html: `

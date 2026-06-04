@@ -416,12 +416,87 @@ export default function AdPerformanceDashboard() {
       <Tabs defaultValue="banners" className="space-y-4">
         <TabsList>
           <TabsTrigger value="banners">Banner Ads ({banners.length})</TabsTrigger>
+          <TabsTrigger value="sources">By Source</TabsTrigger>
           <TabsTrigger value="slots">By Slot</TabsTrigger>
           <TabsTrigger value="trends">Per-Day Trends</TabsTrigger>
           <TabsTrigger value="widgets">Affiliate Widgets ({widgets.length})</TabsTrigger>
           <TabsTrigger value="pages">Top Pages</TabsTrigger>
           <TabsTrigger value="log">Click Log</TabsTrigger>
         </TabsList>
+
+        {/* By Source breakdown */}
+        <TabsContent value="sources">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Clicks by Source</CardTitle>
+                <CardDescription>
+                  Where the click happened: your website, the email newsletter, or a social channel
+                  (detected via UTM params and referrer).
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {sourceBreakdown.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Source</TableHead>
+                        <TableHead className="text-right">Clicks</TableHead>
+                        <TableHead className="text-right">Share</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {sourceBreakdown.map((r) => (
+                        <TableRow key={r.source}>
+                          <TableCell>
+                            <Badge variant="secondary" className="capitalize">{r.source}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right">{r.clicks.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">{r.share}%</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-center py-8 text-muted-foreground">No click events for the selected period</p>
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Per Banner × Source</CardTitle>
+                <CardDescription>Which banners get clicks from which channel</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {bannerSourceBreakdown.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Banner</TableHead>
+                        <TableHead>Source</TableHead>
+                        <TableHead className="text-right">Clicks</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {bannerSourceBreakdown.map((r) => (
+                        <TableRow key={`${r.name}-${r.source}`}>
+                          <TableCell className="font-medium">{r.name}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="capitalize">{r.source}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right">{r.clicks.toLocaleString()}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-center py-8 text-muted-foreground">No click events for the selected period</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
 
         {/* Per-banner × per-slot breakdown */}
         <TabsContent value="slots">

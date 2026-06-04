@@ -747,18 +747,27 @@ export default function AdPerformanceDashboard() {
                       <TableHead>Time</TableHead>
                       <TableHead>Page</TableHead>
                       <TableHead>Banner/Link</TableHead>
+                      <TableHead>Source</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {clickEvents.slice(0, 50).map((e, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="text-muted-foreground text-sm">
-                          {format(new Date(e.created_at), "MMM dd, HH:mm")}
-                        </TableCell>
-                        <TableCell>{e.page_slug || "—"}</TableCell>
-                        <TableCell>{e.search_term || "—"}</TableCell>
-                      </TableRow>
-                    ))}
+                    {clickEvents.slice(0, 50).map((e, i) => {
+                      const src =
+                        (e.visitor_location && typeof e.visitor_location === "object" && (e.visitor_location as any).source) ||
+                        "website";
+                      return (
+                        <TableRow key={i}>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {format(new Date(e.created_at), "MMM dd, HH:mm")}
+                          </TableCell>
+                          <TableCell>{e.page_slug || "—"}</TableCell>
+                          <TableCell>{e.search_term || "—"}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="capitalize">{src}</Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               ) : (

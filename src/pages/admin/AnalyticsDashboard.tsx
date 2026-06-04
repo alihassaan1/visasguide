@@ -405,7 +405,8 @@ const AnalyticsDashboard = () => {
         .from('analytics_events')
         .select('session_duration_seconds, page_slug, event_type')
         .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString());
+        .lte('created_at', periodEnd.toISOString())
+        .limit(100000);
       
       if (error) throw error;
       

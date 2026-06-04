@@ -37,7 +37,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send notification email to visas.guide team
     const notificationEmail = await resend.emails.send({
-      from: "Visas.Guide Contact <info@visas.guide>",
+      from: "Visas Guide <info@visas.guide>",
       to: ["info@visas.guide"],
       reply_to: email,
       subject: `New Contact Form: ${subject}`,
@@ -59,7 +59,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send confirmation email to the user
     const confirmationEmail = await resend.emails.send({
-      from: "Visas.Guide <info@visas.guide>",
+      from: "Visas Guide <info@visas.guide>",
       to: [email],
       subject: "We received your message - Visas.Guide",
       html: `

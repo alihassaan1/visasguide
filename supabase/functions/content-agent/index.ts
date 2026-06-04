@@ -157,7 +157,7 @@ async function checkAndSendMilestoneAlert(supabase: any) {
     `;
 
     await resend.emails.send({
-      from: "AI Agent <info@visas.guide>",
+      from: "Visas Guide <info@visas.guide>",
       to: [adminEmail],
       subject: `🎉 Milestone: ${newlyReachedMilestone}% Visa Content Coverage Reached!`,
       html: emailHtml,

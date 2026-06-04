@@ -306,7 +306,7 @@ serve(async (req) => {
 
     // Send email via Resend
     const { data: emailResult, error: emailError } = await resend.emails.send({
-      from: "AI Agent <info@visas.guide>",
+      from: "Visas Guide <info@visas.guide>",
       to: [adminEmail],
       subject: `📊 Daily Agent Report - ${stats.contentCreated} pages, $${stats.apiCostUSD.toFixed(2)} spent`,
       html: emailHtml,

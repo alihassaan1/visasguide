@@ -215,9 +215,8 @@ const WorldVisaMap: React.FC<WorldVisaMapProps> = ({ countries, onCountryClick }
             popup.current
               .setLngLat(e.lngLat)
               .setHTML(`
-                <div class="p-2">
-                  <h3 class="font-bold text-sm">${countryName}</h3>
-                  <p class="text-xs text-muted-foreground">Click to view visa requirements</p>
+                <div class="px-3 py-1.5 bg-background border rounded-full shadow-sm">
+                  <span class="text-sm font-semibold text-foreground whitespace-nowrap">${countryName}</span>
                 </div>
               `)
               .addTo(map.current);

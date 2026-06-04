@@ -531,30 +531,14 @@ const inlineLink: React.CSSProperties = {
   fontWeight: 600,
 };
 
-const affRow: React.CSSProperties = {
-  marginBottom: '12px',
-};
-
-const affLogo: React.CSSProperties = {
-  width: '56px',
-  height: '56px',
-  borderRadius: '8px',
-  objectFit: 'cover' as const,
+const affBanner: React.CSSProperties = {
+  width: '100%',
+  height: 'auto',
+  borderRadius: '10px',
+  display: 'block',
   border: '1px solid #e5e7eb',
 };
 
-const affName: React.CSSProperties = {
-  fontSize: '14px',
-  fontWeight: 600,
-  color: '#0f172a',
-  margin: '0 0 2px',
-};
-
-const affDesc: React.CSSProperties = {
-  fontSize: '13px',
-  color: '#64748b',
-  margin: 0,
-};
 
 const footer: React.CSSProperties = {
   padding: '24px 8px 8px',

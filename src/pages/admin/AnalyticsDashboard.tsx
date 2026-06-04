@@ -196,54 +196,52 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // Enhanced Newsletter stats with email opens
+  // Enhanced Newsletter stats with email opens (uses head counts — no 1000-row limit)
   const { data: newsletterStats } = useQuery({
     queryKey: ['newsletter-stats-enhanced'],
     queryFn: async () => {
-      // Get subscribers
-      const { data: allSubscribers } = await supabase
+      const { count: totalSubscribers } = await supabase
         .from('newsletter_subscribers')
-        .select('created_at, is_active');
-      
-      const { data: recentSubscribers } = await supabase
+        .select('*', { count: 'exact', head: true })
+        .eq('is_active', true);
+
+      const { count: signups30d } = await supabase
         .from('newsletter_subscribers')
-        .select('created_at')
+        .select('*', { count: 'exact', head: true })
         .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
-      
-      const { data: pageViews } = await supabase
+
+      const { count: views } = await supabase
         .from('analytics_events')
-        .select('id')
+        .select('*', { count: 'exact', head: true })
         .eq('event_type', 'page_view')
         .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
-      
-      // Get campaign stats
+
       const { data: campaigns } = await supabase
         .from('email_campaigns')
         .select('*')
         .order('sent_at', { ascending: false })
         .limit(10);
-      
-      // Get total opens
-      const { data: opens } = await supabase
+
+      const { count: totalOpens } = await supabase
         .from('email_opens')
-        .select('id')
+        .select('*', { count: 'exact', head: true })
         .gte('opened_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
-      
-      const totalSubscribers = allSubscribers?.filter(s => s.is_active)?.length || 0;
-      const signups30d = recentSubscribers?.length || 0;
-      const views = pageViews?.length || 1;
-      const rate = ((signups30d / views) * 100).toFixed(2);
-      
+
+      const subs = totalSubscribers || 0;
+      const signups = signups30d || 0;
+      const viewsCount = views || 1;
+      const rate = ((signups / viewsCount) * 100).toFixed(2);
+
       const totalSent = campaigns?.reduce((acc, c) => acc + (c.sent_count || 0), 0) || 0;
-      const totalOpens = opens?.length || 0;
-      const openRate = totalSent > 0 ? ((totalOpens / totalSent) * 100).toFixed(1) : '0';
-      
-      return { 
-        totalSubscribers,
-        signups: signups30d, 
+      const opensCount = totalOpens || 0;
+      const openRate = totalSent > 0 ? ((opensCount / totalSent) * 100).toFixed(1) : '0';
+
+      return {
+        totalSubscribers: subs,
+        signups,
         rate,
         totalSent,
-        totalOpens,
+        totalOpens: opensCount,
         openRate,
         campaigns: campaigns || []
       };
@@ -308,7 +306,8 @@ const AnalyticsDashboard = () => {
         .not('referrer_source', 'is', null)
         .not('referrer_source', 'eq', 'direct')
         .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString());
+        .lte('created_at', periodEnd.toISOString())
+        .limit(100000);
       
       if (error) throw error;
       
@@ -327,14 +326,16 @@ const AnalyticsDashboard = () => {
 
   // Search engine keywords
   const { data: searchEngineQueries } = useQuery({
-    queryKey: ['search-engine-queries'],
+    queryKey: ['search-engine-queries', trendPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
         .select('search_engine_query, referrer_source')
         .not('search_engine_query', 'is', null)
+        .gte('created_at', periodStart.toISOString())
+        .lte('created_at', periodEnd.toISOString())
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(100000);
       
       if (error) throw error;
       
@@ -377,7 +378,8 @@ const AnalyticsDashboard = () => {
         .select('visitor_location')
         .not('visitor_location', 'is', null)
         .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString());
+        .lte('created_at', periodEnd.toISOString())
+        .limit(100000);
       
       if (error) throw error;
       
@@ -403,7 +405,8 @@ const AnalyticsDashboard = () => {
         .from('analytics_events')
         .select('session_duration_seconds, page_slug, event_type')
         .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString());
+        .lte('created_at', periodEnd.toISOString())
+        .limit(100000);
       
       if (error) throw error;
       
@@ -425,7 +428,7 @@ const AnalyticsDashboard = () => {
 
   // Top visa searches
   const { data: topSearches } = useQuery({
-    queryKey: ['top-searches'],
+    queryKey: ['top-searches', trendPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('analytics_events')
@@ -436,7 +439,9 @@ const AnalyticsDashboard = () => {
           to_country:countries!analytics_events_to_country_id_fkey(name, code, flag_emoji)
         `)
         .eq('event_type', 'search')
-        .limit(100);
+        .gte('created_at', periodStart.toISOString())
+        .lte('created_at', periodEnd.toISOString())
+        .limit(100000);
       
       if (error) throw error;
       

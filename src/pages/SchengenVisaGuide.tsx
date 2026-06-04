@@ -156,10 +156,10 @@ const SchengenVisaGuide = () => {
                 <Link
                   key={country.slug}
                   to={`/countries/${country.slug}`}
-                  className="flex items-center gap-2 p-3 rounded-lg border border-border hover:border-primary hover:bg-accent transition-colors"
+                  className="group flex items-center gap-2 p-3 rounded-lg border border-border hover:border-primary hover:bg-primary hover:shadow-md transition-all"
                 >
                   <span className="text-xl">{country.flag}</span>
-                  <span className="text-sm font-medium text-foreground">{country.name}</span>
+                  <span className="text-sm font-medium text-foreground group-hover:text-primary-foreground transition-colors">{country.name}</span>
                 </Link>
               ))}
             </div>

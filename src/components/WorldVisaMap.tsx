@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X, MapPin, Search } from 'lucide-react';
+import { MapPin, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
   Dialog,

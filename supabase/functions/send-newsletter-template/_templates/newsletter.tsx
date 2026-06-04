@@ -559,10 +559,7 @@ const affName: React.CSSProperties = {
   margin: '0 0 2px',
 };
 
-const affDesc: String = '';
-
-// (use object below; the const above kept to avoid renaming references)
-const _affDescStyle: React.CSSProperties = {
+const affDesc: React.CSSProperties = {
   fontSize: '13px',
   color: '#64748b',
   margin: 0,

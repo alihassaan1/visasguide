@@ -203,6 +203,40 @@ export default function AdPerformanceDashboard() {
       .map(([slug, clicks]) => ({ slug, clicks }));
   }, [clickEvents]);
 
+  // Click source breakdown (website / newsletter / social)
+  const sourceBreakdown = useMemo(() => {
+    const map: Record<string, number> = {};
+    clickEvents.forEach((e: any) => {
+      const src =
+        (e.visitor_location && typeof e.visitor_location === "object" && (e.visitor_location as any).source) ||
+        "website";
+      map[src] = (map[src] || 0) + 1;
+    });
+    return Object.entries(map)
+      .map(([source, clicks]) => ({
+        source,
+        clicks,
+        share: clickEvents.length > 0 ? ((clicks / clickEvents.length) * 100).toFixed(1) : "0.0",
+      }))
+      .sort((a, b) => b.clicks - a.clicks);
+  }, [clickEvents]);
+
+  // Per-banner × per-source breakdown
+  const bannerSourceBreakdown = useMemo(() => {
+    const map: Record<string, { name: string; source: string; clicks: number }> = {};
+    clickEvents.forEach((e: any) => {
+      const name = e.search_term || "(unknown)";
+      const src =
+        (e.visitor_location && typeof e.visitor_location === "object" && (e.visitor_location as any).source) ||
+        "website";
+      const k = `${name}::${src}`;
+      map[k] = map[k] || { name, source: src, clicks: 0 };
+      map[k].clicks += 1;
+    });
+    return Object.values(map).sort((a, b) => b.clicks - a.clicks);
+  }, [clickEvents]);
+
+
   // Sorted banners
   const sortedBanners = useMemo(() => {
     return [...banners].sort((a, b) => {
@@ -382,12 +416,87 @@ export default function AdPerformanceDashboard() {
       <Tabs defaultValue="banners" className="space-y-4">
         <TabsList>
           <TabsTrigger value="banners">Banner Ads ({banners.length})</TabsTrigger>
+          <TabsTrigger value="sources">By Source</TabsTrigger>
           <TabsTrigger value="slots">By Slot</TabsTrigger>
           <TabsTrigger value="trends">Per-Day Trends</TabsTrigger>
           <TabsTrigger value="widgets">Affiliate Widgets ({widgets.length})</TabsTrigger>
           <TabsTrigger value="pages">Top Pages</TabsTrigger>
           <TabsTrigger value="log">Click Log</TabsTrigger>
         </TabsList>
+
+        {/* By Source breakdown */}
+        <TabsContent value="sources">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Clicks by Source</CardTitle>
+                <CardDescription>
+                  Where the click happened: your website, the email newsletter, or a social channel
+                  (detected via UTM params and referrer).
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {sourceBreakdown.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Source</TableHead>
+                        <TableHead className="text-right">Clicks</TableHead>
+                        <TableHead className="text-right">Share</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {sourceBreakdown.map((r) => (
+                        <TableRow key={r.source}>
+                          <TableCell>
+                            <Badge variant="secondary" className="capitalize">{r.source}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right">{r.clicks.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">{r.share}%</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-center py-8 text-muted-foreground">No click events for the selected period</p>
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Per Banner × Source</CardTitle>
+                <CardDescription>Which banners get clicks from which channel</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {bannerSourceBreakdown.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Banner</TableHead>
+                        <TableHead>Source</TableHead>
+                        <TableHead className="text-right">Clicks</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {bannerSourceBreakdown.map((r) => (
+                        <TableRow key={`${r.name}-${r.source}`}>
+                          <TableCell className="font-medium">{r.name}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="capitalize">{r.source}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right">{r.clicks.toLocaleString()}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-center py-8 text-muted-foreground">No click events for the selected period</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
 
         {/* Per-banner × per-slot breakdown */}
         <TabsContent value="slots">
@@ -638,18 +747,27 @@ export default function AdPerformanceDashboard() {
                       <TableHead>Time</TableHead>
                       <TableHead>Page</TableHead>
                       <TableHead>Banner/Link</TableHead>
+                      <TableHead>Source</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {clickEvents.slice(0, 50).map((e, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="text-muted-foreground text-sm">
-                          {format(new Date(e.created_at), "MMM dd, HH:mm")}
-                        </TableCell>
-                        <TableCell>{e.page_slug || "—"}</TableCell>
-                        <TableCell>{e.search_term || "—"}</TableCell>
-                      </TableRow>
-                    ))}
+                    {clickEvents.slice(0, 50).map((e, i) => {
+                      const src =
+                        (e.visitor_location && typeof e.visitor_location === "object" && (e.visitor_location as any).source) ||
+                        "website";
+                      return (
+                        <TableRow key={i}>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {format(new Date(e.created_at), "MMM dd, HH:mm")}
+                          </TableCell>
+                          <TableCell>{e.page_slug || "—"}</TableCell>
+                          <TableCell>{e.search_term || "—"}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="capitalize">{src}</Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               ) : (

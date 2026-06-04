@@ -22,7 +22,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { subject, content, from_name = "Visas.Guide" }: CampaignEmailRequest = await req.json();
+    const { subject, content, from_name = "Visas Guide" }: CampaignEmailRequest = await req.json();
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;

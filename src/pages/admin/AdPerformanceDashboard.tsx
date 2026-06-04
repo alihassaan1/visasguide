@@ -203,6 +203,40 @@ export default function AdPerformanceDashboard() {
       .map(([slug, clicks]) => ({ slug, clicks }));
   }, [clickEvents]);
 
+  // Click source breakdown (website / newsletter / social)
+  const sourceBreakdown = useMemo(() => {
+    const map: Record<string, number> = {};
+    clickEvents.forEach((e: any) => {
+      const src =
+        (e.visitor_location && typeof e.visitor_location === "object" && (e.visitor_location as any).source) ||
+        "website";
+      map[src] = (map[src] || 0) + 1;
+    });
+    return Object.entries(map)
+      .map(([source, clicks]) => ({
+        source,
+        clicks,
+        share: clickEvents.length > 0 ? ((clicks / clickEvents.length) * 100).toFixed(1) : "0.0",
+      }))
+      .sort((a, b) => b.clicks - a.clicks);
+  }, [clickEvents]);
+
+  // Per-banner × per-source breakdown
+  const bannerSourceBreakdown = useMemo(() => {
+    const map: Record<string, { name: string; source: string; clicks: number }> = {};
+    clickEvents.forEach((e: any) => {
+      const name = e.search_term || "(unknown)";
+      const src =
+        (e.visitor_location && typeof e.visitor_location === "object" && (e.visitor_location as any).source) ||
+        "website";
+      const k = `${name}::${src}`;
+      map[k] = map[k] || { name, source: src, clicks: 0 };
+      map[k].clicks += 1;
+    });
+    return Object.values(map).sort((a, b) => b.clicks - a.clicks);
+  }, [clickEvents]);
+
+
   // Sorted banners
   const sortedBanners = useMemo(() => {
     return [...banners].sort((a, b) => {

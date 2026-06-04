@@ -1,12 +1,17 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X, MapPin, Search } from 'lucide-react';
+import { MapPin, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 interface Country {
   id: string;
@@ -312,42 +317,57 @@ const WorldVisaMap: React.FC<WorldVisaMapProps> = ({ countries, onCountryClick }
         </p>
         {hoveredCountry && (
           <div className="mt-2 pt-2 border-t">
-            <Badge variant="outline" className="text-xs">{hoveredCountry}</Badge>
+            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
+              {hoveredCountry}
+            </span>
           </div>
         )}
       </div>
 
-      {/* Selected country card */}
-      {selectedCountry && (
-        <Card className="absolute bottom-4 right-4 w-80 bg-background/95 backdrop-blur-sm">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <span className="text-2xl">{selectedCountry.flag_emoji}</span>
-                {selectedCountry.name}
-              </CardTitle>
-              <Button
-                variant="ghost"
-                size="icon"
+      {/* Centered modal for selected country */}
+      <Dialog open={!!selectedCountry} onOpenChange={(open) => !open && setSelectedCountry(null)}>
+        <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden">
+          <div className="bg-primary px-6 py-6 text-primary-foreground">
+            <DialogHeader className="space-y-3">
+              <div className="flex items-center gap-3">
+                <span className="text-5xl sm:text-6xl leading-none">{selectedCountry?.flag_emoji}</span>
+                <div>
+                  <DialogTitle className="text-xl sm:text-2xl font-bold text-primary-foreground">
+                    {selectedCountry?.name}
+                  </DialogTitle>
+                  <DialogDescription className="text-primary-foreground/80 text-sm mt-1">
+                    Visa Requirements & Travel Info
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+          </div>
+          <div className="p-6 space-y-4">
+            <p className="text-sm text-muted-foreground">
+              View detailed visa requirements, fees, and processing times for {selectedCountry?.name}.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                to={`/countries/${selectedCountry?.slug}`}
+                className="flex-1"
                 onClick={() => setSelectedCountry(null)}
-                className="h-8 w-8"
               >
-                <X className="h-4 w-4" />
+                <Button className="w-full" size="lg">
+                  View Visa Requirements
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                size="lg"
+                className="sm:w-auto w-full"
+                onClick={() => setSelectedCountry(null)}
+              >
+                Close
               </Button>
             </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs sm:text-sm text-muted-foreground mb-4">
-              View detailed visa requirements for {selectedCountry.name}
-            </p>
-            <Link to={`/countries/${selectedCountry.slug}`}>
-              <Button className="w-full text-sm">
-                View Visa Requirements
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

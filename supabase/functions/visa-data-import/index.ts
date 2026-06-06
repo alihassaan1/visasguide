@@ -44,116 +44,86 @@ serve(async (req) => {
   }
 });
 
-async function importFromPassportIndex(supabase: any, fromCountryCodeFilter?: string) {
-  console.log('Importing from Passport Index Dataset...', fromCountryCodeFilter ? `for ${fromCountryCodeFilter}` : 'for all countries');
-  
-  // Fetch the CSV from GitHub
+async function importFromPassportIndex(supabase, fromCountryCodeFilter) {
+  console.log('Importing from Passport Index Dataset (ISO2)...', fromCountryCodeFilter ? `for ${fromCountryCodeFilter}` : 'for all countries');
+
   const response = await fetch(
-    'https://raw.githubusercontent.com/ilyankou/passport-index-dataset/master/passport-index-matrix.csv'
+    'https://raw.githubusercontent.com/ilyankou/passport-index-dataset/master/passport-index-matrix-iso2.csv'
   );
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch passport index data');
-  }
+  if (!response.ok) throw new Error('Failed to fetch passport index data');
 
   const csvText = await response.text();
-  const lines = csvText.split('\n');
-  const headers = lines[0].split(',').map(h => h.trim());
-  
-  // Get all countries from database
-  const { data: countries } = await supabase
-    .from('countries')
-    .select('id, name, code');
+  const lines = csvText.split('\n').filter((l) => l.trim());
+  const headers = lines[0].split(',').map((h) => h.trim().toUpperCase());
 
-  const countryMap = new Map(countries.map((c: any) => [c.code, c]));
-  
-  let importedCount = 0;
-  let skippedCount = 0;
+  const { data: countries } = await supabase.from('countries').select('id, code');
+  const countryMap = new Map((countries || []).map((c) => [String(c.code || '').toUpperCase(), c]));
 
-  // Process each row (skip header)
+  const filter = fromCountryCodeFilter ? fromCountryCodeFilter.toUpperCase() : null;
+
+  const mapValue = (raw) => {
+    const v = (raw || '').trim().toLowerCase();
+    if (!v || v === '-1') return null;
+    if (/^\d+$/.test(v)) return { type: 'visa_free', days: parseInt(v, 10) };
+    if (v.includes('visa free') || v.includes('visa-free')) return { type: 'visa_free', days: 90 };
+    if (v.includes('visa on arrival')) return { type: 'visa_on_arrival', days: 30 };
+    if (v.startsWith('e-visa') || v.includes('evisa') || v.includes('eta') || v.includes('evisitor')) return { type: 'e_visa', days: 90 };
+    if (v.includes('no admission') || v.includes('not admitted')) return { type: 'visa_required', days: null };
+    if (v.includes('visa required')) return { type: 'visa_required', days: null };
+    return { type: 'visa_required', days: null };
+  };
+
+  const rows = [];
+  let unknownFrom = 0;
   for (let i = 1; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line) continue;
+    const values = lines[i].split(',').map((v) => v.trim());
+    const fromCode = (values[0] || '').toUpperCase();
+    if (filter && fromCode !== filter) continue;
+    const fromCountry = countryMap.get(fromCode);
+    if (!fromCountry) { unknownFrom++; continue; }
 
-    const values = line.split(',').map(v => v.trim());
-    const fromCountryCode = values[0];
-    
-    // Skip if filtering by country and this isn't the one
-    if (fromCountryCodeFilter && fromCountryCode !== fromCountryCodeFilter) {
-      continue;
-    }
-    
-    const fromCountry = countryMap.get(fromCountryCode);
-    
-    if (!fromCountry) {
-      console.log(`Skipping unknown country: ${fromCountryCode}`);
-      skippedCount++;
-      continue;
-    }
-
-    // Process each destination (starting from column 1)
     for (let j = 1; j < values.length && j < headers.length; j++) {
-      const toCountryCode = headers[j];
-      const toCountry = countryMap.get(toCountryCode);
-      const value = values[j];
-
-      if (!toCountry || !value || value === '-1') continue;
-
-      // Map visa requirement codes to types
-      let requirementType = 'visa_required';
-      let maxStayDays: number | null = null;
-
-      if (value === '3') {
-        requirementType = 'visa_free';
-        maxStayDays = 90; // Default assumption
-      } else if (value === '2') {
-        requirementType = 'e_visa';
-        maxStayDays = 90;
-      } else if (value === '1') {
-        requirementType = 'visa_on_arrival';
-        maxStayDays = 30;
-      } else if (value === '0') {
-        requirementType = 'visa_required';
-      }
-
-      // Check if requirement already exists
-      const { data: existing } = await supabase
-        .from('visa_requirements')
-        .select('id')
-        .eq('from_country_id', fromCountry.id)
-        .eq('to_country_id', toCountry.id)
-        .maybeSingle();
-
-      if (existing) continue; // Skip if already exists
-
-      // Insert new requirement
-      const { error } = await supabase
-        .from('visa_requirements')
-        .insert({
-          from_country_id: fromCountry.id,
-          to_country_id: toCountry.id,
-          requirement_type: requirementType,
-          max_stay_days: maxStayDays,
-          notes: 'Imported from Passport Index Dataset'
-        });
-
-      if (error) {
-        console.error(`Error inserting ${fromCountryCode} -> ${toCountryCode}:`, error);
-        skippedCount++;
-      } else {
-        importedCount++;
-      }
+      const toCode = headers[j];
+      const toCountry = countryMap.get(toCode);
+      if (!toCountry || toCountry.id === fromCountry.id) continue;
+      const mapped = mapValue(values[j]);
+      if (!mapped) continue;
+      rows.push({
+        from_country_id: fromCountry.id,
+        to_country_id: toCountry.id,
+        requirement_type: mapped.type,
+        max_stay_days: mapped.days,
+        notes: 'Imported from Passport Index Dataset',
+      });
     }
   }
 
-  console.log(`Import complete. Imported: ${importedCount}, Skipped: ${skippedCount}`);
+  console.log(`Prepared ${rows.length} rows. Unknown source codes: ${unknownFrom}`);
+
+  const chunkSize = 1000;
+  let importedCount = 0;
+  const errors = [];
+  for (let i = 0; i < rows.length; i += chunkSize) {
+    const chunk = rows.slice(i, i + chunkSize);
+    const { error } = await supabase
+      .from('visa_requirements')
+      .upsert(chunk, { onConflict: 'from_country_id,to_country_id', ignoreDuplicates: false });
+    if (error) {
+      console.error('Upsert error', error.message);
+      errors.push(error.message);
+    } else {
+      importedCount += chunk.length;
+    }
+  }
 
   return new Response(
     JSON.stringify({
       success: true,
       imported: importedCount,
-      skipped: skippedCount,
-      source: 'passport-index'
+      total_rows: rows.length,
+      unknown_source_codes: unknownFrom,
+      errors: errors.slice(0, 5),
+      source: 'passport-index',
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );

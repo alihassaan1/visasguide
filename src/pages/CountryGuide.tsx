@@ -141,8 +141,7 @@ const CountryGuide = () => {
           from_country:countries!visa_requirements_from_country_id_fkey(name, code, flag_emoji, slug),
           to_country:countries!visa_requirements_to_country_id_fkey(name, code, flag_emoji)
         `)
-        .eq('to_country_id', country.id)
-        .limit(100);
+        .eq('to_country_id', country.id);
       
       if (error) throw error;
       return data;

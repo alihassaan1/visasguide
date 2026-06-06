@@ -412,49 +412,70 @@ const CountryGuide = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  {visaRequirements && visaRequirements.length > 0 ? (
-                    <>
-                      {visaRequirements.slice(0, showAllVisitors ? 50 : 8).map((req) => (
-                        <Link 
-                          key={req.id} 
-                          to={`/visa-requirements/${req.from_country?.slug}-to-${country.slug}-visa-requirements`}
-                          className="flex items-center justify-between p-2.5 border rounded-lg hover:bg-muted/50 transition-colors"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{req.from_country?.flag_emoji || countryCodeToFlagEmoji(req.from_country?.code) || '🏳️'}</span>
-                            <span className="font-medium text-sm">{req.from_country?.name}</span>
-                          </div>
-                          <Badge className={`text-xs ${getRequirementColor(req.requirement_type)}`}>
-                            {formatRequirementType(req.requirement_type)}
-                          </Badge>
-                        </Link>
-                      ))}
-                      {visaRequirements.length > 8 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setShowAllVisitors(!showAllVisitors)}
-                          className="w-full mt-2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showAllVisitors ? (
-                            <>
-                              <ChevronUp className="h-4 w-4 mr-1" />
-                              Show Less
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown className="h-4 w-4 mr-1" />
-                              Show {Math.min(visaRequirements.length - 8, 42)} More Countries
-                            </>
-                          )}
-                        </Button>
-                      )}
-                    </>
-                  ) : (
-                    <p className="text-muted-foreground text-sm py-4 text-center">Visa requirement data coming soon.</p>
-                  )}
-                </div>
+                {visaRequirements && visaRequirements.length > 0 ? (
+                  <>
+                    {(showAllVisitors || visitorSearch) && (
+                      <div className="relative mb-3">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          value={visitorSearch}
+                          onChange={(e) => setVisitorSearch(e.target.value)}
+                          placeholder="Search passport country..."
+                          className="pl-9"
+                        />
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      {(() => {
+                        const q = visitorSearch.trim().toLowerCase();
+                        const filtered = q
+                          ? visaRequirements.filter((r) => r.from_country?.name?.toLowerCase().includes(q))
+                          : visaRequirements;
+                        const list = (showAllVisitors || q) ? filtered : filtered.slice(0, 8);
+                        if (list.length === 0) {
+                          return <p className="text-muted-foreground text-sm py-4 text-center">No countries match your search.</p>;
+                        }
+                        return list.map((req) => (
+                          <Link
+                            key={req.id}
+                            to={`/visa-requirements/${req.from_country?.slug}-to-${country.slug}-visa-requirements`}
+                            className="flex items-center justify-between p-2.5 border rounded-lg hover:bg-muted/50 transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{req.from_country?.flag_emoji || countryCodeToFlagEmoji(req.from_country?.code) || '🏳️'}</span>
+                              <span className="font-medium text-sm">{req.from_country?.name}</span>
+                            </div>
+                            <Badge className={`text-xs ${getRequirementColor(req.requirement_type)}`}>
+                              {formatRequirementType(req.requirement_type)}
+                            </Badge>
+                          </Link>
+                        ));
+                      })()}
+                    </div>
+                    {visaRequirements.length > 8 && !visitorSearch && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowAllVisitors(!showAllVisitors)}
+                        className="w-full mt-2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showAllVisitors ? (
+                          <>
+                            <ChevronUp className="h-4 w-4 mr-1" />
+                            Show Less
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="h-4 w-4 mr-1" />
+                            Show All {visaRequirements.length} Countries
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-muted-foreground text-sm py-4 text-center">Visa requirement data coming soon.</p>
+                )}
               </CardContent>
             </Card>
 

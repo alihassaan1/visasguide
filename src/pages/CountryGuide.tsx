@@ -37,6 +37,7 @@ const CountryGuide = () => {
   const navigate = useNavigate();
   const [selectedPassportCountry, setSelectedPassportCountry] = useState<string>("");
   const [showAllVisitors, setShowAllVisitors] = useState(false);
+  const [visitorSearch, setVisitorSearch] = useState("");
   
   usePageTracking(`countries/${countrySlug}`);
   

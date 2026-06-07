@@ -227,14 +227,24 @@ const Header = () => {
                       const isOpen = openDropdown === item.url;
                       return (
                         <div key={item.url} className="flex flex-col">
-                          <button
-                            className="text-lg font-medium hover:text-primary transition-colors text-left flex items-center justify-between py-2"
-                            onClick={() => setOpenDropdown(isOpen ? null : item.url)}
-                            aria-expanded={isOpen}
-                          >
-                            {item.label}
-                            <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                          </button>
+                          <div className="flex items-center justify-between py-2">
+                            <Link
+                              to={item.url}
+                              className="text-lg font-medium hover:text-primary transition-colors flex-1"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              {item.label}
+                            </Link>
+                            <button
+                              type="button"
+                              className="p-2 -mr-2 hover:text-primary"
+                              onClick={() => setOpenDropdown(isOpen ? null : item.url)}
+                              aria-expanded={isOpen}
+                              aria-label={`Toggle ${item.label} submenu`}
+                            >
+                              <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                            </button>
+                          </div>
                           {isOpen && (
                             <div className="pl-4 flex flex-col space-y-1 border-l-2 border-muted ml-2">
                               {item.children.map((child) => (

@@ -11,6 +11,7 @@ import BreadcrumbSchema from "@/components/BreadcrumbSchema";
 const schengenCountries = [
   { name: "Austria", slug: "austria", flag: "🇦🇹" },
   { name: "Belgium", slug: "belgium", flag: "🇧🇪" },
+  { name: "Bulgaria", slug: "bulgaria", flag: "🇧🇬" },
   { name: "Croatia", slug: "croatia", flag: "🇭🇷" },
   { name: "Czech Republic", slug: "czech-republic", flag: "🇨🇿" },
   { name: "Denmark", slug: "denmark", flag: "🇩🇰" },
@@ -31,6 +32,7 @@ const schengenCountries = [
   { name: "Norway", slug: "norway", flag: "🇳🇴" },
   { name: "Poland", slug: "poland", flag: "🇵🇱" },
   { name: "Portugal", slug: "portugal", flag: "🇵🇹" },
+  { name: "Romania", slug: "romania", flag: "🇷🇴" },
   { name: "Slovakia", slug: "slovakia", flag: "🇸🇰" },
   { name: "Slovenia", slug: "slovenia", flag: "🇸🇮" },
   { name: "Spain", slug: "spain", flag: "🇪🇸" },

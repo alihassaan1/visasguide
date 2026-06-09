@@ -45,7 +45,7 @@ const SchengenVisaGuide = () => {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": "Complete Schengen Visa Guide 2026 - Requirements, Countries & Application",
-    "description": "Everything you need to know about the Schengen visa: 27 member countries, requirements, application process, fees, and travel tips for visiting Europe.",
+    "description": "Everything you need to know about the Schengen visa: 29 member countries, requirements, application process, fees, and travel tips for visiting Europe.",
     "author": {
       "@type": "Organization",
       "name": "Visas.Guide"

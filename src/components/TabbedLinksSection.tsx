@@ -38,7 +38,7 @@ const visaTypes = [
 ];
 
 const resources = [
-  { name: "Schengen Visa Guide", slug: "schengen-visa-guide", description: "Complete guide to 27 countries", icon: "🇪🇺" },
+  { name: "Schengen Visa Guide", slug: "schengen-visa-guide", description: "Complete guide to 29 countries", icon: "🇪🇺" },
   { name: "Passport Rankings", slug: "passport-index", description: "Global passport power index", icon: "🏆" },
   { name: "Visa Search", slug: "visa-search", description: "Interactive world map", icon: "🗺️" },
   { name: "Travel Blog", slug: "blog", description: "Tips, news & guides", icon: "📰" },

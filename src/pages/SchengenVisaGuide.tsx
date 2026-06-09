@@ -88,13 +88,13 @@ const SchengenVisaGuide = () => {
         <div className="text-center mb-12">
           <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20">
             <Globe className="h-3 w-3 mr-1" />
-            27 Countries, One Visa
+            29 Countries, One Visa
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             Schengen Visa Guide 2026
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Everything you need to know about traveling to 27 European countries with a single Schengen visa. Requirements, application process, and expert tips.
+            Everything you need to know about traveling to 29 European countries with a single Schengen visa — now including Bulgaria and Romania. Requirements, application process, and expert tips.
           </p>
         </div>
 

@@ -136,10 +136,10 @@ const SchengenVisaGuide = () => {
           </CardHeader>
           <CardContent className="prose prose-slate max-w-none">
             <p className="text-muted-foreground">
-              The Schengen Area is a zone comprising 27 European countries that have abolished passport and other types of border control at their mutual borders. Named after the 1985 Schengen Agreement signed in Schengen, Luxembourg, it allows over 400 million citizens to travel freely within the area.
+              The Schengen Area is a zone comprising 29 European countries that have abolished passport and other types of border control at their mutual borders. Named after the 1985 Schengen Agreement signed in Schengen, Luxembourg, it allows over 450 million citizens to travel freely within the area. Bulgaria and Romania joined for air and sea borders in March 2024 and fully (including land borders) in January 2025.
             </p>
             <p className="text-muted-foreground mt-4">
-              For travelers from outside the Schengen Area, a single Schengen visa allows entry to all 27 member countries. This means you can fly into Paris, take a train to Amsterdam, drive to Berlin, and cruise to Copenhagen—all with one visa.
+              For travelers from outside the Schengen Area, a single Schengen visa allows entry to all 29 member countries. This means you can fly into Paris, take a train to Amsterdam, drive to Berlin, and cruise to Copenhagen—all with one visa.
             </p>
           </CardContent>
         </Card>

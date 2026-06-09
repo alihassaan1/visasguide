@@ -66,7 +66,7 @@ const SchengenVisaGuide = () => {
     <div className="min-h-screen bg-background">
       <SEOHead
         title="Schengen Visa Guide 2026 — Requirements & How to Apply"
-        description="Schengen visa guide: 27 member countries, requirements, application steps, fees, and tips for traveling across Europe."
+        description="Schengen visa guide: 29 member countries, requirements, application steps, fees, and tips for traveling across Europe."
         canonical="https://visas.guide/schengen-visa-guide"
         keywords={["schengen visa", "schengen countries", "schengen visa requirements", "europe visa", "schengen area", "schengen visa application", "schengen visa fees"]}
       />

@@ -73,8 +73,8 @@ const SchengenVisaGuide = () => {
       
       <FAQSchema faqs={[
         { question: "How long does a Schengen visa take to process?", answer: "Schengen visa processing typically takes 10-15 business days from the date of application. However, during peak travel seasons it can take up to 45 days. It's recommended to apply at least 4-6 weeks before your intended travel date." },
-        { question: "Which countries are in the Schengen area?", answer: "The Schengen area consists of 27 European countries: Austria, Belgium, Croatia, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Iceland, Italy, Latvia, Liechtenstein, Lithuania, Luxembourg, Malta, Netherlands, Norway, Poland, Portugal, Slovakia, Slovenia, Spain, Sweden, and Switzerland." },
-        { question: "Can I visit multiple Schengen countries on one visa?", answer: "Yes, a single Schengen visa allows you to travel freely between all 27 Schengen member countries during your authorized stay. You should apply at the embassy of the country where you'll spend the most time, or the country of first entry if spending equal time." },
+        { question: "Which countries are in the Schengen area?", answer: "The Schengen area consists of 29 European countries: Austria, Belgium, Bulgaria, Croatia, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Iceland, Italy, Latvia, Liechtenstein, Lithuania, Luxembourg, Malta, Netherlands, Norway, Poland, Portugal, Romania, Slovakia, Slovenia, Spain, Sweden, and Switzerland. Bulgaria and Romania became full Schengen members in 2024–2025." },
+        { question: "Can I visit multiple Schengen countries on one visa?", answer: "Yes, a single Schengen visa allows you to travel freely between all 29 Schengen member countries during your authorized stay. You should apply at the embassy of the country where you'll spend the most time, or the country of first entry if spending equal time." },
       ]} pageUrl="https://visas.guide/schengen-visa-guide" />
       <BreadcrumbSchema items={[
         { name: "Schengen Visa Guide", url: "/schengen-visa-guide" },

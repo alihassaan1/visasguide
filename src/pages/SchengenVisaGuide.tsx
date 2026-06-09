@@ -102,7 +102,7 @@ const SchengenVisaGuide = () => {
         <div className="grid md:grid-cols-4 gap-4 mb-12">
           <Card className="text-center">
             <CardContent className="pt-6">
-              <div className="text-3xl font-bold text-primary mb-1">27</div>
+              <div className="text-3xl font-bold text-primary mb-1">29</div>
               <div className="text-sm text-muted-foreground">Countries</div>
             </CardContent>
           </Card>

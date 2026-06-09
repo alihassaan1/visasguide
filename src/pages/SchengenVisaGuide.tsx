@@ -11,6 +11,7 @@ import BreadcrumbSchema from "@/components/BreadcrumbSchema";
 const schengenCountries = [
   { name: "Austria", slug: "austria", flag: "🇦🇹" },
   { name: "Belgium", slug: "belgium", flag: "🇧🇪" },
+  { name: "Bulgaria", slug: "bulgaria", flag: "🇧🇬" },
   { name: "Croatia", slug: "croatia", flag: "🇭🇷" },
   { name: "Czech Republic", slug: "czech-republic", flag: "🇨🇿" },
   { name: "Denmark", slug: "denmark", flag: "🇩🇰" },
@@ -31,6 +32,7 @@ const schengenCountries = [
   { name: "Norway", slug: "norway", flag: "🇳🇴" },
   { name: "Poland", slug: "poland", flag: "🇵🇱" },
   { name: "Portugal", slug: "portugal", flag: "🇵🇹" },
+  { name: "Romania", slug: "romania", flag: "🇷🇴" },
   { name: "Slovakia", slug: "slovakia", flag: "🇸🇰" },
   { name: "Slovenia", slug: "slovenia", flag: "🇸🇮" },
   { name: "Spain", slug: "spain", flag: "🇪🇸" },
@@ -43,7 +45,7 @@ const SchengenVisaGuide = () => {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": "Complete Schengen Visa Guide 2026 - Requirements, Countries & Application",
-    "description": "Everything you need to know about the Schengen visa: 27 member countries, requirements, application process, fees, and travel tips for visiting Europe.",
+    "description": "Everything you need to know about the Schengen visa: 29 member countries, requirements, application process, fees, and travel tips for visiting Europe.",
     "author": {
       "@type": "Organization",
       "name": "Visas.Guide"
@@ -64,15 +66,15 @@ const SchengenVisaGuide = () => {
     <div className="min-h-screen bg-background">
       <SEOHead
         title="Schengen Visa Guide 2026 — Requirements & How to Apply"
-        description="Schengen visa guide: 27 member countries, requirements, application steps, fees, and tips for traveling across Europe."
+        description="Schengen visa guide: 29 member countries, requirements, application steps, fees, and tips for traveling across Europe."
         canonical="https://visas.guide/schengen-visa-guide"
         keywords={["schengen visa", "schengen countries", "schengen visa requirements", "europe visa", "schengen area", "schengen visa application", "schengen visa fees"]}
       />
       
       <FAQSchema faqs={[
         { question: "How long does a Schengen visa take to process?", answer: "Schengen visa processing typically takes 10-15 business days from the date of application. However, during peak travel seasons it can take up to 45 days. It's recommended to apply at least 4-6 weeks before your intended travel date." },
-        { question: "Which countries are in the Schengen area?", answer: "The Schengen area consists of 27 European countries: Austria, Belgium, Croatia, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Iceland, Italy, Latvia, Liechtenstein, Lithuania, Luxembourg, Malta, Netherlands, Norway, Poland, Portugal, Slovakia, Slovenia, Spain, Sweden, and Switzerland." },
-        { question: "Can I visit multiple Schengen countries on one visa?", answer: "Yes, a single Schengen visa allows you to travel freely between all 27 Schengen member countries during your authorized stay. You should apply at the embassy of the country where you'll spend the most time, or the country of first entry if spending equal time." },
+        { question: "Which countries are in the Schengen area?", answer: "The Schengen area consists of 29 European countries: Austria, Belgium, Bulgaria, Croatia, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Iceland, Italy, Latvia, Liechtenstein, Lithuania, Luxembourg, Malta, Netherlands, Norway, Poland, Portugal, Romania, Slovakia, Slovenia, Spain, Sweden, and Switzerland. Bulgaria and Romania became full Schengen members in 2024–2025." },
+        { question: "Can I visit multiple Schengen countries on one visa?", answer: "Yes, a single Schengen visa allows you to travel freely between all 29 Schengen member countries during your authorized stay. You should apply at the embassy of the country where you'll spend the most time, or the country of first entry if spending equal time." },
       ]} pageUrl="https://visas.guide/schengen-visa-guide" />
       <BreadcrumbSchema items={[
         { name: "Schengen Visa Guide", url: "/schengen-visa-guide" },
@@ -86,13 +88,13 @@ const SchengenVisaGuide = () => {
         <div className="text-center mb-12">
           <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20">
             <Globe className="h-3 w-3 mr-1" />
-            27 Countries, One Visa
+            29 Countries, One Visa
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             Schengen Visa Guide 2026
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Everything you need to know about traveling to 27 European countries with a single Schengen visa. Requirements, application process, and expert tips.
+            Everything you need to know about traveling to 29 European countries with a single Schengen visa — now including Bulgaria and Romania. Requirements, application process, and expert tips.
           </p>
         </div>
 
@@ -100,7 +102,7 @@ const SchengenVisaGuide = () => {
         <div className="grid md:grid-cols-4 gap-4 mb-12">
           <Card className="text-center">
             <CardContent className="pt-6">
-              <div className="text-3xl font-bold text-primary mb-1">27</div>
+              <div className="text-3xl font-bold text-primary mb-1">29</div>
               <div className="text-sm text-muted-foreground">Countries</div>
             </CardContent>
           </Card>
@@ -134,10 +136,10 @@ const SchengenVisaGuide = () => {
           </CardHeader>
           <CardContent className="prose prose-slate max-w-none">
             <p className="text-muted-foreground">
-              The Schengen Area is a zone comprising 27 European countries that have abolished passport and other types of border control at their mutual borders. Named after the 1985 Schengen Agreement signed in Schengen, Luxembourg, it allows over 400 million citizens to travel freely within the area.
+              The Schengen Area is a zone comprising 29 European countries that have abolished passport and other types of border control at their mutual borders. Named after the 1985 Schengen Agreement signed in Schengen, Luxembourg, it allows over 450 million citizens to travel freely within the area. Bulgaria and Romania joined for air and sea borders in March 2024 and fully (including land borders) in January 2025.
             </p>
             <p className="text-muted-foreground mt-4">
-              For travelers from outside the Schengen Area, a single Schengen visa allows entry to all 27 member countries. This means you can fly into Paris, take a train to Amsterdam, drive to Berlin, and cruise to Copenhagen—all with one visa.
+              For travelers from outside the Schengen Area, a single Schengen visa allows entry to all 29 member countries. This means you can fly into Paris, take a train to Amsterdam, drive to Berlin, and cruise to Copenhagen—all with one visa.
             </p>
           </CardContent>
         </Card>
@@ -147,7 +149,7 @@ const SchengenVisaGuide = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MapPin className="h-5 w-5 text-primary" />
-              All 27 Schengen Countries
+              All 29 Schengen Countries
             </CardTitle>
           </CardHeader>
           <CardContent>

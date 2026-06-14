@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import RelatedContent from '@/components/RelatedContent';
 import { AffiliateBannerContainer } from '@/components/AffiliateBannerContainer';
 import { stripEmbeddedSchemas } from '@/lib/contentFormatter';
+import PassportVisaFree from './PassportVisaFree';
 
 // Estimate reading time based on content
 const estimateReadingTime = (content: string): number => {
@@ -30,6 +31,11 @@ export default function ContentPage() {
   const [page, setPage] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  // Programmatic passport visa-free pages: /{country-slug}-passport-visa-free-countries
+  if (slug && /-passport-visa-free-countries$/.test(slug)) {
+    return <PassportVisaFree />;
+  }
 
   useEffect(() => {
     const fetchPage = async () => {

@@ -72,6 +72,7 @@ import Contact from "./pages/Contact";
 import RSSFeed from "./pages/RSSFeed";
 import Feed from "./pages/Feed";
 import SchengenVisaGuide from "./pages/SchengenVisaGuide";
+import SchengenCalculator from "./pages/SchengenCalculator";
 import AuthorPage from "./pages/AuthorPage";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "./pages/Unsubscribe";
@@ -126,6 +127,7 @@ const App = () => (
           <Route path="/affiliate-disclosure" element={<AffiliateDisclosure />} />
           <Route path="/policy-updates" element={<PolicyUpdates />} />
           <Route path="/schengen-visa-guide" element={<SchengenVisaGuide />} />
+          <Route path="/schengen-calculator" element={<SchengenCalculator />} />
           <Route path="/things-to-do" element={<ThingsToDoIndex />} />
           <Route path="/things-to-do/:countrySlug" element={<ThingsToDo />} />
 

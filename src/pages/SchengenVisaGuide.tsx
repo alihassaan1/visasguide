@@ -126,6 +126,22 @@ const SchengenVisaGuide = () => {
           </Card>
         </div>
 
+        {/* Calculator CTA */}
+        <Card className="mb-12 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+          <CardContent className="py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-semibold mb-1">Schengen 90/180 Day Calculator</h2>
+              <p className="text-sm text-muted-foreground">Track your stays across all 29 countries and avoid overstay penalties.</p>
+            </div>
+            <Link
+              to="/schengen-calculator"
+              className="shrink-0 inline-flex items-center justify-center rounded-md bg-primary text-primary-foreground px-5 py-2 text-sm font-medium hover:bg-primary/90"
+            >
+              Open Calculator →
+            </Link>
+          </CardContent>
+        </Card>
+
         {/* What is Schengen */}
         <Card className="mb-8">
           <CardHeader>

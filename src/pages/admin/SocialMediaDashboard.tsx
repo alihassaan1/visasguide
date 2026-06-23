@@ -123,6 +123,7 @@ export default function SocialMediaDashboard() {
         total: clicks.length,
         facebook: clicks.filter(c => c.utm_source === 'facebook').length,
         instagram: clicks.filter(c => c.utm_source === 'instagram').length,
+        linkedin: clicks.filter(c => c.utm_source === 'linkedin').length,
       };
     },
   });

@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { CheckCircle, XCircle, Loader2, Plus, RefreshCw, ExternalLink } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, Plus, RefreshCw, ExternalLink, Send } from "lucide-react";
 
 const CHANGE_TYPES = [
   { value: "visa_free_added", label: "Visa-Free Added" },
@@ -153,11 +153,16 @@ export default function PolicyTracker() {
             isLoading={isLoading}
             onApprove={(id) => verifyMutation.mutate({ id, generate: true })}
             onReject={(id) => rejectMutation.mutate(id)}
+            onForcePublish={(id) => forcePublishMutation.mutate(id)}
           />
         </TabsContent>
 
         <TabsContent value="all" className="mt-4">
-          <ChangesList changes={changes || []} isLoading={isLoading} />
+          <ChangesList
+            changes={changes || []}
+            isLoading={isLoading}
+            onForcePublish={(id) => forcePublishMutation.mutate(id)}
+          />
         </TabsContent>
 
         <TabsContent value="manual" className="mt-4">
@@ -169,9 +174,12 @@ export default function PolicyTracker() {
 }
 
 function ChangesList({
-  changes, isLoading, onApprove, onReject,
+  changes, isLoading, onApprove, onReject, onForcePublish,
 }: {
-  changes: any[]; isLoading: boolean; onApprove?: (id: string) => void; onReject?: (id: string) => void;
+  changes: any[]; isLoading: boolean;
+  onApprove?: (id: string) => void;
+  onReject?: (id: string) => void;
+  onForcePublish?: (id: string) => void;
 }) {
   if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   if (changes.length === 0) return <Card><CardContent className="p-12 text-center text-muted-foreground">No policy changes</CardContent></Card>;
@@ -209,18 +217,23 @@ function ChangesList({
                 <TableCell>
                   <div className="flex gap-1">
                     {onApprove && !c.is_verified && (
-                      <Button size="sm" variant="outline" onClick={() => onApprove(c.id)}>
+                      <Button size="sm" variant="outline" onClick={() => onApprove(c.id)} title="Approve & generate article">
                         <CheckCircle className="h-3 w-3" />
                       </Button>
                     )}
+                    {onForcePublish && !c.is_published && (
+                      <Button size="sm" variant="outline" onClick={() => onForcePublish(c.id)} title="Force publish (skip article generation)">
+                        <Send className="h-3 w-3" />
+                      </Button>
+                    )}
                     {onReject && (
-                      <Button size="sm" variant="outline" onClick={() => onReject(c.id)}>
+                      <Button size="sm" variant="outline" onClick={() => onReject(c.id)} title="Delete">
                         <XCircle className="h-3 w-3" />
                       </Button>
                     )}
                     {c.source_url && (
                       <a href={c.source_url} target="_blank" rel="noopener noreferrer">
-                        <Button size="sm" variant="ghost"><ExternalLink className="h-3 w-3" /></Button>
+                        <Button size="sm" variant="ghost" title="Open source"><ExternalLink className="h-3 w-3" /></Button>
                       </a>
                     )}
                   </div>

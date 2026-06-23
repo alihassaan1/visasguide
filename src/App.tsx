@@ -146,7 +146,8 @@ const App = () => (
           
           {/* Admin Routes with Layout */}
           <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<Admin />} />
+            <Route index element={<AdminDashboard />} />
+            <Route path="legacy" element={<Admin />} />
             <Route path="content" element={<ContentManager />} />
             <Route path="data" element={<DataManager />} />
             <Route path="visa-requirements" element={<VisaRequirementsManager />} />

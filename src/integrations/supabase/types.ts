@@ -1401,6 +1401,42 @@ export type Database = {
         }
         Relationships: []
       }
+      policy_detector_runs: {
+        Row: {
+          details: Json | null
+          detected: number
+          duration_ms: number | null
+          error_message: string | null
+          errors: number
+          id: string
+          run_at: string
+          scanned: number
+          trigger: string | null
+        }
+        Insert: {
+          details?: Json | null
+          detected?: number
+          duration_ms?: number | null
+          error_message?: string | null
+          errors?: number
+          id?: string
+          run_at?: string
+          scanned?: number
+          trigger?: string | null
+        }
+        Update: {
+          details?: Json | null
+          detected?: number
+          duration_ms?: number | null
+          error_message?: string | null
+          errors?: number
+          id?: string
+          run_at?: string
+          scanned?: number
+          trigger?: string | null
+        }
+        Relationships: []
+      }
       processing_times: {
         Row: {
           country_id: string

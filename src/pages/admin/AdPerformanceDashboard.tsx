@@ -260,26 +260,29 @@ export default function AdPerformanceDashboard() {
   }, [clickEvents]);
 
 
-  // Sorted banners
+  // Sorted banners — sort by range stats from analytics_events (real data)
   const sortedBanners = useMemo(() => {
+    const statOf = (b: any) => bannerEventStats[b.name] || { impressions: 0, clicks: 0 };
     return [...banners].sort((a, b) => {
+      const sa = statOf(a);
+      const sb = statOf(b);
       let aVal: number, bVal: number;
       if (bannerSort.key === "ctr") {
-        aVal = (a.impressions || 0) > 0 ? (a.click_count || 0) / (a.impressions || 1) : 0;
-        bVal = (b.impressions || 0) > 0 ? (b.click_count || 0) / (b.impressions || 1) : 0;
+        aVal = sa.impressions > 0 ? sa.clicks / sa.impressions : 0;
+        bVal = sb.impressions > 0 ? sb.clicks / sb.impressions : 0;
       } else if (bannerSort.key === "clicks") {
-        aVal = a.click_count || 0;
-        bVal = b.click_count || 0;
+        aVal = sa.clicks;
+        bVal = sb.clicks;
       } else if (bannerSort.key === "impressions") {
-        aVal = a.impressions || 0;
-        bVal = b.impressions || 0;
+        aVal = sa.impressions;
+        bVal = sb.impressions;
       } else {
         aVal = a.priority || 0;
         bVal = b.priority || 0;
       }
       return bannerSort.dir === "desc" ? bVal - aVal : aVal - bVal;
     });
-  }, [banners, bannerSort]);
+  }, [banners, bannerSort, bannerEventStats]);
 
   const toggleSort = (key: SortKey) => {
     setBannerSort((prev) => ({

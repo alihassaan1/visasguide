@@ -590,25 +590,35 @@ export default function AdPerformanceDashboard() {
           </Card>
         </TabsContent>
 
-        {/* Banner Ads Table */}
+        {/* Banner Ads Table — range stats from analytics_events, with lifetime in parens */}
         <TabsContent value="banners">
           <Card>
-            <CardContent className="pt-6">
+            <CardHeader>
+              <CardTitle>Banner Ads</CardTitle>
+              <CardDescription>
+                Impressions and clicks are counted from <code>analytics_events</code> within the selected
+                date range. Lifetime totals (from the banner row counters) are shown in parentheses.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Position</TableHead>
                     <TableHead>Status</TableHead>
-                    <SortHeader label="Impressions" sortKey="impressions" />
-                    <SortHeader label="Clicks" sortKey="clicks" />
-                    <SortHeader label="CTR" sortKey="ctr" />
+                    <SortHeader label="Impressions (range)" sortKey="impressions" />
+                    <SortHeader label="Clicks (range)" sortKey="clicks" />
+                    <SortHeader label="CTR (range)" sortKey="ctr" />
                     <SortHeader label="Priority" sortKey="priority" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {sortedBanners.map((b) => {
-                    const ctr = (b.impressions || 0) > 0 ? (((b.click_count || 0) / (b.impressions || 1)) * 100).toFixed(2) : "0.00";
+                    const stat = bannerEventStats[b.name] || { impressions: 0, clicks: 0 };
+                    const ctr = stat.impressions > 0
+                      ? ((stat.clicks / stat.impressions) * 100).toFixed(2)
+                      : "0.00";
                     return (
                       <TableRow key={b.id}>
                         <TableCell className="font-medium">{b.name}</TableCell>
@@ -618,9 +628,15 @@ export default function AdPerformanceDashboard() {
                             {b.is_active ? "Active" : "Inactive"}
                           </Badge>
                         </TableCell>
-                        <TableCell>{(b.impressions || 0).toLocaleString()}</TableCell>
-                        <TableCell>{(b.click_count || 0).toLocaleString()}</TableCell>
-                        <TableCell>{ctr}%</TableCell>
+                        <TableCell>
+                          <span className="font-medium tabular-nums">{stat.impressions.toLocaleString()}</span>
+                          <span className="ml-1 text-xs text-muted-foreground">({(b.impressions || 0).toLocaleString()})</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium tabular-nums">{stat.clicks.toLocaleString()}</span>
+                          <span className="ml-1 text-xs text-muted-foreground">({(b.click_count || 0).toLocaleString()})</span>
+                        </TableCell>
+                        <TableCell className="tabular-nums">{ctr}%</TableCell>
                         <TableCell>{b.priority || 0}</TableCell>
                       </TableRow>
                     );

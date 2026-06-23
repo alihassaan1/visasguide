@@ -57,6 +57,7 @@ import SocialPostsList from "./pages/admin/SocialPostsList";
 import PlatformSettings from "./pages/admin/PlatformSettings";
 import RSSFeedManager from "./pages/admin/RSSFeedManager";
 import RSSMonitoringDashboard from "./pages/admin/RSSMonitoringDashboard";
+import RSSFeedsHealth from "./pages/admin/RSSFeedsHealth";
 import AuthorManager from "./pages/admin/AuthorManager";
 import AffiliateManager from "./pages/admin/AffiliateManager";
 import BannerSlotDebugger from "./pages/admin/BannerSlotDebugger";
@@ -177,6 +178,7 @@ const App = () => (
             <Route path="marketing/platforms" element={<PlatformSettings />} />
             <Route path="rss-feeds" element={<RSSFeedManager />} />
             <Route path="rss-monitoring" element={<RSSMonitoringDashboard />} />
+            <Route path="rss-health" element={<RSSFeedsHealth />} />
             <Route path="authors" element={<AuthorManager />} />
             <Route path="affiliate-manager" element={<AffiliateManager />} />
             <Route path="banner-debug" element={<BannerSlotDebugger />} />

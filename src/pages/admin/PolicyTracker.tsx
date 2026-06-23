@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { CheckCircle, XCircle, Loader2, Plus, RefreshCw, ExternalLink, Send } from "lucide-react";
+import { PolicyDetectorLogsDrawer } from "@/components/admin/PolicyDetectorLogsDrawer";
 
 const CHANGE_TYPES = [
   { value: "visa_free_added", label: "Visa-Free Added" },

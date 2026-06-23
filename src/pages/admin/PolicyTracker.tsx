@@ -88,6 +88,26 @@ export default function PolicyTracker() {
     },
   });
 
+  const forcePublishMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("visa_policy_changes")
+        .update({
+          is_verified: true,
+          is_published: true,
+          verified_at: new Date().toISOString(),
+          published_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Published — now live on country pages, homepage ticker, and /policy-updates");
+      qc.invalidateQueries({ queryKey: ["policy-changes"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const runDetector = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.functions.invoke("policy-detector");
@@ -95,7 +115,13 @@ export default function PolicyTracker() {
       return data;
     },
     onSuccess: (d: any) => {
-      toast.success(`Scan complete: ${d.detected || 0} new policy changes detected`);
+      const detected = d?.detected || 0;
+      const processed = d?.processed || 0;
+      if (detected === 0 && processed === 0) {
+        toast.info("Scan complete — no new RSS items to analyze. Check that RSS feeds are populated.");
+      } else {
+        toast.success(`Scan complete: scanned ${processed}, detected ${detected} new policy change${detected === 1 ? "" : "s"}`);
+      }
       qc.invalidateQueries({ queryKey: ["policy-changes"] });
     },
     onError: (e: any) => toast.error(e.message),

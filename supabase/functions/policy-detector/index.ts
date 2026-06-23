@@ -58,13 +58,15 @@ Deno.serve(async (req) => {
   const results = { processed: 0, detected: 0, errors: 0 };
 
   try {
-    // Pull recent unprocessed queue items that haven't been scanned for policy changes
+    // Pull recent queue items regardless of pipeline status — we want to
+    // analyze anything fresh from RSS for policy signals, even if it
+    // hasn't been published as a regular news article yet.
     const { data: queueItems, error } = await supabase
       .from("rss_article_queue")
-      .select("id, original_title, original_content, original_url, source_name, original_pub_date")
-      .eq("status", "published")
+      .select("id, original_title, original_content, original_url, source_name, original_pub_date, status")
+      .in("status", ["published", "approved", "processed", "pending"])
       .order("created_at", { ascending: false })
-      .limit(20);
+      .limit(50);
     if (error) throw error;
 
     // Get existing rss_queue_ids already detected to avoid dupes

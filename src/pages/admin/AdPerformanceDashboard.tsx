@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchAllRows } from "@/lib/fetchAllRows";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -66,30 +67,34 @@ export default function AdPerformanceDashboard() {
   const { data: clickEvents = [] } = useQuery({
     queryKey: ["ad-perf-clicks", startDate.toISOString(), endDate.toISOString()],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("analytics_events")
-        .select("created_at, page_slug, search_term, visitor_location")
-        .eq("event_type", "affiliate_click")
-        .gte("created_at", startDate.toISOString())
-        .lte("created_at", endDate.toISOString())
-        .order("created_at", { ascending: false })
-        .limit(5000);
-      return data || [];
+      const data = await fetchAllRows<any>((from, to) =>
+        supabase
+          .from("analytics_events")
+          .select("created_at, page_slug, search_term, visitor_location")
+          .eq("event_type", "affiliate_click")
+          .gte("created_at", startDate.toISOString())
+          .lte("created_at", endDate.toISOString())
+          .order("created_at", { ascending: false })
+          .range(from, to)
+      );
+      return data;
     },
   });
 
   const { data: impressionEvents = [] } = useQuery({
     queryKey: ["ad-perf-impressions", startDate.toISOString(), endDate.toISOString()],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("analytics_events")
-        .select("created_at, search_term, referrer_source")
-        .eq("event_type", "banner_impression")
-        .gte("created_at", startDate.toISOString())
-        .lte("created_at", endDate.toISOString())
-        .order("created_at", { ascending: false })
-        .limit(10000);
-      return data || [];
+      const data = await fetchAllRows<any>((from, to) =>
+        supabase
+          .from("analytics_events")
+          .select("created_at, search_term, referrer_source")
+          .eq("event_type", "banner_impression")
+          .gte("created_at", startDate.toISOString())
+          .lte("created_at", endDate.toISOString())
+          .order("created_at", { ascending: false })
+          .range(from, to)
+      );
+      return data;
     },
   });
 

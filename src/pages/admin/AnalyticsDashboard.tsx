@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchAllRows } from "@/lib/fetchAllRows";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -300,16 +301,16 @@ const AnalyticsDashboard = () => {
   const { data: referringUrls } = useQuery({
     queryKey: ['referring-urls-enhanced', trendPeriod],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('referrer_source')
-        .not('referrer_source', 'is', null)
-        .not('referrer_source', 'eq', 'direct')
-        .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString())
-        .limit(100000);
-      
-      if (error) throw error;
+      const data = await fetchAllRows<{ referrer_source: string | null }>((from, to) =>
+        supabase
+          .from('analytics_events')
+          .select('referrer_source')
+          .not('referrer_source', 'is', null)
+          .not('referrer_source', 'eq', 'direct')
+          .gte('created_at', periodStart.toISOString())
+          .lte('created_at', periodEnd.toISOString())
+          .range(from, to)
+      );
       
       const urlCounts: Record<string, { url: string, count: number, source: string }> = {};
       data.forEach(item => {
@@ -328,16 +329,16 @@ const AnalyticsDashboard = () => {
   const { data: searchEngineQueries } = useQuery({
     queryKey: ['search-engine-queries', trendPeriod],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('search_engine_query, referrer_source')
-        .not('search_engine_query', 'is', null)
-        .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString())
-        .order('created_at', { ascending: false })
-        .limit(100000);
-      
-      if (error) throw error;
+      const data = await fetchAllRows<{ search_engine_query: string | null; referrer_source: string | null }>((from, to) =>
+        supabase
+          .from('analytics_events')
+          .select('search_engine_query, referrer_source')
+          .not('search_engine_query', 'is', null)
+          .gte('created_at', periodStart.toISOString())
+          .lte('created_at', periodEnd.toISOString())
+          .order('created_at', { ascending: false })
+          .range(from, to)
+      );
       
       const queryCounts: Record<string, { query: string, searchEngine: string, count: number }> = {};
       data.forEach(item => {
@@ -373,15 +374,15 @@ const AnalyticsDashboard = () => {
   const { data: visitorLocations } = useQuery({
     queryKey: ['visitor-locations', trendPeriod],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('visitor_location')
-        .not('visitor_location', 'is', null)
-        .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString())
-        .limit(100000);
-      
-      if (error) throw error;
+      const data = await fetchAllRows<{ visitor_location: any }>((from, to) =>
+        supabase
+          .from('analytics_events')
+          .select('visitor_location')
+          .not('visitor_location', 'is', null)
+          .gte('created_at', periodStart.toISOString())
+          .lte('created_at', periodEnd.toISOString())
+          .range(from, to)
+      );
       
       const locationCounts: Record<string, number> = {};
       data.forEach(item => {
@@ -401,14 +402,14 @@ const AnalyticsDashboard = () => {
   const { data: pagePerformance } = useQuery({
     queryKey: ['page-performance', trendPeriod],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('session_duration_seconds, page_slug, event_type')
-        .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString())
-        .limit(100000);
-      
-      if (error) throw error;
+      const data = await fetchAllRows<{ session_duration_seconds: number | null; page_slug: string | null; event_type: string | null }>((from, to) =>
+        supabase
+          .from('analytics_events')
+          .select('session_duration_seconds, page_slug, event_type')
+          .gte('created_at', periodStart.toISOString())
+          .lte('created_at', periodEnd.toISOString())
+          .range(from, to)
+      );
       
       const sessionsWithDuration = data.filter(e => e.session_duration_seconds && e.session_duration_seconds > 0);
       const avgTimeOnPage = sessionsWithDuration.length > 0 
@@ -430,20 +431,20 @@ const AnalyticsDashboard = () => {
   const { data: topSearches } = useQuery({
     queryKey: ['top-searches', trendPeriod],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select(`
-          from_country_id,
-          to_country_id,
-          from_country:countries!analytics_events_from_country_id_fkey(name, code, flag_emoji),
-          to_country:countries!analytics_events_to_country_id_fkey(name, code, flag_emoji)
-        `)
-        .eq('event_type', 'search')
-        .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString())
-        .limit(100000);
-      
-      if (error) throw error;
+      const data = await fetchAllRows<any>((from, to) =>
+        supabase
+          .from('analytics_events')
+          .select(`
+            from_country_id,
+            to_country_id,
+            from_country:countries!analytics_events_from_country_id_fkey(name, code, flag_emoji),
+            to_country:countries!analytics_events_to_country_id_fkey(name, code, flag_emoji)
+          `)
+          .eq('event_type', 'search')
+          .gte('created_at', periodStart.toISOString())
+          .lte('created_at', periodEnd.toISOString())
+          .range(from, to)
+      );
       
       const searchCounts: Record<string, { from: any, to: any, count: number }> = {};
       data.forEach(item => {

@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchAllRows } from "@/lib/fetchAllRows";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Search, 
@@ -98,25 +99,32 @@ export default function SEODashboard() {
 
   const fetchCrawlerStats = async () => {
     // Fetch ALL TIME data for last visit stats (not filtered by date range)
-    const { data: allTimeData, error: allTimeError } = await supabase
-      .from('analytics_events')
-      .select('user_agent, created_at')
-      .eq('is_bot', true)
-      .order('created_at', { ascending: false })
-      .limit(5000);
-
-    if (allTimeError) {
+    let allTimeData: any[] = [];
+    try {
+      allTimeData = await fetchAllRows<any>((from, to) =>
+        supabase
+          .from('analytics_events')
+          .select('user_agent, created_at')
+          .eq('is_bot', true)
+          .order('created_at', { ascending: false })
+          .range(from, to)
+      );
+    } catch (allTimeError) {
       console.error('Error fetching crawler stats:', allTimeError);
       return;
     }
 
     // Also fetch date-range filtered data for visit counts
     const days = parseInt(dateRange);
-    const { data: rangeData } = await supabase
-      .from('analytics_events')
-      .select('user_agent, created_at')
-      .eq('is_bot', true)
-      .gte('created_at', subDays(new Date(), days).toISOString());
+    const rangeData = await fetchAllRows<any>((from, to) =>
+      supabase
+        .from('analytics_events')
+        .select('user_agent, created_at')
+        .eq('is_bot', true)
+        .gte('created_at', subDays(new Date(), days).toISOString())
+        .range(from, to)
+    );
+
 
     // Build stats from all-time data for accurate last_visit
     const botMap: Record<string, { visits: number; last_visit: string }> = {};

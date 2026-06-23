@@ -336,7 +336,7 @@ export default function SocialMediaDashboard() {
       <Tabs defaultValue="recent" className="w-full">
         <TabsList>
           <TabsTrigger value="recent">Recent Posts</TabsTrigger>
-          <TabsTrigger value="queue">Content Queue ({eventsData?.length || 0})</TabsTrigger>
+          <TabsTrigger value="queue">Content Queue ({eventsData?.totalUnprocessed?.toLocaleString() || 0})</TabsTrigger>
           <TabsTrigger value="top">Top Performing</TabsTrigger>
         </TabsList>
 
@@ -379,12 +379,15 @@ export default function SocialMediaDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Content Events Queue</CardTitle>
-              <CardDescription>Content waiting to be published to social media</CardDescription>
+              <CardDescription>
+                {eventsData?.totalUnprocessed?.toLocaleString() || 0} unprocessed content events.
+                Showing the {eventsData?.preview?.length || 0} most recent.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {eventsData?.length ? (
-                  eventsData.map((event: any) => (
+                {eventsData?.preview?.length ? (
+                  eventsData.preview.map((event: any) => (
                     <div key={event.id} className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg">
                       <Badge variant="outline" className="shrink-0">
                         {event.content_type}

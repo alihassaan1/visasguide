@@ -83,19 +83,24 @@ export default function SocialMediaDashboard() {
     },
   });
 
-  // Fetch content events queue
+  // Fetch content events queue — total count + preview list
   const { data: eventsData, refetch: refetchEvents } = useQuery({
     queryKey: ['content-events-queue'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('content_events')
-        .select('*')
-        .eq('processed', false)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
+      const [{ count: totalUnprocessed }, { data: preview, error }] = await Promise.all([
+        supabase
+          .from('content_events')
+          .select('*', { count: 'exact', head: true })
+          .eq('processed', false),
+        supabase
+          .from('content_events')
+          .select('*')
+          .eq('processed', false)
+          .order('created_at', { ascending: false })
+          .limit(20),
+      ]);
       if (error) throw error;
-      return data || [];
+      return { totalUnprocessed: totalUnprocessed ?? 0, preview: preview || [] };
     },
   });
 

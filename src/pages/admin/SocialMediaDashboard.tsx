@@ -56,7 +56,30 @@ export default function SocialMediaDashboard() {
         recentPosts: posts.slice(0, 10),
         facebookPosts: posts.filter(p => p.platform === 'facebook').length,
         instagramPosts: posts.filter(p => p.platform === 'instagram').length,
+        linkedinPosts: posts.filter(p => p.platform === 'linkedin').length,
       };
+    },
+  });
+
+  // Platform connection status
+  const { data: platforms } = useQuery({
+    queryKey: ['platform-accounts-status'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('platform_accounts')
+        .select('platform, account_name, access_token_encrypted, token_expires_at, is_active');
+      if (error) throw error;
+      return (data || []).map((p: any) => ({
+        platform: p.platform,
+        accountName: p.account_name,
+        isActive: p.is_active,
+        isConnected:
+          !!p.access_token_encrypted &&
+          p.access_token_encrypted.length > 0 &&
+          !/not connected/i.test(p.account_name || '') &&
+          (!p.token_expires_at || new Date(p.token_expires_at) > new Date()),
+        tokenExpiresAt: p.token_expires_at,
+      }));
     },
   });
 

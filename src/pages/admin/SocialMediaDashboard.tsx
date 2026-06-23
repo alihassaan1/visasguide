@@ -5,19 +5,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Share2, 
-  TrendingUp, 
-  MousePointer, 
-  Eye, 
-  Heart, 
+import {
+  Share2,
+  TrendingUp,
+  MousePointer,
+  Eye,
+  Heart,
   RefreshCw,
   Facebook,
   Instagram,
+  Linkedin,
   Clock,
   AlertCircle,
   CheckCircle2,
-  Loader2
+  Loader2,
+  XCircle,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";

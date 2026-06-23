@@ -98,16 +98,34 @@ export default function AdPerformanceDashboard() {
     },
   });
 
-  const totalImpressions = banners.reduce((s, b) => s + (b.impressions || 0), 0);
-  const totalBannerClicks = banners.reduce((s, b) => s + (b.click_count || 0), 0);
-  const totalWidgetClicks = widgets.reduce((s, w) => s + (w.click_count || 0), 0);
-  const totalClicks = totalBannerClicks + totalWidgetClicks;
-  const overallCTR = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : "0.00";
+  // Build per-banner aggregates from analytics_events (date-range scoped)
+  const bannerEventStats = useMemo(() => {
+    const m: Record<string, { impressions: number; clicks: number }> = {};
+    impressionEvents.forEach((e: any) => {
+      const k = e.search_term || "(unknown)";
+      m[k] = m[k] || { impressions: 0, clicks: 0 };
+      m[k].impressions += 1;
+    });
+    clickEvents.forEach((e: any) => {
+      const k = e.search_term || "(unknown)";
+      m[k] = m[k] || { impressions: 0, clicks: 0 };
+      m[k].clicks += 1;
+    });
+    return m;
+  }, [impressionEvents, clickEvents]);
+
+  // Lifetime totals (from banner row counters)
+  const lifetimeImpressions = banners.reduce((s, b) => s + (b.impressions || 0), 0);
+  const lifetimeBannerClicks = banners.reduce((s, b) => s + (b.click_count || 0), 0);
+  const lifetimeWidgetClicks = widgets.reduce((s, w) => s + (w.click_count || 0), 0);
+  const lifetimeClicks = lifetimeBannerClicks + lifetimeWidgetClicks;
   const activeAds = banners.filter((b) => b.is_active).length + widgets.filter((w) => w.is_active).length;
 
+  // Range totals derived from analytics_events — the source of truth for the date filter
   const rangeImpressions = impressionEvents.length;
   const rangeClicks = clickEvents.length;
   const rangeCTR = rangeImpressions > 0 ? ((rangeClicks / rangeImpressions) * 100).toFixed(2) : "0.00";
+  const impressionTrackingMissing = rangeClicks > 0 && rangeImpressions === 0;
 
   const dailyTrend = useMemo(() => {
     const map: Record<string, { impressions: number; clicks: number }> = {};

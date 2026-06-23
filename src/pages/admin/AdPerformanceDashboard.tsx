@@ -98,16 +98,34 @@ export default function AdPerformanceDashboard() {
     },
   });
 
-  const totalImpressions = banners.reduce((s, b) => s + (b.impressions || 0), 0);
-  const totalBannerClicks = banners.reduce((s, b) => s + (b.click_count || 0), 0);
-  const totalWidgetClicks = widgets.reduce((s, w) => s + (w.click_count || 0), 0);
-  const totalClicks = totalBannerClicks + totalWidgetClicks;
-  const overallCTR = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : "0.00";
+  // Build per-banner aggregates from analytics_events (date-range scoped)
+  const bannerEventStats = useMemo(() => {
+    const m: Record<string, { impressions: number; clicks: number }> = {};
+    impressionEvents.forEach((e: any) => {
+      const k = e.search_term || "(unknown)";
+      m[k] = m[k] || { impressions: 0, clicks: 0 };
+      m[k].impressions += 1;
+    });
+    clickEvents.forEach((e: any) => {
+      const k = e.search_term || "(unknown)";
+      m[k] = m[k] || { impressions: 0, clicks: 0 };
+      m[k].clicks += 1;
+    });
+    return m;
+  }, [impressionEvents, clickEvents]);
+
+  // Lifetime totals (from banner row counters)
+  const lifetimeImpressions = banners.reduce((s, b) => s + (b.impressions || 0), 0);
+  const lifetimeBannerClicks = banners.reduce((s, b) => s + (b.click_count || 0), 0);
+  const lifetimeWidgetClicks = widgets.reduce((s, w) => s + (w.click_count || 0), 0);
+  const lifetimeClicks = lifetimeBannerClicks + lifetimeWidgetClicks;
   const activeAds = banners.filter((b) => b.is_active).length + widgets.filter((w) => w.is_active).length;
 
+  // Range totals derived from analytics_events — the source of truth for the date filter
   const rangeImpressions = impressionEvents.length;
   const rangeClicks = clickEvents.length;
   const rangeCTR = rangeImpressions > 0 ? ((rangeClicks / rangeImpressions) * 100).toFixed(2) : "0.00";
+  const impressionTrackingMissing = rangeClicks > 0 && rangeImpressions === 0;
 
   const dailyTrend = useMemo(() => {
     const map: Record<string, { impressions: number; clicks: number }> = {};
@@ -242,26 +260,29 @@ export default function AdPerformanceDashboard() {
   }, [clickEvents]);
 
 
-  // Sorted banners
+  // Sorted banners — sort by range stats from analytics_events (real data)
   const sortedBanners = useMemo(() => {
+    const statOf = (b: any) => bannerEventStats[b.name] || { impressions: 0, clicks: 0 };
     return [...banners].sort((a, b) => {
+      const sa = statOf(a);
+      const sb = statOf(b);
       let aVal: number, bVal: number;
       if (bannerSort.key === "ctr") {
-        aVal = (a.impressions || 0) > 0 ? (a.click_count || 0) / (a.impressions || 1) : 0;
-        bVal = (b.impressions || 0) > 0 ? (b.click_count || 0) / (b.impressions || 1) : 0;
+        aVal = sa.impressions > 0 ? sa.clicks / sa.impressions : 0;
+        bVal = sb.impressions > 0 ? sb.clicks / sb.impressions : 0;
       } else if (bannerSort.key === "clicks") {
-        aVal = a.click_count || 0;
-        bVal = b.click_count || 0;
+        aVal = sa.clicks;
+        bVal = sb.clicks;
       } else if (bannerSort.key === "impressions") {
-        aVal = a.impressions || 0;
-        bVal = b.impressions || 0;
+        aVal = sa.impressions;
+        bVal = sb.impressions;
       } else {
         aVal = a.priority || 0;
         bVal = b.priority || 0;
       }
       return bannerSort.dir === "desc" ? bVal - aVal : aVal - bVal;
     });
-  }, [banners, bannerSort]);
+  }, [banners, bannerSort, bannerEventStats]);
 
   const toggleSort = (key: SortKey) => {
     setBannerSort((prev) => ({
@@ -343,15 +364,26 @@ export default function AdPerformanceDashboard() {
         {" · "}Range CTR: <span className="font-medium text-foreground">{rangeCTR}%</span>
       </div>
 
-      {/* Summary Cards */}
+      {impressionTrackingMissing && (
+        <div className="rounded-md border border-yellow-500/40 bg-yellow-500/10 px-4 py-3 text-xs text-foreground">
+          <span className="font-medium">Heads up:</span> {rangeClicks.toLocaleString()} clicks were logged in
+          this range but <span className="font-medium">0 impressions</span>. Banner-impression events aren't
+          being written to <code>analytics_events</code>, so CTR will read as 0%. Check that
+          <code> AffiliateBannerContainer</code> is actually rendering on your traffic pages and that
+          <code> useVisitorLocation</code> is resolving (ipapi.co may be rate-limited).
+        </div>
+      )}
+
+      {/* Summary Cards — all date-range scoped from analytics_events */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10"><Eye className="h-5 w-5 text-primary" /></div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Impressions</p>
-                <p className="text-2xl font-bold">{totalImpressions.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Impressions (range)</p>
+                <p className="text-2xl font-bold">{rangeImpressions.toLocaleString()}</p>
+                <p className="text-[11px] text-muted-foreground">Lifetime: {lifetimeImpressions.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
@@ -361,8 +393,9 @@ export default function AdPerformanceDashboard() {
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10"><MousePointerClick className="h-5 w-5 text-primary" /></div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Clicks</p>
-                <p className="text-2xl font-bold">{totalClicks.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Clicks (range)</p>
+                <p className="text-2xl font-bold">{rangeClicks.toLocaleString()}</p>
+                <p className="text-[11px] text-muted-foreground">Lifetime banners+widgets: {lifetimeClicks.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
@@ -372,8 +405,9 @@ export default function AdPerformanceDashboard() {
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10"><Percent className="h-5 w-5 text-primary" /></div>
               <div>
-                <p className="text-sm text-muted-foreground">Overall CTR</p>
-                <p className="text-2xl font-bold">{overallCTR}%</p>
+                <p className="text-sm text-muted-foreground">CTR (range)</p>
+                <p className="text-2xl font-bold">{rangeCTR}%</p>
+                <p className="text-[11px] text-muted-foreground">Clicks ÷ Impressions in window</p>
               </div>
             </div>
           </CardContent>
@@ -385,6 +419,7 @@ export default function AdPerformanceDashboard() {
               <div>
                 <p className="text-sm text-muted-foreground">Active Ads</p>
                 <p className="text-2xl font-bold">{activeAds}</p>
+                <p className="text-[11px] text-muted-foreground">{banners.length} banners · {widgets.length} widgets</p>
               </div>
             </div>
           </CardContent>
@@ -555,25 +590,35 @@ export default function AdPerformanceDashboard() {
           </Card>
         </TabsContent>
 
-        {/* Banner Ads Table */}
+        {/* Banner Ads Table — range stats from analytics_events, with lifetime in parens */}
         <TabsContent value="banners">
           <Card>
-            <CardContent className="pt-6">
+            <CardHeader>
+              <CardTitle>Banner Ads</CardTitle>
+              <CardDescription>
+                Impressions and clicks are counted from <code>analytics_events</code> within the selected
+                date range. Lifetime totals (from the banner row counters) are shown in parentheses.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Position</TableHead>
                     <TableHead>Status</TableHead>
-                    <SortHeader label="Impressions" sortKey="impressions" />
-                    <SortHeader label="Clicks" sortKey="clicks" />
-                    <SortHeader label="CTR" sortKey="ctr" />
+                    <SortHeader label="Impressions (range)" sortKey="impressions" />
+                    <SortHeader label="Clicks (range)" sortKey="clicks" />
+                    <SortHeader label="CTR (range)" sortKey="ctr" />
                     <SortHeader label="Priority" sortKey="priority" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {sortedBanners.map((b) => {
-                    const ctr = (b.impressions || 0) > 0 ? (((b.click_count || 0) / (b.impressions || 1)) * 100).toFixed(2) : "0.00";
+                    const stat = bannerEventStats[b.name] || { impressions: 0, clicks: 0 };
+                    const ctr = stat.impressions > 0
+                      ? ((stat.clicks / stat.impressions) * 100).toFixed(2)
+                      : "0.00";
                     return (
                       <TableRow key={b.id}>
                         <TableCell className="font-medium">{b.name}</TableCell>
@@ -583,9 +628,15 @@ export default function AdPerformanceDashboard() {
                             {b.is_active ? "Active" : "Inactive"}
                           </Badge>
                         </TableCell>
-                        <TableCell>{(b.impressions || 0).toLocaleString()}</TableCell>
-                        <TableCell>{(b.click_count || 0).toLocaleString()}</TableCell>
-                        <TableCell>{ctr}%</TableCell>
+                        <TableCell>
+                          <span className="font-medium tabular-nums">{stat.impressions.toLocaleString()}</span>
+                          <span className="ml-1 text-xs text-muted-foreground">({(b.impressions || 0).toLocaleString()})</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium tabular-nums">{stat.clicks.toLocaleString()}</span>
+                          <span className="ml-1 text-xs text-muted-foreground">({(b.click_count || 0).toLocaleString()})</span>
+                        </TableCell>
+                        <TableCell className="tabular-nums">{ctr}%</TableCell>
                         <TableCell>{b.priority || 0}</TableCell>
                       </TableRow>
                     );

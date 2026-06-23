@@ -56,6 +56,24 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   const results = { processed: 0, detected: 0, errors: 0 };
+  const startedAt = Date.now();
+  let trigger = "manual";
+  try {
+    const body = await req.clone().json().catch(() => ({}));
+    if (body?.trigger) trigger = String(body.trigger);
+  } catch { /* ignore */ }
+  const logRun = async (errorMessage: string | null) => {
+    try {
+      await supabase.from("policy_detector_runs").insert({
+        trigger,
+        scanned: results.processed,
+        detected: results.detected,
+        errors: results.errors,
+        duration_ms: Date.now() - startedAt,
+        error_message: errorMessage,
+      });
+    } catch (e) { console.error("logRun failed", e); }
+  };
 
   try {
     // Pull recent queue items regardless of pipeline status — we want to

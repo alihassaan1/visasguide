@@ -111,10 +111,28 @@ export default function AdminDashboard() {
   });
 
   const { data: affiliateClicks = 0 } = useQuery({
-    queryKey: ["admin-affiliate-clicks"],
+    queryKey: ["admin-affiliate-clicks", range],
     queryFn: async () => {
-      const { data } = await supabase.from("settings_affiliates").select("click_count");
-      return data?.reduce((s, a) => s + (a.click_count || 0), 0) || 0;
+      const { count } = await supabase
+        .from("analytics_events")
+        .select("*", { count: "exact", head: true })
+        .eq("event_type", "affiliate_click")
+        .gte("created_at", currentFrom);
+      return count || 0;
+    },
+    staleTime: 30_000,
+  });
+
+  const { data: affiliateClicksPrev = 0 } = useQuery({
+    queryKey: ["admin-affiliate-clicks-prev", range],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("analytics_events")
+        .select("*", { count: "exact", head: true })
+        .eq("event_type", "affiliate_click")
+        .gte("created_at", previousFrom)
+        .lt("created_at", previousTo);
+      return count || 0;
     },
     staleTime: 30_000,
   });
@@ -334,7 +352,9 @@ export default function AdminDashboard() {
           title="Affiliate Clicks"
           value={affiliateClicks}
           icon={DollarSign}
-          description="Total tracked clicks (all-time)"
+          description={`Tracked clicks in ${RANGE_LABEL[range].toLowerCase()}`}
+          current={affiliateClicks}
+          previous={affiliateClicksPrev}
         />
         <StatCard
           title="Team Members"

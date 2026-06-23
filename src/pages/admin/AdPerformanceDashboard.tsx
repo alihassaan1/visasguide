@@ -361,15 +361,26 @@ export default function AdPerformanceDashboard() {
         {" · "}Range CTR: <span className="font-medium text-foreground">{rangeCTR}%</span>
       </div>
 
-      {/* Summary Cards */}
+      {impressionTrackingMissing && (
+        <div className="rounded-md border border-yellow-500/40 bg-yellow-500/10 px-4 py-3 text-xs text-foreground">
+          <span className="font-medium">Heads up:</span> {rangeClicks.toLocaleString()} clicks were logged in
+          this range but <span className="font-medium">0 impressions</span>. Banner-impression events aren't
+          being written to <code>analytics_events</code>, so CTR will read as 0%. Check that
+          <code> AffiliateBannerContainer</code> is actually rendering on your traffic pages and that
+          <code> useVisitorLocation</code> is resolving (ipapi.co may be rate-limited).
+        </div>
+      )}
+
+      {/* Summary Cards — all date-range scoped from analytics_events */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10"><Eye className="h-5 w-5 text-primary" /></div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Impressions</p>
-                <p className="text-2xl font-bold">{totalImpressions.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Impressions (range)</p>
+                <p className="text-2xl font-bold">{rangeImpressions.toLocaleString()}</p>
+                <p className="text-[11px] text-muted-foreground">Lifetime: {lifetimeImpressions.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
@@ -379,8 +390,9 @@ export default function AdPerformanceDashboard() {
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10"><MousePointerClick className="h-5 w-5 text-primary" /></div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Clicks</p>
-                <p className="text-2xl font-bold">{totalClicks.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Clicks (range)</p>
+                <p className="text-2xl font-bold">{rangeClicks.toLocaleString()}</p>
+                <p className="text-[11px] text-muted-foreground">Lifetime banners+widgets: {lifetimeClicks.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
@@ -390,8 +402,9 @@ export default function AdPerformanceDashboard() {
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10"><Percent className="h-5 w-5 text-primary" /></div>
               <div>
-                <p className="text-sm text-muted-foreground">Overall CTR</p>
-                <p className="text-2xl font-bold">{overallCTR}%</p>
+                <p className="text-sm text-muted-foreground">CTR (range)</p>
+                <p className="text-2xl font-bold">{rangeCTR}%</p>
+                <p className="text-[11px] text-muted-foreground">Clicks ÷ Impressions in window</p>
               </div>
             </div>
           </CardContent>
@@ -403,6 +416,7 @@ export default function AdPerformanceDashboard() {
               <div>
                 <p className="text-sm text-muted-foreground">Active Ads</p>
                 <p className="text-2xl font-bold">{activeAds}</p>
+                <p className="text-[11px] text-muted-foreground">{banners.length} banners · {widgets.length} widgets</p>
               </div>
             </div>
           </CardContent>

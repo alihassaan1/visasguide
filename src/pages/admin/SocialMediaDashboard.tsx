@@ -5,19 +5,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Share2, 
-  TrendingUp, 
-  MousePointer, 
-  Eye, 
-  Heart, 
+import {
+  Share2,
+  TrendingUp,
+  MousePointer,
+  Eye,
+  Heart,
   RefreshCw,
   Facebook,
   Instagram,
+  Linkedin,
   Clock,
   AlertCircle,
   CheckCircle2,
-  Loader2
+  Loader2,
+  XCircle,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -54,23 +56,51 @@ export default function SocialMediaDashboard() {
         recentPosts: posts.slice(0, 10),
         facebookPosts: posts.filter(p => p.platform === 'facebook').length,
         instagramPosts: posts.filter(p => p.platform === 'instagram').length,
+        linkedinPosts: posts.filter(p => p.platform === 'linkedin').length,
       };
     },
   });
 
-  // Fetch content events queue
+  // Platform connection status
+  const { data: platforms } = useQuery({
+    queryKey: ['platform-accounts-status'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('platform_accounts')
+        .select('platform, account_name, access_token_encrypted, token_expires_at, is_active');
+      if (error) throw error;
+      return (data || []).map((p: any) => ({
+        platform: p.platform,
+        accountName: p.account_name,
+        isActive: p.is_active,
+        isConnected:
+          !!p.access_token_encrypted &&
+          p.access_token_encrypted.length > 0 &&
+          !/not connected/i.test(p.account_name || '') &&
+          (!p.token_expires_at || new Date(p.token_expires_at) > new Date()),
+        tokenExpiresAt: p.token_expires_at,
+      }));
+    },
+  });
+
+  // Fetch content events queue — total count + preview list
   const { data: eventsData, refetch: refetchEvents } = useQuery({
     queryKey: ['content-events-queue'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('content_events')
-        .select('*')
-        .eq('processed', false)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
+      const [{ count: totalUnprocessed }, { data: preview, error }] = await Promise.all([
+        supabase
+          .from('content_events')
+          .select('*', { count: 'exact', head: true })
+          .eq('processed', false),
+        supabase
+          .from('content_events')
+          .select('*')
+          .eq('processed', false)
+          .order('created_at', { ascending: false })
+          .limit(20),
+      ]);
       if (error) throw error;
-      return data || [];
+      return { totalUnprocessed: totalUnprocessed ?? 0, preview: preview || [] };
     },
   });
 
@@ -93,6 +123,7 @@ export default function SocialMediaDashboard() {
         total: clicks.length,
         facebook: clicks.filter(c => c.utm_source === 'facebook').length,
         instagram: clicks.filter(c => c.utm_source === 'instagram').length,
+        linkedin: clicks.filter(c => c.utm_source === 'linkedin').length,
       };
     },
   });
@@ -183,6 +214,89 @@ export default function SocialMediaDashboard() {
         </Button>
       </div>
 
+      {/* Diagnostics — surface real automation health */}
+      {(() => {
+        const connectedCount = platforms?.filter(p => p.isConnected).length ?? 0;
+        const totalAccounts = platforms?.length ?? 0;
+        const unprocessed = eventsData?.totalUnprocessed ?? 0;
+        const messages: { tone: 'error' | 'warn'; text: string }[] = [];
+        if (platforms && connectedCount === 0) {
+          messages.push({
+            tone: 'error',
+            text: `No platform accounts are connected (${totalAccounts} configured). Posts cannot publish until you connect Facebook, Instagram, or LinkedIn under Marketing → Platforms.`,
+          });
+        }
+        if (unprocessed > 100) {
+          messages.push({
+            tone: 'warn',
+            text: `${unprocessed.toLocaleString()} content events are unprocessed. No cron is invoking social-content-publisher — run "Process Queue" manually or schedule it.`,
+          });
+        }
+        if (!messages.length) return null;
+        return (
+          <div className="space-y-2">
+            {messages.map((m, i) => (
+              <div
+                key={i}
+                className={`flex items-start gap-2 rounded-md border px-4 py-3 text-sm ${
+                  m.tone === 'error'
+                    ? 'border-destructive/40 bg-destructive/10 text-foreground'
+                    : 'border-yellow-500/40 bg-yellow-500/10 text-foreground'
+                }`}
+              >
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>{m.text}</span>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
+      {/* Platform connection status */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Platform Connections</CardTitle>
+          <CardDescription>OAuth status of every configured social account</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {platforms?.length ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {platforms.map((p) => {
+                const Icon =
+                  p.platform === 'facebook' ? Facebook
+                    : p.platform === 'instagram' ? Instagram
+                    : p.platform === 'linkedin' ? Linkedin
+                    : Share2;
+                return (
+                  <div key={`${p.platform}-${p.accountName}`} className="flex items-center justify-between rounded-md border p-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Icon className="h-5 w-5 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium capitalize">{p.platform}</p>
+                        <p className="text-xs text-muted-foreground truncate">{p.accountName}</p>
+                      </div>
+                    </div>
+                    {p.isConnected ? (
+                      <Badge className="bg-green-500/20 text-green-600 shrink-0">
+                        <CheckCircle2 className="h-3 w-3 mr-1" /> Connected
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-red-500/20 text-red-600 shrink-0">
+                        <XCircle className="h-3 w-3 mr-1" /> Not connected
+                      </Badge>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground py-4">
+              No platform accounts configured. Add accounts under Marketing → Platforms.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
         <Card>
@@ -259,7 +373,7 @@ export default function SocialMediaDashboard() {
       </div>
 
       {/* Platform Breakdown */}
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -301,12 +415,33 @@ export default function SocialMediaDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Linkedin className="h-5 w-5 text-sky-700" />
+              LinkedIn
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-3xl font-bold">{postsData?.linkedinPosts || 0}</p>
+                <p className="text-sm text-muted-foreground">Posts</p>
+              </div>
+              <div>
+                <p className="text-3xl font-bold">{clicksData?.linkedin || 0}</p>
+                <p className="text-sm text-muted-foreground">Clicks (7d)</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs defaultValue="recent" className="w-full">
         <TabsList>
           <TabsTrigger value="recent">Recent Posts</TabsTrigger>
-          <TabsTrigger value="queue">Content Queue ({eventsData?.length || 0})</TabsTrigger>
+          <TabsTrigger value="queue">Content Queue ({eventsData?.totalUnprocessed?.toLocaleString() || 0})</TabsTrigger>
           <TabsTrigger value="top">Top Performing</TabsTrigger>
         </TabsList>
 
@@ -349,12 +484,15 @@ export default function SocialMediaDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Content Events Queue</CardTitle>
-              <CardDescription>Content waiting to be published to social media</CardDescription>
+              <CardDescription>
+                {eventsData?.totalUnprocessed?.toLocaleString() || 0} unprocessed content events.
+                Showing the {eventsData?.preview?.length || 0} most recent.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {eventsData?.length ? (
-                  eventsData.map((event: any) => (
+                {eventsData?.preview?.length ? (
+                  eventsData.preview.map((event: any) => (
                     <div key={event.id} className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg">
                       <Badge variant="outline" className="shrink-0">
                         {event.content_type}

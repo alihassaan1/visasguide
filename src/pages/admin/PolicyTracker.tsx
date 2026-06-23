@@ -134,10 +134,13 @@ export default function PolicyTracker() {
           <h1 className="text-2xl sm:text-3xl font-bold mb-1">Visa Policy Tracker</h1>
           <p className="text-muted-foreground">Detect, verify, and publish visa policy changes worldwide</p>
         </div>
-        <Button onClick={() => runDetector.mutate()} disabled={runDetector.isPending}>
-          {runDetector.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-          Run Detector
-        </Button>
+        <div className="flex items-center gap-2">
+          <PolicyDetectorLogsDrawer />
+          <Button onClick={() => runDetector.mutate()} disabled={runDetector.isPending}>
+            {runDetector.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+            Run Detector
+          </Button>
+        </div>
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>

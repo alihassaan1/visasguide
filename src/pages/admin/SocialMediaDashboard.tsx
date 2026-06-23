@@ -213,6 +213,89 @@ export default function SocialMediaDashboard() {
         </Button>
       </div>
 
+      {/* Diagnostics — surface real automation health */}
+      {(() => {
+        const connectedCount = platforms?.filter(p => p.isConnected).length ?? 0;
+        const totalAccounts = platforms?.length ?? 0;
+        const unprocessed = eventsData?.totalUnprocessed ?? 0;
+        const messages: { tone: 'error' | 'warn'; text: string }[] = [];
+        if (platforms && connectedCount === 0) {
+          messages.push({
+            tone: 'error',
+            text: `No platform accounts are connected (${totalAccounts} configured). Posts cannot publish until you connect Facebook, Instagram, or LinkedIn under Marketing → Platforms.`,
+          });
+        }
+        if (unprocessed > 100) {
+          messages.push({
+            tone: 'warn',
+            text: `${unprocessed.toLocaleString()} content events are unprocessed. No cron is invoking social-content-publisher — run "Process Queue" manually or schedule it.`,
+          });
+        }
+        if (!messages.length) return null;
+        return (
+          <div className="space-y-2">
+            {messages.map((m, i) => (
+              <div
+                key={i}
+                className={`flex items-start gap-2 rounded-md border px-4 py-3 text-sm ${
+                  m.tone === 'error'
+                    ? 'border-destructive/40 bg-destructive/10 text-foreground'
+                    : 'border-yellow-500/40 bg-yellow-500/10 text-foreground'
+                }`}
+              >
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>{m.text}</span>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
+      {/* Platform connection status */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Platform Connections</CardTitle>
+          <CardDescription>OAuth status of every configured social account</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {platforms?.length ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {platforms.map((p) => {
+                const Icon =
+                  p.platform === 'facebook' ? Facebook
+                    : p.platform === 'instagram' ? Instagram
+                    : p.platform === 'linkedin' ? Linkedin
+                    : Share2;
+                return (
+                  <div key={`${p.platform}-${p.accountName}`} className="flex items-center justify-between rounded-md border p-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Icon className="h-5 w-5 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium capitalize">{p.platform}</p>
+                        <p className="text-xs text-muted-foreground truncate">{p.accountName}</p>
+                      </div>
+                    </div>
+                    {p.isConnected ? (
+                      <Badge className="bg-green-500/20 text-green-600 shrink-0">
+                        <CheckCircle2 className="h-3 w-3 mr-1" /> Connected
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-red-500/20 text-red-600 shrink-0">
+                        <XCircle className="h-3 w-3 mr-1" /> Not connected
+                      </Badge>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground py-4">
+              No platform accounts configured. Add accounts under Marketing → Platforms.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
         <Card>

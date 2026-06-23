@@ -372,7 +372,7 @@ export default function SocialMediaDashboard() {
       </div>
 
       {/* Platform Breakdown */}
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -409,6 +409,27 @@ export default function SocialMediaDashboard() {
               </div>
               <div>
                 <p className="text-3xl font-bold">{clicksData?.instagram || 0}</p>
+                <p className="text-sm text-muted-foreground">Clicks (7d)</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Linkedin className="h-5 w-5 text-sky-700" />
+              LinkedIn
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-3xl font-bold">{postsData?.linkedinPosts || 0}</p>
+                <p className="text-sm text-muted-foreground">Posts</p>
+              </div>
+              <div>
+                <p className="text-3xl font-bold">{clicksData?.linkedin || 0}</p>
                 <p className="text-sm text-muted-foreground">Clicks (7d)</p>
               </div>
             </div>

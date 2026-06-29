@@ -106,6 +106,10 @@ export default function ContentValidator() {
     setTotals({ scanned: 0, mismatched: 0, fixed: 0 });
     setByTruthAcc({});
     setLog([]);
+    setPagesThisSession(0);
+    const t0 = Date.now();
+    setStartedAt(t0);
+    setLastBatchAt(t0);
     let cursor = offset;
     try {
       while (true) {
@@ -125,6 +129,9 @@ export default function ContentValidator() {
           }
           return next;
         });
+        const processed = Math.max(res.nextOffset - cursor, 0);
+        setPagesThisSession((p) => p + processed);
+        setLastBatchAt(Date.now());
         appendLog(
           `Batch done — scanned ${res.scanned}, mismatched ${res.mismatched}${
             mode === "fix" ? `, fixed ${res.fixed}` : ""
@@ -139,7 +146,7 @@ export default function ContentValidator() {
       }
       toast({
         title: mode === "audit" ? "Audit complete" : "Fix run complete",
-        description: `${totals.scanned} pages scanned this session.`,
+        description: `Cursor at offset ${cursor.toLocaleString()}.`,
       });
     } finally {
       setRunning(false);

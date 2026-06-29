@@ -267,6 +267,80 @@ export default function ContentValidator() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className={`h-5 w-5 ${running ? "text-green-600 animate-pulse" : "text-muted-foreground"}`} />
+                Live progress
+              </CardTitle>
+              <CardDescription>
+                Tracks the cursor against the total visa-requirements page set.
+              </CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={loadTotal} disabled={loadingTotal}>
+              <RefreshCw className={`h-3.5 w-3.5 mr-1 ${loadingTotal ? "animate-spin" : ""}`} />
+              Refresh total
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-muted-foreground">
+                {offset.toLocaleString()} / {totalPages != null ? totalPages.toLocaleString() : "—"} pages
+              </span>
+              <span className="font-medium">{progressPct.toFixed(1)}%</span>
+            </div>
+            <Progress value={progressPct} className="h-3" />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <div className="rounded border p-3">
+              <div className="text-muted-foreground text-xs">Cursor offset</div>
+              <div className="text-lg font-semibold">{offset.toLocaleString()}</div>
+            </div>
+            <div className="rounded border p-3">
+              <div className="text-muted-foreground text-xs">Processed this session</div>
+              <div className="text-lg font-semibold">{pagesThisSession.toLocaleString()}</div>
+            </div>
+            <div className="rounded border p-3">
+              <div className="text-muted-foreground text-xs">Throughput</div>
+              <div className="text-lg font-semibold">
+                {rate > 0 ? `${rate.toFixed(1)} pg/s` : "—"}
+              </div>
+            </div>
+            <div className="rounded border p-3">
+              <div className="text-muted-foreground text-xs">Est. time remaining</div>
+              <div className="text-lg font-semibold">{formatDuration(etaMs)}</div>
+            </div>
+            <div className="rounded border p-3">
+              <div className="text-muted-foreground text-xs">Elapsed</div>
+              <div className="text-lg font-semibold">{startedAt ? formatDuration(elapsedMs) : "—"}</div>
+            </div>
+            <div className="rounded border p-3">
+              <div className="text-muted-foreground text-xs">Remaining pages</div>
+              <div className="text-lg font-semibold">
+                {totalPages != null ? remaining.toLocaleString() : "—"}
+              </div>
+            </div>
+            <div className="rounded border p-3">
+              <div className="text-muted-foreground text-xs">Last batch</div>
+              <div className="text-lg font-semibold">
+                {lastBatchAt ? `${Math.round((now - lastBatchAt) / 1000)}s ago` : "—"}
+              </div>
+            </div>
+            <div className="rounded border p-3">
+              <div className="text-muted-foreground text-xs">Status</div>
+              <div className="text-lg font-semibold">
+                {running ? (autoContinue ? "Looping" : "Running") : "Idle"}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">

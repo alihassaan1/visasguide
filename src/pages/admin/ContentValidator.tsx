@@ -1,0 +1,294 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2, ShieldCheck, AlertTriangle, Wand2, Play } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+type RunResult = {
+  success: boolean;
+  mode: "audit" | "fix";
+  scanned: number;
+  mismatched: number;
+  fixed: number;
+  byTruth: Record<string, number>;
+  samples: { slug: string; truth: string; reason: string }[];
+  nextOffset: number;
+  exhausted: boolean;
+};
+
+export default function ContentValidator() {
+  const { toast } = useToast();
+  const [running, setRunning] = useState(false);
+  const [mode, setMode] = useState<"audit" | "fix">("audit");
+  const [batchSize, setBatchSize] = useState(500);
+  const [offset, setOffset] = useState(0);
+  const [autoContinue, setAutoContinue] = useState(false);
+  const [totals, setTotals] = useState({ scanned: 0, mismatched: 0, fixed: 0 });
+  const [byTruthAcc, setByTruthAcc] = useState<Record<string, number>>({});
+  const [lastResult, setLastResult] = useState<RunResult | null>(null);
+  const [log, setLog] = useState<string[]>([]);
+
+  const appendLog = (line: string) =>
+    setLog((l) => [`[${new Date().toLocaleTimeString()}] ${line}`, ...l].slice(0, 200));
+
+  async function runOnce(currentOffset: number): Promise<RunResult | null> {
+    const { data, error } = await supabase.functions.invoke("content-validator", {
+      body: { mode, batchSize, offset: currentOffset },
+    });
+    if (error) {
+      toast({ title: "Validator error", description: error.message, variant: "destructive" });
+      appendLog(`Error: ${error.message}`);
+      return null;
+    }
+    return data as RunResult;
+  }
+
+  async function handleRun() {
+    setRunning(true);
+    setTotals({ scanned: 0, mismatched: 0, fixed: 0 });
+    setByTruthAcc({});
+    setLog([]);
+    let cursor = offset;
+    try {
+      while (true) {
+        appendLog(`Running ${mode} at offset ${cursor} (batch ${batchSize})…`);
+        const res = await runOnce(cursor);
+        if (!res) break;
+        setLastResult(res);
+        setTotals((t) => ({
+          scanned: t.scanned + res.scanned,
+          mismatched: t.mismatched + res.mismatched,
+          fixed: t.fixed + res.fixed,
+        }));
+        setByTruthAcc((acc) => {
+          const next = { ...acc };
+          for (const [k, v] of Object.entries(res.byTruth || {})) {
+            next[k] = (next[k] || 0) + (v as number);
+          }
+          return next;
+        });
+        appendLog(
+          `Batch done — scanned ${res.scanned}, mismatched ${res.mismatched}${
+            mode === "fix" ? `, fixed ${res.fixed}` : ""
+          }`
+        );
+        cursor = res.nextOffset;
+        setOffset(cursor);
+        if (res.exhausted || !autoContinue) {
+          if (res.exhausted) appendLog("Reached end of dataset.");
+          break;
+        }
+      }
+      toast({
+        title: mode === "audit" ? "Audit complete" : "Fix run complete",
+        description: `${totals.scanned} pages scanned this session.`,
+      });
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <ShieldCheck className="h-7 w-7 text-primary" /> Content Validator
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          Audits visa-requirements pages whose article body contradicts the canonical
+          <code className="mx-1">visa_requirements</code> truth table (e.g. a visa-free pair that
+          tells users they need a visa). Run in <strong>Audit</strong> mode first, then switch to
+          <strong> Fix</strong> to overwrite the mismatched articles with correct, deterministic
+          content.
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Run a batch</CardTitle>
+          <CardDescription>
+            Each batch processes up to {batchSize} pages starting from the cursor offset.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div>
+              <Label>Mode</Label>
+              <div className="flex gap-2 mt-2">
+                <Button
+                  size="sm"
+                  variant={mode === "audit" ? "default" : "outline"}
+                  onClick={() => setMode("audit")}
+                  disabled={running}
+                >
+                  Audit
+                </Button>
+                <Button
+                  size="sm"
+                  variant={mode === "fix" ? "default" : "outline"}
+                  onClick={() => setMode("fix")}
+                  disabled={running}
+                >
+                  <Wand2 className="h-3.5 w-3.5 mr-1" /> Fix
+                </Button>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="batch">Batch size</Label>
+              <Input
+                id="batch"
+                type="number"
+                value={batchSize}
+                min={50}
+                max={2000}
+                onChange={(e) => setBatchSize(Number(e.target.value) || 500)}
+                disabled={running}
+              />
+            </div>
+            <div>
+              <Label htmlFor="offset">Cursor offset</Label>
+              <Input
+                id="offset"
+                type="number"
+                value={offset}
+                min={0}
+                onChange={(e) => setOffset(Number(e.target.value) || 0)}
+                disabled={running}
+              />
+            </div>
+            <div>
+              <Label>Auto-continue</Label>
+              <div className="flex items-center gap-2 mt-2">
+                <input
+                  id="auto"
+                  type="checkbox"
+                  className="h-4 w-4"
+                  checked={autoContinue}
+                  onChange={(e) => setAutoContinue(e.target.checked)}
+                  disabled={running}
+                />
+                <label htmlFor="auto" className="text-sm text-muted-foreground">
+                  Loop through all pages
+                </label>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={handleRun} disabled={running}>
+              {running ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Running…
+                </>
+              ) : (
+                <>
+                  <Play className="h-4 w-4 mr-2" /> Run {mode}
+                </>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setOffset(0);
+                setTotals({ scanned: 0, mismatched: 0, fixed: 0 });
+                setByTruthAcc({});
+                setLastResult(null);
+                setLog([]);
+              }}
+              disabled={running}
+            >
+              Reset cursor
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Scanned (this session)</CardDescription>
+            <CardTitle className="text-3xl">{totals.scanned.toLocaleString()}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Mismatched</CardDescription>
+            <CardTitle className="text-3xl text-yellow-600 flex items-center gap-2">
+              <AlertTriangle className="h-6 w-6" /> {totals.mismatched.toLocaleString()}
+            </CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Fixed</CardDescription>
+            <CardTitle className="text-3xl text-green-600">{totals.fixed.toLocaleString()}</CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
+
+      {Object.keys(byTruthAcc).length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Mismatches by truth type</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            {Object.entries(byTruthAcc).map(([k, v]) => (
+              <Badge key={k} variant="secondary" className="text-sm">
+                {k}: {v.toLocaleString()}
+              </Badge>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {lastResult && lastResult.samples?.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Latest sample mismatches</CardTitle>
+            <CardDescription>From the most recent batch.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {lastResult.samples.map((s) => (
+                <div
+                  key={s.slug}
+                  className="flex items-start justify-between gap-3 border rounded-md p-3"
+                >
+                  <div>
+                    <a
+                      href={`/${s.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium text-primary hover:underline"
+                    >
+                      /{s.slug}
+                    </a>
+                    <p className="text-xs text-muted-foreground mt-1">{s.reason}</p>
+                  </div>
+                  <Badge variant="outline">{s.truth}</Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {log.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Run log</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-48 rounded border p-3 bg-muted/30">
+              <pre className="text-xs leading-relaxed whitespace-pre-wrap">{log.join("\n")}</pre>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}

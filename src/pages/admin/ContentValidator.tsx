@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, ShieldCheck, AlertTriangle, Wand2, Play } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Loader2, ShieldCheck, AlertTriangle, Wand2, Play, Activity, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -21,6 +22,17 @@ type RunResult = {
   exhausted: boolean;
 };
 
+function formatDuration(ms: number): string {
+  if (!isFinite(ms) || ms <= 0) return "—";
+  const s = Math.round(ms / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  const rs = s % 60;
+  if (m < 60) return `${m}m ${rs}s`;
+  const h = Math.floor(m / 60);
+  return `${h}h ${m % 60}m`;
+}
+
 export default function ContentValidator() {
   const { toast } = useToast();
   const [running, setRunning] = useState(false);
@@ -32,6 +44,47 @@ export default function ContentValidator() {
   const [byTruthAcc, setByTruthAcc] = useState<Record<string, number>>({});
   const [lastResult, setLastResult] = useState<RunResult | null>(null);
   const [log, setLog] = useState<string[]>([]);
+
+  // Progress tracking
+  const [totalPages, setTotalPages] = useState<number | null>(null);
+  const [loadingTotal, setLoadingTotal] = useState(false);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [lastBatchAt, setLastBatchAt] = useState<number | null>(null);
+  const [pagesThisSession, setPagesThisSession] = useState(0);
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    if (!running) return;
+    const i = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(i);
+  }, [running]);
+
+  async function loadTotal() {
+    setLoadingTotal(true);
+    try {
+      const { count, error } = await supabase
+        .from("content_pages")
+        .select("id", { count: "exact", head: true })
+        .or("slug.like.visa-requirements/%,slug.like.%-visa-requirements");
+      if (error) throw error;
+      setTotalPages(count ?? 0);
+    } catch (e: any) {
+      toast({ title: "Could not load total", description: e.message, variant: "destructive" });
+    } finally {
+      setLoadingTotal(false);
+    }
+  }
+
+  useEffect(() => {
+    loadTotal();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const elapsedMs = startedAt ? now - startedAt : 0;
+  const rate = elapsedMs > 0 && pagesThisSession > 0 ? pagesThisSession / (elapsedMs / 1000) : 0; // pages/sec
+  const remaining = totalPages != null ? Math.max(totalPages - offset, 0) : 0;
+  const etaMs = rate > 0 && totalPages != null ? (remaining / rate) * 1000 : NaN;
+  const progressPct = totalPages && totalPages > 0 ? Math.min((offset / totalPages) * 100, 100) : 0;
 
   const appendLog = (line: string) =>
     setLog((l) => [`[${new Date().toLocaleTimeString()}] ${line}`, ...l].slice(0, 200));
@@ -53,6 +106,10 @@ export default function ContentValidator() {
     setTotals({ scanned: 0, mismatched: 0, fixed: 0 });
     setByTruthAcc({});
     setLog([]);
+    setPagesThisSession(0);
+    const t0 = Date.now();
+    setStartedAt(t0);
+    setLastBatchAt(t0);
     let cursor = offset;
     try {
       while (true) {
@@ -72,6 +129,9 @@ export default function ContentValidator() {
           }
           return next;
         });
+        const processed = Math.max(res.nextOffset - cursor, 0);
+        setPagesThisSession((p) => p + processed);
+        setLastBatchAt(Date.now());
         appendLog(
           `Batch done — scanned ${res.scanned}, mismatched ${res.mismatched}${
             mode === "fix" ? `, fixed ${res.fixed}` : ""
@@ -86,7 +146,7 @@ export default function ContentValidator() {
       }
       toast({
         title: mode === "audit" ? "Audit complete" : "Fix run complete",
-        description: `${totals.scanned} pages scanned this session.`,
+        description: `Cursor at offset ${cursor.toLocaleString()}.`,
       });
     } finally {
       setRunning(false);
@@ -206,6 +266,80 @@ export default function ContentValidator() {
           </div>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className={`h-5 w-5 ${running ? "text-green-600 animate-pulse" : "text-muted-foreground"}`} />
+                Live progress
+              </CardTitle>
+              <CardDescription>
+                Tracks the cursor against the total visa-requirements page set.
+              </CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={loadTotal} disabled={loadingTotal}>
+              <RefreshCw className={`h-3.5 w-3.5 mr-1 ${loadingTotal ? "animate-spin" : ""}`} />
+              Refresh total
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-muted-foreground">
+                {offset.toLocaleString()} / {totalPages != null ? totalPages.toLocaleString() : "—"} pages
+              </span>
+              <span className="font-medium">{progressPct.toFixed(1)}%</span>
+            </div>
+            <Progress value={progressPct} className="h-3" />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <div className="rounded border p-3">
+              <div className="text-muted-foreground text-xs">Cursor offset</div>
+              <div className="text-lg font-semibold">{offset.toLocaleString()}</div>
+            </div>
+            <div className="rounded border p-3">
+              <div className="text-muted-foreground text-xs">Processed this session</div>
+              <div className="text-lg font-semibold">{pagesThisSession.toLocaleString()}</div>
+            </div>
+            <div className="rounded border p-3">
+              <div className="text-muted-foreground text-xs">Throughput</div>
+              <div className="text-lg font-semibold">
+                {rate > 0 ? `${rate.toFixed(1)} pg/s` : "—"}
+              </div>
+            </div>
+            <div className="rounded border p-3">
+              <div className="text-muted-foreground text-xs">Est. time remaining</div>
+              <div className="text-lg font-semibold">{formatDuration(etaMs)}</div>
+            </div>
+            <div className="rounded border p-3">
+              <div className="text-muted-foreground text-xs">Elapsed</div>
+              <div className="text-lg font-semibold">{startedAt ? formatDuration(elapsedMs) : "—"}</div>
+            </div>
+            <div className="rounded border p-3">
+              <div className="text-muted-foreground text-xs">Remaining pages</div>
+              <div className="text-lg font-semibold">
+                {totalPages != null ? remaining.toLocaleString() : "—"}
+              </div>
+            </div>
+            <div className="rounded border p-3">
+              <div className="text-muted-foreground text-xs">Last batch</div>
+              <div className="text-lg font-semibold">
+                {lastBatchAt ? `${Math.round((now - lastBatchAt) / 1000)}s ago` : "—"}
+              </div>
+            </div>
+            <div className="rounded border p-3">
+              <div className="text-muted-foreground text-xs">Status</div>
+              <div className="text-lg font-semibold">
+                {running ? (autoContinue ? "Looping" : "Running") : "Idle"}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>

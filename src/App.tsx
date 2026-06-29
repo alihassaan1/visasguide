@@ -34,6 +34,7 @@ import AIContentStudio from "./pages/admin/AIContentStudio";
 import ManualContentEditor from "./pages/admin/ManualContentEditor";
 
 import VisaRequirementsContentUpdater from "./pages/admin/VisaRequirementsContentUpdater";
+import ContentValidator from "./pages/admin/ContentValidator";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import FreelancerDashboard from "./pages/admin/FreelancerDashboard";
 import MonetizationSettings from "./pages/admin/MonetizationSettings";
@@ -187,6 +188,7 @@ const App = () => (
             <Route path="ad-performance" element={<AdPerformanceDashboard />} />
             <Route path="policy-tracker" element={<PolicyTracker />} />
             <Route path="etias-generator" element={<EtiasGenerator />} />
+            <Route path="content-validator" element={<ContentValidator />} />
             
           </Route>
           

@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, ShieldCheck, AlertTriangle, Wand2, Play } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Loader2, ShieldCheck, AlertTriangle, Wand2, Play, Activity, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -21,6 +22,17 @@ type RunResult = {
   exhausted: boolean;
 };
 
+function formatDuration(ms: number): string {
+  if (!isFinite(ms) || ms <= 0) return "—";
+  const s = Math.round(ms / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  const rs = s % 60;
+  if (m < 60) return `${m}m ${rs}s`;
+  const h = Math.floor(m / 60);
+  return `${h}h ${m % 60}m`;
+}
+
 export default function ContentValidator() {
   const { toast } = useToast();
   const [running, setRunning] = useState(false);
@@ -32,6 +44,47 @@ export default function ContentValidator() {
   const [byTruthAcc, setByTruthAcc] = useState<Record<string, number>>({});
   const [lastResult, setLastResult] = useState<RunResult | null>(null);
   const [log, setLog] = useState<string[]>([]);
+
+  // Progress tracking
+  const [totalPages, setTotalPages] = useState<number | null>(null);
+  const [loadingTotal, setLoadingTotal] = useState(false);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [lastBatchAt, setLastBatchAt] = useState<number | null>(null);
+  const [pagesThisSession, setPagesThisSession] = useState(0);
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    if (!running) return;
+    const i = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(i);
+  }, [running]);
+
+  async function loadTotal() {
+    setLoadingTotal(true);
+    try {
+      const { count, error } = await supabase
+        .from("content_pages")
+        .select("id", { count: "exact", head: true })
+        .or("slug.like.visa-requirements/%,slug.like.%-visa-requirements");
+      if (error) throw error;
+      setTotalPages(count ?? 0);
+    } catch (e: any) {
+      toast({ title: "Could not load total", description: e.message, variant: "destructive" });
+    } finally {
+      setLoadingTotal(false);
+    }
+  }
+
+  useEffect(() => {
+    loadTotal();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const elapsedMs = startedAt ? now - startedAt : 0;
+  const rate = elapsedMs > 0 && pagesThisSession > 0 ? pagesThisSession / (elapsedMs / 1000) : 0; // pages/sec
+  const remaining = totalPages != null ? Math.max(totalPages - offset, 0) : 0;
+  const etaMs = rate > 0 && totalPages != null ? (remaining / rate) * 1000 : NaN;
+  const progressPct = totalPages && totalPages > 0 ? Math.min((offset / totalPages) * 100, 100) : 0;
 
   const appendLog = (line: string) =>
     setLog((l) => [`[${new Date().toLocaleTimeString()}] ${line}`, ...l].slice(0, 200));

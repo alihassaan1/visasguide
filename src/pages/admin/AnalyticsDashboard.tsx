@@ -265,19 +265,19 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // Bot traffic details using server-side aggregation
+  // Bot traffic details using detailed classification (search engines, AI crawlers, SEO tools, social)
   const { data: botTrafficDetails } = useQuery({
-    queryKey: ['bot-traffic', trendPeriod],
+    queryKey: ['bot-traffic-breakdown', trendPeriod],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_analytics_distribution', {
+      const { data, error } = await supabase.rpc('get_bot_traffic_breakdown', {
         p_start: periodStart.toISOString(),
         p_end: periodEnd.toISOString(),
-        p_field: 'bot_traffic'
       });
       if (error) throw error;
-      return (data as any[]) || [];
+      return (data as Array<{ name: string; category: string; hits: number; unique_ips: number; last_seen: string }>) || [];
     }
   });
+
 
   // Traffic sources using server-side aggregation
   const { data: trafficSources } = useQuery({

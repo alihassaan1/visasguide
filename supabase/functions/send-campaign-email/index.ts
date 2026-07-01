@@ -22,6 +22,9 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const unauth = await requireAdmin(req, corsHeaders);
+  if (unauth) return unauth;
+
   try {
     const { subject, content, from_name = "Visas Guide" }: CampaignEmailRequest = await req.json();
 

@@ -1,5 +1,32 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { isAllowedRedirect } from "../_shared/adminAuth.ts";
+
+const SAFE_FALLBACK = "https://visas.guide";
+
+async function isAllowedForClick(
+  target: string,
+  supabase: ReturnType<typeof createClient>,
+): Promise<boolean> {
+  if (isAllowedRedirect(target)) return true;
+  // Allow any host registered as a target_url on our affiliate banners.
+  try {
+    const host = new URL(target).hostname.toLowerCase();
+    const { data } = await supabase
+      .from("settings_affiliates")
+      .select("target_url")
+      .not("target_url", "is", null);
+    const hosts = (data || [])
+      .map((r: any) => {
+        try { return new URL(r.target_url).hostname.toLowerCase(); }
+        catch { return null; }
+      })
+      .filter(Boolean) as string[];
+    return hosts.some((h) => host === h || host.endsWith("." + h));
+  } catch {
+    return false;
+  }
+}
 
 serve(async (req) => {
   try {
@@ -18,6 +45,15 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    if (!(await isAllowedForClick(targetUrl, supabase))) {
+      console.warn("Blocked open-redirect attempt:", targetUrl);
+      return new Response(null, {
+        status: 302,
+        headers: { Location: SAFE_FALLBACK, "Cache-Control": "no-store" },
+      });
+    }
+
 
     if (campaignId && email) {
       // Record the click

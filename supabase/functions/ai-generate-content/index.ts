@@ -52,6 +52,9 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const unauth = await requireAdmin(req, corsHeaders);
+  if (unauth) return unauth;
+
   const startTime = Date.now();
 
   try {

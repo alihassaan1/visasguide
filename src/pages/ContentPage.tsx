@@ -252,6 +252,10 @@ export default function ContentPage() {
               dangerouslySetInnerHTML={{ __html: stripEmbeddedSchemas(page.content) }}
             />
 
+
+            {/* Related visa routes (only renders for X-to-Y-visa-requirements slugs) */}
+            <VisaRoutesInline slug={page.slug} />
+
             {/* Social Share Buttons */}
             <div className="mt-10 pt-6 border-t">
               <h3 className="text-sm font-semibold text-muted-foreground mb-4">Share this guide</h3>

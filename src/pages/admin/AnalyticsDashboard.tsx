@@ -890,28 +890,76 @@ const AnalyticsDashboard = () => {
         </Card>
       </div>
 
-      {/* Bot Traffic */}
+      {/* Bot & Crawler Traffic — grouped by category with totals */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Bot className="h-5 w-5" />
-            Bot Traffic Details
+            Bot & Crawler Traffic by Source
           </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Grouped by category. AI crawlers (GPTBot, ClaudeBot, Perplexity, Gemini) drive AI citations; search engines drive organic. Ranked by hits.
+          </p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-            {botTrafficDetails?.map((item, idx) => (
-              <div key={idx} className="flex items-center justify-between p-2 border rounded-lg text-sm">
-                <span>{item.name}</span>
-                <Badge variant="outline">{item.count}</Badge>
+          {(!botTrafficDetails || botTrafficDetails.length === 0) ? (
+            <p className="text-sm text-muted-foreground text-center py-4">No bot traffic detected in this period</p>
+          ) : (
+            <>
+              {/* Category totals */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+                {(() => {
+                  const totals: Record<string, number> = {};
+                  botTrafficDetails.forEach((b) => {
+                    totals[b.category] = (totals[b.category] || 0) + Number(b.hits);
+                  });
+                  const order = ['Search engine', 'AI crawler', 'SEO tool', 'Social / Messaging', 'Other'];
+                  return order
+                    .filter((c) => totals[c])
+                    .map((c) => (
+                      <div key={c} className="p-3 border rounded-lg">
+                        <div className="text-xs text-muted-foreground">{c}</div>
+                        <div className="text-lg font-bold">{totals[c].toLocaleString()}</div>
+                      </div>
+                    ));
+                })()}
               </div>
-            ))}
-            {(!botTrafficDetails || botTrafficDetails.length === 0) && (
-              <p className="text-sm text-muted-foreground col-span-full text-center py-4">No bot traffic detected</p>
-            )}
-          </div>
+
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Bot / Crawler</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead className="text-right">Hits</TableHead>
+                    <TableHead className="text-right">Unique IPs</TableHead>
+                    <TableHead className="text-right">Last seen</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {botTrafficDetails.map((b, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell className="font-medium">{b.name}</TableCell>
+                      <TableCell>
+                        <Badge variant={
+                          b.category === 'AI crawler' ? 'default' :
+                          b.category === 'Search engine' ? 'secondary' :
+                          'outline'
+                        }>{b.category}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-mono">{Number(b.hits).toLocaleString()}</TableCell>
+                      <TableCell className="text-right font-mono text-muted-foreground">{Number(b.unique_ips).toLocaleString()}</TableCell>
+                      <TableCell className="text-right text-xs text-muted-foreground">
+                        {b.last_seen ? format(new Date(b.last_seen), 'MMM d, HH:mm') : '—'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </>
+          )}
         </CardContent>
       </Card>
+
 
       {/* Page Performance & Traffic Sources */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

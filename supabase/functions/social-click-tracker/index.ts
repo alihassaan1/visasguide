@@ -107,13 +107,15 @@ serve(async (req) => {
       }
     }
 
-    // If destination URL provided, redirect to it
+    // If destination URL provided, redirect to it (allowlist-checked)
     if (destination) {
+      const safe = isAllowedRedirect(destination) ? destination : SAFE_FALLBACK;
+      if (safe !== destination) console.warn('Blocked open-redirect attempt:', destination);
       return new Response(null, {
         status: 302,
         headers: {
           ...corsHeaders,
-          'Location': destination,
+          'Location': safe,
         },
       });
     }

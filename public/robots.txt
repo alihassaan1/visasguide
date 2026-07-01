@@ -124,8 +124,29 @@ User-agent: Perplexity-User
 Allow: /
 Disallow: /admin/
 
-# Google Gemini / Vertex AI training signals
+# Google Gemini / Vertex AI (Gemini uses Google-Extended for training
+# and grounding signals; GoogleOther covers research/product fetches)
 User-agent: Google-Extended
+Allow: /
+Disallow: /admin/
+
+User-agent: GoogleOther
+Allow: /
+Disallow: /admin/
+
+User-agent: GoogleOther-Image
+Allow: /
+Disallow: /admin/
+
+User-agent: GoogleOther-Video
+Allow: /
+Disallow: /admin/
+
+User-agent: Gemini
+Allow: /
+Disallow: /admin/
+
+User-agent: Google-CloudVertexBot
 Allow: /
 Disallow: /admin/
 

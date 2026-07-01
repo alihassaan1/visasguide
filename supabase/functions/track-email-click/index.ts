@@ -114,12 +114,9 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("Error tracking email click:", error);
-    // Try to redirect anyway
-    const url = new URL(req.url);
-    const targetUrl = url.searchParams.get('url') || 'https://visas.guide';
     return new Response(null, {
       status: 302,
-      headers: { 'Location': targetUrl },
+      headers: { 'Location': SAFE_FALLBACK },
     });
   }
 });

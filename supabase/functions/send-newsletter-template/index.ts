@@ -4,6 +4,7 @@ import { Resend } from "npm:resend@4.0.0";
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { NewsletterEmail } from './_templates/newsletter.tsx'
+import { requireAdmin } from "../_shared/adminAuth.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -45,6 +46,13 @@ const getSubjectLine = (name: string, blogPosts: any[]): string => {
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  const providedSecret = req.headers.get("x-cron-secret");
+  if (!cronSecret || providedSecret !== cronSecret) {
+    const unauth = await requireAdmin(req, corsHeaders);
+    if (unauth) return unauth;
   }
 
   try {

@@ -39,7 +39,7 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.content-agent]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-contact-form]
 verify_jwt = false
@@ -51,7 +51,7 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.send-campaign-email]
-verify_jwt = false
+verify_jwt = true
 
 [functions.social-content-publisher]
 verify_jwt = false
@@ -72,13 +72,16 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.send-newsletter-template]
-verify_jwt = false
+verify_jwt = true
 
 [functions.track-email-click]
 verify_jwt = false
 
 [functions.send-weekly-newsletter]
-verify_jwt = false
+verify_jwt = true
+
+[functions.ai-generate-content]
+verify_jwt = true
 
 [functions.passport-index-enricher]
 verify_jwt = false

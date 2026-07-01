@@ -48,6 +48,13 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  const providedSecret = req.headers.get("x-cron-secret");
+  if (!cronSecret || providedSecret !== cronSecret) {
+    const unauth = await requireAdmin(req, corsHeaders);
+    if (unauth) return unauth;
+  }
+
   try {
     const { email, name = "Traveler", isTest = false, campaignId }: SendNewsletterRequest = await req.json();
 

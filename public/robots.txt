@@ -216,5 +216,52 @@ User-agent: Timpibot
 Allow: /
 Disallow: /admin/
 
+# ---------------------------------------------------------------
+# Regional search engines — explicitly welcomed for global reach
+# ---------------------------------------------------------------
+
+# Sogou (China)
+User-agent: Sogou web spider
+Allow: /
+Disallow: /admin/
+
+User-agent: Sogou inst spider
+Allow: /
+Disallow: /admin/
+
+# Shenma / YisouSpider (China, UC/Alibaba)
+User-agent: YisouSpider
+Allow: /
+Disallow: /admin/
+
+# Naver (South Korea)
+User-agent: Yeti
+Allow: /
+Disallow: /admin/
+
+User-agent: NaverBot
+Allow: /
+Disallow: /admin/
+
+# Seznam (Czech Republic)
+User-agent: SeznamBot
+Allow: /
+Disallow: /admin/
+
+# Qwant (France / EU)
+User-agent: Qwantify
+Allow: /
+Disallow: /admin/
+
+# Huawei Petal Search
+User-agent: PetalBot
+Allow: /
+Disallow: /admin/
+
+# Kagi
+User-agent: Kagibot
+Allow: /
+Disallow: /admin/
+
 Sitemap: https://visas.guide/sitemap.xml
 

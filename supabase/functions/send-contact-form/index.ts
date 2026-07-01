@@ -36,21 +36,40 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    if (!EMAIL_RE.test(email) || email.length > 255) {
+      return new Response(
+        JSON.stringify({ error: "Invalid email address" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    if (name.length > 100 || subject.length > 200 || message.length > 5000) {
+      return new Response(
+        JSON.stringify({ error: "Input too long" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     console.log(`Processing contact form from: ${email}, subject: ${subject}`);
+
+    const safeName = escapeHtml(name);
+    const safeEmail = escapeHtml(email);
+    const safeSubject = escapeHtml(subject);
+    const safeMessage = escapeHtml(message).replace(/\n/g, "<br>");
 
     // Send notification email to visas.guide team
     const notificationEmail = await resend.emails.send({
       from: "Visas Guide <info@visas.guide>",
       to: ["info@visas.guide"],
       reply_to: email,
-      subject: `New Contact Form: ${subject}`,
+      subject: `New Contact Form: ${subject.slice(0, 150)}`,
       html: `
         <h2>New Contact Form Submission</h2>
-        <p><strong>From:</strong> ${name} (${email})</p>
-        <p><strong>Subject:</strong> ${subject}</p>
+        <p><strong>From:</strong> ${safeName} (${safeEmail})</p>
+        <p><strong>Subject:</strong> ${safeSubject}</p>
         <hr />
         <h3>Message:</h3>
-        <p>${message.replace(/\n/g, '<br>')}</p>
+        <p>${safeMessage}</p>
         <hr />
         <p style="color: #666; font-size: 12px;">
           This message was sent from the Visas.Guide contact form.
@@ -66,12 +85,12 @@ const handler = async (req: Request): Promise<Response> => {
       to: [email],
       subject: "We received your message - Visas.Guide",
       html: `
-        <h1>Thank you for contacting us, ${name}!</h1>
+        <h1>Thank you for contacting us, ${safeName}!</h1>
         <p>We have received your message and will get back to you as soon as possible, typically within 24-48 hours.</p>
         <hr />
         <h3>Your Message:</h3>
-        <p><strong>Subject:</strong> ${subject}</p>
-        <p>${message.replace(/\n/g, '<br>')}</p>
+        <p><strong>Subject:</strong> ${safeSubject}</p>
+        <p>${safeMessage}</p>
         <hr />
         <p>Best regards,<br>The Visas.Guide Team</p>
         <p style="color: #666; font-size: 12px;">

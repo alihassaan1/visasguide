@@ -30,6 +30,14 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Allow admin JWT OR a cron-shared secret header
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  const providedSecret = req.headers.get("x-cron-secret");
+  if (!cronSecret || providedSecret !== cronSecret) {
+    const unauth = await requireAdmin(req, corsHeaders);
+    if (unauth) return unauth;
+  }
+
   try {
     console.log("Starting weekly newsletter send...");
 

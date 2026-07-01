@@ -14,6 +14,7 @@ import AuthorBio from '@/components/AuthorBio';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import RelatedContent from '@/components/RelatedContent';
+import VisaRoutesInline from '@/components/VisaRoutesInline';
 import { AffiliateBannerContainer } from '@/components/AffiliateBannerContainer';
 import { stripEmbeddedSchemas } from '@/lib/contentFormatter';
 import PassportVisaFree from './PassportVisaFree';
@@ -250,6 +251,10 @@ export default function ContentPage() {
                 prose-hr:my-10 prose-hr:border-border/50"
               dangerouslySetInnerHTML={{ __html: stripEmbeddedSchemas(page.content) }}
             />
+
+
+            {/* Related visa routes (only renders for X-to-Y-visa-requirements slugs) */}
+            <VisaRoutesInline slug={page.slug} />
 
             {/* Social Share Buttons */}
             <div className="mt-10 pt-6 border-t">

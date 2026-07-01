@@ -2074,6 +2074,10 @@ export type Database = {
         Args: { p_end: string; p_start: string }
         Returns: Json
       }
+      get_bot_traffic_breakdown: {
+        Args: { p_end: string; p_start: string }
+        Returns: Json
+      }
       get_traffic_trend: {
         Args: { p_end: string; p_granularity?: string; p_start: string }
         Returns: Json

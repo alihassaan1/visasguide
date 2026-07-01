@@ -14,6 +14,7 @@ import AuthorBio from '@/components/AuthorBio';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import RelatedContent from '@/components/RelatedContent';
+import VisaRoutesInline from '@/components/VisaRoutesInline';
 import { AffiliateBannerContainer } from '@/components/AffiliateBannerContainer';
 import { stripEmbeddedSchemas } from '@/lib/contentFormatter';
 import PassportVisaFree from './PassportVisaFree';

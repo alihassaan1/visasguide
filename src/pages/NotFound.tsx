@@ -1,4 +1,4 @@
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import { Search, Home, MapPin, FileText, Globe } from "lucide-react";
 import Header from "@/components/Header";
@@ -10,17 +10,22 @@ import { supabase } from "@/integrations/supabase/client";
 
 const NotFound = () => {
   const location = useLocation();
+  const path = location.pathname;
+
+  // Client-side redirects for known legacy / broken URL patterns.
+  // These do NOT get logged as 404s (return happens before the effect).
+  const dateArchive = /^\/\d{4}\/\d{1,2}(\/\d{1,2})?\/?$/.test(path);
+  const embeddedExternal = /\/(www\.|https?:)/i.test(path); // e.g. /visa-requirements/www.linkedin.com/...
+  const redirectTo = dateArchive ? "/blog" : embeddedExternal ? "/" : null;
 
   useEffect(() => {
-    // Log 404 error for analytics
-    console.error("404 Error: User attempted to access non-existent route:", location.pathname);
-    
-    // Track 404 in analytics_events for content gap analysis
+    if (redirectTo) return; // don't log tracked redirects
+    console.error("404 Error: User attempted to access non-existent route:", path);
     const track404 = async () => {
       try {
         await supabase.from("analytics_events").insert({
           event_type: "404_error",
-          page_slug: location.pathname,
+          page_slug: path,
           referrer_source: document.referrer || null,
         });
       } catch (e) {
@@ -28,7 +33,11 @@ const NotFound = () => {
       }
     };
     track404();
-  }, [location.pathname]);
+  }, [path, redirectTo]);
+
+  if (redirectTo) return <Navigate to={redirectTo} replace />;
+
+
 
   const popularDestinations = [
     { name: "United States", slug: "united-states", flag: "🇺🇸" },

@@ -106,7 +106,13 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/countries" element={<Countries />} />
           <Route path="/countries/:countrySlug" element={<CountryGuide />} />
+          {/* Legacy redirects — must come before the generic /:country/:city catch-all */}
+          <Route path="/countries/:countrySlug/visa-free" element={<RedirectVisaFree />} />
+          <Route path="/countries/:countrySlug/:citySlug" element={<RedirectCity />} />
+          <Route path="/:year(\\d{4})/:month/:day/*" element={<RedirectDateArchive />} />
           <Route path="/:countrySlug/:citySlug" element={<CityPage />} />
+
+
           
           <Route path="/visa-search" element={<VisaSearch />} />
           <Route path="/visa-requirements/:slug" element={<VisaRequirements />} />

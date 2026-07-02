@@ -964,54 +964,7 @@ const AnalyticsDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Top 404 / Not Found URLs */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Bot className="h-5 w-5" />
-            Top 404 / Not Found URLs
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Broken URLs hit in the selected period. Fix or redirect the highest-hit rows first — they leak SEO equity and lose real visitors.
-          </p>
-        </CardHeader>
-        <CardContent>
-          {(!notFoundUrls || notFoundUrls.length === 0) ? (
-            <p className="text-sm text-muted-foreground text-center py-4">No 404 errors in this period 🎉</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>URL</TableHead>
-                  <TableHead>Top referrers</TableHead>
-                  <TableHead className="text-right">Hits</TableHead>
-                  <TableHead className="text-right">Last seen</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {notFoundUrls.map((r, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell className="font-mono text-xs max-w-[360px] truncate" title={r.url}>{r.url}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {r.topReferrers.map((ref, i) => (
-                          <Badge key={i} variant="outline" className="text-[10px] font-normal">
-                            {ref.name === 'direct' ? 'direct' : (() => { try { return new URL(ref.name).hostname; } catch { return ref.name; } })()} · {ref.count}
-                          </Badge>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right font-mono">{r.hits.toLocaleString()}</TableCell>
-                    <TableCell className="text-right text-xs text-muted-foreground">
-                      {r.last ? format(new Date(r.last), 'MMM d, HH:mm') : '—'}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+
 
 
 

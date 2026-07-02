@@ -8,6 +8,8 @@ import ScrollToTop from "@/components/ScrollToTop";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import CookieConsentBanner from "@/components/CookieConsentBanner";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { RedirectVisaFree, RedirectCity } from "@/components/LegacyRedirects";
+
 import Index from "./pages/Index";
 import Countries from "./pages/Countries";
 import VisaSearch from "./pages/VisaSearch";
@@ -109,7 +111,7 @@ const App = () => (
           {/* Legacy redirects — must come before the generic /:country/:city catch-all */}
           <Route path="/countries/:countrySlug/visa-free" element={<RedirectVisaFree />} />
           <Route path="/countries/:countrySlug/:citySlug" element={<RedirectCity />} />
-          <Route path="/:year(\\d{4})/:month/:day/*" element={<RedirectDateArchive />} />
+          
           <Route path="/:countrySlug/:citySlug" element={<CityPage />} />
 
 

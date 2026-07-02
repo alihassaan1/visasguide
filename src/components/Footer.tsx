@@ -68,27 +68,27 @@ const Footer = () => {
               </p>
               <div className="flex space-x-4">
                 {socialLinks?.facebook && (
-                  <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground/80 transition-colors">
+                  <a href={withProtocol(socialLinks.facebook)} target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground/80 transition-colors">
                     <Facebook className="h-5 w-5" />
                   </a>
                 )}
                 {socialLinks?.twitter && (
-                  <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground/80 transition-colors">
+                  <a href={withProtocol(socialLinks.twitter)} target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground/80 transition-colors">
                     <Twitter className="h-5 w-5" />
                   </a>
                 )}
                 {socialLinks?.instagram && (
-                  <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground/80 transition-colors">
+                  <a href={withProtocol(socialLinks.instagram)} target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground/80 transition-colors">
                     <Instagram className="h-5 w-5" />
                   </a>
                 )}
                 {socialLinks?.linkedin && (
-                  <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground/80 transition-colors">
+                  <a href={withProtocol(socialLinks.linkedin)} target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground/80 transition-colors">
                     <Linkedin className="h-5 w-5" />
                   </a>
                 )}
                 {socialLinks?.youtube && (
-                  <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground/80 transition-colors">
+                  <a href={withProtocol(socialLinks.youtube)} target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground/80 transition-colors">
                     <Youtube className="h-5 w-5" />
                   </a>
                 )}
@@ -96,6 +96,7 @@ const Footer = () => {
                   <Mail className="h-5 w-5 text-primary-foreground/60" />
                 )}
               </div>
+
             </div>
 
             {/* Popular Destinations */}

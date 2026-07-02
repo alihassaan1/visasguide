@@ -278,42 +278,8 @@ const AnalyticsDashboard = () => {
     }
   });
 
-  // Top 404 / Not Found URLs for the selected period
-  const { data: notFoundUrls } = useQuery({
-    queryKey: ['not-found-urls', trendPeriod],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('page_slug, referrer_source, created_at')
-        .eq('event_type', '404_error')
-        .gte('created_at', periodStart.toISOString())
-        .lte('created_at', periodEnd.toISOString())
-        .limit(5000);
-      if (error) throw error;
-      const map = new Map<string, { url: string; hits: number; referrers: Map<string, number>; last: string }>();
-      (data || []).forEach((row: any) => {
-        const url = row.page_slug || '(unknown)';
-        const ref = (row.referrer_source && String(row.referrer_source).trim()) || 'direct';
-        const rec = map.get(url) || { url, hits: 0, referrers: new Map(), last: row.created_at };
-        rec.hits += 1;
-        rec.referrers.set(ref, (rec.referrers.get(ref) || 0) + 1);
-        if (row.created_at > rec.last) rec.last = row.created_at;
-        map.set(url, rec);
-      });
-      return Array.from(map.values())
-        .map((r) => ({
-          url: r.url,
-          hits: r.hits,
-          last: r.last,
-          topReferrers: Array.from(r.referrers.entries())
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 3)
-            .map(([name, count]) => ({ name, count })),
-        }))
-        .sort((a, b) => b.hits - a.hits)
-        .slice(0, 25);
-    }
-  });
+
+
 
 
 

@@ -31,6 +31,14 @@ const Footer = () => {
     }
   });
 
+  const withProtocol = (url?: string) => {
+    if (!url) return undefined;
+    const trimmed = url.trim();
+    if (!trimmed) return undefined;
+    return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed.replace(/^\/+/, '')}`;
+  };
+
+
   return (
     <>
       <SeoLinksSection />

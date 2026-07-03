@@ -67,6 +67,7 @@ import BannerSlotDebugger from "./pages/admin/BannerSlotDebugger";
 import ImageGenerator from "./pages/admin/ImageGenerator";
 import QuickWinsDashboard from "./pages/admin/QuickWinsDashboard";
 import AdPerformanceDashboard from "./pages/admin/AdPerformanceDashboard";
+import AuditLog from "./pages/admin/AuditLog";
 
 import ContentPage from "./pages/ContentPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";

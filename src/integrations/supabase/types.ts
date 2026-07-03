@@ -44,6 +44,63 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_audit_log: {
+        Row: {
+          action: string
+          actor_role: string | null
+          changed_by: string | null
+          changed_by_email: string | null
+          changed_fields: string[] | null
+          created_at: string
+          ddl_command: string | null
+          ddl_object: string | null
+          id: string
+          ip_address: string | null
+          new_values: Json | null
+          notes: string | null
+          old_values: Json | null
+          record_id: string | null
+          table_name: string
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_role?: string | null
+          changed_by?: string | null
+          changed_by_email?: string | null
+          changed_fields?: string[] | null
+          created_at?: string
+          ddl_command?: string | null
+          ddl_object?: string | null
+          id?: string
+          ip_address?: string | null
+          new_values?: Json | null
+          notes?: string | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name: string
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_role?: string | null
+          changed_by?: string | null
+          changed_by_email?: string | null
+          changed_fields?: string[] | null
+          created_at?: string
+          ddl_command?: string | null
+          ddl_object?: string | null
+          id?: string
+          ip_address?: string | null
+          new_values?: Json | null
+          notes?: string | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       admin_users: {
         Row: {
           created_at: string

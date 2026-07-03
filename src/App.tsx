@@ -67,6 +67,7 @@ import BannerSlotDebugger from "./pages/admin/BannerSlotDebugger";
 import ImageGenerator from "./pages/admin/ImageGenerator";
 import QuickWinsDashboard from "./pages/admin/QuickWinsDashboard";
 import AdPerformanceDashboard from "./pages/admin/AdPerformanceDashboard";
+import AuditLog from "./pages/admin/AuditLog";
 
 import ContentPage from "./pages/ContentPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -194,6 +195,7 @@ const App = () => (
             <Route path="image-generator" element={<ImageGenerator />} />
             <Route path="quick-wins" element={<QuickWinsDashboard />} />
             <Route path="ad-performance" element={<AdPerformanceDashboard />} />
+            <Route path="audit-log" element={<AuditLog />} />
             <Route path="policy-tracker" element={<PolicyTracker />} />
             <Route path="etias-generator" element={<EtiasGenerator />} />
             <Route path="content-validator" element={<ContentValidator />} />

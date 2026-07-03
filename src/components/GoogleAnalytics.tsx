@@ -106,6 +106,25 @@ const GoogleAnalytics = () => {
     console.log('Google GDPR Consent Banner initialized');
   }, [gdprConsentCode]);
 
+  // GA4 MUST always fire, regardless of DB/RLS state. Inject with hardcoded ID immediately.
+  useEffect(() => {
+    const gaId = 'G-8HE3239E51';
+    if (document.querySelector(`script[src*="googletagmanager.com/gtag/js?id=${gaId}"]`)) return;
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+    document.head.appendChild(script);
+    const initScript = document.createElement('script');
+    initScript.innerHTML = `
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '${gaId}');
+    `;
+    document.head.appendChild(initScript);
+    console.log('Google Analytics initialized (guaranteed):', gaId);
+  }, []);
+
   useEffect(() => {
     if (!settings) return;
 

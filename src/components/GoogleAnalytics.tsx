@@ -106,28 +106,31 @@ const GoogleAnalytics = () => {
     console.log('Google GDPR Consent Banner initialized');
   }, [gdprConsentCode]);
 
+  // GA4 MUST always fire, regardless of DB/RLS state. Inject with hardcoded ID immediately.
+  useEffect(() => {
+    const gaId = 'G-8HE3239E51';
+    if (document.querySelector(`script[src*="googletagmanager.com/gtag/js?id=${gaId}"]`)) return;
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+    document.head.appendChild(script);
+    const initScript = document.createElement('script');
+    initScript.innerHTML = `
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '${gaId}');
+    `;
+    document.head.appendChild(initScript);
+    console.log('Google Analytics initialized (guaranteed):', gaId);
+  }, []);
+
   useEffect(() => {
     if (!settings) return;
 
-    // Inject Google Analytics (GA4) - always use hardcoded ID as primary, fallback to settings
-    const gaId = settings.google_analytics_id?.trim() || 'G-8HE3239E51';
-    
-    if (!document.querySelector(`script[src*="googletagmanager.com/gtag/js?id=${gaId}"]`)) {
-      const script = document.createElement('script');
-      script.async = true;
-      script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
-      document.head.appendChild(script);
+    // GA4 is injected unconditionally above — do not re-inject here.
 
-      const initScript = document.createElement('script');
-      initScript.innerHTML = `
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', '${gaId}');
-      `;
-      document.head.appendChild(initScript);
-      console.log('Google Analytics initialized:', gaId);
-    }
+
 
     // Inject Google Tag Manager
     if (settings.google_tag_manager_id && settings.google_tag_manager_id.startsWith('GTM-')) {

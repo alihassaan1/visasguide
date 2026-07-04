@@ -125,6 +125,17 @@ const UNSPLASH_COUNTRY_IMAGES: Record<string, string> = {
   'georgia': 'https://images.unsplash.com/photo-1565008576549-57569a49371d?w=1200&q=80',
   'armenia': 'https://images.unsplash.com/photo-1600421588498-5c6e8d43c4a7?w=1200&q=80',
   'azerbaijan': 'https://images.unsplash.com/photo-1603262110263-fb0112e7cc33?w=1200&q=80',
+  // Regional fallbacks for smaller destinations — reuse proven-working IDs from thematically similar countries
+  'angola': 'https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=1200&q=80', // Africa (kenya)
+  'paraguay': 'https://images.unsplash.com/photo-1589909202802-8f4aadce1849?w=1200&q=80', // South America (argentina)
+  'saint-vincent-and-the-grenadines': 'https://images.unsplash.com/photo-1548574505-5e239809ee19?w=1200&q=80', // Caribbean (bahamas)
+  'burkina-faso': 'https://images.unsplash.com/photo-1595832091684-2b0d5e7a9eab?w=1200&q=80', // West Africa (ghana)
+  'botswana': 'https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=1200&q=80', // Southern Africa (south-africa)
+  'brunei': 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=1200&q=80', // SE Asia (malaysia)
+  'djibouti': 'https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=1200&q=80', // Horn of Africa (ethiopia)
+  'dominica': 'https://images.unsplash.com/photo-1548574505-5e239809ee19?w=1200&q=80', // Caribbean
+  'equatorial-guinea': 'https://images.unsplash.com/photo-1572803507933-8b587c809c3c?w=1200&q=80', // Central Africa (nigeria)
+  'el-salvador': 'https://images.unsplash.com/photo-1519677100203-a0e668c92439?w=1200&q=80', // Central America (costa-rica)
 };
 
 // Default travel-themed image if no country match and no AI generation

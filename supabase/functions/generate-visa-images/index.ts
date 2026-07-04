@@ -138,8 +138,23 @@ const UNSPLASH_COUNTRY_IMAGES: Record<string, string> = {
   'el-salvador': 'https://images.unsplash.com/photo-1519677100203-a0e668c92439?w=1200&q=80', // Central America (costa-rica)
 };
 
-// Default travel-themed image if no country match and no AI generation
-const DEFAULT_TRAVEL_IMAGE = 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&q=80';
+// Rotating pool of varied travel-themed images to avoid duplicate defaults on the homepage
+const DEFAULT_TRAVEL_IMAGES = [
+  'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&q=80', // map + camera
+  'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&q=80', // airplane wing
+  'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1200&q=80', // mountains
+  'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=80', // beach
+  'https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=1200&q=80', // passport
+  'https://images.unsplash.com/photo-1523592121529-f6dde35f079e?w=1200&q=80', // sunrise travel
+  'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=1200&q=80', // hot air balloon
+  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=80', // road trip mountains
+];
+function pickDefaultTravelImage(seed: string): string {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+  return DEFAULT_TRAVEL_IMAGES[Math.abs(hash) % DEFAULT_TRAVEL_IMAGES.length];
+}
+const DEFAULT_TRAVEL_IMAGE = DEFAULT_TRAVEL_IMAGES[0]; // legacy alias
 
 // Extract destination country from content page slug
 function extractDestinationCountry(slug: string): string | null {

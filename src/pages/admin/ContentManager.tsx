@@ -297,6 +297,15 @@ export default function ContentManager() {
                         <Button
                           size="sm"
                           variant="ghost"
+                          title={(page as any).is_featured ? "Unpin from homepage" : "Pin to homepage"}
+                          onClick={() => toggleFeatured(page.id, Boolean((page as any).is_featured))}
+                          className={(page as any).is_featured ? "text-primary" : ""}
+                        >
+                          {(page as any).is_featured ? <PinOff className="h-3 w-3 sm:h-4 sm:w-4" /> : <Pin className="h-3 w-3 sm:h-4 sm:w-4" />}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
                           onClick={() => togglePublish(page.id, page.is_published)}
                           className="text-xs hidden sm:inline-flex"
                         >

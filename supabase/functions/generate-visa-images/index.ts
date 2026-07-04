@@ -138,6 +138,244 @@ const UNSPLASH_COUNTRY_IMAGES: Record<string, string> = {
   'el-salvador': 'https://images.unsplash.com/photo-1519677100203-a0e668c92439?w=1200&q=80', // Central America (costa-rica)
 };
 
+// ─── Region-based fallback pool ─────────────────────────────────────────────
+// Every country in our DB maps to a region. Each region has a pool of proven-working
+// Unsplash IDs. A hash of the country slug picks one deterministically, so different
+// countries in the same region get different images (no duplicates on listings).
+const REGION_IMAGES: Record<string, string[]> = {
+  'western-europe': [
+    'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&q=80', // Paris
+    'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=1200&q=80', // Venice
+    'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=1200&q=80', // Berlin
+    'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=1200&q=80', // Amsterdam
+    'https://images.unsplash.com/photo-1516550893923-42d28e5677af?w=1200&q=80', // Vienna
+    'https://images.unsplash.com/photo-1491557345352-5929e343eb89?w=1200&q=80', // Brussels
+    'https://images.unsplash.com/photo-1527668752968-14dc70a27c95?w=1200&q=80', // Swiss Alps
+    'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=1200&q=80', // Lisbon
+    'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=1200&q=80', // Spain
+    'https://images.unsplash.com/photo-1533105079780-92b9be482077?w=1200&q=80', // Greece
+    'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&q=80', // London
+    'https://images.unsplash.com/photo-1564959130747-897a8328da60?w=1200&q=80', // Ireland
+  ],
+  'nordic': [
+    'https://images.unsplash.com/photo-1509356843151-3e7d96241e11?w=1200&q=80', // Sweden
+    'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=1200&q=80', // Norway
+    'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=1200&q=80', // Denmark
+    'https://images.unsplash.com/photo-1538332576228-eb5b4c4de6f5?w=1200&q=80', // Finland
+    'https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=1200&q=80', // Iceland
+  ],
+  'eastern-europe': [
+    'https://images.unsplash.com/photo-1519197924294-4ba991a11128?w=1200&q=80', // Poland
+    'https://images.unsplash.com/photo-1541849546-216549ae216d?w=1200&q=80', // Prague
+    'https://images.unsplash.com/photo-1551867633-194f125bddfa?w=1200&q=80', // Budapest
+    'https://images.unsplash.com/photo-1555990538-1e74b3dd8c53?w=1200&q=80', // Croatia
+    'https://images.unsplash.com/photo-1585409677983-0f6c41ca9c3b?w=1200&q=80', // Romania
+    'https://images.unsplash.com/photo-1601284619879-73ecf9f09b53?w=1200&q=80', // Bulgaria
+    'https://images.unsplash.com/photo-1569347946914-dae14c6cce27?w=1200&q=80', // Slovenia
+    'https://images.unsplash.com/photo-1569349412658-31b3b02a9b89?w=1200&q=80', // Slovakia
+    'https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=1200&q=80', // Latvia
+    'https://images.unsplash.com/photo-1574692607019-8f3f8b3e3f1b?w=1200&q=80', // Lithuania
+    'https://images.unsplash.com/photo-1558006624-e33e37bc22cd?w=1200&q=80', // Estonia
+    'https://images.unsplash.com/photo-1561542320-9a18cd340469?w=1200&q=80', // Ukraine
+    'https://images.unsplash.com/photo-1513326738677-b964603b136d?w=1200&q=80', // Russia
+    'https://images.unsplash.com/photo-1586609485587-c29bffabfb26?w=1200&q=80', // Serbia
+    'https://images.unsplash.com/photo-1584456930969-1ae2d2d9dfc8?w=1200&q=80', // N. Macedonia
+    'https://images.unsplash.com/photo-1586991359975-54500b7d8357?w=1200&q=80', // Bosnia
+  ],
+  'mediterranean': [
+    'https://images.unsplash.com/photo-1603565816030-6b389eeb23cb?w=1200&q=80', // Malta
+    'https://images.unsplash.com/photo-1530538095376-a4936b35b5f0?w=1200&q=80', // Cyprus
+    'https://images.unsplash.com/photo-1587974928442-77dc3e0dba72?w=1200&q=80', // Luxembourg
+    'https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?w=1200&q=80', // Monaco
+    'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=1200&q=80', // Turkey
+  ],
+  'middle-east': [
+    'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80', // Dubai
+    'https://images.unsplash.com/photo-1559564484-e48b3e040ff4?w=1200&q=80', // Qatar
+    'https://images.unsplash.com/photo-1586724237569-f3d0c1dee8c6?w=1200&q=80', // Saudi
+    'https://images.unsplash.com/photo-1544967082-d9d25d867d66?w=1200&q=80', // Israel
+    'https://images.unsplash.com/photo-1548786811-dd6e453ccca7?w=1200&q=80', // Jordan
+    'https://images.unsplash.com/photo-1570108899519-37149fbc72a8?w=1200&q=80', // Kuwait
+    'https://images.unsplash.com/photo-1565108829803-b51a8e2c6b99?w=1200&q=80', // Bahrain
+    'https://images.unsplash.com/photo-1579606032821-4e6161c81571?w=1200&q=80', // Lebanon
+  ],
+  'north-africa': [
+    'https://images.unsplash.com/photo-1539768942893-daf53e448371?w=1200&q=80', // Egypt
+    'https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?w=1200&q=80', // Morocco
+    'https://images.unsplash.com/photo-1559419189-4e97a43eb2ff?w=1200&q=80', // Tunisia
+  ],
+  'west-africa': [
+    'https://images.unsplash.com/photo-1595832091684-2b0d5e7a9eab?w=1200&q=80', // Ghana
+    'https://images.unsplash.com/photo-1572803507933-8b587c809c3c?w=1200&q=80', // Nigeria
+    'https://images.unsplash.com/photo-1628348068343-c6a848d2b6dd?w=1200&q=80', // Senegal
+  ],
+  'east-africa': [
+    'https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=1200&q=80', // Kenya
+    'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=1200&q=80', // Tanzania
+    'https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=1200&q=80', // Ethiopia
+    'https://images.unsplash.com/photo-1580089595767-98745d7025c5?w=1200&q=80', // Rwanda
+  ],
+  'southern-africa': [
+    'https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=1200&q=80', // South Africa
+    'https://images.unsplash.com/photo-1585464231875-d9ef1f5ad396?w=1200&q=80', // Mauritius
+    'https://images.unsplash.com/photo-1589979481223-deb893043163?w=1200&q=80', // Seychelles
+  ],
+  'central-asia': [
+    'https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?w=1200&q=80', // Uzbekistan
+    'https://images.unsplash.com/photo-1561494270-d1e5b8b6ca28?w=1200&q=80', // Kazakhstan
+    'https://images.unsplash.com/photo-1551037543-1e0e9d1e929f?w=1200&q=80', // Mongolia
+  ],
+  'caucasus': [
+    'https://images.unsplash.com/photo-1565008576549-57569a49371d?w=1200&q=80', // Georgia
+    'https://images.unsplash.com/photo-1600421588498-5c6e8d43c4a7?w=1200&q=80', // Armenia
+    'https://images.unsplash.com/photo-1603262110263-fb0112e7cc33?w=1200&q=80', // Azerbaijan
+  ],
+  'south-asia': [
+    'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=1200&q=80', // India
+    'https://images.unsplash.com/photo-1567157577867-05ccb1388e66?w=1200&q=80', // Pakistan
+    'https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5?w=1200&q=80', // Bangladesh
+    'https://images.unsplash.com/photo-1580910768875-6a5bfbf6b5fb?w=1200&q=80', // Sri Lanka
+    'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=1200&q=80', // Nepal
+    'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=1200&q=80', // Maldives
+  ],
+  'southeast-asia': [
+    'https://images.unsplash.com/photo-1528181304800-259b08848526?w=1200&q=80', // Thailand
+    'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1200&q=80', // Singapore
+    'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=1200&q=80', // Malaysia
+    'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1200&q=80', // Indonesia
+    'https://images.unsplash.com/photo-1557750255-c76072a7aad1?w=1200&q=80', // Vietnam
+    'https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=1200&q=80', // Philippines
+    'https://images.unsplash.com/photo-1569166019315-a59097df65f0?w=1200&q=80', // Cambodia
+    'https://images.unsplash.com/photo-1539367628448-4bc5c9d171c8?w=1200&q=80', // Laos
+    'https://images.unsplash.com/photo-1558019699-0a4e3dc0e8c8?w=1200&q=80', // Myanmar
+  ],
+  'east-asia': [
+    'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200&q=80', // Japan
+    'https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=1200&q=80', // Korea
+    'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=1200&q=80', // China
+    'https://images.unsplash.com/photo-1498011109411-81e0c17c06f4?w=1200&q=80', // Taiwan
+    'https://images.unsplash.com/photo-1536599018102-9f803c979dbc?w=1200&q=80', // Hong Kong
+  ],
+  'oceania': [
+    'https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?w=1200&q=80', // Australia
+    'https://images.unsplash.com/photo-1469521669194-babb45599def?w=1200&q=80', // NZ
+    'https://images.unsplash.com/photo-1522153376416-b08b9bfa9e85?w=1200&q=80', // Fiji
+  ],
+  'north-america': [
+    'https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=1200&q=80', // USA
+    'https://images.unsplash.com/photo-1503614472-8c93d56e92ce?w=1200&q=80', // Canada
+    'https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?w=1200&q=80', // Mexico
+  ],
+  'central-america': [
+    'https://images.unsplash.com/photo-1519677100203-a0e668c92439?w=1200&q=80', // Costa Rica
+    'https://images.unsplash.com/photo-1555217851-6141535b3d5d?w=1200&q=80', // Panama
+  ],
+  'caribbean': [
+    'https://images.unsplash.com/photo-1548574505-5e239809ee19?w=1200&q=80', // Bahamas
+    'https://images.unsplash.com/photo-1570629392364-db5a8b20c1f5?w=1200&q=80', // Barbados
+    'https://images.unsplash.com/photo-1569817171966-4bca9db8d2d2?w=1200&q=80', // Dom. Rep.
+    'https://images.unsplash.com/photo-1500759285222-a95626b934cb?w=1200&q=80', // Cuba
+    'https://images.unsplash.com/photo-1562975674-87df1d24ee33?w=1200&q=80', // Jamaica
+  ],
+  'south-america': [
+    'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=1200&q=80', // Brazil
+    'https://images.unsplash.com/photo-1589909202802-8f4aadce1849?w=1200&q=80', // Argentina
+    'https://images.unsplash.com/photo-1478827536114-da961b7f86d2?w=1200&q=80', // Chile
+    'https://images.unsplash.com/photo-1526392060635-9d6019884377?w=1200&q=80', // Peru
+    'https://images.unsplash.com/photo-1518638150340-f706e86654de?w=1200&q=80', // Colombia
+  ],
+};
+
+const COUNTRY_TO_REGION: Record<string, string> = {
+  // Western Europe
+  france:'western-europe', germany:'western-europe', italy:'western-europe', spain:'western-europe',
+  portugal:'western-europe', netherlands:'western-europe', belgium:'western-europe', austria:'western-europe',
+  switzerland:'western-europe', 'united-kingdom':'western-europe', ireland:'western-europe', greece:'western-europe',
+  andorra:'western-europe', liechtenstein:'western-europe', 'vatican-city':'western-europe', 'san-marino':'western-europe',
+  // Nordic
+  sweden:'nordic', norway:'nordic', denmark:'nordic', finland:'nordic', iceland:'nordic',
+  // Eastern Europe
+  poland:'eastern-europe', 'czech-republic':'eastern-europe', hungary:'eastern-europe', slovakia:'eastern-europe',
+  slovenia:'eastern-europe', croatia:'eastern-europe', romania:'eastern-europe', bulgaria:'eastern-europe',
+  serbia:'eastern-europe', montenegro:'eastern-europe', 'north-macedonia':'eastern-europe', albania:'eastern-europe',
+  'bosnia-and-herzegovina':'eastern-europe', kosovo:'eastern-europe', ukraine:'eastern-europe', belarus:'eastern-europe',
+  moldova:'eastern-europe', russia:'eastern-europe', latvia:'eastern-europe', lithuania:'eastern-europe',
+  estonia:'eastern-europe',
+  // Mediterranean
+  malta:'mediterranean', cyprus:'mediterranean', luxembourg:'mediterranean', monaco:'mediterranean', turkey:'mediterranean',
+  // Middle East
+  'united-arab-emirates':'middle-east', qatar:'middle-east', 'saudi-arabia':'middle-east', kuwait:'middle-east',
+  bahrain:'middle-east', oman:'middle-east', yemen:'middle-east', israel:'middle-east', palestine:'middle-east',
+  jordan:'middle-east', lebanon:'middle-east', syria:'middle-east', iraq:'middle-east', iran:'middle-east',
+  // North Africa
+  egypt:'north-africa', libya:'north-africa', tunisia:'north-africa', algeria:'north-africa', morocco:'north-africa',
+  sudan:'north-africa', 'south-sudan':'north-africa', mauritania:'north-africa',
+  // West Africa
+  ghana:'west-africa', nigeria:'west-africa', senegal:'west-africa', 'ivory-coast':'west-africa', mali:'west-africa',
+  'burkina-faso':'west-africa', niger:'west-africa', benin:'west-africa', togo:'west-africa', liberia:'west-africa',
+  'sierra-leone':'west-africa', guinea:'west-africa', 'guinea-bissau':'west-africa', gambia:'west-africa',
+  'cape-verde':'west-africa', 's-o-tom-and-pr-ncipe':'west-africa',
+  // East Africa
+  kenya:'east-africa', tanzania:'east-africa', ethiopia:'east-africa', rwanda:'east-africa', burundi:'east-africa',
+  uganda:'east-africa', somalia:'east-africa', eritrea:'east-africa', djibouti:'east-africa', comoros:'east-africa',
+  // Central Africa
+  chad:'east-africa', 'central-african-republic':'east-africa', cameroon:'west-africa', gabon:'west-africa',
+  congo:'east-africa', 'democratic-republic-of-the-congo':'east-africa', 'equatorial-guinea':'west-africa',
+  // Southern Africa
+  'south-africa':'southern-africa', mauritius:'southern-africa', seychelles:'southern-africa',
+  madagascar:'southern-africa', mozambique:'southern-africa', zambia:'southern-africa', zimbabwe:'southern-africa',
+  malawi:'southern-africa', botswana:'southern-africa', namibia:'southern-africa', angola:'southern-africa',
+  lesotho:'southern-africa', eswatini:'southern-africa',
+  // Central Asia & Caucasus
+  kazakhstan:'central-asia', uzbekistan:'central-asia', turkmenistan:'central-asia', kyrgyzstan:'central-asia',
+  tajikistan:'central-asia', mongolia:'central-asia', afghanistan:'central-asia',
+  georgia:'caucasus', armenia:'caucasus', azerbaijan:'caucasus',
+  // South Asia
+  india:'south-asia', pakistan:'south-asia', bangladesh:'south-asia', 'sri-lanka':'south-asia', nepal:'south-asia',
+  bhutan:'south-asia', maldives:'south-asia',
+  // Southeast Asia
+  thailand:'southeast-asia', singapore:'southeast-asia', malaysia:'southeast-asia', indonesia:'southeast-asia',
+  vietnam:'southeast-asia', philippines:'southeast-asia', cambodia:'southeast-asia', laos:'southeast-asia',
+  myanmar:'southeast-asia', brunei:'southeast-asia', 'timor-leste':'southeast-asia',
+  // East Asia
+  japan:'east-asia', 'south-korea':'east-asia', 'north-korea':'east-asia', china:'east-asia', taiwan:'east-asia',
+  // Oceania
+  australia:'oceania', 'new-zealand':'oceania', fiji:'oceania', 'papua-new-guinea':'oceania', samoa:'oceania',
+  tonga:'oceania', vanuatu:'oceania', 'solomon-islands':'oceania', kiribati:'oceania', 'marshall-islands':'oceania',
+  micronesia:'oceania', nauru:'oceania', palau:'oceania', tuvalu:'oceania',
+  // North America
+  'united-states':'north-america', canada:'north-america', mexico:'north-america',
+  // Central America
+  'costa-rica':'central-america', panama:'central-america', nicaragua:'central-america',
+  honduras:'central-america', 'el-salvador':'central-america', guatemala:'central-america', belize:'central-america',
+  // Caribbean
+  bahamas:'caribbean', barbados:'caribbean', cuba:'caribbean', jamaica:'caribbean', haiti:'caribbean',
+  'dominican-republic':'caribbean', dominica:'caribbean', 'saint-lucia':'caribbean',
+  'saint-vincent-and-the-grenadines':'caribbean', 'saint-kitts-and-nevis':'caribbean',
+  'antigua-and-barbuda':'caribbean', grenada:'caribbean', 'trinidad-and-tobago':'caribbean',
+  // South America
+  brazil:'south-america', argentina:'south-america', chile:'south-america', peru:'south-america',
+  colombia:'south-america', venezuela:'south-america', ecuador:'south-america', bolivia:'south-america',
+  paraguay:'south-america', uruguay:'south-america', guyana:'south-america', suriname:'south-america',
+};
+
+function hashSlug(seed: string): number {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+  return Math.abs(hash);
+}
+
+// Pick a regional image for a country. Uses full slug as seed so different pages about
+// the same country still vary; if you want same-country pages to share, pass just the country.
+function getRegionalImage(country: string, seed?: string): string | null {
+  const region = COUNTRY_TO_REGION[country];
+  if (!region) return null;
+  const pool = REGION_IMAGES[region];
+  if (!pool || pool.length === 0) return null;
+  return pool[hashSlug(seed || country) % pool.length];
+}
+
+
 // Rotating pool of varied travel-themed images to avoid duplicate defaults on the homepage
 const DEFAULT_TRAVEL_IMAGES = [
   'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&q=80', // map + camera

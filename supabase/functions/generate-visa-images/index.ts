@@ -132,25 +132,30 @@ const DEFAULT_TRAVEL_IMAGE = 'https://images.unsplash.com/photo-1488646953014-85
 
 // Extract destination country from content page slug
 function extractDestinationCountry(slug: string): string | null {
-  // Pattern: "{from}-to-{to}-visa-requirements" or "{country}-visa-guide" or similar
+  // Normalize: strip any path prefix like "visa-requirements/" and trailing slashes
+  const clean = slug.split('/').pop()?.replace(/\/+$/, '') || slug;
+
   const patterns = [
-    /-to-([a-z-]+)-visa/i,
+    /-to-([a-z-]+)-visa/i,           // {from}-to-{to}-visa-...
+    /-to-([a-z-]+)$/i,               // {from}-to-{to}    (our current format)
     /^([a-z-]+)-visa-guide/i,
     /^([a-z-]+)-visa-requirements/i,
     /^([a-z-]+)-travel-guide/i,
     /^visit-([a-z-]+)/i,
     /^([a-z-]+)-tourism/i,
+    /^([a-z-]+)-passport/i,
   ];
-  
+
   for (const pattern of patterns) {
-    const match = slug.match(pattern);
+    const match = clean.match(pattern);
     if (match) {
       return match[1].toLowerCase();
     }
   }
-  
+
   return null;
 }
+
 
 // Get image URL for a country (Unsplash or AI-generated)
 async function getImageForCountry(

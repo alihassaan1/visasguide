@@ -23,9 +23,10 @@ class TableBlot extends BlockEmbed {
   }
 }
 
-if (!Quill.imports['formats/htmlTable']) {
+if (!(Quill as any).imports['formats/htmlTable']) {
   Quill.register(TableBlot, true);
 }
+
 
 interface RichTextEditorProps {
   value: string;

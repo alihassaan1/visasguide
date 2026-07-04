@@ -614,8 +614,10 @@ export type Database = {
           content: string
           created_at: string
           excerpt: string | null
+          featured_at: string | null
           featured_image_url: string | null
           id: string
+          is_featured: boolean
           is_published: boolean
           keywords: string[] | null
           meta_description: string | null
@@ -634,8 +636,10 @@ export type Database = {
           content: string
           created_at?: string
           excerpt?: string | null
+          featured_at?: string | null
           featured_image_url?: string | null
           id?: string
+          is_featured?: boolean
           is_published?: boolean
           keywords?: string[] | null
           meta_description?: string | null
@@ -654,8 +658,10 @@ export type Database = {
           content?: string
           created_at?: string
           excerpt?: string | null
+          featured_at?: string | null
           featured_image_url?: string | null
           id?: string
+          is_featured?: boolean
           is_published?: boolean
           keywords?: string[] | null
           meta_description?: string | null

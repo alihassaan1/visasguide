@@ -137,6 +137,23 @@ export default function ContentManager() {
     }
   };
 
+  const toggleFeatured = async (id: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("content_pages")
+        .update({
+          is_featured: !currentStatus,
+          featured_at: !currentStatus ? new Date().toISOString() : null,
+        } as any)
+        .eq("id", id);
+      if (error) throw error;
+      toast({ title: currentStatus ? "Unpinned from homepage" : "Pinned to homepage" });
+      loadPages();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
   const filteredPages = pages.filter((page) =>
     page.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     page.slug.toLowerCase().includes(searchQuery.toLowerCase())

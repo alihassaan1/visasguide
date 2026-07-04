@@ -378,8 +378,8 @@ serve(async (req) => {
           let source: string;
           
           if (!country) {
-            // Use default travel image if can't extract country
-            imageUrl = DEFAULT_TRAVEL_IMAGE;
+            // Vary the default across a small pool to avoid duplicate images on lists
+            imageUrl = pickDefaultTravelImage(page.slug);
             source = 'default';
           } else if (countryImageCache[country]) {
             // Reuse cached image for same country
@@ -388,11 +388,15 @@ serve(async (req) => {
           } else {
             // Get or generate image for this country
             const result = await getImageForCountry(country, supabase, LOVABLE_API_KEY);
-            imageUrl = result.url;
+            if (result.source === 'default') {
+              // AI unavailable / no Unsplash entry — vary the default per-slug
+              imageUrl = pickDefaultTravelImage(page.slug);
+            } else {
+              imageUrl = result.url;
+            }
             source = result.source;
-            
-            // Cache the result for reuse
-            countryImageCache[country] = imageUrl;
+            // Only cache real per-country images (not varied defaults)
+            if (result.source !== 'default') countryImageCache[country] = imageUrl;
           }
           
           // Update the content page

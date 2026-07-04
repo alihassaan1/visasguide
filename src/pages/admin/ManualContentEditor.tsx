@@ -279,6 +279,8 @@ export default function ManualContentEditor() {
         
         writer_id: writerId || null,
         scheduled_at: schedule && scheduledAt ? new Date(scheduledAt).toISOString() : null,
+        is_featured: isFeatured,
+        featured_at: isFeatured ? new Date().toISOString() : null,
         updated_at: new Date().toISOString(),
       };
 

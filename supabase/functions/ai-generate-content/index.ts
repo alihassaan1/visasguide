@@ -144,8 +144,47 @@ serve(async (req) => {
       ? 'deepseek-chat'
       : (modelSettings?.setting_value?.model || 'gpt-4o-mini');
 
-    // Handle meta generation actions
+    // Handle meta generation actions - prefer Lovable AI Gateway (free, no billing)
     if (action === 'generate_meta' || action === 'generate_keywords') {
+      const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+
+      // Try Lovable AI Gateway first
+      if (LOVABLE_API_KEY) {
+        const gwResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash',
+            messages: [
+              { role: 'system', content: 'You are an SEO expert. Return only the requested content without any additional text or formatting.' },
+              { role: 'user', content: prompt }
+            ],
+          }),
+        });
+
+        if (gwResp.ok) {
+          const gwData = await gwResp.json();
+          const generatedContent = gwData.choices?.[0]?.message?.content?.trim() ?? '';
+          return new Response(
+            JSON.stringify({ content: generatedContent, tokensUsed: gwData.usage?.total_tokens || 0, model: 'google/gemini-2.5-flash' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        const gwErr = await gwResp.text();
+        console.error('Lovable AI Gateway meta error:', gwResp.status, gwErr);
+        // fall through to OpenAI/DeepSeek if configured
+      }
+
+      if (!API_KEY) {
+        return new Response(
+          JSON.stringify({ error: 'No AI provider configured. Lovable AI Gateway unavailable and no OpenAI/DeepSeek key set.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -166,7 +205,10 @@ serve(async (req) => {
       if (!response.ok) {
         const error = await response.text();
         console.error(`API Error:`, error);
-        throw new Error(`API request failed: ${error}`);
+        return new Response(
+          JSON.stringify({ error: `Meta generation failed: ${error}` }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
       const data = await response.json();
@@ -181,6 +223,7 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
 
     let systemPrompt = `You are an expert travel and visa content writer for Visas.Guide.
     Create SEO-optimized, accurate, and helpful content about visa requirements and travel documentation.

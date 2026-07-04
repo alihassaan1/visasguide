@@ -50,6 +50,7 @@ export default function ManualContentEditor() {
   const [writerId, setWriterId] = useState<string | null>(null);
   const [scheduledAt, setScheduledAt] = useState<string>("");
   const [isScheduling, setIsScheduling] = useState(false);
+  const [isFeatured, setIsFeatured] = useState(false);
 
   // Load authors and existing page if editing
   useEffect(() => {

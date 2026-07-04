@@ -1,9 +1,8 @@
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useMemo, useRef, useEffect, useCallback } from 'react';
 import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
-// Register a custom BlockEmbed that preserves arbitrary <table> HTML.
-// Quill's core has no native table support; without this, pasted tables are stripped.
+// Custom BlockEmbed that stores arbitrary <table> HTML verbatim.
 const BlockEmbed: any = Quill.import('blots/block/embed');
 
 class TableBlot extends BlockEmbed {
@@ -27,7 +26,6 @@ if (!(Quill as any).imports['formats/htmlTable']) {
   Quill.register(TableBlot, true);
 }
 
-
 interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -41,9 +39,17 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 }) => {
   const quillRef = useRef<ReactQuill>(null);
 
-  const insertTable = () => {
+  const insertTableAtCursor = useCallback((html: string) => {
     const editor = quillRef.current?.getEditor();
     if (!editor) return;
+    const range = editor.getSelection(true);
+    const index = range?.index ?? editor.getLength();
+    editor.insertEmbed(index, 'htmlTable', html, 'user');
+    editor.insertText(index + 1, '\n', 'user');
+    editor.setSelection(index + 2, 0, 'user');
+  }, []);
+
+  const insertTablePrompt = () => {
     const rowsStr = window.prompt('Number of rows?', '3');
     const colsStr = window.prompt('Number of columns?', '3');
     const rows = Math.max(1, Math.min(50, parseInt(rowsStr || '3', 10) || 3));
@@ -57,9 +63,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       html += '</tr>';
     }
     html += '</tbody></table>';
-    const range = editor.getSelection(true);
-    editor.insertEmbed(range?.index ?? editor.getLength(), 'htmlTable', html, 'user');
-    editor.insertText((range?.index ?? editor.getLength()) + 1, '\n', 'user');
+    insertTableAtCursor(html);
   };
 
   const modules = useMemo(() => ({
@@ -76,18 +80,11 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         ['clean'],
       ],
       handlers: {
-        insertTable,
+        insertTable: insertTablePrompt,
       },
     },
     clipboard: {
       matchVisual: false,
-      matchers: [
-        // Preserve pasted tables verbatim by wrapping their outerHTML in our custom blot.
-        ['TABLE', (node: HTMLElement, delta: any) => {
-          const Delta = Quill.import('delta');
-          return new Delta().insert({ htmlTable: node.outerHTML });
-        }],
-      ],
     },
   }), []);
 
@@ -99,6 +96,76 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     'align', 'color', 'background',
     'htmlTable',
   ];
+
+  // Intercept paste: if HTML contains <table>, extract tables and insert them as
+  // our htmlTable blot; paste the rest of the HTML with tables removed as normal.
+  useEffect(() => {
+    const editor = quillRef.current?.getEditor();
+    if (!editor) return;
+    const root = editor.root as HTMLElement;
+
+    const handlePaste = (e: ClipboardEvent) => {
+      const html = e.clipboardData?.getData('text/html');
+      if (!html || !/<table[\s>]/i.test(html)) return; // let Quill handle it
+
+      e.preventDefault();
+
+      // Parse the pasted HTML in a detached document.
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+
+      // Strip harmful/unnecessary elements.
+      doc.querySelectorAll('script,style,meta,link').forEach((n) => n.remove());
+
+      // Collect tables in document order, then remove them from the tree so the
+      // remaining HTML pastes cleanly around them.
+      const tables: string[] = [];
+      const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT);
+      const tableNodes: HTMLTableElement[] = [];
+      let current: Node | null = walker.currentNode;
+      while ((current = walker.nextNode())) {
+        if ((current as Element).tagName === 'TABLE') {
+          tableNodes.push(current as HTMLTableElement);
+        }
+      }
+
+      // Split the paste into segments separated by table markers.
+      const marker = '@@__QUILL_TABLE_MARKER__@@';
+      tableNodes.forEach((t) => {
+        tables.push(t.outerHTML);
+        const placeholder = doc.createElement('p');
+        placeholder.textContent = marker;
+        t.parentNode?.replaceChild(placeholder, t);
+      });
+
+      const remainingHtml = doc.body.innerHTML;
+      const parts = remainingHtml.split(marker);
+
+      const range = editor.getSelection(true);
+      let index = range?.index ?? editor.getLength();
+      if (range && range.length) {
+        editor.deleteText(range.index, range.length, 'user');
+      }
+
+      parts.forEach((chunk, i) => {
+        const trimmed = chunk.replace(/<p>\s*<\/p>/gi, '').trim();
+        if (trimmed) {
+          editor.clipboard.dangerouslyPasteHTML(index, trimmed, 'user');
+          index = editor.getLength() - 1; // move to end of freshly-pasted content
+        }
+        if (i < tables.length) {
+          editor.insertEmbed(index, 'htmlTable', tables[i], 'user');
+          index += 1;
+          editor.insertText(index, '\n', 'user');
+          index += 1;
+        }
+      });
+
+      editor.setSelection(index, 0, 'user');
+    };
+
+    root.addEventListener('paste', handlePaste, true);
+    return () => root.removeEventListener('paste', handlePaste, true);
+  }, []);
 
   // Add a table icon to the custom toolbar button once mounted.
   useEffect(() => {

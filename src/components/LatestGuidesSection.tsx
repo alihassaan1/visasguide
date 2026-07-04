@@ -240,11 +240,16 @@ const LatestGuidesSection = () => {
                         />
                         {/* Gradient overlay for text readability */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                        {/* Subtle flag badge only */}
-                        <div className="absolute top-3 left-3">
+                        {/* Subtle flag badge */}
+                        <div className="absolute top-3 left-3 flex items-center gap-2">
                           <span className="bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 text-sm shadow-sm font-emoji">
                             {flag}
                           </span>
+                          {(guide as any).is_featured && (
+                            <span className="bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs shadow-sm flex items-center gap-1">
+                              <Pin className="h-3 w-3" /> Featured
+                            </span>
+                          )}
                         </div>
                       </>
                     ) : (

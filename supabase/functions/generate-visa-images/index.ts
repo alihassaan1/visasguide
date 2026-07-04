@@ -638,17 +638,17 @@ serve(async (req) => {
             imageUrl = countryImageCache[country];
             source = 'cached';
           } else {
-            // Get or generate image for this country
-            const result = await getImageForCountry(country, supabase, LOVABLE_API_KEY);
+            // Get image for this country (curated → regional pool → AI → default)
+            // Seed with page.slug so different pages about the same region get different regional images
+            const result = await getImageForCountry(country, supabase, LOVABLE_API_KEY, page.slug, use_ai);
             if (result.source === 'default') {
-              // AI unavailable / no Unsplash entry — vary the default per-slug
               imageUrl = pickDefaultTravelImage(page.slug);
             } else {
               imageUrl = result.url;
             }
             source = result.source;
-            // Only cache real per-country images (not varied defaults)
-            if (result.source !== 'default') countryImageCache[country] = imageUrl;
+            // Cache only fixed curated images; regional/ai/default get fresh selection per page
+            if (result.source === 'unsplash') countryImageCache[country] = imageUrl;
           }
           
           // Update the content page

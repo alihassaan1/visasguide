@@ -245,11 +245,6 @@ const LatestGuidesSection = () => {
                           <span className="bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 text-sm shadow-sm font-emoji">
                             {flag}
                           </span>
-                          {(guide as any).is_featured && (
-                            <span className="bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs shadow-sm flex items-center gap-1">
-                              <Pin className="h-3 w-3" /> Featured
-                            </span>
-                          )}
                         </div>
                       </>
                     ) : (

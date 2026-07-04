@@ -140,16 +140,38 @@ const LatestGuidesSection = () => {
   const { data: guides, isLoading } = useQuery({
     queryKey: ['latest-guides-home'],
     queryFn: async () => {
-      const { data } = await supabase
+      // Pinned/featured posts first, then most recently updated
+      const { data: featured } = await supabase
         .from('content_pages')
         .select(`
-          id, title, slug, excerpt, featured_image_url, updated_at, view_count,
+          id, title, slug, excerpt, featured_image_url, updated_at, view_count, is_featured,
           writer:authors(name, slug, avatar_url)
         `)
         .eq('is_published', true)
-        .order('updated_at', { ascending: false })
+        .eq('is_featured', true)
+        .order('featured_at', { ascending: false })
         .limit(6);
-      return data || [];
+
+      const featuredIds = (featured || []).map((p: any) => p.id);
+      const remaining = 6 - (featured?.length || 0);
+
+      let latest: any[] = [];
+      if (remaining > 0) {
+        let q = supabase
+          .from('content_pages')
+          .select(`
+            id, title, slug, excerpt, featured_image_url, updated_at, view_count, is_featured,
+            writer:authors(name, slug, avatar_url)
+          `)
+          .eq('is_published', true)
+          .order('updated_at', { ascending: false })
+          .limit(remaining);
+        if (featuredIds.length) q = q.not('id', 'in', `(${featuredIds.join(',')})`);
+        const { data } = await q;
+        latest = data || [];
+      }
+
+      return [...(featured || []), ...latest];
     }
   });
 

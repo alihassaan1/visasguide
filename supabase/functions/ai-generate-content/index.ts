@@ -220,6 +220,16 @@ serve(async (req) => {
       );
     }
 
+    // From here on we require an OpenAI/DeepSeek key
+    if (!API_KEY) {
+      return new Response(
+        JSON.stringify({ error: `${useDeepseek ? 'DeepSeek' : 'OpenAI'} API key not configured` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+
+
 
     let systemPrompt = `You are an expert travel and visa content writer for Visas.Guide.
     Create SEO-optimized, accurate, and helpful content about visa requirements and travel documentation.

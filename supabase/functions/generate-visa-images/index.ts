@@ -425,14 +425,28 @@ function extractDestinationCountry(slug: string): string | null {
 async function getImageForCountry(
   country: string,
   supabase: any,
-  lovableApiKey: string
-): Promise<{ url: string; source: 'unsplash' | 'ai' | 'default' }> {
-  // First check for Unsplash image
+  lovableApiKey: string,
+  seed?: string,
+  useAi = true
+): Promise<{ url: string; source: 'unsplash' | 'ai' | 'default' | 'region' }> {
+  // 1. Curated per-country Unsplash image
   const unsplashUrl = UNSPLASH_COUNTRY_IMAGES[country];
   if (unsplashUrl) {
-    console.log(`Using Unsplash image for ${country}`);
     return { url: unsplashUrl, source: 'unsplash' };
   }
+
+  // 2. Regional fallback pool — guarantees coverage for every country in our DB
+  const regional = getRegionalImage(country, seed);
+  if (regional) {
+    return { url: regional, source: 'region' };
+  }
+
+  // 3. AI generation (only if explicitly enabled and no regional match)
+  if (!useAi) {
+    return { url: pickDefaultTravelImage(seed || country), source: 'default' };
+  }
+
+
   
   // Try to generate with AI
   try {

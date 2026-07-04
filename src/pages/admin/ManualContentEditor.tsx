@@ -96,7 +96,7 @@ export default function ManualContentEditor() {
         setKeywords(data.keywords || []);
         setExcerpt(data.excerpt || "");
         setWriterId(data.writer_id || null);
-        // Handle scheduled_at - convert to local datetime format for input
+        setIsFeatured(Boolean((data as any).is_featured));
         if ((data as any).scheduled_at) {
           const date = new Date((data as any).scheduled_at);
           setScheduledAt(date.toISOString().slice(0, 16));

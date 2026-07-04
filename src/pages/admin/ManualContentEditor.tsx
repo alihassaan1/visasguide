@@ -599,6 +599,31 @@ export default function ManualContentEditor() {
           </CardContent>
         </Card>
 
+        {/* Feature / Pin */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              Pin to Homepage
+            </CardTitle>
+            <CardDescription>
+              Featured posts always appear first in "Latest Visa Guides" on the homepage, regardless of update date.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="isFeatured"
+                checked={isFeatured}
+                onChange={(e) => setIsFeatured(e.target.checked)}
+                className="h-4 w-4 rounded border-input"
+              />
+              <Label htmlFor="isFeatured">Feature this post on the homepage</Label>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Scheduling */}
         <Card>
           <CardHeader>

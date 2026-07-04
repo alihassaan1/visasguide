@@ -126,12 +126,8 @@ serve(async (req) => {
       ? 'https://api.deepseek.com/v1/chat/completions'
       : 'https://api.openai.com/v1/chat/completions';
     
-    if (!API_KEY) {
-      return new Response(
-        JSON.stringify({ error: `${useDeepseek ? 'DeepSeek' : 'OpenAI'} API key not configured` }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    // Note: API_KEY may be missing — meta path below can fall back to Lovable AI Gateway.
+
 
     // Get model settings
     const { data: modelSettings } = await supabaseClient

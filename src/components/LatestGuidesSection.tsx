@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import { ArrowRight, Calendar, MapPin } from "lucide-react";
+import { ArrowRight, Calendar, MapPin, Pin } from "lucide-react";
 
 // Import destination images
 import thailandImg from "@/assets/destinations/thailand.jpg";
@@ -140,16 +140,38 @@ const LatestGuidesSection = () => {
   const { data: guides, isLoading } = useQuery({
     queryKey: ['latest-guides-home'],
     queryFn: async () => {
-      const { data } = await supabase
+      // Pinned/featured posts first, then most recently updated
+      const { data: featured } = await supabase
         .from('content_pages')
         .select(`
-          id, title, slug, excerpt, featured_image_url, updated_at, view_count,
+          id, title, slug, excerpt, featured_image_url, updated_at, view_count, is_featured,
           writer:authors(name, slug, avatar_url)
         `)
         .eq('is_published', true)
-        .order('updated_at', { ascending: false })
+        .eq('is_featured', true)
+        .order('featured_at', { ascending: false })
         .limit(6);
-      return data || [];
+
+      const featuredIds = (featured || []).map((p: any) => p.id);
+      const remaining = 6 - (featured?.length || 0);
+
+      let latest: any[] = [];
+      if (remaining > 0) {
+        let q = supabase
+          .from('content_pages')
+          .select(`
+            id, title, slug, excerpt, featured_image_url, updated_at, view_count, is_featured,
+            writer:authors(name, slug, avatar_url)
+          `)
+          .eq('is_published', true)
+          .order('updated_at', { ascending: false })
+          .limit(remaining);
+        if (featuredIds.length) q = q.not('id', 'in', `(${featuredIds.join(',')})`);
+        const { data } = await q;
+        latest = data || [];
+      }
+
+      return [...(featured || []), ...latest];
     }
   });
 
@@ -218,11 +240,16 @@ const LatestGuidesSection = () => {
                         />
                         {/* Gradient overlay for text readability */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                        {/* Subtle flag badge only */}
-                        <div className="absolute top-3 left-3">
+                        {/* Subtle flag badge */}
+                        <div className="absolute top-3 left-3 flex items-center gap-2">
                           <span className="bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 text-sm shadow-sm font-emoji">
                             {flag}
                           </span>
+                          {(guide as any).is_featured && (
+                            <span className="bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs shadow-sm flex items-center gap-1">
+                              <Pin className="h-3 w-3" /> Featured
+                            </span>
+                          )}
                         </div>
                       </>
                     ) : (

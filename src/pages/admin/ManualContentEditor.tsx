@@ -50,6 +50,7 @@ export default function ManualContentEditor() {
   const [writerId, setWriterId] = useState<string | null>(null);
   const [scheduledAt, setScheduledAt] = useState<string>("");
   const [isScheduling, setIsScheduling] = useState(false);
+  const [isFeatured, setIsFeatured] = useState(false);
 
   // Load authors and existing page if editing
   useEffect(() => {
@@ -95,7 +96,7 @@ export default function ManualContentEditor() {
         setKeywords(data.keywords || []);
         setExcerpt(data.excerpt || "");
         setWriterId(data.writer_id || null);
-        // Handle scheduled_at - convert to local datetime format for input
+        setIsFeatured(Boolean((data as any).is_featured));
         if ((data as any).scheduled_at) {
           const date = new Date((data as any).scheduled_at);
           setScheduledAt(date.toISOString().slice(0, 16));
@@ -278,6 +279,8 @@ export default function ManualContentEditor() {
         
         writer_id: writerId || null,
         scheduled_at: schedule && scheduledAt ? new Date(scheduledAt).toISOString() : null,
+        is_featured: isFeatured,
+        featured_at: isFeatured ? new Date().toISOString() : null,
         updated_at: new Date().toISOString(),
       };
 
@@ -592,6 +595,31 @@ export default function ManualContentEditor() {
                   ))}
                 </div>
               )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Feature / Pin */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              Pin to Homepage
+            </CardTitle>
+            <CardDescription>
+              Featured posts always appear first in "Latest Visa Guides" on the homepage, regardless of update date.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="isFeatured"
+                checked={isFeatured}
+                onChange={(e) => setIsFeatured(e.target.checked)}
+                className="h-4 w-4 rounded border-input"
+              />
+              <Label htmlFor="isFeatured">Feature this post on the homepage</Label>
             </div>
           </CardContent>
         </Card>

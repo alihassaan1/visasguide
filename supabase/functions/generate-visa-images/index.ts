@@ -125,10 +125,36 @@ const UNSPLASH_COUNTRY_IMAGES: Record<string, string> = {
   'georgia': 'https://images.unsplash.com/photo-1565008576549-57569a49371d?w=1200&q=80',
   'armenia': 'https://images.unsplash.com/photo-1600421588498-5c6e8d43c4a7?w=1200&q=80',
   'azerbaijan': 'https://images.unsplash.com/photo-1603262110263-fb0112e7cc33?w=1200&q=80',
+  // Regional fallbacks for smaller destinations — reuse proven-working IDs from thematically similar countries
+  'angola': 'https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=1200&q=80', // Africa (kenya)
+  'paraguay': 'https://images.unsplash.com/photo-1589909202802-8f4aadce1849?w=1200&q=80', // South America (argentina)
+  'saint-vincent-and-the-grenadines': 'https://images.unsplash.com/photo-1548574505-5e239809ee19?w=1200&q=80', // Caribbean (bahamas)
+  'burkina-faso': 'https://images.unsplash.com/photo-1595832091684-2b0d5e7a9eab?w=1200&q=80', // West Africa (ghana)
+  'botswana': 'https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=1200&q=80', // Southern Africa (south-africa)
+  'brunei': 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=1200&q=80', // SE Asia (malaysia)
+  'djibouti': 'https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=1200&q=80', // Horn of Africa (ethiopia)
+  'dominica': 'https://images.unsplash.com/photo-1548574505-5e239809ee19?w=1200&q=80', // Caribbean
+  'equatorial-guinea': 'https://images.unsplash.com/photo-1572803507933-8b587c809c3c?w=1200&q=80', // Central Africa (nigeria)
+  'el-salvador': 'https://images.unsplash.com/photo-1519677100203-a0e668c92439?w=1200&q=80', // Central America (costa-rica)
 };
 
-// Default travel-themed image if no country match and no AI generation
-const DEFAULT_TRAVEL_IMAGE = 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&q=80';
+// Rotating pool of varied travel-themed images to avoid duplicate defaults on the homepage
+const DEFAULT_TRAVEL_IMAGES = [
+  'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&q=80', // map + camera
+  'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&q=80', // airplane wing
+  'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1200&q=80', // mountains
+  'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=80', // beach
+  'https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=1200&q=80', // passport
+  'https://images.unsplash.com/photo-1523592121529-f6dde35f079e?w=1200&q=80', // sunrise travel
+  'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=1200&q=80', // hot air balloon
+  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=80', // road trip mountains
+];
+function pickDefaultTravelImage(seed: string): string {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+  return DEFAULT_TRAVEL_IMAGES[Math.abs(hash) % DEFAULT_TRAVEL_IMAGES.length];
+}
+const DEFAULT_TRAVEL_IMAGE = DEFAULT_TRAVEL_IMAGES[0]; // legacy alias
 
 // Extract destination country from content page slug
 function extractDestinationCountry(slug: string): string | null {
@@ -352,8 +378,8 @@ serve(async (req) => {
           let source: string;
           
           if (!country) {
-            // Use default travel image if can't extract country
-            imageUrl = DEFAULT_TRAVEL_IMAGE;
+            // Vary the default across a small pool to avoid duplicate images on lists
+            imageUrl = pickDefaultTravelImage(page.slug);
             source = 'default';
           } else if (countryImageCache[country]) {
             // Reuse cached image for same country
@@ -362,11 +388,15 @@ serve(async (req) => {
           } else {
             // Get or generate image for this country
             const result = await getImageForCountry(country, supabase, LOVABLE_API_KEY);
-            imageUrl = result.url;
+            if (result.source === 'default') {
+              // AI unavailable / no Unsplash entry — vary the default per-slug
+              imageUrl = pickDefaultTravelImage(page.slug);
+            } else {
+              imageUrl = result.url;
+            }
             source = result.source;
-            
-            // Cache the result for reuse
-            countryImageCache[country] = imageUrl;
+            // Only cache real per-country images (not varied defaults)
+            if (result.source !== 'default') countryImageCache[country] = imageUrl;
           }
           
           // Update the content page

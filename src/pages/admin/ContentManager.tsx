@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Eye, Search, PenLine, Sparkles, ChevronDown, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Search, PenLine, Sparkles, ChevronDown, Clock, ChevronLeft, ChevronRight, Pin, PinOff } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useNavigate } from "react-router-dom";
 import {
@@ -134,6 +134,23 @@ export default function ContentManager() {
         description: error.message,
         variant: "destructive",
       });
+    }
+  };
+
+  const toggleFeatured = async (id: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("content_pages")
+        .update({
+          is_featured: !currentStatus,
+          featured_at: !currentStatus ? new Date().toISOString() : null,
+        } as any)
+        .eq("id", id);
+      if (error) throw error;
+      toast({ title: currentStatus ? "Unpinned from homepage" : "Pinned to homepage" });
+      loadPages();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
@@ -276,6 +293,15 @@ export default function ContentManager() {
                           onClick={() => navigate(`/admin/manual-editor?edit=${page.id}`)}
                         >
                           <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          title={(page as any).is_featured ? "Unpin from homepage" : "Pin to homepage"}
+                          onClick={() => toggleFeatured(page.id, Boolean((page as any).is_featured))}
+                          className={(page as any).is_featured ? "text-primary" : ""}
+                        >
+                          {(page as any).is_featured ? <PinOff className="h-3 w-3 sm:h-4 sm:w-4" /> : <Pin className="h-3 w-3 sm:h-4 sm:w-4" />}
                         </Button>
                         <Button
                           size="sm"

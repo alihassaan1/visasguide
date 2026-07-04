@@ -166,9 +166,10 @@ export default function ManualContentEditor() {
       const { data, error } = await supabase.functions.invoke("ai-generate-content", {
         body: {
           prompt: `Generate an SEO-optimized meta description (max 155 characters) for the following content. Only return the meta description, nothing else:\n\nTitle: ${title}\n\nContent: ${content.substring(0, 1000)}`,
-          type: "meta_description",
+          action: "generate_meta",
         },
       });
+
 
       if (error) throw error;
 

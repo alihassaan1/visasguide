@@ -30,8 +30,7 @@ Rules:
 - If a field genuinely doesn't apply, write "Varies by nationality" or a similarly honest short value — never "N/A".
 - No links, no emojis, no bold/italic tags inside cells.`;
 
-async function generateTable(apiKey: string, title: string, content: string): Promise<string | null> {
-  const excerpt = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').slice(0, 2500);
+async function callLovable(apiKey: string, title: string, excerpt: string): Promise<string | null> {
   const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -43,12 +42,36 @@ async function generateTable(apiKey: string, title: string, content: string): Pr
       ],
     }),
   });
-  if (!res.ok) {
-    console.error('AI error', res.status, await res.text());
-    return null;
-  }
+  if (!res.ok) { console.error('Lovable AI error', res.status, await res.text()); return null; }
   const data = await res.json();
-  let out: string = data.choices?.[0]?.message?.content || '';
+  return data.choices?.[0]?.message?.content || null;
+}
+
+async function callDeepSeek(apiKey: string, title: string, excerpt: string): Promise<string | null> {
+  const res = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      temperature: 0.4,
+      max_tokens: 700,
+      messages: [
+        { role: 'system', content: SYSTEM },
+        { role: 'user', content: `Article title: ${title}\n\nArticle excerpt:\n${excerpt}\n\nProduce the Quick Facts table now.` },
+      ],
+    }),
+  });
+  if (!res.ok) { console.error('DeepSeek error', res.status, await res.text()); return null; }
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || null;
+}
+
+async function generateTable(keys: { lovable?: string; deepseek?: string }, title: string, content: string): Promise<string | null> {
+  const excerpt = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').slice(0, 2500);
+  let out: string | null = null;
+  if (keys.deepseek) out = await callDeepSeek(keys.deepseek, title, excerpt);
+  if (!out && keys.lovable) out = await callLovable(keys.lovable, title, excerpt);
+  if (!out) return null;
   out = out.replace(/^```\w*\s*/gm, '').replace(/```\s*$/gm, '').trim();
   if (!/<table[\s\S]*<\/table>/i.test(out)) return null;
   return out;

@@ -134,3 +134,6 @@ verify_jwt = true
 
 [functions.differentiate-visa-pages]
 verify_jwt = true
+
+[functions.add-quick-facts-tables]
+verify_jwt = false

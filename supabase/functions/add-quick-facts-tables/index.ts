@@ -97,8 +97,17 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
-    const lovableKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!lovableKey) throw new Error('LOVABLE_API_KEY missing');
+    const lovableKey = Deno.env.get('LOVABLE_API_KEY') || undefined;
+    let deepseekKey = Deno.env.get('DEEPSEEK_API_KEY') || undefined;
+    if (!deepseekKey) {
+      const { data: settings } = await supabase
+        .from('site_settings').select('setting_key, setting_value').eq('setting_key', 'deepseek_api_key');
+      const row = settings?.[0];
+      if (row && typeof row.setting_value === 'object' && row.setting_value) {
+        deepseekKey = (row.setting_value as any).key || undefined;
+      }
+    }
+    if (!lovableKey && !deepseekKey) throw new Error('No AI API keys available');
 
     const body = await req.json().catch(() => ({}));
     const table: 'content_pages' | 'news_articles' = body.table === 'news_articles' ? 'news_articles' : 'content_pages';
@@ -116,7 +125,7 @@ serve(async (req) => {
     }
 
     const results = await Promise.allSettled((rows as Row[]).map(async (r) => {
-      const tableHtml = await generateTable(lovableKey, r.title, r.content);
+      const tableHtml = await generateTable({ lovable: lovableKey, deepseek: deepseekKey }, r.title, r.content);
       if (!tableHtml) return { slug: r.slug, ok: false, reason: 'generation failed' };
       const newContent = inject(r.content, tableHtml);
       const { error: uerr } = await supabase.from(table).update({ content: newContent }).eq('id', r.id);

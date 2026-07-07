@@ -161,13 +161,14 @@ All colors MUST be HSL.
 article table {
   width: 100%;
   margin: 2rem 0;
-  border: 1px solid hsl(var(--border));
+  border: 1.5px solid hsl(var(--border));
   border-radius: 0.5rem;
   overflow: hidden;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 0.925rem;
   display: table;
+  box-shadow: 0 1px 2px hsl(var(--foreground) / 0.04);
 }
 .prose thead,
 article thead {

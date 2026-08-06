@@ -2144,6 +2144,7 @@ export type Database = {
         Args: { p_end: string; p_start: string }
         Returns: Json
       }
+      get_content_stats: { Args: never; Returns: Json }
       get_traffic_trend:
         | {
             Args: { p_end: string; p_granularity?: string; p_start: string }
@@ -2198,6 +2199,8 @@ export type Database = {
         Args: { p_country_id: string }
         Returns: undefined
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

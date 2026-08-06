@@ -2144,10 +2144,21 @@ export type Database = {
         Args: { p_end: string; p_start: string }
         Returns: Json
       }
-      get_traffic_trend: {
-        Args: { p_end: string; p_granularity?: string; p_start: string }
-        Returns: Json
-      }
+      get_traffic_trend:
+        | {
+            Args: { p_end: string; p_granularity?: string; p_start: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_bots_only?: boolean
+              p_end: string
+              p_granularity?: string
+              p_include_bots?: boolean
+              p_start: string
+            }
+            Returns: Json
+          }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

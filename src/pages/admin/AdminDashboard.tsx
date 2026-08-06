@@ -83,7 +83,8 @@ export default function AdminDashboard() {
       const { count } = await supabase
         .from("analytics_events")
         .select("*", { count: "exact", head: true })
-        .eq("event_type", "page_view");
+        .eq("event_type", "page_view")
+        .eq("is_bot", false);
       return count || 0;
     },
     staleTime: 30_000,
@@ -156,8 +157,8 @@ export default function AdminDashboard() {
         aiCur, aiPrev,
         pagesCur, pagesPrev,
       ] = await Promise.all([
-        countAt("analytics_events", currentFrom, undefined, (q) => q.eq("event_type", "page_view")),
-        countAt("analytics_events", previousFrom, previousTo, (q) => q.eq("event_type", "page_view")),
+        countAt("analytics_events", currentFrom, undefined, (q) => q.eq("event_type", "page_view").eq("is_bot", false)),
+        countAt("analytics_events", previousFrom, previousTo, (q) => q.eq("event_type", "page_view").eq("is_bot", false)),
         countAt("newsletter_subscribers", currentFrom),
         countAt("newsletter_subscribers", previousFrom, previousTo),
         countAt("ai_generations", currentFrom),
@@ -186,6 +187,7 @@ export default function AdminDashboard() {
             .from("analytics_events")
             .select("*", { count: "exact", head: true })
             .eq("event_type", "page_view")
+            .eq("is_bot", false)
             .gte("created_at", b.startISO)
             .lt("created_at", b.endISO);
           return { label: b.label, views: count || 0 };

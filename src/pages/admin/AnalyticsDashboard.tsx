@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid, BarChart, Bar } from "recharts";
-import { TrendingUp, Users, Search, Globe, Eye, Clock, MousePointer, FileText, MapPin, Monitor, ExternalLink, Smartphone, Tablet, Laptop, Bot, Mail, Link2, MailOpen } from "lucide-react";
+import { TrendingUp, Users, Search, Globe, Eye, Clock, MousePointer, MousePointerClick, FileText, MapPin, Monitor, ExternalLink, Smartphone, Tablet, Laptop, Bot, Mail, Link2, MailOpen } from "lucide-react";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
 import { format, subDays, subHours, startOfDay, endOfDay, subYears } from "date-fns";
 

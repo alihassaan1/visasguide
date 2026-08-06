@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { trackNewsletterSignup } from "@/hooks/useAnalytics";
 
 const StickyNewsletterCTA = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -45,6 +46,13 @@ const StickyNewsletterCTA = () => {
         });
 
       if (error) throw error;
+
+      // Record the signup as an analytics event (powers the Newsletter Signups metric)
+      try {
+        await trackNewsletterSignup(email);
+      } catch (trackError) {
+        console.error('Newsletter signup tracking failed:', trackError);
+      }
 
       // Send confirmation email
       try {

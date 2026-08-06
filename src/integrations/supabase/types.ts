@@ -274,6 +274,7 @@ export type Database = {
       }
       analytics_events: {
         Row: {
+          banner_id: string | null
           browser_name: string | null
           browser_version: string | null
           created_at: string
@@ -298,6 +299,7 @@ export type Database = {
           visitor_location: Json | null
         }
         Insert: {
+          banner_id?: string | null
           browser_name?: string | null
           browser_version?: string | null
           created_at?: string
@@ -322,6 +324,7 @@ export type Database = {
           visitor_location?: Json | null
         }
         Update: {
+          banner_id?: string | null
           browser_name?: string | null
           browser_version?: string | null
           created_at?: string

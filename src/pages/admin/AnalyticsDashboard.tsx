@@ -74,14 +74,21 @@ const AnalyticsDashboard = () => {
       const result = data as any;
       const total = Number(result.total) || 0;
       const botTraffic = Number(result.botTraffic) || 0;
-      
+
       return {
-        pageViews: Number(result.pageViews) || 0,
+        pageViews: Number(result.humanPageViews ?? result.pageViews) || 0,
+        allPageViews: Number(result.pageViews) || 0,
+        botPageViews: Number(result.botPageViews) || 0,
         searches: Number(result.searches) || 0,
         searchEngineReferrals: Number(result.searchEngineReferrals) || 0,
         total,
         avgSessionDuration: Number(result.avgSessionDuration) || 0,
-        uniqueVisitors: Number(result.uniqueVisitors) || 0,
+        uniqueVisitors: Number(result.humanUniqueVisitors ?? result.uniqueVisitors) || 0,
+        botUniqueVisitors: Number(result.botUniqueVisitors) || 0,
+        newsletterSignups: Number(result.newsletterSignups) || 0,
+        bannerImpressions: Number(result.bannerImpressions) || 0,
+        affiliateClicks: Number(result.affiliateClicks) || 0,
+        botTraffic,
         botPercentage: total > 0 ? Math.round((botTraffic / total) * 100) : 0
       };
     }

@@ -203,18 +203,26 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
       });
     }
 
-    // Log to analytics_events for conversion reporting
-    supabase.from('analytics_events').insert({
+    // Log to analytics_events + increment the counter.
+    // Uses keepalive fetch so the request survives the outbound navigation.
+    const payload = {
       event_type: 'affiliate_click',
       page_slug: currentPath,
       search_term: banner.name,
       referrer_source: ensureProtocol(banner.target_url),
       visitor_location: { country: countryCode || null, position, source },
-    });
+    };
 
-    // Atomic click count increment (RPC bypasses RLS for anon visitors)
-    supabase.rpc('increment_affiliate_click', { p_banner_id: banner.id });
+    try {
+      await Promise.all([
+        keepalivePost('/rest/v1/analytics_events', payload),
+        keepalivePost('/rest/v1/rpc/increment_affiliate_click', { p_banner_id: banner.id }),
+      ]);
+    } catch (e) {
+      console.error('Affiliate click tracking failed', e);
+    }
   };
+
 
   // Detect iframe/embed clicks via window blur (React onClick doesn't fire on iframes)
   useEffect(() => {

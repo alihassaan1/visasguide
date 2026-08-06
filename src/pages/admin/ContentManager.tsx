@@ -351,10 +351,10 @@ export default function ContentManager() {
           )}
 
           {/* Pagination */}
-          {totalCount > pageSize && (
+          {listCount > pageSize && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t">
               <p className="text-sm text-muted-foreground">
-                Showing {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalCount)} of {totalCount.toLocaleString()} pages
+                Showing {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, listCount)} of {listCount.toLocaleString()} pages
               </p>
               <div className="flex items-center gap-2">
                 <Button
@@ -366,13 +366,13 @@ export default function ContentManager() {
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <span className="text-sm px-2">
-                  Page {currentPage} of {Math.ceil(totalCount / pageSize)}
+                  Page {currentPage} of {totalPages}
                 </span>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setCurrentPage(p => p + 1)}
-                  disabled={currentPage >= Math.ceil(totalCount / pageSize)}
+                  disabled={currentPage >= totalPages}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>

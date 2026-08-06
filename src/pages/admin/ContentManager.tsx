@@ -26,46 +26,67 @@ export default function ContentManager() {
   const [publishedCount, setPublishedCount] = useState(0);
   const [aiGeneratedCount, setAiGeneratedCount] = useState(0); // kept for compatibility
   const [totalViews, setTotalViews] = useState(0);
+  const [filteredCount, setFilteredCount] = useState<number | null>(null);
   const pageSize = 50;
+
+  // Debounced server-side search
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+      setCurrentPage(1);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
 
   useEffect(() => {
     loadPages();
+  }, [currentPage, debouncedSearch]);
+
+  useEffect(() => {
     loadStats();
-  }, [currentPage]);
+  }, []);
 
   const loadStats = async () => {
     try {
-      // Get accurate counts using count: 'exact'
-      const [totalRes, publishedRes, viewsRes] = await Promise.all([
-        supabase.from("content_pages").select("id", { count: "exact", head: true }),
-        supabase.from("content_pages").select("id", { count: "exact", head: true }).eq("is_published", true),
-        supabase.from("content_pages").select("view_count"),
-      ]);
-
-      setTotalCount(totalRes.count || 0);
-      setPublishedCount(publishedRes.count || 0);
-      
-      // Sum all view counts
-      const views = (viewsRes.data || []).reduce((sum, p) => sum + (p.view_count || 0), 0);
-      setTotalViews(views);
+      const { data, error } = await supabase.rpc("get_content_stats");
+      if (error) throw error;
+      const stats = (data || {}) as any;
+      setTotalCount(Number(stats.total) || 0);
+      setPublishedCount(Number(stats.published) || 0);
+      setTotalViews(Number(stats.views) || 0);
     } catch (error) {
       console.error("Error loading stats:", error);
     }
   };
 
   const loadPages = async () => {
+    setLoading(true);
     try {
       const from = (currentPage - 1) * pageSize;
       const to = from + pageSize - 1;
 
-      const { data, error } = await supabase
+      // Only the columns the table needs — never select the full `content` body,
+      // which makes this query time out on large libraries.
+      let query = supabase
         .from("content_pages")
-        .select("*")
+        .select(
+          "id, title, slug, is_published, is_featured, scheduled_at, view_count, created_at, author_id",
+          { count: "exact" }
+        );
+
+      if (debouncedSearch) {
+        const term = debouncedSearch.replace(/[%,]/g, " ");
+        query = query.or(`title.ilike.%${term}%,slug.ilike.%${term}%`);
+      }
+
+      const { data, error, count } = await query
         .order("created_at", { ascending: false })
         .range(from, to);
 
       if (error) throw error;
       setPages(data || []);
+      setFilteredCount(debouncedSearch ? count || 0 : null);
     } catch (error: any) {
       toast({
         title: "Error Loading Pages",
@@ -76,6 +97,7 @@ export default function ContentManager() {
       setLoading(false);
     }
   };
+
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this page?")) return;
@@ -154,10 +176,10 @@ export default function ContentManager() {
     }
   };
 
-  const filteredPages = pages.filter((page) =>
-    page.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    page.slug.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Search is executed server-side, so the current page is already the result set.
+  const filteredPages = pages;
+  const listCount = filteredCount ?? totalCount;
+  const totalPages = Math.max(1, Math.ceil(listCount / pageSize));
 
   return (
     <div className="container mx-auto p-3 sm:p-6 max-w-7xl">
@@ -329,10 +351,10 @@ export default function ContentManager() {
           )}
 
           {/* Pagination */}
-          {totalCount > pageSize && (
+          {listCount > pageSize && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t">
               <p className="text-sm text-muted-foreground">
-                Showing {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalCount)} of {totalCount.toLocaleString()} pages
+                Showing {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, listCount)} of {listCount.toLocaleString()} pages
               </p>
               <div className="flex items-center gap-2">
                 <Button
@@ -344,13 +366,13 @@ export default function ContentManager() {
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <span className="text-sm px-2">
-                  Page {currentPage} of {Math.ceil(totalCount / pageSize)}
+                  Page {currentPage} of {totalPages}
                 </span>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setCurrentPage(p => p + 1)}
-                  disabled={currentPage >= Math.ceil(totalCount / pageSize)}
+                  disabled={currentPage >= totalPages}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>

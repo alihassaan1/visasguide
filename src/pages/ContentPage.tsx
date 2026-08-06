@@ -71,7 +71,10 @@ export default function ContentPage() {
         if (data) {
           setPage(data);
           // Increment view count (RPC — anonymous visitors cannot update the table directly)
-          supabase.rpc('increment_content_page_view', { p_slug: data.slug });
+          void supabase.rpc('increment_content_page_view', { p_slug: data.slug }).then(({ error }) => {
+            if (error) console.error('Page view tracking failed', error);
+          });
+
 
         } else {
           toast({

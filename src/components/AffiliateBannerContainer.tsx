@@ -21,7 +21,26 @@ function ensureProtocol(url: string): string {
     return withProtocol;
   }
 }
+
+// Fire a tracking write that survives page navigation (keepalive).
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+
+async function keepalivePost(path: string, body: unknown): Promise<void> {
+  await fetch(`${SUPABASE_URL}${path}`, {
+    method: "POST",
+    keepalive: true,
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+}
+
 interface AffiliateBannerContainerProps {
+
   position: "sidebar-right" | "horizontal-banner" | "in-content" | "footer";
 }
 
@@ -136,17 +155,24 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
   // Track impression for the selected banner (atomic increment + analytics log)
   useEffect(() => {
     if (selectedBanner && !locationLoading) {
-      // Atomic increment via database function
-      supabase.rpc('increment_banner_impression', { p_banner_id: selectedBanner.id });
+      // NOTE: supabase-js query builders are lazy — they only fire when awaited/then'd.
+      void (async () => {
+        try {
+          // Atomic increment via database function
+          await supabase.rpc('increment_banner_impression', { p_banner_id: selectedBanner.id });
 
-      // Log impression event for advertiser reporting
-      supabase.from('analytics_events').insert({
-        event_type: 'banner_impression',
-        page_slug: currentPath,
-        search_term: selectedBanner.name,
-        referrer_source: position,
-        visitor_location: countryCode ? { country: countryCode } : null,
-      });
+          // Log impression event for advertiser reporting
+          await supabase.from('analytics_events').insert({
+            event_type: 'banner_impression',
+            page_slug: currentPath,
+            search_term: selectedBanner.name,
+            referrer_source: position,
+            visitor_location: countryCode ? { country: countryCode } : null,
+          });
+        } catch (e) {
+          console.error('Banner impression tracking failed', e);
+        }
+      })();
 
       // Track with Google Analytics
       if (typeof window !== 'undefined' && (window as any).gtag) {
@@ -158,6 +184,7 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
       }
     }
   }, [selectedBanner?.id, locationLoading, currentPath]);
+
 
   const detectClickSource = (): string => {
     if (typeof window === "undefined") return "website";
@@ -195,18 +222,26 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
       });
     }
 
-    // Log to analytics_events for conversion reporting
-    supabase.from('analytics_events').insert({
+    // Log to analytics_events + increment the counter.
+    // Uses keepalive fetch so the request survives the outbound navigation.
+    const payload = {
       event_type: 'affiliate_click',
       page_slug: currentPath,
       search_term: banner.name,
       referrer_source: ensureProtocol(banner.target_url),
       visitor_location: { country: countryCode || null, position, source },
-    });
+    };
 
-    // Atomic click count increment (RPC bypasses RLS for anon visitors)
-    supabase.rpc('increment_affiliate_click', { p_banner_id: banner.id });
+    try {
+      await Promise.all([
+        keepalivePost('/rest/v1/analytics_events', payload),
+        keepalivePost('/rest/v1/rpc/increment_affiliate_click', { p_banner_id: banner.id }),
+      ]);
+    } catch (e) {
+      console.error('Affiliate click tracking failed', e);
+    }
   };
+
 
   // Detect iframe/embed clicks via window blur (React onClick doesn't fire on iframes)
   useEffect(() => {

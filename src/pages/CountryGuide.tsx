@@ -74,7 +74,10 @@ const CountryGuide = () => {
 
   useEffect(() => {
     if (country?.id) {
-      supabase.rpc('increment_page_view_count', { p_country_id: country.id });
+      void supabase.rpc('increment_page_view_count', { p_country_id: country.id }).then(({ error }) => {
+        if (error) console.error('View count tracking failed', error);
+      });
+
     }
   }, [country?.id]);
 

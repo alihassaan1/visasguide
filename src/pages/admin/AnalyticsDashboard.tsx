@@ -125,6 +125,7 @@ const AnalyticsDashboard = () => {
         .from('analytics_events')
         .select('created_at, page_slug, device_type, device_name, browser_name, visitor_location, is_bot')
         .eq('event_type', 'page_view')
+        .eq('is_bot', false)
         .order('created_at', { ascending: false })
         .limit(10);
       
@@ -222,6 +223,7 @@ const AnalyticsDashboard = () => {
         .from('analytics_events')
         .select('*', { count: 'exact', head: true })
         .eq('event_type', 'page_view')
+        .eq('is_bot', false)
         .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
       const { data: campaigns } = await supabase

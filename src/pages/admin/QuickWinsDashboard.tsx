@@ -49,6 +49,7 @@ export default function QuickWinsDashboard() {
         .from('analytics_events')
         .select('page_slug')
         .eq('event_type', 'page_view')
+        .eq('is_bot', false)
         .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
       // Count views per page from analytics

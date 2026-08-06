@@ -61,7 +61,10 @@ const CityPage = () => {
   // Increment view count
   useEffect(() => {
     if (city?.id) {
-      supabase.rpc('increment_city_view_count', { p_city_id: city.id });
+      void supabase.rpc('increment_city_view_count', { p_city_id: city.id }).then(({ error }) => {
+        if (error) console.error('City view tracking failed', error);
+      });
+
     }
   }, [city?.id]);
 

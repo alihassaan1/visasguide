@@ -176,10 +176,10 @@ export default function ContentManager() {
     }
   };
 
-  const filteredPages = pages.filter((page) =>
-    page.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    page.slug.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Search is executed server-side, so the current page is already the result set.
+  const filteredPages = pages;
+  const listCount = filteredCount ?? totalCount;
+  const totalPages = Math.max(1, Math.ceil(listCount / pageSize));
 
   return (
     <div className="container mx-auto p-3 sm:p-6 max-w-7xl">

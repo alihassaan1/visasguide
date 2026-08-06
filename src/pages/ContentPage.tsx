@@ -70,11 +70,9 @@ export default function ContentPage() {
 
         if (data) {
           setPage(data);
-          // Increment view count
-          await supabase
-            .from('content_pages')
-            .update({ view_count: (data.view_count || 0) + 1 })
-            .eq('id', data.id);
+          // Increment view count (RPC — anonymous visitors cannot update the table directly)
+          supabase.rpc('increment_content_page_view', { p_slug: data.slug });
+
         } else {
           toast({
             title: "Page not found",

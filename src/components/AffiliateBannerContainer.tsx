@@ -21,7 +21,26 @@ function ensureProtocol(url: string): string {
     return withProtocol;
   }
 }
+
+// Fire a tracking write that survives page navigation (keepalive).
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+
+async function keepalivePost(path: string, body: unknown): Promise<void> {
+  await fetch(`${SUPABASE_URL}${path}`, {
+    method: "POST",
+    keepalive: true,
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+}
+
 interface AffiliateBannerContainerProps {
+
   position: "sidebar-right" | "horizontal-banner" | "in-content" | "footer";
 }
 

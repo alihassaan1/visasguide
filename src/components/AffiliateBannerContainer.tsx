@@ -164,6 +164,7 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
           // Log impression event for advertiser reporting
           await supabase.from('analytics_events').insert({
             event_type: 'banner_impression',
+            banner_id: selectedBanner.id,
             page_slug: currentPath,
             search_term: selectedBanner.name,
             referrer_source: position,
@@ -226,6 +227,7 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
     // Uses keepalive fetch so the request survives the outbound navigation.
     const payload = {
       event_type: 'affiliate_click',
+      banner_id: banner.id,
       page_slug: currentPath,
       search_term: banner.name,
       referrer_source: ensureProtocol(banner.target_url),

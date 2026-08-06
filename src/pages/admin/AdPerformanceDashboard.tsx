@@ -70,7 +70,7 @@ export default function AdPerformanceDashboard() {
       const data = await fetchAllRows<any>((from, to) =>
         supabase
           .from("analytics_events")
-          .select("created_at, page_slug, search_term, visitor_location")
+          .select("created_at, banner_id, page_slug, search_term, visitor_location")
           .eq("event_type", "affiliate_click")
           .gte("created_at", startDate.toISOString())
           .lte("created_at", endDate.toISOString())
@@ -87,7 +87,7 @@ export default function AdPerformanceDashboard() {
       const data = await fetchAllRows<any>((from, to) =>
         supabase
           .from("analytics_events")
-          .select("created_at, search_term, referrer_source")
+          .select("created_at, banner_id, search_term, referrer_source")
           .eq("event_type", "banner_impression")
           .gte("created_at", startDate.toISOString())
           .lte("created_at", endDate.toISOString())
@@ -98,16 +98,28 @@ export default function AdPerformanceDashboard() {
     },
   });
 
+  // Banner identity helpers — stats are keyed on banner_id (rename-safe).
+  // Legacy rows without banner_id fall back to the stored name.
+  const bannerNameById = useMemo(() => {
+    const m: Record<string, string> = {};
+    banners.forEach((b: any) => { m[b.id] = b.name; });
+    return m;
+  }, [banners]);
+
+  const keyFor = (e: any) => e.banner_id || `name:${e.search_term || "(unknown)"}`;
+  const labelFor = (e: any) =>
+    (e.banner_id && bannerNameById[e.banner_id]) || e.search_term || "(deleted banner)";
+
   // Build per-banner aggregates from analytics_events (date-range scoped)
   const bannerEventStats = useMemo(() => {
     const m: Record<string, { impressions: number; clicks: number }> = {};
     impressionEvents.forEach((e: any) => {
-      const k = e.search_term || "(unknown)";
+      const k = keyFor(e);
       m[k] = m[k] || { impressions: 0, clicks: 0 };
       m[k].impressions += 1;
     });
     clickEvents.forEach((e: any) => {
-      const k = e.search_term || "(unknown)";
+      const k = keyFor(e);
       m[k] = m[k] || { impressions: 0, clicks: 0 };
       m[k].clicks += 1;
     });
@@ -150,46 +162,45 @@ export default function AdPerformanceDashboard() {
   }, [impressionEvents, clickEvents]);
 
   const bannerRangeBreakdown = useMemo(() => {
-    const map: Record<string, { impressions: number; clicks: number }> = {};
-    impressionEvents.forEach((e) => {
-      const name = e.search_term || "(unknown)";
-      map[name] = map[name] || { impressions: 0, clicks: 0 };
-      map[name].impressions += 1;
+    const map: Record<string, { name: string; impressions: number; clicks: number }> = {};
+    impressionEvents.forEach((e: any) => {
+      const k = keyFor(e);
+      map[k] = map[k] || { name: labelFor(e), impressions: 0, clicks: 0 };
+      map[k].impressions += 1;
     });
-    clickEvents.forEach((e) => {
-      const name = e.search_term || "(unknown)";
-      map[name] = map[name] || { impressions: 0, clicks: 0 };
-      map[name].clicks += 1;
+    clickEvents.forEach((e: any) => {
+      const k = keyFor(e);
+      map[k] = map[k] || { name: labelFor(e), impressions: 0, clicks: 0 };
+      map[k].clicks += 1;
     });
-    return Object.entries(map)
-      .map(([name, v]) => ({
-        name,
+    return Object.values(map)
+      .map((v) => ({
+        name: v.name,
         impressions: v.impressions,
         clicks: v.clicks,
         ctr: v.impressions > 0 ? ((v.clicks / v.impressions) * 100).toFixed(2) : "0.00",
       }))
       .sort((a, b) => b.impressions - a.impressions);
-  }, [impressionEvents, clickEvents]);
+  }, [impressionEvents, clickEvents, bannerNameById]);
 
-  // Per-banner × per-slot breakdown (uses referrer_source for impressions,
-  // visitor_location.position for clicks — both written by AffiliateBannerContainer).
+  // Per-banner × per-slot breakdown (keyed by banner id; uses referrer_source for
+  // impressions, visitor_location.position for clicks — both written by AffiliateBannerContainer).
   const slotBreakdown = useMemo(() => {
     const map: Record<string, { name: string; slot: string; impressions: number; clicks: number }> = {};
-    const keyFor = (name: string, slot: string) => `${name}::${slot}`;
 
     impressionEvents.forEach((e: any) => {
-      const name = e.search_term || "(unknown)";
+      const name = labelFor(e);
       const slot = e.referrer_source || "(unspecified)";
-      const k = keyFor(name, slot);
+      const k = `${keyFor(e)}::${slot}`;
       map[k] = map[k] || { name, slot, impressions: 0, clicks: 0 };
       map[k].impressions += 1;
     });
     clickEvents.forEach((e: any) => {
-      const name = e.search_term || "(unknown)";
+      const name = labelFor(e);
       const slot =
         (e.visitor_location && typeof e.visitor_location === "object" && (e.visitor_location as any).position) ||
         "(unspecified)";
-      const k = keyFor(name, slot);
+      const k = `${keyFor(e)}::${slot}`;
       map[k] = map[k] || { name, slot, impressions: 0, clicks: 0 };
       map[k].clicks += 1;
     });
@@ -200,7 +211,7 @@ export default function AdPerformanceDashboard() {
         ctr: r.impressions > 0 ? ((r.clicks / r.impressions) * 100).toFixed(2) : "0.00",
       }))
       .sort((a, b) => b.impressions - a.impressions || b.clicks - a.clicks);
-  }, [impressionEvents, clickEvents]);
+  }, [impressionEvents, clickEvents, bannerNameById]);
 
   // Banners with more than one assigned slot — flagged in the breakdown UI.
   const multiSlotBannerNames = useMemo(() => {
@@ -244,25 +255,25 @@ export default function AdPerformanceDashboard() {
       .sort((a, b) => b.clicks - a.clicks);
   }, [clickEvents]);
 
-  // Per-banner × per-source breakdown
+  // Per-banner × per-source breakdown (keyed by banner id)
   const bannerSourceBreakdown = useMemo(() => {
     const map: Record<string, { name: string; source: string; clicks: number }> = {};
     clickEvents.forEach((e: any) => {
-      const name = e.search_term || "(unknown)";
+      const name = labelFor(e);
       const src =
         (e.visitor_location && typeof e.visitor_location === "object" && (e.visitor_location as any).source) ||
         "website";
-      const k = `${name}::${src}`;
+      const k = `${keyFor(e)}::${src}`;
       map[k] = map[k] || { name, source: src, clicks: 0 };
       map[k].clicks += 1;
     });
     return Object.values(map).sort((a, b) => b.clicks - a.clicks);
-  }, [clickEvents]);
+  }, [clickEvents, bannerNameById]);
 
 
   // Sorted banners — sort by range stats from analytics_events (real data)
   const sortedBanners = useMemo(() => {
-    const statOf = (b: any) => bannerEventStats[b.name] || { impressions: 0, clicks: 0 };
+    const statOf = (b: any) => bannerEventStats[b.id] || bannerEventStats[`name:${b.name}`] || { impressions: 0, clicks: 0 };
     return [...banners].sort((a, b) => {
       const sa = statOf(a);
       const sb = statOf(b);

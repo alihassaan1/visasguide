@@ -274,6 +274,7 @@ export type Database = {
       }
       analytics_events: {
         Row: {
+          banner_id: string | null
           browser_name: string | null
           browser_version: string | null
           created_at: string
@@ -298,6 +299,7 @@ export type Database = {
           visitor_location: Json | null
         }
         Insert: {
+          banner_id?: string | null
           browser_name?: string | null
           browser_version?: string | null
           created_at?: string
@@ -322,6 +324,7 @@ export type Database = {
           visitor_location?: Json | null
         }
         Update: {
+          banner_id?: string | null
           browser_name?: string | null
           browser_version?: string | null
           created_at?: string
@@ -2141,10 +2144,21 @@ export type Database = {
         Args: { p_end: string; p_start: string }
         Returns: Json
       }
-      get_traffic_trend: {
-        Args: { p_end: string; p_granularity?: string; p_start: string }
-        Returns: Json
-      }
+      get_traffic_trend:
+        | {
+            Args: { p_end: string; p_granularity?: string; p_start: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_bots_only?: boolean
+              p_end: string
+              p_granularity?: string
+              p_include_bots?: boolean
+              p_start: string
+            }
+            Returns: Json
+          }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid, BarChart, Bar } from "recharts";
-import { TrendingUp, Users, Search, Globe, Eye, Clock, MousePointer, FileText, MapPin, Monitor, ExternalLink, Smartphone, Tablet, Laptop, Bot, Mail, Link2, MailOpen } from "lucide-react";
+import { TrendingUp, Users, Search, Globe, Eye, Clock, MousePointer, MousePointerClick, FileText, MapPin, Monitor, ExternalLink, Smartphone, Tablet, Laptop, Bot, Mail, Link2, MailOpen } from "lucide-react";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
 import { format, subDays, subHours, startOfDay, endOfDay, subYears } from "date-fns";
 
@@ -74,14 +74,21 @@ const AnalyticsDashboard = () => {
       const result = data as any;
       const total = Number(result.total) || 0;
       const botTraffic = Number(result.botTraffic) || 0;
-      
+
       return {
-        pageViews: Number(result.pageViews) || 0,
+        pageViews: Number(result.humanPageViews ?? result.pageViews) || 0,
+        allPageViews: Number(result.pageViews) || 0,
+        botPageViews: Number(result.botPageViews) || 0,
         searches: Number(result.searches) || 0,
         searchEngineReferrals: Number(result.searchEngineReferrals) || 0,
         total,
         avgSessionDuration: Number(result.avgSessionDuration) || 0,
-        uniqueVisitors: Number(result.uniqueVisitors) || 0,
+        uniqueVisitors: Number(result.humanUniqueVisitors ?? result.uniqueVisitors) || 0,
+        botUniqueVisitors: Number(result.botUniqueVisitors) || 0,
+        newsletterSignups: Number(result.newsletterSignups) || 0,
+        bannerImpressions: Number(result.bannerImpressions) || 0,
+        affiliateClicks: Number(result.affiliateClicks) || 0,
+        botTraffic,
         botPercentage: total > 0 ? Math.round((botTraffic / total) * 100) : 0
       };
     }
@@ -118,6 +125,7 @@ const AnalyticsDashboard = () => {
         .from('analytics_events')
         .select('created_at, page_slug, device_type, device_name, browser_name, visitor_location, is_bot')
         .eq('event_type', 'page_view')
+        .eq('is_bot', false)
         .order('created_at', { ascending: false })
         .limit(10);
       
@@ -215,6 +223,7 @@ const AnalyticsDashboard = () => {
         .from('analytics_events')
         .select('*', { count: 'exact', head: true })
         .eq('event_type', 'page_view')
+        .eq('is_bot', false)
         .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
       const { data: campaigns } = await supabase
@@ -526,7 +535,7 @@ const AnalyticsDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Summary Cards - 6 columns */}
+      {/* Summary Cards — human traffic only (bots reported separately below) */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -535,7 +544,7 @@ const AnalyticsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold">{analyticsSummary?.pageViews.toLocaleString() || 0}</div>
-            <p className="text-xs text-muted-foreground">{periodLabel}</p>
+            <p className="text-xs text-muted-foreground">Humans · {periodLabel}</p>
           </CardContent>
         </Card>
 
@@ -546,7 +555,7 @@ const AnalyticsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold">{analyticsSummary?.uniqueVisitors.toLocaleString() || 0}</div>
-            <p className="text-xs text-muted-foreground">By IP</p>
+            <p className="text-xs text-muted-foreground">Humans, by IP</p>
           </CardContent>
         </Card>
 
@@ -563,17 +572,6 @@ const AnalyticsDashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium">Search Visitors</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold">{analyticsSummary?.searchEngineReferrals.toLocaleString() || 0}</div>
-            <p className="text-xs text-muted-foreground">Google, Bing</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs font-medium">Avg. Session</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -585,15 +583,64 @@ const AnalyticsDashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium">Bot Traffic</CardTitle>
-            <Bot className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs font-medium">Newsletter Signups</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold">{analyticsSummary?.botPercentage || 0}%</div>
-            <p className="text-xs text-muted-foreground">Crawlers</p>
+            <div className="text-xl font-bold">{analyticsSummary?.newsletterSignups.toLocaleString() || 0}</div>
+            <p className="text-xs text-muted-foreground">{periodLabel}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-medium">Banner Clicks</CardTitle>
+            <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold">{analyticsSummary?.affiliateClicks.toLocaleString() || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              {analyticsSummary?.bannerImpressions.toLocaleString() || 0} impressions
+            </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Bot / crawler traffic — kept out of the human numbers above */}
+      <Card className="border-dashed">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Bot className="h-5 w-5" />
+            Bot &amp; Crawler Traffic
+            <Badge variant="outline" className="ml-2 text-xs">Excluded from stats above</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Bot Page Views</p>
+              <p className="text-xl font-bold">{analyticsSummary?.botPageViews.toLocaleString() || 0}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Bot Events (all)</p>
+              <p className="text-xl font-bold">{analyticsSummary?.botTraffic.toLocaleString() || 0}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Unique Bot IPs</p>
+              <p className="text-xl font-bold">{analyticsSummary?.botUniqueVisitors.toLocaleString() || 0}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Share of All Traffic</p>
+              <p className="text-xl font-bold">{analyticsSummary?.botPercentage || 0}%</p>
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Search-engine and AI crawlers are good for indexing — this is monitoring, not a problem.
+            Detailed per-bot breakdown is further down the page.
+          </p>
+        </CardContent>
+      </Card>
+
 
       {/* Recent Visitors - Real-time */}
       <Card>

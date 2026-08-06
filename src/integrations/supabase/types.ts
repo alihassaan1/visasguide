@@ -2164,6 +2164,10 @@ export type Database = {
         Args: { p_city_id: string }
         Returns: undefined
       }
+      increment_content_page_view: {
+        Args: { p_slug: string }
+        Returns: undefined
+      }
       increment_email_clicks: {
         Args: { p_campaign_id: string }
         Returns: undefined

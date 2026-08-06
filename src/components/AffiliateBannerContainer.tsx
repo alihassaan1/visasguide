@@ -136,17 +136,24 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
   // Track impression for the selected banner (atomic increment + analytics log)
   useEffect(() => {
     if (selectedBanner && !locationLoading) {
-      // Atomic increment via database function
-      supabase.rpc('increment_banner_impression', { p_banner_id: selectedBanner.id });
+      // NOTE: supabase-js query builders are lazy — they only fire when awaited/then'd.
+      void (async () => {
+        try {
+          // Atomic increment via database function
+          await supabase.rpc('increment_banner_impression', { p_banner_id: selectedBanner.id });
 
-      // Log impression event for advertiser reporting
-      supabase.from('analytics_events').insert({
-        event_type: 'banner_impression',
-        page_slug: currentPath,
-        search_term: selectedBanner.name,
-        referrer_source: position,
-        visitor_location: countryCode ? { country: countryCode } : null,
-      });
+          // Log impression event for advertiser reporting
+          await supabase.from('analytics_events').insert({
+            event_type: 'banner_impression',
+            page_slug: currentPath,
+            search_term: selectedBanner.name,
+            referrer_source: position,
+            visitor_location: countryCode ? { country: countryCode } : null,
+          });
+        } catch (e) {
+          console.error('Banner impression tracking failed', e);
+        }
+      })();
 
       // Track with Google Analytics
       if (typeof window !== 'undefined' && (window as any).gtag) {
@@ -158,6 +165,7 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
       }
     }
   }, [selectedBanner?.id, locationLoading, currentPath]);
+
 
   const detectClickSource = (): string => {
     if (typeof window === "undefined") return "website";

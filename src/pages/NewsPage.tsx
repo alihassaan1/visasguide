@@ -3,12 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, ExternalLink, Search, Newspaper, FileText } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { getBlogFallbackImage, isBrokenImageUrl } from "@/lib/blogImageMap";
@@ -27,6 +25,46 @@ interface ContentItem {
   type: 'news' | 'blog';
 }
 
+// Broad, curated categories only — narrow/duplicate tags are mapped into these
+const BROAD_CATEGORIES = [
+  "Air Travel",
+  "Asia",
+  "Europe",
+  "Middle East",
+  "Digital Nomad",
+  "ETIAS",
+  "Immigration News",
+  "News",
+];
+
+const ASIA = ["malaysia", "thailand", "japan", "china", "india", "singapore", "vietnam", "indonesia", "philippines", "korea", "asia"];
+const EUROPE = ["schengen", "europe", "eu ", "germany", "france", "italy", "spain", "portugal", "greece", "poland", "romania", "bulgaria", "uk", "britain"];
+const MIDDLE_EAST = ["uae", "dubai", "saudi", "qatar", "oman", "kuwait", "bahrain", "middle east"];
+
+const matchesBroadCategory = (tags: string[] | null, category: string) => {
+  if (!tags?.length) return false;
+  const lower = tags.map((t) => t.toLowerCase());
+  const has = (list: string[]) => lower.some((t) => list.some((k) => t.includes(k)));
+  switch (category) {
+    case "Asia": return has(ASIA);
+    case "Europe": return has(EUROPE);
+    case "Middle East": return has(MIDDLE_EAST);
+    case "Air Travel": return has(["flight", "airline", "airport", "air travel"]);
+    case "Digital Nomad": return has(["digital nomad", "remote work", "nomad"]);
+    case "ETIAS": return has(["etias"]);
+    case "Immigration News": return has(["immigration", "residency", "citizenship"]);
+    case "News": return has(["news", "update", "policy"]);
+    default: return false;
+  }
+};
+
+const broadCategoryOf = (tags: string[] | null): string => {
+  for (const c of BROAD_CATEGORIES) {
+    if (matchesBroadCategory(tags, c)) return c;
+  }
+  return "News";
+};
+
 const NewsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -34,9 +72,8 @@ const NewsPage = () => {
   const [page, setPage] = useState(1);
   const ITEMS_PER_PAGE = 12;
 
-  // Fetch news articles
   const { data: newsArticles, isLoading: newsLoading } = useQuery({
-    queryKey: ['news-articles', searchTerm, selectedCategory],
+    queryKey: ['news-articles', searchTerm],
     queryFn: async () => {
       let query = supabase
         .from('news_articles')
@@ -48,17 +85,12 @@ const NewsPage = () => {
         query = query.or(`title.ilike.%${searchTerm}%,content.ilike.%${searchTerm}%`);
       }
 
-      if (selectedCategory) {
-        query = query.contains('categories', [selectedCategory]);
-      }
-
       const { data, error } = await query;
       if (error) throw error;
       return (data || []).map(article => ({ ...article, type: 'news' as const }));
     }
   });
 
-  // Fetch blog posts from content_pages
   const { data: blogPosts, isLoading: blogLoading } = useQuery({
     queryKey: ['blog-posts', searchTerm],
     queryFn: async () => {
@@ -75,149 +107,106 @@ const NewsPage = () => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []).map(post => ({ 
-        ...post, 
+      return (data || []).map(post => ({
+        ...post,
         published_at: post.created_at,
         categories: post.keywords,
         source_url: null,
-        type: 'blog' as const 
+        type: 'blog' as const
       }));
     }
   });
 
-  const { data: featuredArticles } = useQuery({
-    queryKey: ['featured-articles'],
+  // Sidebar: most read guides
+  const { data: mostRead } = useQuery({
+    queryKey: ['most-read-blog'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('news_articles')
-        .select('*')
-        .eq('is_featured', true)
-        .not('published_at', 'is', null)
-        .order('published_at', { ascending: false })
-        .limit(3);
-      
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  // Fetch actual categories from database
-  const { data: dbCategories } = useQuery({
-    queryKey: ['blog-categories'],
-    queryFn: async () => {
-      const { data: newsData } = await supabase
-        .from('news_articles')
-        .select('categories')
-        .not('published_at', 'is', null)
-        .not('categories', 'is', null);
-      
-      const { data: blogData } = await supabase
         .from('content_pages')
-        .select('keywords')
-        .like('slug', 'blog/%')
+        .select('id, title, slug, featured_image_url, view_count')
         .eq('is_published', true)
-        .not('keywords', 'is', null);
-
-      const catSet = new Set<string>();
-      (newsData || []).forEach(a => (a.categories || []).forEach((c: string) => catSet.add(c)));
-      (blogData || []).forEach(p => (p.keywords || []).forEach((k: string) => catSet.add(k)));
-      return Array.from(catSet).sort().slice(0, 12);
+        .not('view_count', 'is', null)
+        .order('view_count', { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      return data || [];
     }
   });
 
-  const categories = dbCategories || [];
+  // Sidebar: trending destinations
+  const { data: trendingDestinations } = useQuery({
+    queryKey: ['trending-destinations-sidebar'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('countries')
+        .select('id, name, slug, flag_emoji, annual_tourists')
+        .not('annual_tourists', 'is', null)
+        .order('annual_tourists', { ascending: false })
+        .limit(6);
+      if (error) throw error;
+      return data || [];
+    }
+  });
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
-  // Combine and sort all content
   const allContent: ContentItem[] = [...(newsArticles || []), ...(blogPosts || [])]
-    .sort((a, b) => {
-      const dateA = new Date(a.published_at || a.created_at).getTime();
-      const dateB = new Date(b.published_at || b.created_at).getTime();
-      return dateB - dateA;
-    });
+    .sort((a, b) => new Date(b.published_at || b.created_at).getTime() - new Date(a.published_at || a.created_at).getTime());
 
-  const filteredContent = activeTab === 'all' 
-    ? allContent 
-    : activeTab === 'blog' 
+  const byTab = activeTab === 'all'
+    ? allContent
+    : activeTab === 'blog'
       ? allContent.filter(item => item.type === 'blog')
       : allContent.filter(item => item.type === 'news');
 
+  const filteredContent = selectedCategory
+    ? byTab.filter(item => matchesBroadCategory(item.categories, selectedCategory))
+    : byTab;
+
   const isLoading = newsLoading || blogLoading;
 
-  const getItemLink = (item: ContentItem) => {
-    if (item.type === 'blog') {
-      // Remove 'blog/' prefix from slug for blog posts
-      const cleanSlug = item.slug.replace(/^blog\//, '');
-      return `/blog/${cleanSlug}`;
-    }
-    return `/blog/${item.slug}`;
-  };
+  const getItemLink = (item: ContentItem) =>
+    item.type === 'blog' ? `/blog/${item.slug.replace(/^blog\//, '')}` : `/blog/${item.slug}`;
 
-  const renderContentCard = (item: ContentItem) => (
-    <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-    <div className="aspect-video bg-muted overflow-hidden">
-        <img 
-          src={isBrokenImageUrl(item.featured_image_url) ? getBlogFallbackImage(item.slug) : item.featured_image_url!}
-          alt={item.title}
-          className="w-full h-full object-cover"
-          loading="lazy"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = getBlogFallbackImage(item.slug);
-          }}
-        />
-      </div>
-      <CardHeader>
-        <div className="flex items-center gap-2 mb-2">
-          <Badge variant={item.type === 'blog' ? 'default' : 'secondary'}>
-            {item.type === 'blog' ? (
-              <><FileText className="h-3 w-3 mr-1" /> Blog</>
-            ) : (
-              <><Newspaper className="h-3 w-3 mr-1" /> News</>
-            )}
-          </Badge>
-          {item.categories && item.categories[0] && (
-            <Badge variant="outline">{item.categories[0]}</Badge>
-          )}
+  const imageFor = (slug: string, url: string | null) =>
+    isBrokenImageUrl(url) ? getBlogFallbackImage(slug) : url!;
+
+  const showFeatured = !searchTerm && !selectedCategory && activeTab === 'all';
+  const featured = showFeatured ? filteredContent[0] : undefined;
+  const listContent = featured ? filteredContent.slice(1) : filteredContent;
+
+  const ImageCard = ({ item, wide = false }: { item: ContentItem; wide?: boolean }) => (
+    <div>
+      <Link
+        to={getItemLink(item)}
+        className="group relative block overflow-hidden rounded-2xl"
+      >
+        <div className={wide ? "aspect-[21/9]" : "aspect-[3/2]"}>
+          <img
+            src={imageFor(item.slug, item.featured_image_url)}
+            alt={item.title}
+            className="h-full w-full object-cover"
+            loading="lazy"
+            onError={(e) => { (e.target as HTMLImageElement).src = getBlogFallbackImage(item.slug); }}
+          />
         </div>
-        <CardTitle className="line-clamp-2">
-          <Link 
-            to={getItemLink(item)}
-            className="hover:text-primary transition-colors"
+        <div
+          className="absolute inset-x-0 bottom-0 p-4"
+          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%)" }}
+        >
+          <h3
+            className={`text-white font-medium overflow-hidden group-hover:underline ${wide ? "text-xl md:text-2xl" : "text-[15px] md:text-base"}`}
+            style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}
           >
             {item.title}
-          </Link>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground line-clamp-3 mb-4">
-          {item.excerpt}
-        </p>
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            {formatDate(item.published_at || item.created_at)}
-          </div>
-          {item.source_url && (
-            <a 
-              href={item.source_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 hover:text-primary"
-            >
-              <ExternalLink className="h-3 w-3" />
-              Source
-            </a>
-          )}
+          </h3>
         </div>
-      </CardContent>
-    </Card>
+      </Link>
+      <p className="mt-2 text-[11px] md:text-xs text-muted-foreground">
+        {broadCategoryOf(item.categories)} · {formatDate(item.published_at || item.created_at)}
+      </p>
+    </div>
   );
 
   return (
@@ -228,26 +217,9 @@ const NewsPage = () => {
         canonical="https://visas.guide/blog"
         keywords={["visa news", "immigration updates", "travel restrictions", "visa policy changes", "border news", "travel updates 2026"]}
       />
-      <script 
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebPage",
-            "name": "Latest Visa & Travel News - Visas Guide",
-            "description": "Stay updated with the latest visa requirements, travel restrictions, and immigration news from around the world. Real-time updates on visa policy changes.",
-            "url": "https://visas.guide/blog",
-            "mainEntity": {
-              "@type": "Blog",
-              "name": "Visa & Travel News",
-              "description": "Latest updates on visa requirements and travel policies worldwide"
-            }
-          })
-        }}
-      />
 
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-4">Latest Visa & Travel News</h1>
@@ -270,31 +242,25 @@ const NewsPage = () => {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
             <TabsList>
               <TabsTrigger value="all">All Content</TabsTrigger>
-              <TabsTrigger value="blog">
-                <FileText className="h-4 w-4 mr-1" />
-                Blog Posts
-              </TabsTrigger>
-              <TabsTrigger value="news">
-                <Newspaper className="h-4 w-4 mr-1" />
-                News Articles
-              </TabsTrigger>
+              <TabsTrigger value="blog">Blog Posts</TabsTrigger>
+              <TabsTrigger value="news">News Articles</TabsTrigger>
             </TabsList>
           </Tabs>
 
-          <div className="flex flex-wrap gap-2 mb-8">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant={selectedCategory === null ? "default" : "outline"}
               size="sm"
-              onClick={() => setSelectedCategory(null)}
+              onClick={() => { setSelectedCategory(null); setPage(1); }}
             >
               All Categories
             </Button>
-            {categories.map((category) => (
+            {BROAD_CATEGORIES.map((category) => (
               <Button
                 key={category}
                 variant={selectedCategory === category ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSelectedCategory(category)}
+                onClick={() => { setSelectedCategory(category); setPage(1); }}
               >
                 {category}
               </Button>
@@ -302,130 +268,106 @@ const NewsPage = () => {
           </div>
         </div>
 
-        {/* Featured Articles - only show on All tab without filters */}
-        {featuredArticles && featuredArticles.length > 0 && !searchTerm && !selectedCategory && activeTab === 'all' && (
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold mb-6">Featured Stories</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredArticles.map((article) => (
-                <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="aspect-video bg-muted overflow-hidden">
-                      <img 
-                        src={isBrokenImageUrl(article.featured_image_url) ? getBlogFallbackImage(article.slug) : article.featured_image_url!}
-                        alt={article.title}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = getBlogFallbackImage(article.slug);
-                        }}
-                      />
-                    </div>
-                  <CardHeader>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="destructive">Featured</Badge>
-                      {article.categories && article.categories[0] && (
-                        <Badge variant="secondary">{article.categories[0]}</Badge>
-                      )}
-                    </div>
-                    <CardTitle className="line-clamp-2">
-                      <Link 
-                        to={`/blog/${article.slug}`}
-                        className="hover:text-primary transition-colors"
-                      >
-                        {article.title}
-                      </Link>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground line-clamp-3 mb-4">
-                      {article.excerpt}
-                    </p>
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        {formatDate(article.published_at!)}
-                      </div>
-                      {article.source_url && (
-                        <a 
-                          href={article.source_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 hover:text-primary"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          Source
-                        </a>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Horizontal Banner */}
-        <div className="my-8">
-          <AffiliateBannerContainer position="horizontal-banner" />
-        </div>
-
-        {/* All Content */}
-        <section>
-          <h2 className="text-2xl font-bold mb-6">
-            {searchTerm || selectedCategory 
-              ? 'Search Results' 
-              : activeTab === 'blog' 
-                ? 'Latest Blog Posts' 
-                : activeTab === 'news' 
-                  ? 'Latest News' 
-                  : 'Latest Content'}
-          </h2>
-          
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <div className="aspect-video bg-muted"></div>
-                  <CardHeader>
-                    <div className="space-y-2">
-                      <div className="h-4 bg-muted rounded w-3/4"></div>
-                      <div className="h-4 bg-muted rounded w-1/2"></div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="h-3 bg-muted rounded"></div>
-                      <div className="h-3 bg-muted rounded"></div>
-                      <div className="h-3 bg-muted rounded w-2/3"></div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : filteredContent && filteredContent.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredContent.slice(0, page * ITEMS_PER_PAGE).map(renderContentCard)}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_240px] gap-8">
+          <div>
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="aspect-[3/2] rounded-2xl bg-muted animate-pulse" />
+                ))}
               </div>
-              {filteredContent.length > page * ITEMS_PER_PAGE && (
-                <div className="flex justify-center mt-8">
-                  <Button variant="outline" size="lg" onClick={() => setPage(p => p + 1)}>
-                    Load More ({filteredContent.length - page * ITEMS_PER_PAGE} remaining)
-                  </Button>
+            ) : filteredContent.length > 0 ? (
+              <>
+                {featured && (
+                  <div className="mb-6">
+                    <ImageCard item={featured} wide />
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {listContent.slice(0, page * ITEMS_PER_PAGE).map((item) => (
+                    <ImageCard key={item.id} item={item} />
+                  ))}
                 </div>
-              )}
-            </>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg">No content found.</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Try adjusting your search terms or check back later for new updates.
-              </p>
-            </div>
-          )}
-        </section>
+
+                {listContent.length > page * ITEMS_PER_PAGE && (
+                  <div className="flex justify-center mt-8">
+                    <Button variant="outline" size="lg" onClick={() => setPage(p => p + 1)}>
+                      Load More ({listContent.length - page * ITEMS_PER_PAGE} remaining)
+                    </Button>
+                  </div>
+                )}
+
+                <div className="my-8">
+                  <AffiliateBannerContainer position="horizontal-banner" />
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground text-lg">No content found.</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Try adjusting your search terms or check back later for new updates.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <aside className="space-y-8">
+            <section>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4">
+                Most read guides
+              </h2>
+              <ol className="space-y-4">
+                {(mostRead || []).map((post, index) => (
+                  <li key={post.id}>
+                    <Link
+                      to={post.slug.startsWith('blog/') ? `/${post.slug}` : `/${post.slug}`}
+                      className="flex items-start gap-3 group"
+                    >
+                      <span className="text-sm font-semibold text-muted-foreground w-4 shrink-0">{index + 1}</span>
+                      <img
+                        src={imageFor(post.slug, post.featured_image_url)}
+                        alt={post.title}
+                        className="h-10 w-10 rounded-md object-cover shrink-0"
+                        loading="lazy"
+                        onError={(e) => { (e.target as HTMLImageElement).src = getBlogFallbackImage(post.slug); }}
+                      />
+                      <span className="min-w-0">
+                        <span className="block text-sm leading-snug line-clamp-2 group-hover:underline">
+                          {post.title}
+                        </span>
+                        <span className="block text-[11px] text-muted-foreground mt-0.5">
+                          {(post.view_count || 0).toLocaleString()} views
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ol>
+            </section>
+
+            <section>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4">
+                Trending destinations
+              </h2>
+              <ul className="space-y-2">
+                {(trendingDestinations || []).map((country) => (
+                  <li key={country.id}>
+                    <Link
+                      to={`/countries/${country.slug}`}
+                      className="text-sm text-foreground hover:text-primary hover:underline"
+                    >
+                      {country.flag_emoji ? `${country.flag_emoji} ` : ""}{country.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </aside>
+        </div>
       </main>
-      
+
       <Footer />
     </div>
   );

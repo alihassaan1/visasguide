@@ -149,8 +149,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       parts.forEach((chunk, i) => {
         const trimmed = chunk.replace(/<p>\s*<\/p>/gi, '').trim();
         if (trimmed) {
+          const before = editor.getLength();
           editor.clipboard.dangerouslyPasteHTML(index, trimmed, 'user');
-          index = editor.getLength() - 1; // move to end of freshly-pasted content
+          // Move to end of the just-pasted fragment (not the whole document).
+          index += editor.getLength() - before;
         }
         if (i < tables.length) {
           editor.insertEmbed(index, 'htmlTable', tables[i], 'user');

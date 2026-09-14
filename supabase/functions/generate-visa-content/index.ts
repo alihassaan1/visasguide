@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { normalizeContentTypography } from "../_shared/contentTypography.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -55,7 +56,7 @@ CRITICAL ANTI-AI DETECTION (Google penalizes AI content):
 - Write in YOUR personal voice - "I've researched...", "What I've found...", "In my experience covering visa policies..."
 - Use contractions naturally: you'll, don't, it's, can't, we're, there's, that's, won't
 - Start some sentences with And, But, So, Plus, Now - real writers do this
-- Include parenthetical asides (readers find these helpful) and em-dashes for emphasis—like this
+- Include helpful parenthetical asides, but never use em dashes or en dashes
 - Vary paragraph lengths dramatically: some very short, others 4-5 sentences
 - AVOID bullet point lists - weave information into flowing prose instead
 - Ask rhetorical questions: "So what does this actually mean for you?"
@@ -257,7 +258,7 @@ Quality: Ultra high resolution, suitable for hero banner.`;
     }
 
     const data = await response.json();
-    const generatedContent = data.choices[0].message.content;
+    const generatedContent = normalizeContentTypography(data.choices[0].message.content);
     const tokensUsed = data.usage?.total_tokens;
     const responseTime = Date.now() - startTime;
 

@@ -1,5 +1,6 @@
 // Generates SEO article from a visa_policy_changes row and links it back
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { normalizeContentTypography } from "../_shared/contentTypography.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -44,6 +45,7 @@ Requirements:
 - End with 3-4 FAQ entries as H3s with concise answers.
 - Cite the source at the end.
 - Tone: authoritative, journalistic, concise.
+- Never use em dashes or en dashes. Use commas, parentheses, colons, or standard hyphens instead.
 - Output clean HTML (no <html>/<body>, just content tags: <p>, <h2>, <h3>, <ul>, <li>, <a>).
 - Do NOT include any <script> or JSON-LD tags.`;
 
@@ -60,7 +62,7 @@ Requirements:
   });
   if (!res.ok) throw new Error(`AI ${res.status}: ${await res.text()}`);
   const json = await res.json();
-  return json.choices?.[0]?.message?.content || "";
+  return normalizeContentTypography(json.choices?.[0]?.message?.content || "");
 }
 
 Deno.serve(async (req) => {

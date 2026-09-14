@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { normalizeContentTypography } from "../_shared/contentTypography.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -138,6 +139,7 @@ Requirements:
 - Add a FAQ section with 3-4 common questions
 - Make it SEO-optimized for the topic
 - DO NOT use phrases like "It is important to note", "Furthermore", "In conclusion"
+- Never use em dashes or en dashes. Use commas, parentheses, colons, or standard hyphens instead
 
 Return ONLY valid JSON:
 {
@@ -189,12 +191,12 @@ Return ONLY valid JSON:
           .insert({
             slug: guide.slug,
             title: guide.title,
-            content: guideData.content,
-            excerpt: guideData.excerpt,
+            content: normalizeContentTypography(guideData.content || ""),
+            excerpt: normalizeContentTypography(guideData.excerpt || ""),
             guide_type: guide.guide_type,
             difficulty: guide.difficulty,
-            seo_title: guideData.seo_title,
-            seo_description: guideData.seo_description,
+            seo_title: normalizeContentTypography(guideData.seo_title || ""),
+            seo_description: normalizeContentTypography(guideData.seo_description || ""),
             read_time_minutes: guideData.read_time_minutes || 8,
             is_featured: ["us-esta-application-guide", "schengen-visa-requirements", "uk-visitor-visa-guide"].includes(guide.slug),
             published_at: new Date().toISOString(),

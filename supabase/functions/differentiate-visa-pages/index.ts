@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { normalizeContentTypography } from "../_shared/contentTypography.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -56,7 +57,7 @@ NON-NEGOTIABLE RULES:
    d) "If denied / alternatives" — what ${from.name} citizens typically do next: ETA, transit visa, third-country routing, or appealing.
    e) "Common mistakes on this corridor" — 2 specific pitfalls ${from.name} applicants make when applying for ${to.name}.
    f) "Two FAQs unique to ${from.name}→${to.name}" — questions that would only matter on this exact corridor.
-4. Write in YOUR voice — contractions, "I've checked", "what I keep seeing", em-dashes—like this. Vary sentence rhythm.
+4. Write in YOUR voice with contractions such as "I've checked" and "what I keep seeing". Never use em dashes or en dashes. Vary sentence rhythm.
 5. FORBIDDEN: "It is important to note", "Furthermore", "Additionally", "In conclusion", "It should be noted", generic "always check with the embassy" closers.
 6. End with a single-sentence source line: "Last verified against official ${to.name} immigration sources, ${new Date().getFullYear()}."
 
@@ -215,6 +216,7 @@ serve(async (req) => {
         const data = await resp.json();
         let html = data.choices?.[0]?.message?.content ?? "";
         html = html.replace(/^```(?:html)?\s*/i, "").replace(/```\s*$/i, "").trim();
+        html = normalizeContentTypography(html);
         // Mark as differentiated so we don't re-run it
         const wrapped = `<div ${MARKER} data-corridor="${from.slug}-to-${to.slug}">\n${html}\n</div>`;
         const wordCount = html.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;

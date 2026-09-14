@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { normalizeContentTypography } from "../_shared/contentTypography.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -92,7 +93,7 @@ FACTS (use these exactly, never invent different numbers):
 - ETIAS is a travel authorization, NOT a visa
 - Only apply via the official EU portal travel-europe.europa.eu — never trust look-alike sites
 
-VOICE: human, conversational, first-person where natural. Use contractions. Vary sentence length. No "In conclusion", no "It is important to note", no "Furthermore". Avoid bullet lists inside prose fields — write flowing paragraphs.
+VOICE: human, conversational, first-person where natural. Use contractions. Vary sentence length. No "In conclusion", no "It is important to note", no "Furthermore". Never use em dashes or en dashes. Avoid bullet lists inside prose fields, write flowing paragraphs.
 
 Return STRICT JSON with this exact shape (no markdown, no commentary):
 {
@@ -135,7 +136,7 @@ async function generateOne(country: { slug: string; name: string; nationality: s
   }
   const json = await res.json();
   const raw = json.choices?.[0]?.message?.content ?? "{}";
-  return JSON.parse(raw);
+  return JSON.parse(normalizeContentTypography(raw));
 }
 
 serve(async (req) => {

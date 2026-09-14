@@ -9,6 +9,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { normalizeContentTypography } from "../_shared/contentTypography.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -213,7 +214,13 @@ function buildCorrectContent(from: string, to: string, truth: ReqType): {
       excerpt = `Visa and entry rules for ${from} citizens travelling to ${to}.`;
   }
 
-  return { content, title, metaTitle, metaDescription, excerpt };
+  return {
+    content: normalizeContentTypography(content),
+    title: normalizeContentTypography(title),
+    metaTitle: normalizeContentTypography(metaTitle),
+    metaDescription: normalizeContentTypography(metaDescription),
+    excerpt: normalizeContentTypography(excerpt),
+  };
 }
 
 serve(async (req) => {

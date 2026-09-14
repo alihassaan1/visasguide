@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { normalizeContentTypography } from "../_shared/contentTypography.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -42,7 +43,7 @@ CRITICAL WRITING RULES:
 - Write ${TARGET_WORD_COUNT} words of flowing, conversational prose
 - Use contractions naturally: you'll, don't, it's, can't, we're, there's
 - Start some sentences with And, But, So, Plus, Now
-- Include parenthetical asides (readers find these helpful) and em-dashes—like this
+- Include helpful parenthetical asides, but never use em dashes or en dashes
 - Vary paragraph lengths: some short (1-2 sentences), others longer (4-5 sentences)
 - Ask rhetorical questions: "So what does this mean for you?"
 - Add practical observations: "Here's what caught my attention...", "The interesting part..."
@@ -294,6 +295,7 @@ serve(async (req) => {
           .replace(/^```\w*\s*\n?/gm, '')
           .replace(/```\s*$/gm, '')
           .trim();
+        newContent = normalizeContentTypography(newContent);
 
         // Update the page
         const { error: updateError } = await supabase

@@ -2,6 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 import { requireAdmin } from "../_shared/adminAuth.ts";
+import { normalizeContentTypography } from "../_shared/contentTypography.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -163,7 +164,7 @@ serve(async (req) => {
 
         if (gwResp.ok) {
           const gwData = await gwResp.json();
-          const generatedContent = gwData.choices?.[0]?.message?.content?.trim() ?? '';
+          const generatedContent = normalizeContentTypography(gwData.choices?.[0]?.message?.content?.trim() ?? '');
           return new Response(
             JSON.stringify({ content: generatedContent, tokensUsed: gwData.usage?.total_tokens || 0, model: 'google/gemini-2.5-flash' }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -208,7 +209,7 @@ serve(async (req) => {
       }
 
       const data = await response.json();
-      const generatedContent = data.choices[0].message.content.trim();
+      const generatedContent = normalizeContentTypography(data.choices[0].message.content.trim());
 
       return new Response(
         JSON.stringify({ 
@@ -233,7 +234,8 @@ serve(async (req) => {
 
     let systemPrompt = `You are an expert travel and visa content writer for Visas.Guide.
     Create SEO-optimized, accurate, and helpful content about visa requirements and travel documentation.
-    Format your response in HTML with proper headings, paragraphs, lists, and structure.`;
+    Format your response in HTML with proper headings, paragraphs, lists, and structure.
+    Never use em dashes or en dashes. Use commas, parentheses, colons, or standard hyphens instead.`;
 
     let userPrompt = prompt;
 
@@ -312,7 +314,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const generatedContent = data.choices[0].message.content;
+    const generatedContent = normalizeContentTypography(data.choices[0].message.content);
     const tokensUsed = data.usage?.total_tokens || 0;
     const inputTokens = data.usage?.prompt_tokens;
     const outputTokens = data.usage?.completion_tokens;
@@ -345,7 +347,12 @@ serve(async (req) => {
       const metaData = await metaResponse.json();
       const metaContent = metaData.choices[0].message.content;
       try {
-        metadata = JSON.parse(metaContent);
+        const parsedMetadata = JSON.parse(metaContent);
+        metadata = {
+          ...parsedMetadata,
+          meta_description: normalizeContentTypography(parsedMetadata.meta_description || ''),
+          title: normalizeContentTypography(parsedMetadata.title || ''),
+        };
       } catch (e) {
         console.error('Failed to parse metadata:', e);
       }

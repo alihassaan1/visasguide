@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { normalizeContentTypography } from "../_shared/contentTypography.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -292,7 +293,7 @@ CRITICAL ANTI-AI DETECTION RULES:
 - Start sentences with And, But, So, Plus, Now - real writers do this
 - Include conversational asides in parentheses (readers love these touches)
 - Mix paragraph lengths: some very short (1-2 sentences), others longer (4-5 sentences)
-- Use em-dashes for emphasis—like this—instead of formal punctuation
+- Never use em dashes or en dashes. Use commas, parentheses, colons, or standard hyphens instead
 - Ask rhetorical questions to engage readers: "So what does this mean for you?"
 - Add personal observations: "Here's what caught my attention...", "The interesting part is..."
 - Use specific details and numbers (not rounded estimates)
@@ -368,11 +369,11 @@ Remember: NO bullet points, write in flowing prose, make it sound like a real jo
 
       const result = JSON.parse(jsonMatch[0]);
       return {
-        title: result.title || title,
-        content: result.content || content,
-        seo_title: result.seo_title || result.title || title,
-        seo_description: result.seo_description || result.excerpt || "",
-        excerpt: result.excerpt || "",
+        title: normalizeContentTypography(result.title || title),
+        content: normalizeContentTypography(result.content || content),
+        seo_title: normalizeContentTypography(result.seo_title || result.title || title),
+        seo_description: normalizeContentTypography(result.seo_description || result.excerpt || ""),
+        excerpt: normalizeContentTypography(result.excerpt || ""),
         tags: Array.isArray(result.tags) ? result.tags : [],
         country: result.country || null,
         visa_type: result.visa_type || null,

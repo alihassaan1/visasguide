@@ -26,13 +26,13 @@ const templates = {
   visa_free: {
     openings: [
       "Great news for {FROM} travelers! You can visit {TO} without applying for a visa beforehand. This visa-free arrangement makes {TO} one of the most accessible destinations for {FROM} passport holders.",
-      "Planning a trip to {TO}? As a {FROM} passport holder, you're in luck—no visa application needed. You can simply pack your bags and head to the airport.",
+      "Planning a trip to {TO}? As a {FROM} passport holder, you're in luck,no visa application needed. You can simply pack your bags and head to the airport.",
       "Here's what {FROM} citizens will be happy to hear: {TO} offers visa-free entry for your passport. This means less paperwork and more time to plan your actual adventure.",
       "{FROM} nationals enjoy visa-free access to {TO}, making it incredibly convenient to explore this beautiful destination. No consulate visits, no application fees, no waiting periods.",
       "If you hold a {FROM} passport, visiting {TO} just got easier. The visa-free policy between these two countries means you can travel with minimal bureaucratic hassle.",
       "Excellent news for {FROM} travelers planning to visit {TO}! You won't need to apply for a visa in advance. Just grab your passport and you're ready to go.",
       "The diplomatic relationship between {FROM} and {TO} means hassle-free travel for you. Visa-free entry is available, saving you time and application fees.",
-      "Dreaming of {TO}? As a {FROM} citizen, your dream trip is easier than you think. No visa required—just a valid passport and your sense of adventure.",
+      "Dreaming of {TO}? As a {FROM} citizen, your dream trip is easier than you think. No visa required,just a valid passport and your sense of adventure.",
       "{TO} welcomes {FROM} passport holders without requiring a visa. This open-door policy reflects the strong ties between these two nations.",
       "For {FROM} travelers eyeing {TO} as their next destination, here's the good news: visa-free entry is available to you, making travel planning straightforward.",
     ],
@@ -61,7 +61,7 @@ const templates = {
       "One of the best parts of visa-free travel? No visa application fees! You'll only need to budget for your flights, accommodation, and spending money. Some airports may charge a small departure tax, so keep a little extra cash handy.",
       "Traveling visa-free to {TO} means zero visa costs. Your only expenses will be standard travel costs like flights and hotels. Some countries charge airport taxes, typically $20-50, payable upon departure.",
       "No visa fees to worry about! The visa-free arrangement saves you both money and the hassle of application fees. Do check if {TO} has any airport or tourist taxes that might apply.",
-      "The financial benefit of visa-free travel is significant—you save the typical $50-160 that visa applications often cost. Just remember to budget for potential airport taxes or tourism fees at your destination.",
+      "The financial benefit of visa-free travel is significant,you save the typical $50-160 that visa applications often cost. Just remember to budget for potential airport taxes or tourism fees at your destination.",
       "With no visa required, your travel budget stretches further. You won't pay any consulate fees or visa processing charges. The only fees might be minor departure taxes when leaving {TO}.",
     ],
     tips: [
@@ -73,7 +73,7 @@ const templates = {
     ],
     faqs: [
       { q: "How long can {FROM} citizens stay in {TO} without a visa?", a: "Typically, visa-free stays allow 30 to 90 days depending on the bilateral agreement between {FROM} and {TO}. Check the specific duration as it varies by country pair." },
-      { q: "Can I extend my visa-free stay in {TO}?", a: "Extensions are sometimes possible by applying at the local immigration office. However, policies vary—some countries allow extensions while others require you to leave and re-enter." },
+      { q: "Can I extend my visa-free stay in {TO}?", a: "Extensions are sometimes possible by applying at the local immigration office. However, policies vary,some countries allow extensions while others require you to leave and re-enter." },
       { q: "Do I need travel insurance to enter {TO}?", a: "While not always mandatory for visa-free entry, travel insurance is highly recommended. It protects you against medical emergencies, trip cancellations, and other unexpected events." },
       { q: "Can I work in {TO} on visa-free entry?", a: "No, visa-free entry is typically for tourism, business meetings, or visiting family only. Any paid employment requires a separate work visa or permit." },
       { q: "What if my passport expires soon?", a: "Most countries require at least 6 months passport validity beyond your planned stay. If your passport expires sooner, renew it before traveling to avoid entry denial." },
@@ -81,10 +81,10 @@ const templates = {
   },
   visa_on_arrival: {
     openings: [
-      "{FROM} citizens can obtain a visa on arrival when traveling to {TO}. This convenient option means you don't need to visit an embassy beforehand—just apply when you land at your destination.",
+      "{FROM} citizens can obtain a visa on arrival when traveling to {TO}. This convenient option means you don't need to visit an embassy beforehand,just apply when you land at your destination.",
       "Good news for {FROM} passport holders: {TO} offers visa on arrival facilities. You can get your travel authorization right at the airport, making trip planning more flexible.",
       "Traveling to {TO} from {FROM}? You're eligible for a visa on arrival, which saves you the hassle of pre-trip embassy visits. The process is straightforward and typically takes 15-30 minutes.",
-      "The visa on arrival option for {FROM} travelers to {TO} is a real time-saver. No appointments, no mailing your passport—just apply at the immigration counter when you arrive.",
+      "The visa on arrival option for {FROM} travelers to {TO} is a real time-saver. No appointments, no mailing your passport,just apply at the immigration counter when you arrive.",
       "{TO} makes it easy for {FROM} nationals with its visa on arrival program. This means you can book last-minute trips without worrying about visa processing times.",
     ],
     requirements: [
@@ -109,7 +109,7 @@ const templates = {
       "Here's what to expect: after your flight, locate the VOA area (usually well-signposted), complete any forms, submit your passport with fee, wait for processing, collect your visa, then proceed to main immigration for entry stamp.",
     ],
     costs: [
-      "The visa on arrival fee for {FROM} citizens entering {TO} typically ranges from $20-50 USD, depending on the visa duration. Bring cash—many counters don't accept cards. Exact change is helpful.",
+      "The visa on arrival fee for {FROM} citizens entering {TO} typically ranges from $20-50 USD, depending on the visa duration. Bring cash,many counters don't accept cards. Exact change is helpful.",
       "Budget around $25-50 USD for your {TO} visa on arrival. Payment is usually in USD or local currency. ATMs are often available before the visa counter if you need cash.",
       "Visa on arrival fees vary but expect to pay $20-50 for a standard tourist visa. Some airports accept credit cards, but cash (USD) is more reliable. Keep the receipt for your records.",
       "The cost is reasonable: typically $25-35 USD for single-entry tourist visas, possibly more for multiple-entry options. Bring exact change when possible to speed up the process.",
@@ -163,7 +163,7 @@ const templates = {
       "The {TO} e-visa fee for {FROM} citizens is typically $25-75 USD, depending on visa type and duration. Payment is made online via credit/debit card. Some portals add processing fees.",
       "Budget around $30-60 for your e-visa application. This is paid online during the application process. Most portals accept Visa, Mastercard, and sometimes PayPal.",
       "E-visa fees range from $25-100 depending on the visa category. Single-entry tourist visas are usually cheapest. Multiple-entry and longer-duration visas cost more.",
-      "The online visa costs approximately $35-50 USD for standard tourist applications. Be aware that some third-party sites charge higher fees—always use the official government portal.",
+      "The online visa costs approximately $35-50 USD for standard tourist applications. Be aware that some third-party sites charge higher fees,always use the official government portal.",
       "Expect to pay $25-75 for your e-visa. The exact amount depends on visa type and processing speed (rush processing costs extra). Payment is secure and made online.",
     ],
     tips: [
@@ -218,7 +218,7 @@ const templates = {
       "Plan for visa expenses of $80-180 total, including the visa fee, processing charges, and any required biometric enrollment. Express processing, if available, costs extra.",
     ],
     tips: [
-      "Pro tip: Apply well in advance—at least 4-6 weeks before your trip. Peak travel seasons see higher application volumes and longer processing times.",
+      "Pro tip: Apply well in advance,at least 4-6 weeks before your trip. Peak travel seasons see higher application volumes and longer processing times.",
       "Insider advice: Present organized documents in the order listed on the checklist. This creates a good impression and speeds up verification.",
       "Travel tip: Keep copies of everything you submit. If your application is delayed, you'll need to reference these documents for follow-up inquiries.",
       "Experienced traveler's note: Answer all application questions honestly. Inconsistencies between your form and interview answers are a common reason for denial.",
@@ -241,7 +241,7 @@ const templates = {
       "Entry requirements from {FROM} to {TO} depend on several factors including your purpose of visit and intended length of stay. Here's a comprehensive overview.",
     ],
     requirements: [
-      "Entry requirements typically include: a valid {FROM} passport with adequate validity (usually 6 months beyond your stay), and documentation appropriate to your entry type—whether visa-free, visa on arrival, or advance visa.",
+      "Entry requirements typically include: a valid {FROM} passport with adequate validity (usually 6 months beyond your stay), and documentation appropriate to your entry type,whether visa-free, visa on arrival, or advance visa.",
       "Standard requirements for {FROM} travelers include: passport with at least 6 months validity, proof of onward or return travel, accommodation arrangements, and sufficient funds for your stay.",
       "General requirements: {FROM} passport meeting validity requirements, travel itinerary, proof of accommodation, financial means to support your stay, and any visa or travel authorization specific to your situation.",
       "Be prepared with: valid passport from {FROM}, return or onward tickets, hotel reservations or accommodation proof, and documentation of sufficient funds. Specific requirements may vary based on your entry category.",

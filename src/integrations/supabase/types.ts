@@ -2199,6 +2199,10 @@ export type Database = {
         Args: { p_country_id: string }
         Returns: undefined
       }
+      normalize_public_content_typography: {
+        Args: { value: string }
+        Returns: string
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }

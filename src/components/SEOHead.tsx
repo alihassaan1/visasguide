@@ -25,9 +25,11 @@ const SEOHead = ({
   author = "Visas.Guide Editorial Team",
   noIndex = false
 }: SEOHeadProps) => {
+  // Titles use pipes as separators, never long dashes
+  const cleanTitle = title.replace(/\s*[—–]\s*/g, " | ").replace(/\s*\|\s*(\|\s*)+/g, " | ").trim();
   useEffect(() => {
     // Update document title
-    document.title = title;
+    document.title = cleanTitle;
 
     // Update or create meta tags
     const updateMetaTag = (name: string, content: string, isProperty = false) => {

@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Search, Menu, Rss, Globe, ChevronDown } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Menu, Globe, ChevronDown } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,25 +14,10 @@ interface MenuItem {
 
 const Header = () => {
   const navigate = useNavigate();
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [countries, setCountries] = useState<any[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const searchRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const fetchCountries = async () => {
-      const { data } = await supabase
-        .from('countries')
-        .select('id, name, slug, code, flag_emoji')
-        .order('name');
-      if (data) setCountries(data);
-    };
-    fetchCountries();
-  }, []);
 
   useEffect(() => {
     const etiasItem: MenuItem = {

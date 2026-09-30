@@ -2,7 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 import { requireAdmin } from "../_shared/adminAuth.ts";
-import { normalizeContentTypography } from "../_shared/contentTypography.ts";
+import { normalizeContentTypography, normalizeTitleTypography } from "../_shared/contentTypography.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -351,7 +351,7 @@ serve(async (req) => {
         metadata = {
           ...parsedMetadata,
           meta_description: normalizeContentTypography(parsedMetadata.meta_description || ''),
-          title: normalizeContentTypography(parsedMetadata.title || ''),
+          title: normalizeTitleTypography(parsedMetadata.title || ''),
         };
       } catch (e) {
         console.error('Failed to parse metadata:', e);

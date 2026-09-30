@@ -25,9 +25,11 @@ const SEOHead = ({
   author = "Visas.Guide Editorial Team",
   noIndex = false
 }: SEOHeadProps) => {
+  // Titles use pipes as separators, never long dashes
+  const cleanTitle = title.replace(/\s*[—–]\s*/g, " | ").replace(/\s*\|\s*(\|\s*)+/g, " | ").trim();
   useEffect(() => {
     // Update document title
-    document.title = title;
+    document.title = cleanTitle;
 
     // Update or create meta tags
     const updateMetaTag = (name: string, content: string, isProperty = false) => {
@@ -60,7 +62,7 @@ const SEOHead = ({
     }
 
     // Open Graph tags
-    updateMetaTag('og:title', title, true);
+    updateMetaTag('og:title', cleanTitle, true);
     updateMetaTag('og:description', description, true);
     updateMetaTag('og:type', ogType, true);
     updateMetaTag('og:image', ogImage, true);
@@ -80,7 +82,7 @@ const SEOHead = ({
 
     // Twitter Card tags
     updateMetaTag('twitter:card', 'summary_large_image');
-    updateMetaTag('twitter:title', title);
+    updateMetaTag('twitter:title', cleanTitle);
     updateMetaTag('twitter:description', description);
     updateMetaTag('twitter:image', ogImage);
 

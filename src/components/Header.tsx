@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Search, Menu, Rss, Globe, ChevronDown } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Menu, Globe, ChevronDown } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,25 +14,10 @@ interface MenuItem {
 
 const Header = () => {
   const navigate = useNavigate();
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [countries, setCountries] = useState<any[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const searchRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const fetchCountries = async () => {
-      const { data } = await supabase
-        .from('countries')
-        .select('id, name, slug, code, flag_emoji')
-        .order('name');
-      if (data) setCountries(data);
-    };
-    fetchCountries();
-  }, []);
 
   useEffect(() => {
     const etiasItem: MenuItem = {
@@ -78,9 +62,6 @@ const Header = () => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setSearchOpen(false);
-      }
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setOpenDropdown(null);
       }
@@ -88,17 +69,6 @@ const Header = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const filteredCountries = countries.filter(c => 
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.code.toLowerCase().includes(searchQuery.toLowerCase())
-  ).slice(0, 8);
-
-  const handleSelectCountry = (slug: string) => {
-    navigate(`/countries/${slug}`);
-    setSearchOpen(false);
-    setSearchQuery("");
-  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -168,49 +138,8 @@ const Header = () => {
             </div>
           </nav>
 
-            {/* RSS, Search and Mobile Menu */}
-            <div className="flex items-center space-x-2 shrink-0">
-              <Link 
-                to="/rss" 
-                className="hidden xl:flex items-center justify-center h-9 w-9 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
-                title="Subscribe to RSS Feed"
-              >
-                <Rss className="h-4 w-4 text-primary" />
-              </Link>
-              <div className="hidden xl:block relative" ref={searchRef}>
-              <div className="flex items-center space-x-2 bg-muted rounded-lg px-3 py-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Search country or visa type..."
-                  className="border-0 bg-transparent p-0 focus-visible:ring-0 w-36 lg:w-48"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setSearchOpen(true);
-                  }}
-                  onFocus={() => setSearchOpen(true)}
-                />
-              </div>
-              {searchOpen && searchQuery && filteredCountries.length > 0 && (
-                <div className="absolute top-full mt-2 w-80 bg-background border rounded-lg shadow-lg z-50">
-                  <div className="p-2 max-h-96 overflow-y-auto">
-                    {filteredCountries.map((country) => (
-                      <button
-                        key={country.id}
-                        onClick={() => handleSelectCountry(country.slug)}
-                        className="w-full text-left px-3 py-2 hover:bg-muted rounded-md flex items-center gap-2"
-                      >
-                        <span className="text-xl">{country.flag_emoji}</span>
-                        <div>
-                          <div className="font-medium">{country.name}</div>
-                          <div className="text-xs text-muted-foreground">{country.code}</div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+          {/* Mobile Menu */}
+          <div className="flex items-center space-x-2 shrink-0">
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon" className="xl:hidden">

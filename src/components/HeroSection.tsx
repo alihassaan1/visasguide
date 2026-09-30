@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Search, Globe, Shield, Clock } from "lucide-react";
+import { Search, Globe, Shield, Route, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -106,15 +106,19 @@ const HeroSection = () => {
           <div className="flex flex-wrap gap-2 md:gap-3 mt-8 text-sm">
             <div className="flex items-center gap-2 bg-white/95 rounded-full px-4 py-2 shadow-sm">
               <Globe className="h-4 w-4 text-emerald-600" />
-              <span className="font-semibold text-foreground">190+ Countries</span>
+              <span className="font-semibold text-foreground">200+ Countries</span>
             </div>
             <div className="flex items-center gap-2 bg-white/95 rounded-full px-4 py-2 shadow-sm">
-              <Shield className="h-4 w-4 text-teal-600" />
-              <span className="font-semibold text-foreground">2M+ Travelers</span>
+              <Route className="h-4 w-4 text-teal-600" />
+              <span className="font-semibold text-foreground">40,000+ Visa Routes</span>
             </div>
             <div className="flex items-center gap-2 bg-white/95 rounded-full px-4 py-2 shadow-sm">
-              <Clock className="h-4 w-4 text-cyan-600" />
-              <span className="font-semibold text-foreground">Updated Daily</span>
+              <Shield className="h-4 w-4 text-cyan-600" />
+              <span className="font-semibold text-foreground">ETIAS Updates</span>
+            </div>
+            <div className="flex items-center gap-2 bg-white/95 rounded-full px-4 py-2 shadow-sm">
+              <Users className="h-4 w-4 text-indigo-600" />
+              <span className="font-semibold text-foreground">All Nationalities Covered</span>
             </div>
           </div>
         </div>

@@ -16,7 +16,7 @@ const ArticleSchema = ({
   title,
   description,
   url,
-  imageUrl = "https://visas.guide/hero-travel.jpg",
+  imageUrl = "https://visas.guide/og-image.jpg",
   datePublished,
   dateModified,
   authorName = "Visas.Guide Editorial Team",

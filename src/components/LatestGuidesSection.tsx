@@ -229,7 +229,7 @@ const LatestGuidesSection = () => {
             return (
               <Link key={guide.id} to={`/${guide.slug}`}>
                 <Card className="h-full hover:shadow-lg transition-all duration-300 overflow-hidden group rounded-2xl">
-                  <div className="h-44 overflow-hidden relative rounded-t-2xl">
+                  <div className="h-44 overflow-hidden relative rounded-xl">
                     {image ? (
                       <>
                         <img 

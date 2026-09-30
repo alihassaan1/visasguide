@@ -91,7 +91,7 @@ const LatestNewsSection = () => {
           {articles.map((article) => (
             <Link key={article.id} to={`/blog/${article.slug}`}>
               <Card className="h-full hover:shadow-lg transition-all duration-300 overflow-hidden group rounded-2xl">
-                <div className="overflow-hidden h-40 rounded-t-2xl">
+                <div className="overflow-hidden h-40 rounded-xl">
                   {article.featured_image_url ? (
                     <img 
                       src={article.featured_image_url} 

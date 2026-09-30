@@ -67,6 +67,9 @@ const Footer = () => {
                 Your trusted source for accurate visa information and travel documentation guidance for global travelers.
               </p>
               <div className="flex space-x-4">
+                <a href="https://visas.guide/feed" target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground/80 transition-colors" title="Subscribe to RSS Feed" aria-label="RSS Feed">
+                  <Rss className="h-5 w-5" />
+                </a>
                 {socialLinks?.facebook && (
                   <a href={withProtocol(socialLinks.facebook)} target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground/80 transition-colors">
                     <Facebook className="h-5 w-5" />

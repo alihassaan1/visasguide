@@ -62,9 +62,6 @@ const Header = () => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setSearchOpen(false);
-      }
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setOpenDropdown(null);
       }
@@ -72,17 +69,6 @@ const Header = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const filteredCountries = countries.filter(c => 
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.code.toLowerCase().includes(searchQuery.toLowerCase())
-  ).slice(0, 8);
-
-  const handleSelectCountry = (slug: string) => {
-    navigate(`/countries/${slug}`);
-    setSearchOpen(false);
-    setSearchQuery("");
-  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

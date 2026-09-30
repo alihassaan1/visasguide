@@ -371,7 +371,7 @@ Remember: NO bullet points, write in flowing prose, make it sound like a real jo
       return {
         title: normalizeContentTypography(result.title || title),
         content: normalizeContentTypography(result.content || content),
-        seo_title: normalizeContentTypography(result.seo_title || result.title || title),
+        seo_title: normalizeTitleTypography(result.seo_title || result.title || title),
         seo_description: normalizeContentTypography(result.seo_description || result.excerpt || ""),
         excerpt: normalizeContentTypography(result.excerpt || ""),
         tags: Array.isArray(result.tags) ? result.tags : [],

@@ -93,12 +93,7 @@ const HeroSection = () => {
               <Button 
                 onClick={handleSearch}
                 size="lg"
-                className={`rounded-xl px-6 md:px-8 h-11 shadow-lg transition-all duration-300 font-semibold text-white ${
-                  fromCountry && toCountry
-                    ? "bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-700 hover:to-sky-600 shadow-blue-600/30 hover:shadow-blue-600/50 hover:shadow-xl hover:scale-[1.03] cursor-pointer"
-                    : "bg-blue-600/40 shadow-none cursor-not-allowed"
-                }`}
-                disabled={!fromCountry || !toCountry}
+                className="rounded-xl px-6 md:px-8 h-11 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-700 hover:to-sky-600 shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 hover:shadow-xl hover:scale-[1.03] transition-all duration-300 font-semibold text-white cursor-pointer"
               >
                 <Search className="h-5 w-5 md:mr-2" />
                 <span className="hidden md:inline">Search Visas</span>

@@ -138,49 +138,8 @@ const Header = () => {
             </div>
           </nav>
 
-            {/* RSS, Search and Mobile Menu */}
-            <div className="flex items-center space-x-2 shrink-0">
-              <Link 
-                to="/rss" 
-                className="hidden xl:flex items-center justify-center h-9 w-9 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
-                title="Subscribe to RSS Feed"
-              >
-                <Rss className="h-4 w-4 text-primary" />
-              </Link>
-              <div className="hidden xl:block relative" ref={searchRef}>
-              <div className="flex items-center space-x-2 bg-muted rounded-lg px-3 py-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Search country or visa type..."
-                  className="border-0 bg-transparent p-0 focus-visible:ring-0 w-36 lg:w-48"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setSearchOpen(true);
-                  }}
-                  onFocus={() => setSearchOpen(true)}
-                />
-              </div>
-              {searchOpen && searchQuery && filteredCountries.length > 0 && (
-                <div className="absolute top-full mt-2 w-80 bg-background border rounded-lg shadow-lg z-50">
-                  <div className="p-2 max-h-96 overflow-y-auto">
-                    {filteredCountries.map((country) => (
-                      <button
-                        key={country.id}
-                        onClick={() => handleSelectCountry(country.slug)}
-                        className="w-full text-left px-3 py-2 hover:bg-muted rounded-md flex items-center gap-2"
-                      >
-                        <span className="text-xl">{country.flag_emoji}</span>
-                        <div>
-                          <div className="font-medium">{country.name}</div>
-                          <div className="text-xs text-muted-foreground">{country.code}</div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+          {/* Mobile Menu */}
+          <div className="flex items-center space-x-2 shrink-0">
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon" className="xl:hidden">

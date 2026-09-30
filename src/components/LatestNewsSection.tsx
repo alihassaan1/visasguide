@@ -90,8 +90,8 @@ const LatestNewsSection = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {articles.map((article) => (
             <Link key={article.id} to={`/blog/${article.slug}`}>
-              <Card className="h-full hover:shadow-lg transition-all duration-300 overflow-hidden group">
-                <div className="overflow-hidden h-40">
+              <Card className="h-full hover:shadow-lg transition-all duration-300 overflow-hidden group rounded-2xl">
+                <div className="overflow-hidden h-40 rounded-t-2xl">
                   {article.featured_image_url ? (
                     <img 
                       src={article.featured_image_url} 

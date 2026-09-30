@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
+import { Mail, Rss, Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CURRENT_YEAR } from "@/lib/constants";
 import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";

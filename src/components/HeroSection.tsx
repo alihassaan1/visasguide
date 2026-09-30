@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Search, Globe, Shield, Clock } from "lucide-react";
+import { Search, Globe, Shield, Route, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";

@@ -12,3 +12,14 @@ export function normalizeContentTypography(value: string): string {
     .replace(/,{2,}/g, ",")
     .replace(/[ \t]{2,}/g, " ");
 }
+
+/**
+ * Title variant: long dashes become pipe separators instead of commas.
+ */
+export function normalizeTitleTypography(value: string): string {
+  return value
+    .replace(/[ \t]*[—–][ \t]*/g, " | ")
+    .replace(/(\s*\|\s*){2,}/g, " | ")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}

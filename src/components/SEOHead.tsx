@@ -62,7 +62,7 @@ const SEOHead = ({
     }
 
     // Open Graph tags
-    updateMetaTag('og:title', title, true);
+    updateMetaTag('og:title', cleanTitle, true);
     updateMetaTag('og:description', description, true);
     updateMetaTag('og:type', ogType, true);
     updateMetaTag('og:image', ogImage, true);
@@ -82,7 +82,7 @@ const SEOHead = ({
 
     // Twitter Card tags
     updateMetaTag('twitter:card', 'summary_large_image');
-    updateMetaTag('twitter:title', title);
+    updateMetaTag('twitter:title', cleanTitle);
     updateMetaTag('twitter:description', description);
     updateMetaTag('twitter:image', ogImage);
 

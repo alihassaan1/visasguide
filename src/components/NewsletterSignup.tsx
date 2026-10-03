@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Mail } from "lucide-react";
-import { trackNewsletterSignup } from "@/hooks/useAnalytics";
 
 interface NewsletterSignupProps {
   variant?: "default" | "sidebar" | "popup";
@@ -42,13 +41,6 @@ const NewsletterSignup = ({ variant = "default" }: NewsletterSignupProps) => {
         });
 
       if (error) throw error;
-
-      // Record the signup as an analytics event (powers the Newsletter Signups metric)
-      try {
-        await trackNewsletterSignup(email);
-      } catch (trackError) {
-        console.error('Newsletter signup tracking failed:', trackError);
-      }
 
       // Send confirmation email
       try {

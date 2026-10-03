@@ -13,7 +13,6 @@ import InternalLinkingModule from "@/components/InternalLinkingModule";
 import VisaRequirementsHero from "@/components/VisaRequirementsHero";
 import VisaQuickStats from "@/components/VisaQuickStats";
 import VisaSidebar from "@/components/VisaSidebar";
-import { usePageTracking } from "@/hooks/useAnalytics";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -45,7 +44,6 @@ const VisaRequirements = () => {
   const fromSlug = slugParts[0];
   const toSlug = slugParts[1];
 
-  usePageTracking(`visa-requirements-${normalizedSlug}`);
 
   // Fetch countries
   const { data: countries = [] } = useQuery({

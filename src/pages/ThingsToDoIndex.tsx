@@ -5,10 +5,8 @@ import SEOHead from "@/components/SEOHead";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin } from "lucide-react";
 import { thingsToDoData } from "@/data/thingsToDo";
-import { usePageTracking } from "@/hooks/useAnalytics";
 
 const ThingsToDoIndex = () => {
-  usePageTracking("things-to-do");
 
   return (
     <div className="min-h-screen bg-background">

@@ -1,5 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useAffiliateBanners } from "@/hooks/useSharedData";
 import AffiliateBanner from "./AffiliateBanner";
 import { useVisitorLocation } from "@/hooks/useVisitorLocation";
 import { useLocation } from "react-router-dom";
@@ -20,23 +19,6 @@ function ensureProtocol(url: string): string {
   } catch {
     return withProtocol;
   }
-}
-
-// Fire a tracking write that survives page navigation (keepalive).
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
-
-async function keepalivePost(path: string, body: unknown): Promise<void> {
-  await fetch(`${SUPABASE_URL}${path}`, {
-    method: "POST",
-    keepalive: true,
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
 }
 
 interface AffiliateBannerContainerProps {
@@ -118,21 +100,12 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
   const location = useLocation();
   const currentPath = location.pathname;
 
-  const { data: banners } = useQuery({
-    queryKey: ["affiliate-banners", position],
-    queryFn: async () => {
-      // Match banners whose positions array contains this slot,
-      // OR whose legacy single `position` field equals it (back-compat).
-      const { data, error } = await supabase
-        .from("settings_affiliates")
-        .select("*")
-        .eq("is_active", true)
-        .or(`positions.cs.{${position}},position.eq.${position}`);
-
-      if (error) throw error;
-      return (data || []) as AffiliateData[];
-    },
-  });
+  // One shared query for all active banners; match slot client-side
+  // (positions array contains slot OR legacy single `position` equals it).
+  const { data: allBanners } = useAffiliateBanners();
+  const banners = ((allBanners || []) as unknown as AffiliateData[]).filter(
+    (b) => (b.positions || []).includes(position) || b.position === position
+  );
 
   // Filter banners based on targeting rules
   const eligibleBanners = (banners || [])
@@ -152,30 +125,9 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
     return eligibleBanners[eligibleBanners.length - 1];
   }, [eligibleBanners.map(b => b.id).join(',')]);
 
-  // Track impression for the selected banner (atomic increment + analytics log)
+  // Google Analytics impression event only (no database writes)
   useEffect(() => {
     if (selectedBanner && !locationLoading) {
-      // NOTE: supabase-js query builders are lazy — they only fire when awaited/then'd.
-      void (async () => {
-        try {
-          // Atomic increment via database function
-          await supabase.rpc('increment_banner_impression', { p_banner_id: selectedBanner.id });
-
-          // Log impression event for advertiser reporting
-          await supabase.from('analytics_events').insert({
-            event_type: 'banner_impression',
-            banner_id: selectedBanner.id,
-            page_slug: currentPath,
-            search_term: selectedBanner.name,
-            referrer_source: position,
-            visitor_location: countryCode ? { country: countryCode } : null,
-          });
-        } catch (e) {
-          console.error('Banner impression tracking failed', e);
-        }
-      })();
-
-      // Track with Google Analytics
       if (typeof window !== 'undefined' && (window as any).gtag) {
         (window as any).gtag('event', 'banner_impression', {
           affiliate_name: selectedBanner.name,
@@ -186,61 +138,15 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
     }
   }, [selectedBanner?.id, locationLoading, currentPath]);
 
-
-  const detectClickSource = (): string => {
-    if (typeof window === "undefined") return "website";
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const utm = (params.get("utm_source") || "").toLowerCase();
-      const utmMedium = (params.get("utm_medium") || "").toLowerCase();
-      if (utm === "newsletter" || utm === "email" || utmMedium === "email") return "newsletter";
-      const socialSources = ["facebook", "fb", "instagram", "ig", "twitter", "x", "linkedin", "li", "tiktok", "youtube", "yt", "pinterest", "reddit", "threads"];
-      if (socialSources.includes(utm) || utmMedium === "social") return "social";
-      const ref = document.referrer || "";
-      if (ref) {
-        const host = (() => { try { return new URL(ref).hostname.toLowerCase(); } catch { return ""; } })();
-        if (/facebook\.com|instagram\.com|twitter\.com|x\.com|linkedin\.com|t\.co|tiktok\.com|youtube\.com|youtu\.be|pinterest\.com|reddit\.com|threads\.net/.test(host)) {
-          return "social";
-        }
-      }
-      return "website";
-    } catch {
-      return "website";
-    }
-  };
-
-  const handleClick = async (banner: AffiliateData) => {
-    const source = detectClickSource();
-
-    // Track click with Google Analytics
+  const handleClick = (banner: AffiliateData) => {
+    // Google Analytics click event only (no database writes)
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', 'affiliate_click', {
         affiliate_name: banner.name,
         affiliate_url: banner.target_url,
         banner_position: position,
         visitor_country: countryCode,
-        click_source: source,
       });
-    }
-
-    // Log to analytics_events + increment the counter.
-    // Uses keepalive fetch so the request survives the outbound navigation.
-    const payload = {
-      event_type: 'affiliate_click',
-      banner_id: banner.id,
-      page_slug: currentPath,
-      search_term: banner.name,
-      referrer_source: ensureProtocol(banner.target_url),
-      visitor_location: { country: countryCode || null, position, source },
-    };
-
-    try {
-      await Promise.all([
-        keepalivePost('/rest/v1/analytics_events', payload),
-        keepalivePost('/rest/v1/rpc/increment_affiliate_click', { p_banner_id: banner.id }),
-      ]);
-    } catch (e) {
-      console.error('Affiliate click tracking failed', e);
     }
   };
 

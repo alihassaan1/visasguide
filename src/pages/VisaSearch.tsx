@@ -6,11 +6,9 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WorldVisaMap from "@/components/WorldVisaMap";
 import SEOHead from "@/components/SEOHead";
-import { usePageTracking } from "@/hooks/useAnalytics";
 
 const VisaSearch = () => {
   // Track page view
-  usePageTracking('visa-search');
 
   // Fetch countries from Supabase
   const { data: countries = [] } = useQuery({

@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/accordion";
 import { Calendar, MapPin, Compass, Lightbulb, FileText } from "lucide-react";
 import { getThingsToDo } from "@/data/thingsToDo";
-import { usePageTracking } from "@/hooks/useAnalytics";
 
 const categoryColors: Record<string, string> = {
   Culture: "bg-purple-100 text-purple-800",
@@ -31,7 +30,6 @@ const ThingsToDo = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
   const data = countrySlug ? getThingsToDo(countrySlug) : undefined;
 
-  usePageTracking(`things-to-do/${countrySlug}`);
 
   if (!data) {
     return <Navigate to="/404" replace />;

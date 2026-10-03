@@ -3,7 +3,6 @@ import { Search, Globe, Shield, Route, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
-import { trackVisaSearch } from "@/hooks/useAnalytics";
 import { useQuery } from "@tanstack/react-query";
 import { CountryCombobox } from "@/components/CountryCombobox";
 
@@ -32,7 +31,6 @@ const HeroSection = () => {
     
     if (!fromSlug || !toSlug) return;
 
-    trackVisaSearch(fromCountry, toCountry).catch(console.error);
     navigate(`/visa-requirements/${fromSlug}-to-${toSlug}`);
   };
 

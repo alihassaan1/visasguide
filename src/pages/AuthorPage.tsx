@@ -8,27 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { User, BookOpen, Calendar, ArrowRight } from "lucide-react";
-import { usePageTracking } from "@/hooks/useAnalytics";
+import { useAuthors } from "@/hooks/useSharedData";
 
 const AuthorPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  usePageTracking(`author-${slug}`);
 
-  // Fetch author details
-  const { data: author, isLoading: authorLoading } = useQuery({
-    queryKey: ['author', slug],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('authors')
-        .select('*')
-        .eq('slug', slug)
-        .eq('is_active', true)
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!slug,
-  });
+  // Author details from the shared authors cache
+  const { data: allAuthors, isLoading: authorLoading } = useAuthors();
+  const author = (allAuthors || []).find((a: any) => a.slug === slug && a.is_active);
 
   // Fetch author's content pages
   const { data: contentPages = [] } = useQuery({

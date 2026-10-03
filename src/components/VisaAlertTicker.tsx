@@ -1,5 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useSiteSettings } from "@/hooks/useSharedData";
 import { AlertTriangle, Info, Bell } from "lucide-react";
 
 interface VisaAlertTickerProps {
@@ -8,27 +7,14 @@ interface VisaAlertTickerProps {
 }
 
 const VisaAlertTicker = ({ countryId, countryName }: VisaAlertTickerProps) => {
-  const { data: alerts } = useQuery({
-    queryKey: ['visa-alerts', countryId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('site_settings')
-        .select('setting_value')
-        .eq('setting_key', 'visa_alerts')
-        .maybeSingle();
-      
-      if (error) throw error;
-      
-      const allAlerts = (data?.setting_value as any[]) || [];
-      
-      // Filter alerts for this country or global alerts
-      return allAlerts.filter((alert: any) => 
-        alert.is_active && 
+  const { data: settings } = useSiteSettings();
+  const allAlerts = (settings?.visa_alerts as any[]) || [];
+  const alerts = Array.isArray(allAlerts)
+    ? allAlerts.filter((alert: any) =>
+        alert.is_active &&
         (!alert.country_id || alert.country_id === countryId || alert.is_global)
-      );
-    },
-    enabled: true
-  });
+      )
+    : [];
 
   if (!alerts || alerts.length === 0) return null;
 

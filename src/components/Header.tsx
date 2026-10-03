@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Menu, Globe, ChevronDown } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useSiteSettings } from "@/hooks/useSharedData";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 interface MenuItem {
@@ -14,12 +14,12 @@ interface MenuItem {
 
 const Header = () => {
   const navigate = useNavigate();
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { data: siteSettings } = useSiteSettings();
 
-  useEffect(() => {
+  const menuItems = useMemo<MenuItem[]>(() => {
     const etiasItem: MenuItem = {
       label: "ETIAS",
       url: "/etias",
@@ -31,33 +31,22 @@ const Header = () => {
         { label: "FAQ", url: "/etias/faq", order: 3 },
       ],
     };
-
-    const fetchMenuItems = async () => {
-      const { data } = await supabase
-        .from('site_settings')
-        .select('setting_value')
-        .eq('setting_key', 'menu_items')
-        .single();
-
-      if (data?.setting_value && Array.isArray(data.setting_value)) {
-        const items = (data.setting_value as unknown as MenuItem[]).slice();
-        if (!items.some((i) => i.url === '/etias')) {
-          items.push(etiasItem);
-        }
-        setMenuItems(items.sort((a, b) => a.order - b.order));
-      } else {
-        setMenuItems([
-          { label: "Countries", url: "/countries", order: 0 },
-          { label: "Visa Search", url: "/visa-search", order: 1 },
-          etiasItem,
-          { label: "Guides", url: "/guides", order: 3 },
-          { label: "Blog", url: "/blog", order: 4 },
-          { label: "Passport Index Rankings", url: "/passport-index", order: 5 }
-        ]);
-      }
-    };
-    fetchMenuItems();
-  }, []);
+    const stored = siteSettings?.menu_items;
+    if (stored && Array.isArray(stored)) {
+      const items = (stored as unknown as MenuItem[]).slice();
+      if (!items.some((i) => i.url === '/etias')) items.push(etiasItem);
+      return items.sort((a, b) => a.order - b.order);
+    }
+    if (!siteSettings) return [];
+    return [
+      { label: "Countries", url: "/countries", order: 0 },
+      { label: "Visa Search", url: "/visa-search", order: 1 },
+      etiasItem,
+      { label: "Guides", url: "/guides", order: 3 },
+      { label: "Blog", url: "/blog", order: 4 },
+      { label: "Passport Index Rankings", url: "/passport-index", order: 5 }
+    ];
+  }, [siteSettings]);
 
 
   useEffect(() => {

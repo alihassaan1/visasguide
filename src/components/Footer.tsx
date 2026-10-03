@@ -1,5 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useSiteSettings } from "@/hooks/useSharedData";
 import { Mail, Rss, Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CURRENT_YEAR } from "@/lib/constants";
@@ -7,29 +6,9 @@ import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer"
 import SeoLinksSection from "@/components/SeoLinksSection";
 
 const Footer = () => {
-  const { data: footerLinks } = useQuery({
-    queryKey: ['footer-links'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('site_settings')
-        .select('setting_value')
-        .eq('setting_key', 'footer_links')
-        .single();
-      return (data?.setting_value as any) || { popular_destinations: [], visa_types: [], resources: [] };
-    }
-  });
-
-  const { data: socialLinks } = useQuery({
-    queryKey: ['social-links'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('site_settings')
-        .select('setting_value')
-        .eq('setting_key', 'social_links')
-        .single();
-      return (data?.setting_value as any) || {};
-    }
-  });
+  const { data: settings } = useSiteSettings();
+  const footerLinks: any = settings?.footer_links || { popular_destinations: [], visa_types: [], resources: [] };
+  const socialLinks: any = settings?.social_links || {};
 
   const withProtocol = (url?: string) => {
     if (!url) return undefined;

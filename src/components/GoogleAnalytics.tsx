@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useSiteSettings } from "@/hooks/useSharedData";
 
 interface AnalyticsSettings {
   google_analytics_id: string;
@@ -17,60 +17,29 @@ const GoogleAnalytics = () => {
   const [settings, setSettings] = useState<AnalyticsSettings | null>(null);
   const [adsenseCode, setAdsenseCode] = useState<string>("");
   const [gdprConsentCode, setGdprConsentCode] = useState<string>("");
+  // All keys come from the single shared site_settings query
+  const { data: siteSettings } = useSiteSettings();
 
   useEffect(() => {
-    const fetchSettings = async () => {
-      // Fetch analytics settings
-      const { data: analyticsData } = await supabase
-        .from('site_settings')
-        .select('setting_value')
-        .eq('setting_key', 'analytics_settings')
-        .single();
-
-      if (analyticsData?.setting_value) {
-        const rawSettings = analyticsData.setting_value as Record<string, unknown>;
-        // Handle legacy key names (ga4_id -> google_analytics_id, clarity_id -> microsoft_clarity_id)
-        const normalizedSettings: AnalyticsSettings = {
-          google_analytics_id: (rawSettings.google_analytics_id || rawSettings.ga4_id || '') as string,
-          microsoft_clarity_id: (rawSettings.microsoft_clarity_id || rawSettings.clarity_id || '') as string,
-          google_tag_manager_id: (rawSettings.google_tag_manager_id || '') as string,
-          google_adsense_publisher_id: (rawSettings.google_adsense_publisher_id || '') as string,
-          facebook_pixel_id: (rawSettings.facebook_pixel_id || '') as string,
-          tiktok_pixel_id: (rawSettings.tiktok_pixel_id || '') as string,
-          linkedin_insight_tag: (rawSettings.linkedin_insight_tag || '') as string,
-          twitter_pixel_id: (rawSettings.twitter_pixel_id || '') as string,
-          pinterest_tag_id: (rawSettings.pinterest_tag_id || '') as string,
-        };
-        setSettings(normalizedSettings);
-      }
-
-      // Fetch AdSense code from monetization settings
-      const { data: adsenseData } = await supabase
-        .from('site_settings')
-        .select('setting_value')
-        .eq('setting_key', 'adsense_code')
-        .single();
-
-      if (adsenseData?.setting_value) {
-        const code = (adsenseData.setting_value as any)?.code || '';
-        setAdsenseCode(code);
-      }
-
-      // Fetch GDPR Consent Code
-      const { data: gdprData } = await supabase
-        .from('site_settings')
-        .select('setting_value')
-        .eq('setting_key', 'gdpr_consent_code')
-        .single();
-
-      if (gdprData?.setting_value) {
-        const code = (gdprData.setting_value as any)?.code || '';
-        setGdprConsentCode(code);
-      }
-    };
-
-    fetchSettings();
-  }, []);
+    if (!siteSettings) return;
+    const rawSettings = siteSettings.analytics_settings as Record<string, unknown> | undefined;
+    if (rawSettings) {
+      // Handle legacy key names (ga4_id -> google_analytics_id, clarity_id -> microsoft_clarity_id)
+      setSettings({
+        google_analytics_id: (rawSettings.google_analytics_id || rawSettings.ga4_id || '') as string,
+        microsoft_clarity_id: (rawSettings.microsoft_clarity_id || rawSettings.clarity_id || '') as string,
+        google_tag_manager_id: (rawSettings.google_tag_manager_id || '') as string,
+        google_adsense_publisher_id: (rawSettings.google_adsense_publisher_id || '') as string,
+        facebook_pixel_id: (rawSettings.facebook_pixel_id || '') as string,
+        tiktok_pixel_id: (rawSettings.tiktok_pixel_id || '') as string,
+        linkedin_insight_tag: (rawSettings.linkedin_insight_tag || '') as string,
+        twitter_pixel_id: (rawSettings.twitter_pixel_id || '') as string,
+        pinterest_tag_id: (rawSettings.pinterest_tag_id || '') as string,
+      });
+    }
+    setAdsenseCode((siteSettings.adsense_code as any)?.code || '');
+    setGdprConsentCode((siteSettings.gdpr_consent_code as any)?.code || '');
+  }, [siteSettings]);
 
   // Inject GDPR Consent Banner (Google CMP) - must load FIRST before any other scripts
   useEffect(() => {

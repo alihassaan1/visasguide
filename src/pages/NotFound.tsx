@@ -6,7 +6,6 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 
 const NotFound = () => {
   const location = useLocation();
@@ -19,20 +18,8 @@ const NotFound = () => {
   const redirectTo = dateArchive ? "/blog" : embeddedExternal ? "/" : null;
 
   useEffect(() => {
-    if (redirectTo) return; // don't log tracked redirects
+    if (redirectTo) return;
     console.error("404 Error: User attempted to access non-existent route:", path);
-    const track404 = async () => {
-      try {
-        await supabase.from("analytics_events").insert({
-          event_type: "404_error",
-          page_slug: path,
-          referrer_source: document.referrer || null,
-        });
-      } catch (e) {
-        console.error("Failed to track 404:", e);
-      }
-    };
-    track404();
   }, [path, redirectTo]);
 
   if (redirectTo) return <Navigate to={redirectTo} replace />;

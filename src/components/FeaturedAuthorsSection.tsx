@@ -1,23 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuthors } from "@/hooks/useSharedData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 
 const FeaturedAuthorsSection = () => {
-  const { data: authors, isLoading } = useQuery({
-    queryKey: ['featured-authors-home'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('authors')
-        .select('*')
-        .eq('is_active', true)
-        .order('articles_count', { ascending: false })
-        .limit(5);
-      return data || [];
-    }
-  });
+  const { data: allAuthors, isLoading } = useAuthors();
+  const authors = (allAuthors || [])
+    .filter((a: any) => a.is_active)
+    .sort((a: any, b: any) => (b.articles_count || 0) - (a.articles_count || 0))
+    .slice(0, 5);
 
   if (isLoading || !authors?.length) return null;
 

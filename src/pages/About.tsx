@@ -5,37 +5,31 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuthors, useCountries } from "@/hooks/useSharedData";
 import { Link } from "react-router-dom";
 import { Globe, Shield, Users, BookOpen, CheckCircle, MapPin, Mail, Award } from "lucide-react";
 
 const About = () => {
-  const { data: authors } = useQuery({
-    queryKey: ['about-authors'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('authors')
-        .select('*')
-        .eq('is_active', true)
-        .order('name');
-      return data || [];
-    }
-  });
+  const { data: allAuthors } = useAuthors();
+  const authors = (allAuthors || []).filter((a: any) => a.is_active);
+  const { data: allCountries } = useCountries();
 
-  const { data: stats } = useQuery({
+  const { data: pageStats } = useQuery({
     queryKey: ['about-stats'],
     queryFn: async () => {
-      const [countriesResult, contentResult, guidesResult] = await Promise.all([
-        supabase.from('countries').select('id', { count: 'exact', head: true }),
+      const [contentResult, guidesResult] = await Promise.all([
         supabase.from('content_pages').select('id', { count: 'exact', head: true }).eq('is_published', true),
         supabase.from('guides').select('id', { count: 'exact', head: true }).not('published_at', 'is', null)
       ]);
       return {
-        countries: countriesResult.count || 195,
         content: contentResult.count || 0,
         guides: guidesResult.count || 0
       };
     }
   });
+  const stats = pageStats
+    ? { countries: allCountries?.length || 195, ...pageStats }
+    : undefined;
 
   return (
     <div className="min-h-screen bg-background">

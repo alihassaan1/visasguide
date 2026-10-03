@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useMemo, useState } from "react";
+import { useAuthors } from "@/hooks/useSharedData";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,35 +27,17 @@ interface Author {
 }
 
 const AuthorBio = ({ writerId, compact = false }: AuthorBioProps) => {
-  // Fetch author from database
-  const { data: author } = useQuery({
-    queryKey: ['author', writerId],
-    queryFn: async () => {
-      if (!writerId) {
-        // Return a random author for display
-        const { data } = await supabase
-          .from('authors')
-          .select('*')
-          .eq('is_active', true)
-          .limit(5);
-        
-        if (data && data.length > 0) {
-          const randomIndex = Math.floor(Math.random() * data.length);
-          return data[randomIndex] as Author;
-        }
-        return null;
-      }
-      
-      const { data, error } = await supabase
-        .from('authors')
-        .select('*')
-        .eq('id', writerId)
-        .single();
-      
-      if (error) return null;
-      return data as Author;
-    },
-  });
+  // Read from the shared authors cache (one request app-wide)
+  const { data: allAuthors } = useAuthors();
+  const [randomSeed] = useState(() => Math.random());
+  const author = useMemo(() => {
+    const list = (allAuthors || []) as unknown as (Author & { is_active?: boolean })[];
+    if (!list.length) return null;
+    if (writerId) return list.find((a) => a.id === writerId) || null;
+    const active = list.filter((a) => a.is_active).slice(0, 5);
+    if (!active.length) return null;
+    return active[Math.floor(randomSeed * active.length)] as Author;
+  }, [allAuthors, writerId, randomSeed]);
 
   // Default fallback if no author found
   const displayAuthor = author || {

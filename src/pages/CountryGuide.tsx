@@ -14,7 +14,6 @@ import { useEffect, useRef, useState } from "react";
 import SEOHead from "@/components/SEOHead";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { usePageTracking } from "@/hooks/useAnalytics";
 import CountryHero from "@/components/CountryHero";
 import AuthorBio from "@/components/AuthorBio";
 import RelatedContent from "@/components/RelatedContent";
@@ -39,7 +38,6 @@ const CountryGuide = () => {
   const [showAllVisitors, setShowAllVisitors] = useState(false);
   const [visitorSearch, setVisitorSearch] = useState("");
   
-  usePageTracking(`countries/${countrySlug}`);
   
   const { data: country, isLoading: countryLoading, refetch: refetchCountry } = useQuery({
     queryKey: ['country', countrySlug],

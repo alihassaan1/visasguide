@@ -42,21 +42,6 @@ const CityPage = () => {
     enabled: !!citySlug
   });
 
-  // Fetch affiliate banners for this city/country
-  const { data: affiliateBanners } = useQuery({
-    queryKey: ['city-affiliates', city?.country?.slug],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('settings_affiliates')
-        .select('*')
-        .eq('is_active', true)
-        .or('positions.ov.{in-content,horizontal-banner},position.in.(in-content,horizontal-banner)');
-      
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!city?.country?.slug
-  });
 
   // Increment view count
   useEffect(() => {

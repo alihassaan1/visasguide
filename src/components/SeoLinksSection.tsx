@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -12,19 +13,11 @@ const PER_REGION = 10;
  * Lives above the dark footer panel on every page.
  */
 const SeoLinksSection = () => {
-  const { data: countries } = useQuery({
-    queryKey: ["seo-links-countries"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("countries")
-        .select("name, slug, continent, annual_tourists")
-        .not("continent", "is", null)
-        .order("annual_tourists", { ascending: false, nullsFirst: false })
-        .limit(300);
-      return data || [];
-    },
-    staleTime: 1000 * 60 * 60,
-  });
+  const { data: allCountries } = useCountries();
+  const countries = (allCountries || [])
+    .filter((c) => c.continent != null)
+    .sort((a, b) => (b.annual_tourists ?? -1) - (a.annual_tourists ?? -1))
+    .slice(0, 300);
 
   if (!countries?.length) return null;
 

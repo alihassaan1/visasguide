@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -96,19 +97,10 @@ const RelatedContent = ({
   });
 
   // Fetch popular destinations for internal linking
-  const { data: popularDestinations } = useQuery({
-    queryKey: ["popular-destinations-links"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("countries")
-        .select("name, slug, visa_free_destinations")
-        .not("visa_free_destinations", "is", null)
-        .order("visa_free_destinations", { ascending: false })
-        .limit(8);
-      return data || [];
-    },
-    staleTime: 10 * 60 * 1000,
-  });
+  const popularDestinations = (allCountries || [])
+    .filter((c) => c.visa_free_destinations != null)
+    .sort((a, b) => (b.visa_free_destinations as number) - (a.visa_free_destinations as number))
+    .slice(0, 8);
 
   const getIcon = (type: string) => {
     switch (type) {

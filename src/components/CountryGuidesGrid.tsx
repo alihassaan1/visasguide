@@ -1,3 +1,4 @@
+import { useCountriesWithStats } from "@/hooks/useSharedData";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,19 +7,10 @@ import { MapPin, ArrowRight, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const CountryGuidesGrid = () => {
-  const { data: countries, isLoading } = useQuery({
-    queryKey: ["featured-country-guides"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("countries")
-        .select("*, search_stats(*)")
-        .order("updated_at", { ascending: false })
-        .limit(6);
-
-      if (error) throw error;
-      return data || [];
-    },
-  });
+  const { data: allCountries, isLoading } = useCountriesWithStats();
+  const countries = [...allCountries]
+    .sort((a, b) => (b.updated_at || "").localeCompare(a.updated_at || ""))
+    .slice(0, 6);
 
   if (isLoading || !countries?.length) return null;
 

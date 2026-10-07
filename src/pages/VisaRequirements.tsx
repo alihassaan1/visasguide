@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,17 +47,7 @@ const VisaRequirements = () => {
 
 
   // Fetch countries
-  const { data: countries = [] } = useQuery({
-    queryKey: ['countries-visa-req'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('countries')
-        .select('*')
-        .order('name');
-      if (error) throw error;
-      return data;
-    }
-  });
+  const { data: countries = [] } = useCountries();
 
   const fromCountry = countries.find(c => c.slug === fromSlug);
   const toCountry = countries.find(c => c.slug === toSlug);

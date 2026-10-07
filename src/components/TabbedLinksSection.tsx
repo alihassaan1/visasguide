@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -49,18 +50,10 @@ const resources = [
 const TabbedLinksSection = () => {
   const [activeTab, setActiveTab] = useState<TabKey>("destinations");
 
-  const { data: topCountries = [] } = useQuery({
-    queryKey: ["top-countries-links"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("countries")
-        .select("name, slug, visa_free_destinations, flag_emoji")
-        .order("visa_free_destinations", { ascending: false })
-        .limit(24);
-      if (error) throw error;
-      return data || [];
-    },
-  });
+  const { data: allCountries } = useCountries();
+  const topCountries = [...(allCountries || [])]
+    .sort((a, b) => (b.visa_free_destinations || 0) - (a.visa_free_destinations || 0))
+    .slice(0, 24);
 
   const renderContent = () => {
     switch (activeTab) {

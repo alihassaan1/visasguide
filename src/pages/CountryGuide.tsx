@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { stripEmbeddedSchemas } from "@/lib/contentFormatter";
 import { useQuery } from "@tanstack/react-query";
@@ -39,20 +40,8 @@ const CountryGuide = () => {
   const [visitorSearch, setVisitorSearch] = useState("");
   
   
-  const { data: country, isLoading: countryLoading, refetch: refetchCountry } = useQuery({
-    queryKey: ['country', countrySlug],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('countries')
-        .select('*')
-        .eq('slug', countrySlug)
-        .maybeSingle();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!countrySlug
-  });
+  const { data: allCountries, isLoading: countryLoading, refetch: refetchCountry } = useCountries();
+  const country = countrySlug ? (allCountries || []).find((c) => c.slug === countrySlug) ?? null : null;
 
   const { data: guideContent } = useQuery({
     queryKey: ['country-guide-content', countrySlug],
@@ -109,18 +98,8 @@ const CountryGuide = () => {
     }
   }, [country, refetchCountry]);
 
-  // Fetch all countries for passport selector
-  const { data: allCountries } = useQuery({
-    queryKey: ['all-countries'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('countries')
-        .select('id, name, code, flag_emoji, slug')
-        .order('name');
-      if (error) throw error;
-      return data || [];
-    }
-  });
+  // Passport selector uses the same shared countries list (allCountries above)
+
 
   // Auto-detect user's passport country via IP geolocation
   const detectedCode = useDetectedCountry();

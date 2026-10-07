@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -22,19 +23,11 @@ const PassportRankings = () => {
   const [selectedContinent, setSelectedContinent] = useState<string>("all");
   const itemsPerPage = 50;
 
-  const { data: allCountries, isLoading } = useQuery({
-    queryKey: ['passport-rankings-all'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('countries')
-        .select('*')
-        .not('passport_rank', 'is', null)
-        .order('passport_rank', { ascending: true });
-
-      if (error) throw error;
-      return data;
-    }
-  });
+  const { data: sharedCountries, isLoading } = useCountries();
+  const allCountries = useMemo(
+    () => (sharedCountries || []).filter((c) => c.passport_rank != null).sort((a, b) => (a.passport_rank as number) - (b.passport_rank as number)),
+    [sharedCountries]
+  );
 
   const continents = useMemo(() => {
     if (!allCountries) return [];

@@ -1,3 +1,4 @@
+import { useCountriesWithStats } from "@/hooks/useSharedData";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,33 +7,15 @@ import { TrendingUp, Calendar, Eye } from "lucide-react";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
 
 const TrendingGuidesSection = () => {
-  const { data: trendingCountries, isLoading } = useQuery({
-    queryKey: ['trending-guides'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('countries')
-        .select(`
-          id,
-          name,
-          slug,
-          code,
-          flag_emoji,
-          search_stats:search_stats(page_view_count, search_count)
-        `)
-        .order('updated_at', { ascending: false })
-        .limit(6);
-
-      if (error) throw error;
-
-      return data?.map(country => {
-        const stats = country.search_stats?.[0];
-        return {
-          ...country,
-          totalActivity: (stats?.page_view_count || 0) + (stats?.search_count || 0) * 2
-        };
-      }).sort((a, b) => b.totalActivity - a.totalActivity);
-    }
-  });
+  const { data: allCountries, isLoading } = useCountriesWithStats();
+  const trendingCountries = [...allCountries]
+    .sort((a, b) => (b.updated_at || "").localeCompare(a.updated_at || ""))
+    .slice(0, 6)
+    .map((country) => {
+      const stats = country.search_stats?.[0];
+      return { ...country, totalActivity: (stats?.page_view_count || 0) + (stats?.search_count || 0) * 2 };
+    })
+    .sort((a, b) => b.totalActivity - a.totalActivity);
 
   if (isLoading) {
     return (

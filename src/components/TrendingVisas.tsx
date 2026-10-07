@@ -1,3 +1,4 @@
+import { useCountriesWithStats } from "@/hooks/useSharedData";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -5,38 +6,17 @@ import { TrendingUp, ArrowRight } from "lucide-react";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
 
 const TrendingVisas = () => {
-  const { data: trending = [], isLoading } = useQuery({
-    queryKey: ["trending-visas"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("countries")
-        .select(`
-          id,
-          name,
-          code,
-          slug,
-          flag_emoji,
-          search_stats(search_count, page_view_count)
-        `)
-        .order("search_stats(search_count)", { ascending: false })
-        .limit(5);
-
-      if (error) throw error;
-
-      // Sort by combined search + page view count
-      const sorted = (data || [])
-        .map((c) => ({
-          ...c,
-          totalActivity:
-            (c.search_stats?.[0]?.search_count || 0) +
-            (c.search_stats?.[0]?.page_view_count || 0) * 0.5,
-        }))
-        .sort((a, b) => b.totalActivity - a.totalActivity)
-        .slice(0, 5);
-
-      return sorted;
-    },
-  });
+  const { data: allCountries, isLoading } = useCountriesWithStats();
+  const trending = [...allCountries]
+    .map((c) => ({
+      ...c,
+      totalActivity:
+        (c.search_stats?.[0]?.search_count || 0) +
+        (c.search_stats?.[0]?.page_view_count || 0) * 0.5,
+    }))
+    .sort((a, b) => (b.search_stats?.[0]?.search_count || 0) - (a.search_stats?.[0]?.search_count || 0))
+    .slice(0, 5)
+    .sort((a, b) => b.totalActivity - a.totalActivity);
 
   if (isLoading || trending.length === 0) return null;
 

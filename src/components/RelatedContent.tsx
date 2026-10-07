@@ -20,6 +20,7 @@ const RelatedContent = ({
   maxItems = 6,
 }: RelatedContentProps) => {
   // Fetch related content pages
+  const { data: allCountries } = useCountries();
   const { data: relatedPages } = useQuery({
     queryKey: ["related-content", currentSlug, contentType, country],
     queryFn: async () => {
@@ -48,11 +49,7 @@ const RelatedContent = ({
         }
 
         // Get country guide for the destination
-        const { data: countryData } = await supabase
-          .from("countries")
-          .select("name, slug")
-          .eq("slug", country)
-          .single();
+        const countryData = (allCountries || []).find((c) => c.slug === country);
 
         if (countryData) {
           results.push({

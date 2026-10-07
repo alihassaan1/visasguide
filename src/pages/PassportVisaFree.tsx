@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Header from "@/components/Header";
@@ -41,15 +42,14 @@ const PassportVisaFree = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
 
+  const { data: allCountries } = useCountries();
+
   useEffect(() => {
+    if (!allCountries) return;
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data: p } = await supabase
-        .from("countries")
-        .select("id,name,slug,flag_emoji,passport_rank,passport_score")
-        .eq("slug", passportSlug)
-        .maybeSingle();
+      const p = allCountries.find((c) => c.slug === passportSlug);
       if (!p || cancelled) {
         setPassport(null);
         setLoading(false);
@@ -63,12 +63,8 @@ const PassportVisaFree = () => {
         .eq("from_country_id", p.id);
 
       const ids = (reqs ?? []).map((r: DestRow) => r.to_country_id);
-      const { data: countries } = await supabase
-        .from("countries")
-        .select("id,name,slug,flag_emoji,passport_rank,passport_score")
-        .in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
-
-      const byId = new Map((countries ?? []).map((c: any) => [c.id, c]));
+      const idSet = new Set(ids);
+      const byId = new Map(allCountries.filter((c) => idSet.has(c.id)).map((c: any) => [c.id, c]));
       const merged = (reqs ?? [])
         .map((r: DestRow) => {
           const c = byId.get(r.to_country_id);
@@ -82,7 +78,7 @@ const PassportVisaFree = () => {
       }
     })();
     return () => { cancelled = true; };
-  }, [passportSlug]);
+  }, [passportSlug, allCountries]);
 
   const grouped = useMemo(() => {
     const f = filter.trim().toLowerCase();

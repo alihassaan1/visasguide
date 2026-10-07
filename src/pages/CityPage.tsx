@@ -20,7 +20,6 @@ import AffiliateDisclosure from "@/components/AffiliateDisclosure";
 const CityPage = () => {
   const { countrySlug, citySlug } = useParams<{ countrySlug: string; citySlug: string }>();
   
-  usePageTracking(`${countrySlug}/${citySlug}`);
 
   // Fetch city data
   const { data: city, isLoading: cityLoading } = useQuery({

@@ -111,3 +111,30 @@ export function useAffiliateBanners() {
     ...SHARED_QUERY_OPTIONS,
   });
 }
+
+/** search_stats is joined onto countries client-side (one shared query). */
+export function useSearchStats() {
+  return useQuery({
+    queryKey: ["shared", "search_stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("search_stats")
+        .select("country_id, search_count, page_view_count");
+      if (error) throw error;
+      return data || [];
+    },
+    ...SHARED_QUERY_OPTIONS,
+  });
+}
+
+/** Countries with `search_stats: [{search_count, page_view_count}]` attached. */
+export function useCountriesWithStats() {
+  const { data: countries, isLoading: a } = useCountries();
+  const { data: stats, isLoading: b } = useSearchStats();
+  const byId = new Map((stats || []).map((s) => [s.country_id, s]));
+  const data = (countries || []).map((c) => {
+    const s = byId.get(c.id);
+    return { ...c, search_stats: s ? [{ search_count: s.search_count, page_view_count: s.page_view_count }] : [] };
+  });
+  return { data, isLoading: a || b };
+}

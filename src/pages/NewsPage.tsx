@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -134,19 +135,11 @@ const NewsPage = () => {
   });
 
   // Sidebar: trending destinations
-  const { data: trendingDestinations } = useQuery({
-    queryKey: ['trending-destinations-sidebar'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('countries')
-        .select('id, name, slug, flag_emoji, annual_tourists')
-        .not('annual_tourists', 'is', null)
-        .order('annual_tourists', { ascending: false })
-        .limit(6);
-      if (error) throw error;
-      return data || [];
-    }
-  });
+  const { data: sharedCountries } = useCountries();
+  const trendingDestinations = (sharedCountries || [])
+    .filter((c) => c.annual_tourists != null)
+    .sort((a, b) => (b.annual_tourists as number) - (a.annual_tourists as number))
+    .slice(0, 6);
 
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });

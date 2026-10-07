@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,23 +34,17 @@ export default function InternalLinkingModule({
   contentType,
   maxLinks = 12
 }: InternalLinkingModuleProps) {
+  const { data: allCountries } = useCountries();
   const { data: relatedLinks = [] } = useQuery({
-    queryKey: ['internal-links', fromCountrySlug, toCountrySlug, contentType],
+    queryKey: ['internal-links', fromCountrySlug, toCountrySlug, contentType, !!allCountries],
+    enabled: !!allCountries,
     queryFn: async () => {
       const links: LinkItem[] = [];
 
       if (contentType === 'visa-requirements' && fromCountrySlug && toCountrySlug) {
-        const { data: toCountry } = await supabase
-          .from('countries')
-          .select('id, name, slug, code')
-          .eq('slug', toCountrySlug)
-          .single();
+        const toCountry = (allCountries || []).find((c) => c.slug === toCountrySlug);
 
-        const { data: fromCountry } = await supabase
-          .from('countries')
-          .select('id, name, slug, code')
-          .eq('slug', fromCountrySlug)
-          .single();
+        const fromCountry = (allCountries || []).find((c) => c.slug === fromCountrySlug);
 
         if (toCountry && fromCountry) {
           // Other nationalities visiting same destination

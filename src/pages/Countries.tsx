@@ -1,3 +1,4 @@
+import { useCountriesWithStats } from "@/hooks/useSharedData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 
 const regions = [
   { name: "All", label: "All", icon: "🌍" },
@@ -33,27 +34,14 @@ const Countries = () => {
   const [residency, setResidency] = useState<ResidencyType>("none");
   const [selectedCountry, setSelectedCountry] = useState<any>(null);
 
-  const { data: countries = [], isLoading } = useQuery({
-    queryKey: ["countries-list", selectedRegion, searchQuery],
-    queryFn: async () => {
-      let query = supabase
-        .from("countries")
-        .select(`*, search_stats(search_count, page_view_count)`)
-        .order("name");
-
-      if (selectedRegion !== "All") {
-        query = query.or(`continent.eq.${selectedRegion},region.eq.${selectedRegion}`);
-      }
-
-      if (searchQuery.trim()) {
-        query = query.ilike("name", `%${searchQuery}%`);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: allCountries, isLoading } = useCountriesWithStats();
+  const countries = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return allCountries.filter((c) =>
+      (selectedRegion === "All" || c.continent === selectedRegion || c.region === selectedRegion) &&
+      (!q || c.name.toLowerCase().includes(q))
+    );
+  }, [allCountries, selectedRegion, searchQuery]);
 
   const handleRegionChange = (region: string) => {
     if (region === "All") {

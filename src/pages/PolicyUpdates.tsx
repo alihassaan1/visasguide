@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import { useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -37,13 +38,7 @@ export default function PolicyUpdates() {
   const changeType = searchParams.get("type") || "all";
   const severity = searchParams.get("severity") || "all";
 
-  const { data: countries } = useQuery({
-    queryKey: ["countries-min"],
-    queryFn: async () => {
-      const { data } = await supabase.from("countries").select("id, name, slug").order("name");
-      return data || [];
-    },
-  });
+  const { data: countries } = useCountries();
 
   const { data: changes, isLoading } = useQuery({
     queryKey: ["policy-updates-public", countrySlug, changeType, severity],

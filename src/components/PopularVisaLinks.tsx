@@ -1,3 +1,4 @@
+import { useCountriesWithStats } from "@/hooks/useSharedData";
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -42,26 +43,11 @@ const PopularVisaLinks = () => {
     } catch {}
   }, []);
 
-  const { data: countries = [], isLoading } = useQuery({
-    queryKey: ["popular-countries"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("countries")
-        .select(`
-          id,
-          name,
-          code,
-          slug,
-          flag_emoji,
-          visa_free_destinations,
-          search_stats(search_count, page_view_count)
-        `)
-        .order("visa_free_destinations", { ascending: false })
-        .limit(18);
-      if (error) throw error;
-      return data as DbCountry[];
-    },
-  });
+  const { data: allCountries, isLoading } = useCountriesWithStats();
+  const countries = useMemo(
+    () => [...allCountries].sort((a, b) => (b.visa_free_destinations || 0) - (a.visa_free_destinations || 0)).slice(0, 18) as unknown as DbCountry[],
+    [allCountries]
+  );
 
   const sorted = useMemo(() => {
     return [...countries].sort((a, b) => {

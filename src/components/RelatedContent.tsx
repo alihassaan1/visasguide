@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +20,7 @@ const RelatedContent = ({
   maxItems = 6,
 }: RelatedContentProps) => {
   // Fetch related content pages
+  const { data: allCountries } = useCountries();
   const { data: relatedPages } = useQuery({
     queryKey: ["related-content", currentSlug, contentType, country],
     queryFn: async () => {
@@ -47,11 +49,7 @@ const RelatedContent = ({
         }
 
         // Get country guide for the destination
-        const { data: countryData } = await supabase
-          .from("countries")
-          .select("name, slug")
-          .eq("slug", country)
-          .single();
+        const countryData = (allCountries || []).find((c) => c.slug === country);
 
         if (countryData) {
           results.push({
@@ -96,19 +94,10 @@ const RelatedContent = ({
   });
 
   // Fetch popular destinations for internal linking
-  const { data: popularDestinations } = useQuery({
-    queryKey: ["popular-destinations-links"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("countries")
-        .select("name, slug, visa_free_destinations")
-        .not("visa_free_destinations", "is", null)
-        .order("visa_free_destinations", { ascending: false })
-        .limit(8);
-      return data || [];
-    },
-    staleTime: 10 * 60 * 1000,
-  });
+  const popularDestinations = (allCountries || [])
+    .filter((c) => c.visa_free_destinations != null)
+    .sort((a, b) => (b.visa_free_destinations as number) - (a.visa_free_destinations as number))
+    .slice(0, 8);
 
   const getIcon = (type: string) => {
     switch (type) {

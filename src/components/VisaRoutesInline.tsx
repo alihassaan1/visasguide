@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import RelatedVisaLinks from "./RelatedVisaLinks";
@@ -16,20 +17,10 @@ const VisaRoutesInline = ({ slug }: Props) => {
   const fromSlug = match?.[1];
   const toSlug = match?.[2];
 
-  const { data } = useQuery({
-    enabled: !!fromSlug && !!toSlug,
-    queryKey: ["visa-route-countries", fromSlug, toSlug],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("countries")
-        .select("id, name, slug, code, flag_emoji")
-        .in("slug", [fromSlug!, toSlug!]);
-      if (error) throw error;
-      const from = data?.find((c) => c.slug === fromSlug);
-      const to = data?.find((c) => c.slug === toSlug);
-      return from && to ? { from, to } : null;
-    },
-  });
+  const { data: allCountries } = useCountries();
+  const fromC = fromSlug ? allCountries?.find((c) => c.slug === fromSlug) : undefined;
+  const toC = toSlug ? allCountries?.find((c) => c.slug === toSlug) : undefined;
+  const data = fromC && toC ? { from: fromC, to: toC } : null;
 
   if (!match || !data) return null;
 

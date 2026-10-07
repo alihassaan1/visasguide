@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import { Button } from "@/components/ui/button";
 import { Search, Globe, Shield, Route, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -11,17 +12,7 @@ const HeroSection = () => {
   const [toCountry, setToCountry] = useState("");
   const navigate = useNavigate();
 
-  const { data: countries = [] } = useQuery({
-    queryKey: ['countries-hero'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('countries')
-        .select('id, name, slug, code, flag_emoji')
-        .order('name');
-      if (error) throw error;
-      return data;
-    }
-  });
+  const { data: countries = [] } = useCountries();
 
   const handleSearch = () => {
     if (!fromCountry || !toCountry) return;

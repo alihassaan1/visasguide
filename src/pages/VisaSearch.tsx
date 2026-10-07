@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,17 +12,7 @@ const VisaSearch = () => {
   // Track page view
 
   // Fetch countries from Supabase
-  const { data: countries = [] } = useQuery({
-    queryKey: ['countries-visa-search'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('countries')
-        .select('*')
-        .order('name');
-      if (error) throw error;
-      return data;
-    }
-  });
+  const { data: countries = [] } = useCountries();
 
   const handleCountryClick = (country: any) => {
     console.log('Country clicked:', country);

@@ -11,7 +11,6 @@ import { useEffect } from "react";
 import SEOHead from "@/components/SEOHead";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { usePageTracking } from "@/hooks/useAnalytics";
 import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
 import TouristAttractionSchema from "@/components/TouristAttractionSchema";
 import VisaRecap from "@/components/VisaRecap";

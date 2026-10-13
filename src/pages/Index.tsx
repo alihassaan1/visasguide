@@ -18,7 +18,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <SEOHead
         title={`Visa Guide ${CURRENT_YEAR} — Travel Visa Requirements & eVisa Info | Visas.Guide`}
-        description="Visa requirements, eVisa info, and processing times for 200+ countries. Trusted by travelers worldwide."
+        description="Travel visa requirements, Guide to work visas, visit visas, tourist visas. visa processing times for 200+ countries. Global Passport Index. "
         canonical="https://visas.guide/"
         keywords={[
           "visa guide",

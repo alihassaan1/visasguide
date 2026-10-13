@@ -17,47 +17,73 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={`Visa Guide ${CURRENT_YEAR} — Requirements & eVisa Info | Visas.Guide`}
+        title={`Visa Guide ${CURRENT_YEAR} — Travel Visa Requirements & eVisa Info | Visas.Guide`}
         description="Visa requirements, eVisa info, and processing times for 200+ countries. Trusted by travelers worldwide."
         canonical="https://visas.guide/"
-        keywords={["visa guide", "travel visa requirements", "visa requirements", "visa destinations", "visa destination", "visa map", "visamap", "visa worldwide", "visa list", "visa list by country", "visa requirements by country", "visa-free countries", "evisa", "passport information", "travel documentation", "visa application guide", "schengen visa", "tourist visa", "business visa", "global visa processing times", "passport index", "passport ranking", "passport rankings", "world passport rankings", "passport power ranking"]}
+        keywords={[
+          "visa guide",
+          "travel visa requirements",
+          "visa requirements",
+          "visa destinations",
+          "visa destination",
+          "visa map",
+          "visamap",
+          "visa worldwide",
+          "visa list",
+          "visa list by country",
+          "visa requirements by country",
+          "visa-free countries",
+          "evisa",
+          "passport information",
+          "travel documentation",
+          "visa application guide",
+          "schengen visa",
+          "tourist visa",
+          "business visa",
+          "global visa processing times",
+          "passport index",
+          "passport ranking",
+          "passport rankings",
+          "world passport rankings",
+          "passport power ranking",
+        ]}
       />
       <AnalyticsTracker />
       <OrganizationSchema />
       <SiteNavigationSchema />
-      
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "WebSite",
-            "name": "Visas Guide",
-            "description": "Complete visa information and requirements for global travel",
-            "url": "https://visas.guide",
-            "potentialAction": {
+            name: "Visas Guide",
+            description: "Complete visa information and requirements for global travel",
+            url: "https://visas.guide",
+            potentialAction: {
               "@type": "SearchAction",
-              "target": {
+              target: {
                 "@type": "EntryPoint",
-                "urlTemplate": "https://visas.guide/search?q={search_term_string}"
+                urlTemplate: "https://visas.guide/search?q={search_term_string}",
               },
-              "query-input": "required name=search_term_string"
+              "query-input": "required name=search_term_string",
             },
-            "publisher": {
-              "@type": "Organization", 
-              "name": "Visas Guide",
-              "description": "Trusted visa information platform for travelers worldwide"
-            }
-          })
+            publisher: {
+              "@type": "Organization",
+              name: "Visas Guide",
+              description: "Trusted visa information platform for travelers worldwide",
+            },
+          }),
         }}
       />
 
       <Header />
-      
+
       <main>
         <HeroSection />
         <DestinationCarousel />
-        
+
         <div className="container mx-auto px-4 py-6">
           <AffiliateBannerContainer position="horizontal-banner" />
         </div>
@@ -101,7 +127,7 @@ const Index = () => {
           </div>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

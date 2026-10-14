@@ -35,8 +35,8 @@ const LatestNewsSection = () => {
               <Card key={i} className="animate-pulse">
                 <div className="h-32 bg-muted"></div>
                 <CardContent className="p-4">
-                  <div className="h-4 bg-muted rounded mb-2"></div>
-                  <div className="h-3 bg-muted rounded w-2/3"></div>
+                  <div className="h-4 bg-muted rounded-sm mb-2"></div>
+                  <div className="h-3 bg-muted rounded-sm w-2/3"></div>
                 </CardContent>
               </Card>
             ))}

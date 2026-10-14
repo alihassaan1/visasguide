@@ -99,7 +99,7 @@ export function PolicyDetectorLogsDrawer() {
                 )}
               </div>
               {r.error_message && (
-                <div className="flex items-start gap-2 text-xs text-destructive bg-destructive/5 rounded p-2">
+                <div className="flex items-start gap-2 text-xs text-destructive bg-destructive/5 rounded-sm p-2">
                   <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                   <span className="break-all">{r.error_message}</span>
                 </div>

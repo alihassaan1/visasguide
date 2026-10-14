@@ -427,7 +427,7 @@ export default function AdminDashboard() {
                   <Link
                     key={d.id}
                     to={`/admin/content/${d.id}`}
-                    className="flex items-center justify-between text-sm hover:bg-muted/50 rounded px-2 py-1.5"
+                    className="flex items-center justify-between text-sm hover:bg-muted/50 rounded-sm px-2 py-1.5"
                   >
                     <span className="truncate flex-1">{d.title}</span>
                     <span className="text-xs text-muted-foreground ml-2 shrink-0">

@@ -1,0 +1,297 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system definition (ported from the Classic tailwind.config.ts + index.css).
+ * Color values are HSL triplets in :root/.dark, mapped to Tailwind color utilities
+ * in @theme inline via hsl(var(--name)). Other CSS in this file and components may
+ * also use hsl(var(--name)) directly.
+ */
+
+@theme inline {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-serif: "Merriweather", Georgia, serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary-light: hsl(var(--primary-light));
+  --color-primary-dark: hsl(var(--primary-dark));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent-light: hsl(var(--accent-light));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-ring-offset-background: hsl(var(--background));
+  --color-visa-success: hsl(var(--visa-success));
+  --color-visa-warning: hsl(var(--visa-warning));
+  --color-visa-danger: hsl(var(--visa-danger));
+  --color-visa-info: hsl(var(--visa-info));
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+}
+
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+
+/* Classic tailwind.config container: centered, 2rem padding, 1400px at 2xl */
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+  width: 100%;
+  @media (width >= 96rem) {
+    max-width: 1400px;
+  }
+}
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+
+  /* Travel-inspired primary colors */
+  --primary: 214 88% 27%;
+  --primary-foreground: 210 40% 98%;
+  --primary-light: 214 88% 45%;
+  --primary-dark: 214 88% 20%;
+
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+
+  /* Travel accent colors */
+  --accent: 142 76% 36%;
+  --accent-foreground: 210 40% 98%;
+  --accent-light: 142 76% 50%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 214 88% 27%;
+
+  /* Custom travel theme colors */
+  --visa-success: 142 76% 36%;
+  --visa-warning: 45 93% 47%;
+  --visa-danger: 0 84% 60%;
+  --visa-info: 214 88% 45%;
+
+  /* Gradients */
+  --gradient-hero: linear-gradient(135deg, hsl(214 88% 27%), hsl(214 88% 45%));
+  --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(210 40% 98%));
+  --gradient-accent: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 76% 50%));
+
+  /* Shadows */
+  --shadow-card: 0 4px 20px -8px hsl(214 88% 27% / 0.15);
+  --shadow-hover: 0 8px 30px -12px hsl(214 88% 27% / 0.25);
+  --shadow-glow: 0 0 40px hsl(214 88% 45% / 0.3);
+
+  --radius: 0.5rem;
+
+  --sidebar-background: 0 0% 98%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-primary: 240 5.9% 10%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 240 4.8% 95.9%;
+  --sidebar-accent-foreground: 240 5.9% 10%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
+}
+
+.dark {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 210 40% 98%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 212.7 26.8% 83.9%;
+  --sidebar-background: 240 5.9% 10%;
+  --sidebar-foreground: 240 4.8% 95.9%;
+  --sidebar-primary: 224.3 76.3% 48%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 240 3.7% 15.9%;
+  --sidebar-accent-foreground: 240 4.8% 95.9%;
+  --sidebar-border: 240 3.7% 15.9%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  /* Tailwind v3 preflight kept pointer cursors on buttons; v4 does not. */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@utility font-emoji {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Android Emoji', 'EmojiSymbols', 'EmojiOne Color', 'Twemoji Mozilla', emoji, sans-serif !important;
+  font-weight: normal !important;
+  font-style: normal !important;
+}
+
+/* React Quill Styles */
+.ql-container {
+  font-family: inherit;
+}
+
+.ql-editor {
+  min-height: 400px;
+}
+
+.rich-text-editor .ql-toolbar {
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  background: hsl(var(--muted));
+  border-color: hsl(var(--border));
+}
+
+.rich-text-editor .ql-container {
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  background: hsl(var(--background));
+  border-color: hsl(var(--border));
+}
+
+/* Article tables (Quick Facts and similar in-content tables) */
+.prose table,
+article table {
+  width: 100%;
+  margin: 2rem 0;
+  border: 1.5px solid hsl(var(--foreground) / 0.18);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.925rem;
+  display: table;
+  box-shadow: 0 1px 2px hsl(var(--foreground) / 0.04);
+}
+.prose thead,
+article thead {
+  background: hsl(var(--muted) / 0.6);
+}
+.prose thead th,
+article thead th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  border-bottom: 1px solid hsl(var(--border));
+}
+.prose tbody tr,
+article tbody tr {
+  border-bottom: 1px solid hsl(var(--border));
+}
+.prose tbody tr:last-child,
+article tbody tr:last-child {
+  border-bottom: 0;
+}
+.prose tbody tr:nth-child(even),
+article tbody tr:nth-child(even) {
+  background: hsl(var(--muted) / 0.3);
+}
+.prose tbody th,
+article tbody th,
+.prose table tr > th:first-child,
+article table tr > th:first-child {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted) / 0.4);
+  vertical-align: top;
+  width: 35%;
+  border-right: 1px solid hsl(var(--border));
+  border-bottom: 1px solid hsl(var(--border));
+  white-space: normal;
+}
+.prose tbody td,
+article tbody td,
+.prose table tr > td,
+article table tr > td {
+  padding: 0.75rem 1rem;
+  color: hsl(var(--foreground));
+  vertical-align: top;
+  border-bottom: 1px solid hsl(var(--border));
+}
+.prose table p,
+article table p {
+  margin: 0;
+}
+.prose table,
+article table {
+  display: block;
+  overflow-x: auto;
+}
+.prose table > tbody,
+.prose table > thead,
+article table > tbody,
+article table > thead {
+  display: table;
+  width: 100%;
+}

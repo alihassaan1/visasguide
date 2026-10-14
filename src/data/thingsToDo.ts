@@ -262,7 +262,7 @@ export const thingsToDoData: ThingsToDoData[] = [
     introduction:
       "The Netherlands is one of Europe's most compact and rewarding destinations — flat, walkable, and laced with canals, bicycles, and world-class art. Amsterdam draws crowds for the Van Gogh Museum, Anne Frank House, and its 17th-century canal ring, but the country's other cities deserve equal attention. Rotterdam offers cutting-edge architecture, Utrecht has a beautiful old center without the crowds, and the Hague hosts the royal family and international courts. Add tulip fields, windmills, and a deep café culture, and the Netherlands delivers an effortlessly enjoyable trip in 2026.",
     attractions: [
-      { name: "Amsterdam Canal Cruise", description: "See the UNESCO-listed 17th-century canal ring from the water.", category: "Culture" },
+      { name: "Amsterdam Canal Cruise", description: "See the UNESCO-listed 17th-century canal ring-3 from the water.", category: "Culture" },
       { name: "Rijksmuseum & Van Gogh Museum", description: "Two of the world's most important art museums, side by side.", category: "Culture" },
       { name: "Anne Frank House", description: "A moving memorial to the young diarist — book tickets weeks in advance.", category: "History" },
       { name: "Keukenhof Gardens", description: "Open only March–May, with millions of tulips in bloom.", category: "Nature" },

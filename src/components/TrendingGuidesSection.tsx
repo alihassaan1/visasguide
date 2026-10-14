@@ -22,8 +22,8 @@ const TrendingGuidesSection = () => {
       <section className="py-16 bg-gradient-to-b from-background to-accent/5">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-96 mx-auto"></div>
+            <div className="h-8 bg-gray-200 rounded-sm w-64 mx-auto mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded-sm w-96 mx-auto"></div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (

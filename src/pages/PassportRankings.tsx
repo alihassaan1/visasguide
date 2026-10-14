@@ -202,7 +202,7 @@ const PassportRankings = () => {
         {/* Stats Cards */}
         <section className="container mx-auto px-4 -mt-6 relative z-10 mb-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            <div className="bg-card rounded-lg border p-4 shadow-sm">
+            <div className="bg-card rounded-lg border p-4 shadow-xs">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <Shield className="h-4 w-4 text-primary" />
                 <span className="text-xs font-medium uppercase tracking-wider">Strongest</span>
@@ -210,7 +210,7 @@ const PassportRankings = () => {
               <p className="text-lg font-bold">{topCountries[0]?.name || '—'}</p>
               <p className="text-sm text-muted-foreground">Score: {topCountries[0]?.passport_score || '—'}</p>
             </div>
-            <div className="bg-card rounded-lg border p-4 shadow-sm">
+            <div className="bg-card rounded-lg border p-4 shadow-xs">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <TrendingUp className="h-4 w-4 text-primary" />
                 <span className="text-xs font-medium uppercase tracking-wider">Highest Score</span>
@@ -218,7 +218,7 @@ const PassportRankings = () => {
               <p className="text-lg font-bold">{maxScore}</p>
               <p className="text-sm text-muted-foreground">destinations accessible</p>
             </div>
-            <div className="bg-card rounded-lg border p-4 shadow-sm">
+            <div className="bg-card rounded-lg border p-4 shadow-xs">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <MapPin className="h-4 w-4 text-primary" />
                 <span className="text-xs font-medium uppercase tracking-wider">Countries</span>
@@ -226,7 +226,7 @@ const PassportRankings = () => {
               <p className="text-lg font-bold">{totalCountriesCount}</p>
               <p className="text-sm text-muted-foreground">ranked worldwide</p>
             </div>
-            <div className="bg-card rounded-lg border p-4 shadow-sm">
+            <div className="bg-card rounded-lg border p-4 shadow-xs">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <Plane className="h-4 w-4 text-primary" />
                 <span className="text-xs font-medium uppercase tracking-wider">Avg Score</span>

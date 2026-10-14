@@ -247,7 +247,7 @@ export default function ContentPage() {
                 prose-ol:text-muted-foreground prose-ol:my-6 prose-ol:space-y-2
                 prose-li:mb-2 prose-li:leading-relaxed
                 prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-3 prose-blockquote:px-5 prose-blockquote:rounded-r-lg prose-blockquote:my-8 prose-blockquote:italic
-                prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
+                prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-sm prose-code:text-sm
                 prose-img:rounded-lg prose-img:shadow-md prose-img:my-8
                 prose-hr:my-10 prose-hr:border-border/50"
               dangerouslySetInnerHTML={{ __html: stripEmbeddedSchemas(page.content) }}

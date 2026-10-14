@@ -137,7 +137,7 @@ export function AdminHeader() {
             placeholder="Search…"
             className="h-8 w-56 rounded-md border-border/60 bg-muted/40 pl-8 pr-12 text-[13px] placeholder:text-muted-foreground/70 focus-visible:ring-1"
           />
-          <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 select-none items-center gap-0.5 rounded border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground xl:inline-flex">
+          <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 select-none items-center gap-0.5 rounded-sm border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground xl:inline-flex">
             ⌘K
           </kbd>
         </div>

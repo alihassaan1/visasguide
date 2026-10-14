@@ -111,7 +111,7 @@ const ResidencyToggle = ({ value, onChange, compact = false }: ResidencyTogglePr
               onClick={() => handleToggle(option.id as ResidencyType)}
               className={`cursor-pointer p-3 rounded-lg border-2 transition-all ${
                 value === option.id
-                  ? "border-primary bg-primary/10 shadow-sm"
+                  ? "border-primary bg-primary/10 shadow-xs"
                   : "border-border hover:border-primary/50 bg-card"
               }`}
             >

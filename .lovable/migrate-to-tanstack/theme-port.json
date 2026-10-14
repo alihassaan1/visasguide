@@ -1,0 +1,18 @@
+{
+  "customizations": [
+    { "token": "HSL color tokens (--primary, --accent, --muted, etc. light+dark)", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--primary-light / --primary-dark", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--accent-light", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "visa-success/warning/danger/info colors", "source": "tailwind.config.ts", "reappliedIn": "src/styles.css" },
+    { "token": "--gradient-hero/card/accent", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--shadow-card/hover/glow", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "sidebar color set", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "font-sans Inter / font-serif Merriweather", "source": "tailwind.config.ts", "reappliedIn": "src/styles.css" },
+    { "token": "container (center, 2rem padding, 1400px)", "source": "tailwind.config.ts", "reappliedIn": "src/styles.css" },
+    { "token": "accordion keyframes/animations", "source": "tailwind.config.ts", "reappliedIn": "src/styles.css" },
+    { "token": "font-emoji utility", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "React Quill editor styles", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "article/prose table styles", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "@tailwindcss/typography plugin", "source": "tailwind.config.ts", "reappliedIn": "src/styles.css" }
+  ]
+}

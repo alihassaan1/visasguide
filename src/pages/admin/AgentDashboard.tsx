@@ -600,7 +600,7 @@ const AgentDashboard = () => {
     const bgClass = isDecrease ? 'bg-green-500/10' : 'bg-red-500/10';
     
     return (
-      <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium ${bgClass} ${colorClass}`}>
+      <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm text-xs font-medium ${bgClass} ${colorClass}`}>
         <Icon className={size === 'sm' ? 'h-3 w-3' : 'h-4 w-4'} />
         {absChange.toFixed(1)}%
       </span>
@@ -1628,7 +1628,7 @@ const AgentDashboard = () => {
                     </div>
                     
                     {task.remaining !== undefined && task.remaining > 0 && (
-                      <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                      <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded-sm">
                         <span className="font-medium">{task.remaining}</span> remaining
                         {task.eta !== undefined && <span className="ml-1">• ~{task.eta}d to complete</span>}
                       </div>

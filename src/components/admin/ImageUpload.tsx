@@ -154,7 +154,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           <img
             src={previewUrl}
             alt="Preview"
-            className="max-h-48 w-auto mx-auto object-contain rounded"
+            className="max-h-48 w-auto mx-auto object-contain rounded-sm"
             onError={() => { setPreviewUrl(''); toast({ title: 'Image failed to load', variant: 'destructive' }); }}
           />
           <Button

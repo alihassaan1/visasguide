@@ -77,8 +77,8 @@ const CityPage = () => {
         <main className="container mx-auto px-4 py-8">
           <div className="animate-pulse space-y-6">
             <div className="h-64 bg-muted rounded-xl"></div>
-            <div className="h-8 bg-muted rounded w-1/3"></div>
-            <div className="h-48 bg-muted rounded"></div>
+            <div className="h-8 bg-muted rounded-sm w-1/3"></div>
+            <div className="h-48 bg-muted rounded-sm"></div>
           </div>
         </main>
         <Footer />

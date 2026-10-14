@@ -279,7 +279,7 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
       {/* Brand */}
       <div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
         <Link to="/admin/dashboard" className="flex items-center gap-2" onClick={handleLinkClick}>
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-sm">
+          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-xs">
             <Globe className="h-4 w-4" />
           </div>
           <div className="leading-tight">

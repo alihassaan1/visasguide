@@ -617,7 +617,7 @@ export default function ManualContentEditor() {
                 id="isFeatured"
                 checked={isFeatured}
                 onChange={(e) => setIsFeatured(e.target.checked)}
-                className="h-4 w-4 rounded border-input"
+                className="h-4 w-4 rounded-sm border-input"
               />
               <Label htmlFor="isFeatured">Feature this post on the homepage</Label>
             </div>
@@ -646,7 +646,7 @@ export default function ManualContentEditor() {
                       setScheduledAt("");
                     }
                   }}
-                  className="h-4 w-4 rounded border-input"
+                  className="h-4 w-4 rounded-sm border-input"
                 />
                 <Label htmlFor="enableScheduling">Schedule for later</Label>
               </div>

@@ -187,8 +187,8 @@ const LatestGuidesSection = () => {
               <Card key={i} className="animate-pulse">
                 <div className="h-40 bg-muted"></div>
                 <CardContent className="p-4">
-                  <div className="h-4 bg-muted rounded mb-2"></div>
-                  <div className="h-3 bg-muted rounded w-2/3"></div>
+                  <div className="h-4 bg-muted rounded-sm mb-2"></div>
+                  <div className="h-3 bg-muted rounded-sm w-2/3"></div>
                 </CardContent>
               </Card>
             ))}
@@ -242,7 +242,7 @@ const LatestGuidesSection = () => {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
                         {/* Subtle flag badge */}
                         <div className="absolute top-3 left-3 flex items-center gap-2">
-                          <span className="bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 text-sm shadow-sm font-emoji">
+                          <span className="bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 text-sm shadow-xs font-emoji">
                             {flag}
                           </span>
                         </div>

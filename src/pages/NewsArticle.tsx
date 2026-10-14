@@ -129,12 +129,12 @@ const NewsArticle = () => {
         <Header />
         <main className="container mx-auto px-4 py-8 max-w-4xl">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-muted rounded w-3/4"></div>
-            <div className="h-64 bg-muted rounded"></div>
+            <div className="h-8 bg-muted rounded-sm w-3/4"></div>
+            <div className="h-64 bg-muted rounded-sm"></div>
             <div className="space-y-4">
-              <div className="h-4 bg-muted rounded"></div>
-              <div className="h-4 bg-muted rounded"></div>
-              <div className="h-4 bg-muted rounded w-2/3"></div>
+              <div className="h-4 bg-muted rounded-sm"></div>
+              <div className="h-4 bg-muted rounded-sm"></div>
+              <div className="h-4 bg-muted rounded-sm w-2/3"></div>
             </div>
           </div>
         </main>
@@ -384,7 +384,7 @@ const NewsArticle = () => {
               <Card className="bg-muted/30 border-dashed">
                 <CardContent className="p-6 text-center">
                   <span className="text-xs text-muted-foreground block mb-2">Advertisement</span>
-                  <div className="h-[250px] bg-muted/50 rounded flex items-center justify-center">
+                  <div className="h-[250px] bg-muted/50 rounded-sm flex items-center justify-center">
                     {/* Ad placeholder */}
                   </div>
                 </CardContent>

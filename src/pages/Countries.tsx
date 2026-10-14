@@ -111,7 +111,7 @@ const Countries = () => {
                   onClick={() => handleRegionChange(region.name)}
                   className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
                     selectedRegion === region.name
-                      ? "bg-primary text-primary-foreground shadow-sm"
+                      ? "bg-primary text-primary-foreground shadow-xs"
                       : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   }`}
                 >
@@ -132,10 +132,10 @@ const Countries = () => {
                 <div className="p-4 space-y-3">
                   {[...Array(8)].map((_, i) => (
                     <div key={i} className="animate-pulse flex items-center gap-3">
-                      <div className="w-8 h-6 bg-muted rounded" />
+                      <div className="w-8 h-6 bg-muted rounded-sm" />
                       <div className="flex-1">
-                        <div className="h-4 bg-muted rounded w-2/3 mb-1" />
-                        <div className="h-3 bg-muted rounded w-1/3" />
+                        <div className="h-4 bg-muted rounded-sm w-2/3 mb-1" />
+                        <div className="h-3 bg-muted rounded-sm w-1/3" />
                       </div>
                     </div>
                   ))}
@@ -194,7 +194,7 @@ const Countries = () => {
           {/* RIGHT PANEL — Map + Country Details */}
           <div className="flex-1 min-w-0 flex flex-col gap-4">
             {/* Map */}
-            <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[600px] rounded-lg overflow-hidden border border-border shadow-sm">
+            <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[600px] rounded-lg overflow-hidden border border-border shadow-xs">
               <WorldVisaMap
                 countries={countries.map(c => ({
                   id: c.id,

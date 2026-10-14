@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useEffect, useCallback } from 'react';
-import ReactQuill, { Quill } from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import ReactQuill, { Quill } from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 // Custom BlockEmbed that stores arbitrary <table> HTML verbatim.
 const BlockEmbed: any = Quill.import('blots/block/embed');

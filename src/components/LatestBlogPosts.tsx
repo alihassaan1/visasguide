@@ -78,9 +78,9 @@ const LatestBlogPosts = () => {
             <Card key={i} className="overflow-hidden h-full">
               <div className="aspect-video bg-muted animate-pulse" />
               <CardContent className="p-6 space-y-3">
-                <div className="h-4 bg-muted rounded animate-pulse w-1/3" />
-                <div className="h-6 bg-muted rounded animate-pulse" />
-                <div className="h-4 bg-muted rounded animate-pulse" />
+                <div className="h-4 bg-muted rounded-sm animate-pulse w-1/3" />
+                <div className="h-6 bg-muted rounded-sm animate-pulse" />
+                <div className="h-4 bg-muted rounded-sm animate-pulse" />
               </CardContent>
             </Card>
           ))}

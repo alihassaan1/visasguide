@@ -215,7 +215,7 @@ const WorldVisaMap: React.FC<WorldVisaMapProps> = ({ countries, onCountryClick }
             popup.current
               .setLngLat(e.lngLat)
               .setHTML(`
-                <div class="px-3 py-1.5 bg-background border rounded-full shadow-sm">
+                <div class="px-3 py-1.5 bg-background border rounded-full shadow-xs">
                   <span class="text-sm font-semibold text-foreground whitespace-nowrap">${countryName}</span>
                 </div>
               `)
@@ -316,7 +316,7 @@ const WorldVisaMap: React.FC<WorldVisaMapProps> = ({ countries, onCountryClick }
         </p>
         {hoveredCountry && (
           <div className="mt-2 pt-2 border-t">
-            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
+            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
               {hoveredCountry}
             </span>
           </div>

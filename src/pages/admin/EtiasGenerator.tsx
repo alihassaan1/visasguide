@@ -80,7 +80,7 @@ const EtiasGenerator = () => {
         <h2 className="font-semibold mb-3">Published country pages ({rows.length})</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
           {rows.map((r) => (
-            <div key={r.country_slug} className="flex items-center justify-between border rounded px-3 py-2">
+            <div key={r.country_slug} className="flex items-center justify-between border rounded-sm px-3 py-2">
               <span>{r.country_name}</span>
               {r.is_published
                 ? <Badge variant="secondary"><CheckCircle2 className="h-3 w-3 mr-1" />live</Badge>

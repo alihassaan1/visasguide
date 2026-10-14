@@ -296,41 +296,41 @@ export default function ContentValidator() {
             <Progress value={progressPct} className="h-3" />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-            <div className="rounded border p-3">
+            <div className="rounded-sm border p-3">
               <div className="text-muted-foreground text-xs">Cursor offset</div>
               <div className="text-lg font-semibold">{offset.toLocaleString()}</div>
             </div>
-            <div className="rounded border p-3">
+            <div className="rounded-sm border p-3">
               <div className="text-muted-foreground text-xs">Processed this session</div>
               <div className="text-lg font-semibold">{pagesThisSession.toLocaleString()}</div>
             </div>
-            <div className="rounded border p-3">
+            <div className="rounded-sm border p-3">
               <div className="text-muted-foreground text-xs">Throughput</div>
               <div className="text-lg font-semibold">
                 {rate > 0 ? `${rate.toFixed(1)} pg/s` : "—"}
               </div>
             </div>
-            <div className="rounded border p-3">
+            <div className="rounded-sm border p-3">
               <div className="text-muted-foreground text-xs">Est. time remaining</div>
               <div className="text-lg font-semibold">{formatDuration(etaMs)}</div>
             </div>
-            <div className="rounded border p-3">
+            <div className="rounded-sm border p-3">
               <div className="text-muted-foreground text-xs">Elapsed</div>
               <div className="text-lg font-semibold">{startedAt ? formatDuration(elapsedMs) : "—"}</div>
             </div>
-            <div className="rounded border p-3">
+            <div className="rounded-sm border p-3">
               <div className="text-muted-foreground text-xs">Remaining pages</div>
               <div className="text-lg font-semibold">
                 {totalPages != null ? remaining.toLocaleString() : "—"}
               </div>
             </div>
-            <div className="rounded border p-3">
+            <div className="rounded-sm border p-3">
               <div className="text-muted-foreground text-xs">Last batch</div>
               <div className="text-lg font-semibold">
                 {lastBatchAt ? `${Math.round((now - lastBatchAt) / 1000)}s ago` : "—"}
               </div>
             </div>
-            <div className="rounded border p-3">
+            <div className="rounded-sm border p-3">
               <div className="text-muted-foreground text-xs">Status</div>
               <div className="text-lg font-semibold">
                 {running ? (autoContinue ? "Looping" : "Running") : "Idle"}
@@ -417,7 +417,7 @@ export default function ContentValidator() {
             <CardTitle>Run log</CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-48 rounded border p-3 bg-muted/30">
+            <ScrollArea className="h-48 rounded-sm border p-3 bg-muted/30">
               <pre className="text-xs leading-relaxed whitespace-pre-wrap">{log.join("\n")}</pre>
             </ScrollArea>
           </CardContent>

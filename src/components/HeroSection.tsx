@@ -92,19 +92,19 @@ const HeroSection = () => {
 
           {/* Trust Indicators - Glass-morphism pills */}
           <div className="flex flex-wrap gap-2 md:gap-3 mt-8 text-sm">
-            <div className="flex items-center gap-2 bg-white/95 rounded-full px-4 py-2 shadow-sm">
+            <div className="flex items-center gap-2 bg-white/95 rounded-full px-4 py-2 shadow-xs">
               <Globe className="h-4 w-4 text-emerald-600" />
               <span className="font-semibold text-foreground">200+ Countries</span>
             </div>
-            <div className="flex items-center gap-2 bg-white/95 rounded-full px-4 py-2 shadow-sm">
+            <div className="flex items-center gap-2 bg-white/95 rounded-full px-4 py-2 shadow-xs">
               <Route className="h-4 w-4 text-teal-600" />
               <span className="font-semibold text-foreground">40,000+ Visa Routes</span>
             </div>
-            <div className="flex items-center gap-2 bg-white/95 rounded-full px-4 py-2 shadow-sm">
+            <div className="flex items-center gap-2 bg-white/95 rounded-full px-4 py-2 shadow-xs">
               <Shield className="h-4 w-4 text-cyan-600" />
               <span className="font-semibold text-foreground">ETIAS Updates</span>
             </div>
-            <div className="flex items-center gap-2 bg-white/95 rounded-full px-4 py-2 shadow-sm">
+            <div className="flex items-center gap-2 bg-white/95 rounded-full px-4 py-2 shadow-xs">
               <Users className="h-4 w-4 text-indigo-600" />
               <span className="font-semibold text-foreground">All Nationalities Covered</span>
             </div>

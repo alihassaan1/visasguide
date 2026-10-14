@@ -76,7 +76,7 @@ export default function CountryPolicyTimeline({ countryId, countrySlug, countryN
       </div>
       <div className="space-y-3">
         {changes.map((c: any) => (
-          <Card key={c.id} className="hover:shadow-sm transition-shadow">
+          <Card key={c.id} className="hover:shadow-xs transition-shadow">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
                 <div className="mt-1">{severityIcon(c.severity)}</div>

@@ -172,13 +172,13 @@ export default function AuditLog() {
                             <div className="grid md:grid-cols-2 gap-3 text-xs">
                               <div>
                                 <div className="font-semibold mb-1">Old values</div>
-                                <pre className="bg-background p-2 rounded max-h-64 overflow-auto">
+                                <pre className="bg-background p-2 rounded-sm max-h-64 overflow-auto">
                                   {JSON.stringify(r.old_values, null, 2) || "—"}
                                 </pre>
                               </div>
                               <div>
                                 <div className="font-semibold mb-1">New values</div>
-                                <pre className="bg-background p-2 rounded max-h-64 overflow-auto">
+                                <pre className="bg-background p-2 rounded-sm max-h-64 overflow-auto">
                                   {JSON.stringify(r.new_values, null, 2) || "—"}
                                 </pre>
                               </div>

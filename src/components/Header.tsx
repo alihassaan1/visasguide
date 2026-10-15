@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Menu, Globe, ChevronDown } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "@/lib/router-compat";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useSiteSettings } from "@/hooks/useSharedData";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";

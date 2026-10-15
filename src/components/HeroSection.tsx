@@ -1,7 +1,7 @@
 import { useCountries } from "@/hooks/useSharedData";
 import { Button } from "@/components/ui/button";
 import { Search, Globe, Shield, Route, Users } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";

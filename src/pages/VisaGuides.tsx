@@ -6,7 +6,7 @@ import { Calendar, Clock, ArrowRight, Star, BookOpen, Loader2, Search, FileText,
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

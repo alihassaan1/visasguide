@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { useMemo, useState } from "react";
 import { useAuthors } from "@/hooks/useSharedData";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

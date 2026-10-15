@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { Search, TrendingUp, Globe, FileText, Plane, Map } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { CURRENT_YEAR } from "@/lib/constants";

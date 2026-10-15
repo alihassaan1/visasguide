@@ -21,7 +21,7 @@ import { useState, useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 
 interface TaskConfig {
   enabled: boolean;

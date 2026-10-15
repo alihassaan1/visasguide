@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { Button } from "@/components/ui/button";
 import { CountryCombobox } from "@/components/CountryCombobox";
 import { Plane, X } from "lucide-react";

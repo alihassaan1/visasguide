@@ -11,7 +11,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import ResidencyToggle, { ResidencyType } from "@/components/ResidencyToggle";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 
 const VisaFinder = () => {
   const [step, setStep] = useState(1);

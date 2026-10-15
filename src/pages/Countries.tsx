@@ -9,7 +9,7 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import WorldVisaMap from "@/components/WorldVisaMap";
 import ResidencyToggle, { ResidencyType } from "@/components/ResidencyToggle";
-import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "@/lib/router-compat";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { countryCodeToFlagEmoji } from "@/lib/utils";

@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import FAQSchema from "@/components/FAQSchema";
 import BreadcrumbSchema from "@/components/BreadcrumbSchema";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { CURRENT_YEAR } from "@/lib/constants";
 
 const TouristVisa = () => {

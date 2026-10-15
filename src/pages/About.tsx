@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthors, useCountries } from "@/hooks/useSharedData";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { Globe, Shield, Users, BookOpen, CheckCircle, MapPin, Mail, Award } from "lucide-react";
 
 const About = () => {

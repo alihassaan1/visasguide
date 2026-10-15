@@ -1,5 +1,5 @@
 import { useCountries } from "@/hooks/useSharedData";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate } from "@/lib/router-compat";
 import { stripEmbeddedSchemas } from "@/lib/contentFormatter";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

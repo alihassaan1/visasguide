@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { ArrowRight } from "lucide-react";
 import globeTravel from "@/assets/icons/globe-travel.jpg";
 import passportStamps from "@/assets/icons/passport-stamps.jpg";

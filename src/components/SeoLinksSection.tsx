@@ -1,7 +1,7 @@
 import { useCountries } from "@/hooks/useSharedData";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { Globe2 } from "lucide-react";
 
 const REGION_ORDER = ["Europe", "Asia", "North America", "Africa", "Oceania", "South America"];

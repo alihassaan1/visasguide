@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { useState } from "react";
 import { getBlogFallbackImage, isBrokenImageUrl } from "@/lib/blogImageMap";
 import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";

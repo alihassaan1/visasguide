@@ -1,6 +1,6 @@
 import { useSiteSettings } from "@/hooks/useSharedData";
 import { Mail, Rss, Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { CURRENT_YEAR } from "@/lib/constants";
 import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
 import SeoLinksSection from "@/components/SeoLinksSection";

@@ -1,4 +1,4 @@
-import { Navigate, useParams, useLocation } from "react-router-dom";
+import { Navigate, useParams, useLocation } from "@/lib/router-compat";
 
 /** /countries/:country/visa-free  → /countries/:country (country guide has visa-free list) */
 export const RedirectVisaFree = () => {

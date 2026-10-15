@@ -1,4 +1,4 @@
-import { useLocation, Link, Navigate } from "react-router-dom";
+import { useLocation, Link, Navigate } from "@/lib/router-compat";
 import { useEffect } from "react";
 import { Search, Home, MapPin, FileText, Globe } from "lucide-react";
 import Header from "@/components/Header";

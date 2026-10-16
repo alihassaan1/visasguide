@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useQueryClient } from "@tanstack/react-query";
 import { useParams, Link } from '@/lib/router-compat';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -108,7 +109,7 @@ export default function ContentPage() {
     };
 
     fetchPage();
-  }, [slug, toast]);
+  }, [slug, toast, queryClient]);
 
   if (loading) {
     return (

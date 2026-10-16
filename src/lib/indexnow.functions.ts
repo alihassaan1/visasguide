@@ -8,7 +8,7 @@ type IndexNowResult = { success: boolean; submitted: number; error?: string };
 
 // Submits site URLs to IndexNow (Bing, Yandex, etc.). Only paths on visas.guide are accepted.
 export const submitToIndexNow = createServerFn({ method: "POST" })
-  .inputValidator((data: { urls: string[] }) => {
+  .validator((data: { urls: string[] }) => {
     if (!data || !Array.isArray(data.urls) || data.urls.length === 0) {
       throw new Error("urls array is required");
     }

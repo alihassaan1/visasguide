@@ -45,6 +45,7 @@ const EtiasNav = () => {
       </ul>
     </div>
   </nav>
-);
+  );
+};
 
 export default EtiasNav;

@@ -174,10 +174,12 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
     ? "w-full flex justify-center"
     : "w-full";
   const embedClass = isHorizontal
-    ? "affiliate-embed w-full max-h-[220px] md:max-h-[130px] overflow-hidden flex justify-center"
+    ? "affiliate-embed w-full max-h-[300px] md:max-h-[300px] overflow-hidden flex justify-center"
     : "affiliate-embed w-full overflow-hidden";
+  // Mobile: fill the page width. Desktop: scale up to a 728x300 box, keeping the
+  // creative's own aspect ratio (object-contain) so nothing is stretched or cropped.
   const imageClass = isHorizontal
-    ? "w-full h-auto object-contain md:h-[120px] md:w-auto max-w-full mx-auto"
+    ? "w-full h-auto object-contain mx-auto md:w-auto md:max-w-[728px] md:max-h-[300px]"
     : "w-full h-auto object-contain";
 
   const banner = selectedBanner;

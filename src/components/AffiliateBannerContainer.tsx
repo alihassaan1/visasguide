@@ -177,7 +177,7 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
     ? "affiliate-embed w-full max-h-[220px] md:max-h-[130px] overflow-hidden flex justify-center"
     : "affiliate-embed w-full overflow-hidden";
   const imageClass = isHorizontal
-    ? "w-full h-auto object-contain md:h-[110px] md:h-auto md:w-auto max-w-full mx-auto md:max-w-none"
+    ? "w-full h-auto object-contain md:h-[120px] md:w-auto max-w-full mx-auto"
     : "w-full h-auto object-contain";
 
   const banner = selectedBanner;

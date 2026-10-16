@@ -9,6 +9,7 @@ import { Plus, Edit, Trash2, Eye, Search, PenLine, Sparkles, ChevronDown, Clock,
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useNavigate } from "@/lib/router-compat";
 import {
+import { submitToIndexNow } from "@/lib/indexnow.functions";
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -137,9 +138,7 @@ export default function ContentManager() {
       // Submit to IndexNow when publishing (not unpublishing)
       if (!currentStatus && page?.slug) {
         try {
-          await supabase.functions.invoke('auto-indexnow', {
-            body: { urls: [`/${page.slug}`] }
-          });
+          await submitToIndexNow({ data: { urls: [`/${page.slug}`] } });
           console.log('Submitted to IndexNow:', page.slug);
         } catch (indexError) {
           console.error('IndexNow submission failed:', indexError);

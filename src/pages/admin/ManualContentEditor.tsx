@@ -12,6 +12,7 @@ import { ArrowLeft, Save, Send, Sparkles, X, Loader2, User, Clock, Calendar } fr
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import {
+import { submitToIndexNow } from "@/lib/indexnow.functions";
   Select,
   SelectContent,
   SelectItem,

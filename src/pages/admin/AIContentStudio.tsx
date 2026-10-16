@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { ThinCityEnricher } from "@/components/admin/ThinCityEnricher";
 import { VisaPageDifferentiator } from "@/components/admin/VisaPageDifferentiator";
+import { submitToIndexNow } from "@/lib/indexnow.functions";
 
 const PROMPT_TEMPLATES = [
   {
@@ -315,9 +316,7 @@ export default function AIContentStudio() {
       // Submit to IndexNow when publishing
       if (status === 'published') {
         try {
-          await supabase.functions.invoke('auto-indexnow', {
-            body: { urls: [`/${pageSlug}`] }
-          });
+          await submitToIndexNow({ data: { urls: [`/${pageSlug}`] } });
           console.log('Submitted to IndexNow:', pageSlug);
         } catch (indexError) {
           console.error('IndexNow submission failed:', indexError);

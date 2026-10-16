@@ -21,7 +21,7 @@ interface Country {
   id: string
   name: string
   code: string
-  flag_emoji?: string
+  flag_emoji?: string | null
   slug: string
 }
 

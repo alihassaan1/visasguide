@@ -124,7 +124,7 @@ const CityPage = () => {
       <TouristAttractionSchema
         name={city.name}
         description={city.description || `Discover tours and activities in ${city.name}, ${city.country?.name}`}
-        image={city.hero_image_url}
+        image={city.hero_image_url ?? undefined}
         address={{ city: city.name, country: city.country?.name || '' }}
         url={`https://visas.guide/${city.country?.slug}/${city.slug}`}
         attractions={city.attractions || []}

@@ -24,7 +24,7 @@ const AuthorPage = () => {
       const { data, error } = await supabase
         .from('content_pages')
         .select('id, title, slug, excerpt, created_at, featured_image_url')
-        .eq('writer_id', author?.id)
+        .eq('writer_id', author?.id ?? '')
         .eq('is_published', true)
         .order('created_at', { ascending: false })
         .limit(20);
@@ -41,7 +41,7 @@ const AuthorPage = () => {
       const { data, error } = await supabase
         .from('news_articles')
         .select('id, title, slug, excerpt, created_at, featured_image_url')
-        .eq('writer_id', author?.id)
+        .eq('writer_id', author?.id ?? '')
         .eq('status', 'published')
         .order('created_at', { ascending: false })
         .limit(20);

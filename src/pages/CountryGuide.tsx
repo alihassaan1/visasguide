@@ -561,7 +561,7 @@ const CountryGuide = () => {
             />
 
             {/* Author Bio */}
-            <AuthorBio writerId={guideContent?.writer_id} />
+            <AuthorBio writerId={guideContent?.writer_id ?? undefined} />
           </div>
 
           {/* Sidebar - Right Column */}

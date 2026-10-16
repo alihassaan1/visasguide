@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useQueryClient } from "@tanstack/react-query";
 import { useParams, Link } from '@/lib/router-compat';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -29,8 +30,10 @@ const estimateReadingTime = (content: string): number => {
 
 export default function ContentPage() {
   const { slug } = useParams();
-  const [page, setPage] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const prefetched = slug ? (queryClient.getQueryData(['content-page', slug]) as any) : null;
+  const [page, setPage] = useState<any>(prefetched ?? null);
+  const [loading, setLoading] = useState(!prefetched);
   const { toast } = useToast();
 
   // Programmatic passport visa-free pages: /{country-slug}-passport-visa-free-countries
@@ -41,6 +44,16 @@ export default function ContentPage() {
   useEffect(() => {
     const fetchPage = async () => {
       if (!slug) return;
+
+      const cached = queryClient.getQueryData(['content-page', slug]) as any;
+      if (cached) {
+        setPage(cached);
+        setLoading(false);
+        void supabase.rpc('increment_content_page_view', { p_slug: cached.slug }).then(({ error }) => {
+          if (error) console.error('Page view tracking failed', error);
+        });
+        return;
+      }
 
       setLoading(true);
       try {
@@ -96,7 +109,7 @@ export default function ContentPage() {
     };
 
     fetchPage();
-  }, [slug, toast]);
+  }, [slug, toast, queryClient]);
 
   if (loading) {
     return (

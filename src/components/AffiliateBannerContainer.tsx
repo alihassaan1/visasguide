@@ -184,7 +184,7 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
 
   return (
     <div className={`${containerClass}`}>
-      <div className="w-full">
+      <div className={isHorizontal ? "w-full flex justify-center" : "w-full"}>
         {banner.html_embed ? (
           <div
             className={embedClass}

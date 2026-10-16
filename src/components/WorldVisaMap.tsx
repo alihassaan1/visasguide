@@ -205,7 +205,7 @@ const WorldVisaMap: React.FC<WorldVisaMapProps> = ({ countries, onCountryClick }
           const countryName = (e.features[0] as any).properties?.name_en;
 
           map.current.setFeatureState(
-            { source: 'countries', sourceLayer: 'country_boundaries', id: hoveredStateId ?? undefined },
+            { source: 'countries', sourceLayer: 'country_boundaries', id: hoveredStateId as string | number },
             { hover: true }
           );
 

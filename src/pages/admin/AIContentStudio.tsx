@@ -1,3 +1,4 @@
+import { submitToIndexNow } from "@/lib/indexnow.functions";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "@/lib/router-compat";
 import { Button } from "@/components/ui/button";
@@ -315,9 +316,7 @@ export default function AIContentStudio() {
       // Submit to IndexNow when publishing
       if (status === 'published') {
         try {
-          await supabase.functions.invoke('auto-indexnow', {
-            body: { urls: [`/${pageSlug}`] }
-          });
+          await submitToIndexNow({ data: { urls: [`/${pageSlug}`] } });
           console.log('Submitted to IndexNow:', pageSlug);
         } catch (indexError) {
           console.error('IndexNow submission failed:', indexError);

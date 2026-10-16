@@ -1,3 +1,4 @@
+import { submitToIndexNow } from "@/lib/indexnow.functions";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "@/lib/router-compat";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -305,9 +306,7 @@ export default function ManualContentEditor() {
       // Submit to IndexNow if publishing immediately (not scheduling)
       if (publish && !schedule && result.data?.slug) {
         try {
-          await supabase.functions.invoke("auto-indexnow", {
-            body: { urls: [`/${result.data.slug}`] },
-          });
+          await submitToIndexNow({ data: { urls: [`/${result.data.slug}`] } });
         } catch (indexError) {
           console.error("IndexNow submission failed:", indexError);
         }

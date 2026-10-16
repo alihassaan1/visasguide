@@ -28,7 +28,7 @@ const RelatedContent = ({
         title: string;
         slug: string;
         type: string;
-        excerpt?: string;
+        excerpt?: string | null;
       }> = [];
 
       // Get related content pages based on type

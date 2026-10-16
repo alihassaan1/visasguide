@@ -172,7 +172,7 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
       .select("role")
       .eq("user_id", session.user.id)
       .eq("role", "admin");
-    setIsAdmin(roles && roles.length > 0);
+    setIsAdmin(!!roles && roles.length > 0);
   };
 
   const toggleGroup = (title: string) => {

@@ -1,3 +1,4 @@
+import { submitToIndexNow } from "@/lib/indexnow.functions";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -137,9 +138,7 @@ export default function ContentManager() {
       // Submit to IndexNow when publishing (not unpublishing)
       if (!currentStatus && page?.slug) {
         try {
-          await supabase.functions.invoke('auto-indexnow', {
-            body: { urls: [`/${page.slug}`] }
-          });
+          await submitToIndexNow({ data: { urls: [`/${page.slug}`] } });
           console.log('Submitted to IndexNow:', page.slug);
         } catch (indexError) {
           console.error('IndexNow submission failed:', indexError);

@@ -1,3 +1,4 @@
+import type { Tables } from "@/integrations/supabase/types";
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from '@/lib/router-compat';
 import Header from '@/components/Header';
@@ -198,9 +199,9 @@ export default function Admin() {
     auto_content_generation: false,
     fetch_interval_hours: 6
   });
-  const [articles, setArticles] = useState([]);
-  const [rssFeeds, setRssFeeds] = useState([]);
-  const [contentPages, setContentPages] = useState([]);
+  const [articles, setArticles] = useState<Tables<"news_articles">[]>([]);
+  const [rssFeeds, setRssFeeds] = useState<Tables<"rss_feeds">[]>([]);
+  const [contentPages, setContentPages] = useState<Tables<"content_pages">[]>([]);
   const [loading, setLoading] = useState(false);
   const [newRssFeed, setNewRssFeed] = useState({ name: '', url: '', category: '' });
   const [editingPage, setEditingPage] = useState<any>(null);

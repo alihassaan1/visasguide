@@ -18,7 +18,7 @@ interface Country {
   name: string;
   code: string;
   slug: string;
-  flag_emoji: string;
+  flag_emoji: string | null;
 }
 
 // Default Mapbox public token - free tier usage only
@@ -201,11 +201,11 @@ const WorldVisaMap: React.FC<WorldVisaMapProps> = ({ countries, onCountryClick }
             );
           }
 
-          hoveredStateId = e.features[0].id!;
-          const countryName = e.features[0].properties?.name_en;
+          hoveredStateId = (e.features[0] as any).id!;
+          const countryName = (e.features[0] as any).properties?.name_en;
 
           map.current.setFeatureState(
-            { source: 'countries', sourceLayer: 'country_boundaries', id: hoveredStateId },
+            { source: 'countries', sourceLayer: 'country_boundaries', id: hoveredStateId as string | number },
             { hover: true }
           );
 
@@ -243,7 +243,7 @@ const WorldVisaMap: React.FC<WorldVisaMapProps> = ({ countries, onCountryClick }
 
       map.current.on('click', 'country-fills', (e) => {
         if (e.features && e.features.length > 0) {
-          const countryCode = e.features[0].properties?.iso_3166_1;
+          const countryCode = (e.features[0] as any).properties?.iso_3166_1;
           const country = countries.find(c => c.code === countryCode);
           
           if (country) {

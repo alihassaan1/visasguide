@@ -168,16 +168,26 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
 
   if (!selectedBanner) return null;
 
-  const containerClass = "w-full";
+  const isHorizontal = position === "horizontal-banner";
+  // Standard leaderboard sizing: cap height so wide banners never dominate the page.
+  const containerClass = isHorizontal
+    ? "w-full flex justify-center"
+    : "w-full";
+  const embedClass = isHorizontal
+    ? "affiliate-embed w-full max-h-[130px] overflow-hidden flex justify-center"
+    : "affiliate-embed w-full overflow-hidden";
+  const imageClass = isHorizontal
+    ? "h-[90px] md:h-[120px] w-auto max-w-full object-contain mx-auto"
+    : "w-full h-auto object-contain";
 
   const banner = selectedBanner;
 
   return (
     <div className={`${containerClass}`}>
-      <div className="w-full">
+      <div className={isHorizontal ? "w-full flex justify-center" : "w-full"}>
         {banner.html_embed ? (
-          <div 
-            className="affiliate-embed w-full overflow-hidden"
+          <div
+            className={embedClass}
             dangerouslySetInnerHTML={{ __html: banner.html_embed }}
             onClick={() => handleClick(banner)}
           />
@@ -187,12 +197,12 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
             target="_blank"
             rel="sponsored noopener noreferrer"
             onClick={() => handleClick(banner)}
-            className="block overflow-hidden rounded-lg hover:opacity-90 transition-opacity"
+            className={isHorizontal ? "inline-block max-w-full" : "block overflow-hidden rounded-lg hover:opacity-90 transition-opacity"}
           >
             <img
               src={banner.image_url}
               alt={banner.name}
-              className="w-full h-auto object-contain"
+              className={imageClass}
               loading="lazy"
             />
           </a>

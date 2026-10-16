@@ -169,15 +169,15 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
   if (!selectedBanner) return null;
 
   const isHorizontal = position === "horizontal-banner";
-  // Standard leaderboard sizing: cap height so wide banners never dominate the page.
+  // Horizontal slot: full-width on mobile, standard leaderboard cap on desktop.
   const containerClass = isHorizontal
     ? "w-full flex justify-center"
     : "w-full";
   const embedClass = isHorizontal
-    ? "affiliate-embed w-full max-h-[130px] overflow-hidden flex justify-center"
+    ? "affiliate-embed w-full max-h-[220px] md:max-h-[130px] overflow-hidden flex justify-center"
     : "affiliate-embed w-full overflow-hidden";
   const imageClass = isHorizontal
-    ? "h-[90px] md:h-[120px] w-auto max-w-full object-contain mx-auto"
+    ? "w-full h-auto object-contain md:h-[120px] md:w-auto max-w-full mx-auto"
     : "w-full h-auto object-contain";
 
   const banner = selectedBanner;

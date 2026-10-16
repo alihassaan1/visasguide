@@ -16,7 +16,7 @@ interface State {
 }
 
 class AdminErrorBoundary extends Component<Props, State> {
-  public state: State = {
+  public override state: State = {
     hasError: false,
     error: null,
     errorInfo: null,
@@ -27,7 +27,7 @@ class AdminErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  public override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Admin Error Boundary caught an error:", error, errorInfo);
     this.setState({ errorInfo });
   }
@@ -49,7 +49,7 @@ Time: ${new Date().toISOString()}`;
     });
   };
 
-  public render() {
+  public override render() {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-background flex items-center justify-center p-4">

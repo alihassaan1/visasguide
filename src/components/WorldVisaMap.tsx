@@ -18,7 +18,7 @@ interface Country {
   name: string;
   code: string;
   slug: string;
-  flag_emoji: string;
+  flag_emoji: string | null;
 }
 
 // Default Mapbox public token - free tier usage only
@@ -205,7 +205,7 @@ const WorldVisaMap: React.FC<WorldVisaMapProps> = ({ countries, onCountryClick }
           const countryName = (e.features[0] as any).properties?.name_en;
 
           map.current.setFeatureState(
-            { source: 'countries', sourceLayer: 'country_boundaries', id: hoveredStateId },
+            { source: 'countries', sourceLayer: 'country_boundaries', id: hoveredStateId ?? undefined },
             { hover: true }
           );
 

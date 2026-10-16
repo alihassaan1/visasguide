@@ -166,3 +166,18 @@ export const getBlogArticleData = createServerFn({ method: "GET" })
       return "[]";
     }
   });
+
+export const getContentPageData = createServerFn({ method: "GET" })
+  .inputValidator(slugInput)
+  .handler(async ({ data }): Promise<string> => {
+    try {
+      if (/-passport-visa-free-countries$/.test(data.slug)) return "[]";
+      const sb = publicClient();
+      const r = await sb.from("content_pages").select("*").eq("slug", data.slug).eq("is_published", true).maybeSingle();
+      if (r.error || !r.data) return "[]";
+      return JSON.stringify([[["content-page", data.slug], r.data]]);
+    } catch (e) {
+      console.error("getContentPageData failed", e);
+      return "[]";
+    }
+  });

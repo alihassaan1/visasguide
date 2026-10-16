@@ -46,7 +46,7 @@ const slugInput = (d: unknown) => {
 
 export const getCountryGuideData = createServerFn({ method: "GET" })
   .inputValidator(slugInput)
-  .handler(async ({ data }): Promise<Entry[]> => {
+  .handler(async ({ data }): Promise<string> => {
     try {
       const sb = publicClient();
       const countries = await loadCountries(sb);
@@ -68,16 +68,16 @@ export const getCountryGuideData = createServerFn({ method: "GET" })
         if (!reqs.error) out.push([["visa-requirements", country.id], reqs.data]);
         if (!times.error) out.push([["processing-times", country.id], times.data]);
       }
-      return JSON.parse(JSON.stringify(out));
+      return JSON.stringify(out);
     } catch (e) {
       console.error("getCountryGuideData failed", e);
-      return [];
+      return "[]";
     }
   });
 
 export const getCityPageData = createServerFn({ method: "GET" })
   .inputValidator(slugInput)
-  .handler(async ({ data }): Promise<Entry[]> => {
+  .handler(async ({ data }): Promise<string> => {
     try {
       const sb = publicClient();
       const { data: city, error } = await sb
@@ -87,17 +87,17 @@ export const getCityPageData = createServerFn({ method: "GET" })
           country:countries(id, name, slug, flag_emoji, code)
         `)
         .eq("slug", data.slug).maybeSingle();
-      if (error) return [];
-      return JSON.parse(JSON.stringify([[["city", data.slug], city ?? null]]));
+      if (error) return "[]";
+      return JSON.stringify([[["city", data.slug], city ?? null]]);
     } catch (e) {
       console.error("getCityPageData failed", e);
-      return [];
+      return "[]";
     }
   });
 
 export const getVisaRequirementData = createServerFn({ method: "GET" })
   .inputValidator(slugInput)
-  .handler(async ({ data }): Promise<Entry[]> => {
+  .handler(async ({ data }): Promise<string> => {
     try {
       const sb = publicClient();
       const normalized = data.slug.replace(/-visa-requirements$/, "");
@@ -128,21 +128,21 @@ export const getVisaRequirementData = createServerFn({ method: "GET" })
         }
         out.push([["visa-content-page", fromSlug, toSlug], page]);
       }
-      return JSON.parse(JSON.stringify(out));
+      return JSON.stringify(out);
     } catch (e) {
       console.error("getVisaRequirementData failed", e);
-      return [];
+      return "[]";
     }
   });
 
 export const getBlogArticleData = createServerFn({ method: "GET" })
   .inputValidator(slugInput)
-  .handler(async ({ data }): Promise<Entry[]> => {
+  .handler(async ({ data }): Promise<string> => {
     try {
       const sb = publicClient();
       const out: Entry[] = [];
       const news = await sb.from("news_articles").select("*").eq("slug", data.slug).maybeSingle();
-      if (news.error) return [];
+      if (news.error) return "[]";
       out.push([["news-article", data.slug], news.data ?? null]);
       if (news.data) {
         const cats = news.data.categories;
@@ -160,9 +160,9 @@ export const getBlogArticleData = createServerFn({ method: "GET" })
         if (!r.data) r = await sb.from("content_pages").select(sel).eq("slug", `blog/${data.slug}`).eq("is_published", true).maybeSingle();
         if (!r.error) out.push([["content-page-blog", data.slug], r.data ?? null]);
       }
-      return JSON.parse(JSON.stringify(out));
+      return JSON.stringify(out);
     } catch (e) {
       console.error("getBlogArticleData failed", e);
-      return [];
+      return "[]";
     }
   });

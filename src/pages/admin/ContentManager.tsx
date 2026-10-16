@@ -1,3 +1,4 @@
+import { submitToIndexNow } from "@/lib/indexnow.functions";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,6 @@ import { Plus, Edit, Trash2, Eye, Search, PenLine, Sparkles, ChevronDown, Clock,
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useNavigate } from "@/lib/router-compat";
 import {
-import { submitToIndexNow } from "@/lib/indexnow.functions";
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,

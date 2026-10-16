@@ -1,3 +1,4 @@
+import { submitToIndexNow } from "@/lib/indexnow.functions";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "@/lib/router-compat";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { ThinCityEnricher } from "@/components/admin/ThinCityEnricher";
 import { VisaPageDifferentiator } from "@/components/admin/VisaPageDifferentiator";
-import { submitToIndexNow } from "@/lib/indexnow.functions";
 
 const PROMPT_TEMPLATES = [
   {

@@ -4,7 +4,15 @@
  */
 export function stripEmbeddedSchemas(html: string): string {
   if (!html) return '';
-  return html.replace(/<script\s+type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi, '');
+  return html
+    .replace(/<script\s+type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi, '')
+    // Editor spacer paragraphs otherwise add a full line AND prose margins.
+    // Only remove empty text/formatting; preserve images, tables and real breaks.
+    .replace(/<p\b[^>]*>([\s\S]*?)<\/p>/gi, (paragraph, body: string) =>
+      /^(?:\s|&nbsp;|&#160;|&#xA0;|\u00a0|\u200b|\ufeff|<br\s*\/?\s*>|<\/?(?:span|strong|b|em|i|u)\b[^>]*>)*$/i.test(body)
+        ? ''
+        : paragraph,
+    );
 }
 
 /**
@@ -61,9 +69,8 @@ export function formatArticleContent(content: string): string {
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i].trim();
     
-    // Skip empty lines but preserve them as spacing
+    // Paragraph/heading margins provide spacing, not extra standalone breaks.
     if (line === '') {
-      formattedLines.push('<br />');
       continue;
     }
     

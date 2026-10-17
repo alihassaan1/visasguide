@@ -83,8 +83,11 @@ import { Route as ThingsToDoIndexRouteImport } from './routes/things-to-do/index
 import { Route as ThingsToDoCountrySlugRouteImport } from './routes/things-to-do/$countrySlug'
 import { Route as VisaRequirementsSlugRouteImport } from './routes/visa-requirements/$slug'
 import { Route as VisaTypesBusinessRouteImport } from './routes/visa-types/business'
+import { Route as VisaTypesBusinessVisaRouteImport } from './routes/visa-types/business-visa'
 import { Route as VisaTypesStudentRouteImport } from './routes/visa-types/student'
+import { Route as VisaTypesStudentVisaRouteImport } from './routes/visa-types/student-visa'
 import { Route as VisaTypesTouristRouteImport } from './routes/visa-types/tourist'
+import { Route as VisaTypesTouristVisaRouteImport } from './routes/visa-types/tourist-visa'
 import { Route as AdminMarketingPlatformsRouteImport } from './routes/admin/marketing/platforms'
 import { Route as AdminMarketingPostsRouteImport } from './routes/admin/marketing/posts'
 import { Route as AdminMarketingSocialRouteImport } from './routes/admin/marketing/social'
@@ -464,14 +467,29 @@ const VisaTypesBusinessRoute = VisaTypesBusinessRouteImport.update({
   path: '/visa-types/business',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VisaTypesBusinessVisaRoute = VisaTypesBusinessVisaRouteImport.update({
+  id: '/visa-types/business-visa',
+  path: '/visa-types/business-visa',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VisaTypesStudentRoute = VisaTypesStudentRouteImport.update({
   id: '/visa-types/student',
   path: '/visa-types/student',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VisaTypesStudentVisaRoute = VisaTypesStudentVisaRouteImport.update({
+  id: '/visa-types/student-visa',
+  path: '/visa-types/student-visa',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VisaTypesTouristRoute = VisaTypesTouristRouteImport.update({
   id: '/visa-types/tourist',
   path: '/visa-types/tourist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VisaTypesTouristVisaRoute = VisaTypesTouristVisaRouteImport.update({
+  id: '/visa-types/tourist-visa',
+  path: '/visa-types/tourist-visa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminMarketingPlatformsRoute = AdminMarketingPlatformsRouteImport.update({
@@ -582,8 +600,11 @@ export interface FileRoutesByFullPath {
   '/things-to-do/$countrySlug': typeof ThingsToDoCountrySlugRoute
   '/visa-requirements/$slug': typeof VisaRequirementsSlugRoute
   '/visa-types/business': typeof VisaTypesBusinessRoute
+  '/visa-types/business-visa': typeof VisaTypesBusinessVisaRoute
   '/visa-types/student': typeof VisaTypesStudentRoute
+  '/visa-types/student-visa': typeof VisaTypesStudentVisaRoute
   '/visa-types/tourist': typeof VisaTypesTouristRoute
+  '/visa-types/tourist-visa': typeof VisaTypesTouristVisaRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/countries/': typeof CountriesIndexRoute
@@ -666,8 +687,11 @@ export interface FileRoutesByTo {
   '/things-to-do/$countrySlug': typeof ThingsToDoCountrySlugRoute
   '/visa-requirements/$slug': typeof VisaRequirementsSlugRoute
   '/visa-types/business': typeof VisaTypesBusinessRoute
+  '/visa-types/business-visa': typeof VisaTypesBusinessVisaRoute
   '/visa-types/student': typeof VisaTypesStudentRoute
+  '/visa-types/student-visa': typeof VisaTypesStudentVisaRoute
   '/visa-types/tourist': typeof VisaTypesTouristRoute
+  '/visa-types/tourist-visa': typeof VisaTypesTouristVisaRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
   '/countries': typeof CountriesIndexRoute
@@ -752,8 +776,11 @@ export interface FileRoutesById {
   '/things-to-do/$countrySlug': typeof ThingsToDoCountrySlugRoute
   '/visa-requirements/$slug': typeof VisaRequirementsSlugRoute
   '/visa-types/business': typeof VisaTypesBusinessRoute
+  '/visa-types/business-visa': typeof VisaTypesBusinessVisaRoute
   '/visa-types/student': typeof VisaTypesStudentRoute
+  '/visa-types/student-visa': typeof VisaTypesStudentVisaRoute
   '/visa-types/tourist': typeof VisaTypesTouristRoute
+  '/visa-types/tourist-visa': typeof VisaTypesTouristVisaRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/countries/': typeof CountriesIndexRoute
@@ -839,8 +866,11 @@ export interface FileRouteTypes {
     | '/things-to-do/$countrySlug'
     | '/visa-requirements/$slug'
     | '/visa-types/business'
+    | '/visa-types/business-visa'
     | '/visa-types/student'
+    | '/visa-types/student-visa'
     | '/visa-types/tourist'
+    | '/visa-types/tourist-visa'
     | '/admin/'
     | '/blog/'
     | '/countries/'
@@ -923,8 +953,11 @@ export interface FileRouteTypes {
     | '/things-to-do/$countrySlug'
     | '/visa-requirements/$slug'
     | '/visa-types/business'
+    | '/visa-types/business-visa'
     | '/visa-types/student'
+    | '/visa-types/student-visa'
     | '/visa-types/tourist'
+    | '/visa-types/tourist-visa'
     | '/admin'
     | '/blog'
     | '/countries'
@@ -1008,8 +1041,11 @@ export interface FileRouteTypes {
     | '/things-to-do/$countrySlug'
     | '/visa-requirements/$slug'
     | '/visa-types/business'
+    | '/visa-types/business-visa'
     | '/visa-types/student'
+    | '/visa-types/student-visa'
     | '/visa-types/tourist'
+    | '/visa-types/tourist-visa'
     | '/admin/'
     | '/blog/'
     | '/countries/'
@@ -1057,8 +1093,11 @@ export interface RootRouteChildren {
   ThingsToDoCountrySlugRoute: typeof ThingsToDoCountrySlugRoute
   VisaRequirementsSlugRoute: typeof VisaRequirementsSlugRoute
   VisaTypesBusinessRoute: typeof VisaTypesBusinessRoute
+  VisaTypesBusinessVisaRoute: typeof VisaTypesBusinessVisaRoute
   VisaTypesStudentRoute: typeof VisaTypesStudentRoute
+  VisaTypesStudentVisaRoute: typeof VisaTypesStudentVisaRoute
   VisaTypesTouristRoute: typeof VisaTypesTouristRoute
+  VisaTypesTouristVisaRoute: typeof VisaTypesTouristVisaRoute
   BlogIndexRoute: typeof BlogIndexRoute
   CountriesIndexRoute: typeof CountriesIndexRoute
   EtiasIndexRoute: typeof EtiasIndexRoute
@@ -1590,6 +1629,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VisaTypesBusinessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/visa-types/business-visa': {
+      id: '/visa-types/business-visa'
+      path: '/visa-types/business-visa'
+      fullPath: '/visa-types/business-visa'
+      preLoaderRoute: typeof VisaTypesBusinessVisaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/visa-types/student': {
       id: '/visa-types/student'
       path: '/visa-types/student'
@@ -1597,11 +1643,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VisaTypesStudentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/visa-types/student-visa': {
+      id: '/visa-types/student-visa'
+      path: '/visa-types/student-visa'
+      fullPath: '/visa-types/student-visa'
+      preLoaderRoute: typeof VisaTypesStudentVisaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/visa-types/tourist': {
       id: '/visa-types/tourist'
       path: '/visa-types/tourist'
       fullPath: '/visa-types/tourist'
       preLoaderRoute: typeof VisaTypesTouristRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/visa-types/tourist-visa': {
+      id: '/visa-types/tourist-visa'
+      path: '/visa-types/tourist-visa'
+      fullPath: '/visa-types/tourist-visa'
+      preLoaderRoute: typeof VisaTypesTouristVisaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/marketing/platforms': {
@@ -1779,8 +1839,11 @@ const rootRouteChildren: RootRouteChildren = {
   ThingsToDoCountrySlugRoute: ThingsToDoCountrySlugRoute,
   VisaRequirementsSlugRoute: VisaRequirementsSlugRoute,
   VisaTypesBusinessRoute: VisaTypesBusinessRoute,
+  VisaTypesBusinessVisaRoute: VisaTypesBusinessVisaRoute,
   VisaTypesStudentRoute: VisaTypesStudentRoute,
+  VisaTypesStudentVisaRoute: VisaTypesStudentVisaRoute,
   VisaTypesTouristRoute: VisaTypesTouristRoute,
+  VisaTypesTouristVisaRoute: VisaTypesTouristVisaRoute,
   BlogIndexRoute: BlogIndexRoute,
   CountriesIndexRoute: CountriesIndexRoute,
   EtiasIndexRoute: EtiasIndexRoute,

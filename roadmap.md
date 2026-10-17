@@ -7,5 +7,5 @@
 
 # Article spacing repair
 
-- [ ] Remove empty content spacers and standardize public article spacing without changing saved content.
-- [ ] Verify affected guides, news, country and visa pages at desktop and mobile widths.
+- [x] Remove empty content spacers and standardize public article spacing without changing saved content.
+- [x] Verify affected guides, news, country and visa pages at desktop and mobile widths.

@@ -1,6 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { RedirectCity } from "@/components/LegacyRedirects";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/countries/$countrySlug/$citySlug")({
-  component: RedirectCity,
+  beforeLoad: ({ params }) => { throw redirect({ href: `/${params.countrySlug}/${params.citySlug}`, statusCode: 301 }); },
 });

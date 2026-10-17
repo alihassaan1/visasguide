@@ -1,6 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { RedirectVisaFree } from "@/components/LegacyRedirects";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/countries/$countrySlug/visa-free")({
-  component: RedirectVisaFree,
+  beforeLoad: ({ params }) => { throw redirect({ href: `/${params.countrySlug}-passport-visa-free-countries`, statusCode: 301 }); },
 });

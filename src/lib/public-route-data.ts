@@ -4,6 +4,8 @@ import { getBlogArticleData, getCityPageData, getContentPageData, getCountryGuid
 import { seedQueries } from "./seedQueries";
 import { canonicalVisaPath, type PublicPageMeta } from "./public-seo";
 
+import { getCountryHeroImage } from "./country-hero-images";
+
 type Row = Record<string, any>;
 export async function loadPublicDetail(qc: QueryClient, kind: string, slug: string, countrySlug?: string): Promise<PublicPageMeta> {
   if (kind === "visa" && slug.endsWith("-visa-requirements")) throw redirect({ href: canonicalVisaPath(slug), statusCode: 301 });
@@ -24,12 +26,12 @@ export async function loadPublicDetail(qc: QueryClient, kind: string, slug: stri
     const country = countries.find(c => c.slug === slug);
     if (!country) throw notFound();
     const guide = row(["country-guide-content", slug]);
-    return { title: guide?.meta_title || `${country.name} Visa Requirements 2026 | Entry Guide & Requirements`, description: guide?.meta_description || `Do you need a visa for ${country.name}? Complete entry requirements, visa types, application process and processing times.`, path: `/countries/${slug}` };
+    return { title: guide?.meta_title || `${country.name} Visa Requirements 2026 | Entry Guide & Requirements`, description: guide?.meta_description || `Do you need a visa for ${country.name}? Complete entry requirements, visa types, application process and processing times.`, image: getCountryHeroImage(slug), path: `/countries/${slug}` };
   }
   if (kind === "city") {
     const city = row(["city", slug]);
     if (!city || city.country?.slug !== countrySlug) throw notFound();
-    return { title: city.meta_title || `${city.name}, ${city.country.name} | Tours, Activities & Travel Guide`, description: city.meta_description || `Discover the best tours and activities in ${city.name}, ${city.country.name}. Book experiences, explore attractions, and plan your perfect trip.`, path: `/${countrySlug}/${slug}` };
+    return { title: city.meta_title || `${city.name}, ${city.country.name} | Tours, Activities & Travel Guide`, description: city.meta_description || `Discover the best tours and activities in ${city.name}, ${city.country.name}. Book experiences, explore attractions, and plan your perfect trip.`, image: city.hero_image_url, path: `/${countrySlug}/${slug}` };
   }
   if (kind === "content" && slug.endsWith("-passport-visa-free-countries")) {
     const passport = countries.find(c => c.slug === slug.replace(/-passport-visa-free-countries$/, ""));

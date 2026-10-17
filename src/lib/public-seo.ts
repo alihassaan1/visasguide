@@ -23,6 +23,8 @@ export function publicHead(page?: PublicPageMeta) {
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: title }, { name: "twitter:description", content: description },
       { name: "robots", content: page && !page.unavailable ? "index, follow, max-image-preview:large" : "noindex, follow" },
+      { name: "googlebot", content: page && !page.unavailable ? "index, follow, max-image-preview:large" : "noindex, follow" },
+      { name: "bingbot", content: page && !page.unavailable ? "index, follow" : "noindex, follow" },
       ...(url && !page?.unavailable ? [{ property: "og:url", content: url }] : []),
       ...(image ? [{ property: "og:image", content: image }, { name: "twitter:image", content: image }] : []),
     ],

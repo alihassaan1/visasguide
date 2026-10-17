@@ -1,6 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import Feed from "@/pages/Feed";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/feed")({
-  component: Feed,
+  beforeLoad: () => { throw redirect({ href: "https://awiytryceqehqapytfgn.supabase.co/functions/v1/rss-feed", statusCode: 302 }); },
 });

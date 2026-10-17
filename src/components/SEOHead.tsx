@@ -28,6 +28,9 @@ const SEOHead = ({
   // Titles use pipes as separators, never long dashes
   const cleanTitle = title.replace(/\s*[—–]\s*/g, " | ").replace(/\s*\|\s*(\|\s*)+/g, " | ").trim();
   useEffect(() => {
+    // Public leaf routes own metadata in SSR and on navigation. Never overwrite
+    // their tags with a late effect (or with a generic default share image).
+    if (document.querySelector('meta[name="visas:route-head"]')) return;
     // Update document title
     document.title = cleanTitle;
 

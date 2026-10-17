@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import SEOHead from "@/components/SEOHead";
@@ -16,22 +16,14 @@ interface NewsItem {
 }
 
 const EtiasNewsHub = () => {
-  const [items, setItems] = useState<NewsItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from("news_articles")
-        .select("id, slug, title, excerpt, featured_image_url, published_at")
-        .contains("tags", ["etias"])
-        .not("published_at", "is", null)
-        .order("published_at", { ascending: false })
-        .limit(50);
-      setItems((data as NewsItem[]) ?? []);
-      setLoading(false);
-    })();
-  }, []);
+  const { data: items = [], isLoading: loading } = useQuery({
+    queryKey: ["etias-news"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("news_articles").select("id,slug,title,excerpt,featured_image_url,published_at").contains("tags", ["etias"]).not("published_at", "is", null).order("published_at", { ascending: false }).limit(50);
+      if (error) throw error;
+      return (data || []) as NewsItem[];
+    },
+  });
 
   return (
     <EtiasLayout breadcrumbs={[{ name: "ETIAS", url: "/etias" }, { name: "News", url: "/etias/news" }]}>

@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import VisaRequirements from "@/pages/VisaRequirements";
-import { getVisaRequirementData } from "@/lib/page-data.functions";
-import { seedQueries } from "@/lib/seedQueries";
+import { loadPublicDetail } from "@/lib/public-route-data";
+import { publicHead } from "@/lib/public-seo";
+import { PublicRouteError } from "@/components/PublicRouteError";
+import NotFound from "@/pages/NotFound";
 
 export const Route = createFileRoute("/visa-requirements/$slug")({
-  loader: async ({ params, context }) => {
-    seedQueries(context.queryClient, await getVisaRequirementData({ data: { slug: params.slug } }));
-  },
+  loader: ({ params, context }) => loadPublicDetail(context.queryClient, "visa", params.slug),
+  head: ({ loaderData }) => publicHead(loaderData),
+  errorComponent: PublicRouteError,
+  notFoundComponent: NotFound,
   component: VisaRequirements,
 });

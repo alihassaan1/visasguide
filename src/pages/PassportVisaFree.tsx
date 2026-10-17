@@ -1,5 +1,5 @@
 import { useCountries } from "@/hooks/useSharedData";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useParams } from "@/lib/router-compat";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, Plane, FileText, Stamp, Ban } from "lucide-react";
 
@@ -37,48 +38,27 @@ const groups = [
 const PassportVisaFree = () => {
   const { slug } = useParams<{ slug: string }>();
   const passportSlug = (slug || "").replace(/-passport-visa-free-countries$/, "");
-  const [passport, setPassport] = useState<Country | null>(null);
-  const [destinations, setDestinations] = useState<(Country & { requirement_type: string })[]>([]);
-  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
-
-  const { data: allCountries } = useCountries();
-
-  useEffect(() => {
-    if (!allCountries) return;
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      const p = allCountries.find((c) => c.slug === passportSlug);
-      if (!p || cancelled) {
-        setPassport(null);
-        setLoading(false);
-        return;
-      }
-      setPassport(p as Country);
-
-      const { data: reqs } = await supabase
-        .from("visa_requirements")
-        .select("to_country_id,requirement_type")
-        .eq("from_country_id", p.id);
-
-      const ids = (reqs ?? []).map((r: DestRow) => r.to_country_id);
-      const idSet = new Set(ids);
-      const byId = new Map(allCountries.filter((c) => idSet.has(c.id)).map((c: any) => [c.id, c]));
-      const merged = (reqs ?? [])
-        .map((r: DestRow) => {
-          const c = byId.get(r.to_country_id);
-          return c ? { ...(c as Country), requirement_type: r.requirement_type } : null;
-        })
-        .filter(Boolean) as (Country & { requirement_type: string })[];
-
-      if (!cancelled) {
-        setDestinations(merged);
-        setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [passportSlug, allCountries]);
+  const { data: allCountries, isLoading: countryLoading } = useCountries();
+  const passport = allCountries?.find(c => c.slug === passportSlug) ?? null;
+  const { data: reqs = [], isLoading: requirementsLoading } = useQuery({
+    queryKey: ["passport-requirements", passportSlug],
+    queryFn: async () => {
+      if (!passport) return [];
+      const { data, error } = await supabase.from("visa_requirements").select("to_country_id,requirement_type").eq("from_country_id", passport.id);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!passport,
+  });
+  const loading = countryLoading || requirementsLoading;
+  const destinations = useMemo(() => {
+    const byId = new Map((allCountries || []).map(c => [c.id, c]));
+    return reqs.flatMap(r => {
+      const country = byId.get(r.to_country_id);
+      return country ? [{ ...country, requirement_type: r.requirement_type }] : [];
+    });
+  }, [allCountries, reqs]);
 
   const grouped = useMemo(() => {
     const f = filter.trim().toLowerCase();

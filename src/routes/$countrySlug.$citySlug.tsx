@@ -1,12 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import CityPage from "@/pages/CityPage";
-import { getCityPageData } from "@/lib/page-data.functions";
-import { seedQueries } from "@/lib/seedQueries";
+import { loadPublicDetail } from "@/lib/public-route-data";
+import { publicHead } from "@/lib/public-seo";
+import { PublicRouteError } from "@/components/PublicRouteError";
+import NotFound from "@/pages/NotFound";
 
 export const Route = createFileRoute("/$countrySlug/$citySlug")({
-  loader: async ({ params, context }) => {
-    if (context.queryClient.getQueryData(["city", params.citySlug]) !== undefined) return;
-    seedQueries(context.queryClient, await getCityPageData({ data: { slug: params.citySlug } }));
-  },
+  loader: ({ params, context }) => loadPublicDetail(context.queryClient, "city", params.citySlug, params.countrySlug),
+  head: ({ loaderData }) => publicHead(loaderData),
+  errorComponent: PublicRouteError,
+  notFoundComponent: NotFound,
   component: CityPage,
 });

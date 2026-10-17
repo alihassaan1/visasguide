@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import SEOHead from "@/components/SEOHead";
@@ -28,34 +28,21 @@ interface CountryPage {
 
 const EtiasCountryPage = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
-  const [data, setData] = useState<CountryPage | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
-
-  useEffect(() => {
-    if (!countrySlug) return;
-    setLoading(true);
-    setNotFound(false);
-    (async () => {
-      const { data: row, error } = await supabase
-        .from("etias_country_pages")
-        .select("*")
-        .eq("country_slug", countrySlug)
-        .eq("is_published", true)
-        .maybeSingle();
-      if (error || !row) {
-        setNotFound(true);
-      } else {
-        setData(row as unknown as CountryPage);
-      }
-      setLoading(false);
-    })();
-  }, [countrySlug]);
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ["etias-country", countrySlug],
+    queryFn: async () => {
+      const { data: row, error } = await supabase.from("etias_country_pages").select("*").eq("country_slug", countrySlug).eq("is_published", true).maybeSingle();
+      if (error) throw error;
+      return row as unknown as CountryPage | null;
+    },
+    enabled: !!countrySlug,
+  });
+  const notFound = !loading && !data;
 
   if (notFound) return <NotFound />;
 
   const canonical = `https://visas.guide/etias/for/${countrySlug}`;
-  const faqs: FaqItem[] = Array.isArray(data?.faqs) ? data!.faqs : [];
+  const faqs: FaqItem[] = Array.isArray(data?.faqs) ? data?.faqs ?? [] : [];
 
   return (
     <EtiasLayout

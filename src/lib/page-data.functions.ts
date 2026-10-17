@@ -55,6 +55,7 @@ export const getCountryGuideData = createServerFn({ method: "GET" })
       const guide = await sb
         .from("content_pages").select("*")
         .eq("slug", `countries/${data.slug}`).eq("is_published", true).maybeSingle();
+      if (guide.error) throw guide.error;
       out.push([["country-guide-content", data.slug], guide.data ?? null]);
       const country = countries.find((c) => c.slug === data.slug);
       if (country) {
@@ -66,8 +67,15 @@ export const getCountryGuideData = createServerFn({ method: "GET" })
           `).eq("to_country_id", country.id),
           sb.from("processing_times").select("*").eq("country_id", country.id),
         ]);
-        if (!reqs.error) out.push([["visa-requirements", country.id], reqs.data]);
-        if (!times.error) out.push([["processing-times", country.id], times.data]);
+        if (reqs.error) throw reqs.error;
+        if (times.error) throw times.error;
+        out.push([["visa-requirements", country.id], reqs.data]);
+        out.push([["processing-times", country.id], times.data]);
+        if (!country.visa_free_destinations) {
+          const result = await sb.from("visa_requirements").select("id", { count: "exact", head: true }).eq("from_country_id", country.id).in("requirement_type", ["visa_free", "visa_on_arrival", "eTA_required", "evisa_required"]);
+          if (result.error) throw result.error;
+          out.push([["visa-free-count", country.id], result.count || 0]);
+        }
       }
       return JSON.stringify(out);
     } catch (e) {
@@ -111,7 +119,8 @@ export const getVisaRequirementData = createServerFn({ method: "GET" })
       if (from && to) {
         const r = await sb.from("visa_requirements").select("*")
           .eq("from_country_id", from.id).eq("to_country_id", to.id).maybeSingle();
-        if (!r.error) {
+        if (r.error) throw r.error;
+        {
           req = r.data;
           out.push([["visa-requirement", from.id, to.id], r.data ?? null]);
         }
@@ -120,11 +129,13 @@ export const getVisaRequirementData = createServerFn({ method: "GET" })
         let page: unknown = null;
         for (const s of [`${fromSlug}-to-${toSlug}-visa-requirements`, `visa-requirements/${fromSlug}-to-${toSlug}`, `${fromSlug}-to-${toSlug}`]) {
           const r = await sb.from("content_pages").select("*").eq("slug", s).eq("is_published", true).maybeSingle();
+          if (r.error) throw r.error;
           if (r.data && !r.error) { page = r.data; break; }
         }
         if (!page) {
           const r = await sb.from("content_pages").select("*")
             .ilike("slug", `%${fromSlug}%${toSlug}%visa%`).eq("is_published", true).limit(1).maybeSingle();
+          if (r.error) throw r.error;
           if (r.data && !r.error) page = r.data;
         }
         out.push([["visa-content-page", fromSlug, toSlug], page]);
@@ -159,7 +170,8 @@ export const getBlogArticleData = createServerFn({ method: "GET" })
         const sel = `*, writer:authors(name, slug, avatar_url, bio)`;
         let r = await sb.from("content_pages").select(sel).eq("slug", data.slug).eq("is_published", true).maybeSingle();
         if (!r.data) r = await sb.from("content_pages").select(sel).eq("slug", `blog/${data.slug}`).eq("is_published", true).maybeSingle();
-        if (!r.error) out.push([["content-page-blog", data.slug], r.data ?? null]);
+        if (r.error) throw r.error;
+        out.push([["content-page-blog", data.slug], r.data ?? null]);
       }
       return JSON.stringify(out);
     } catch (e) {

@@ -124,11 +124,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     scripts: [
       { children: CONSENT_DEFAULTS },
-      {
-        src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7190852118408617",
-        async: true,
-        crossOrigin: "anonymous",
-      },
       { type: "application/ld+json", children: JSON.stringify(ORGANIZATION_LD) },
       { type: "application/ld+json", children: JSON.stringify(WEBSITE_LD) },
     ],
@@ -155,6 +150,18 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useEffect(() => {
+    // Auto ads may mutate the HTML before React hydrates, causing the entire
+    // server-rendered page to be discarded. Keep AdSense enabled, but start it
+    // after hydration; Google Analytics and consent configuration are unchanged.
+    const src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7190852118408617";
+    if (document.querySelector(`script[src="${src}"]`)) return;
+    const script = document.createElement("script");
+    script.src = src;
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    document.head.appendChild(script);
+  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>

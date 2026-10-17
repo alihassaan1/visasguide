@@ -13,7 +13,15 @@ export function publicHead(page?: PublicPageMeta) {
   const title = (page?.title || "Page unavailable | Visas.Guide").replace(/\s*[—–]\s*/g, " | ");
   const description = page?.description || "This page is unavailable. Browse visa requirements and travel guides on Visas.Guide.";
   const url = page ? `${SITE_URL}${page.path}` : undefined;
-  const image = page?.image?.startsWith("https://") ? page.image : undefined;
+  let image = page?.image?.startsWith("https://") ? page.image : undefined;
+  if (image?.startsWith("https://images.unsplash.com/")) {
+    const shareImage = new URL(image);
+    shareImage.searchParams.set("w", "1200");
+    shareImage.searchParams.set("h", "630");
+    shareImage.searchParams.set("fit", "crop");
+    shareImage.searchParams.set("q", "80");
+    image = shareImage.toString();
+  }
   return {
     meta: [
       { name: "visas:route-head", content: "true" },

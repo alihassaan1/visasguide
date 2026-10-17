@@ -9,3 +9,8 @@
 
 - [x] Remove empty content spacers and standardize public article spacing without changing saved content.
 - [x] Verify affected guides, news, country and visa pages at desktop and mobile widths.
+
+# Article text formatting
+
+- [ ] Standardize public article text colors, bold headings and sizes, including pasted formatting.
+- [ ] Verify the reported article and representative templates on desktop and mobile.

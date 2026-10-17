@@ -33,7 +33,8 @@ function publicClient() {
 }
 
 async function loadCountries(sb: ReturnType<typeof publicClient>) {
-  const { data } = await sb.from("countries").select("*").order("name");
+  const { data, error } = await sb.from("countries").select("*").order("name");
+  if (error) throw error;
   return data || [];
 }
 
@@ -71,7 +72,7 @@ export const getCountryGuideData = createServerFn({ method: "GET" })
       return JSON.stringify(out);
     } catch (e) {
       console.error("getCountryGuideData failed", e);
-      return "[]";
+      throw e;
     }
   });
 
@@ -87,11 +88,11 @@ export const getCityPageData = createServerFn({ method: "GET" })
           country:countries(id, name, slug, flag_emoji, code)
         `)
         .eq("slug", data.slug).maybeSingle();
-      if (error) return "[]";
+      if (error) throw error;
       return JSON.stringify([[["city", data.slug], city ?? null]]);
     } catch (e) {
       console.error("getCityPageData failed", e);
-      return "[]";
+      throw e;
     }
   });
 
@@ -115,7 +116,7 @@ export const getVisaRequirementData = createServerFn({ method: "GET" })
           out.push([["visa-requirement", from.id, to.id], r.data ?? null]);
         }
       }
-      if (!req && fromSlug && toSlug) {
+      if (fromSlug && toSlug) {
         let page: unknown = null;
         for (const s of [`${fromSlug}-to-${toSlug}-visa-requirements`, `visa-requirements/${fromSlug}-to-${toSlug}`, `${fromSlug}-to-${toSlug}`]) {
           const r = await sb.from("content_pages").select("*").eq("slug", s).eq("is_published", true).maybeSingle();
@@ -131,7 +132,7 @@ export const getVisaRequirementData = createServerFn({ method: "GET" })
       return JSON.stringify(out);
     } catch (e) {
       console.error("getVisaRequirementData failed", e);
-      return "[]";
+      throw e;
     }
   });
 
@@ -142,7 +143,7 @@ export const getBlogArticleData = createServerFn({ method: "GET" })
       const sb = publicClient();
       const out: Entry[] = [];
       const news = await sb.from("news_articles").select("*").eq("slug", data.slug).maybeSingle();
-      if (news.error) return "[]";
+      if (news.error) throw news.error;
       out.push([["news-article", data.slug], news.data ?? null]);
       if (news.data) {
         const cats = news.data.categories;
@@ -163,7 +164,7 @@ export const getBlogArticleData = createServerFn({ method: "GET" })
       return JSON.stringify(out);
     } catch (e) {
       console.error("getBlogArticleData failed", e);
-      return "[]";
+      throw e;
     }
   });
 
@@ -171,13 +172,101 @@ export const getContentPageData = createServerFn({ method: "GET" })
   .inputValidator(slugInput)
   .handler(async ({ data }): Promise<string> => {
     try {
-      if (/-passport-visa-free-countries$/.test(data.slug)) return "[]";
+      if (/-passport-visa-free-countries$/.test(data.slug)) {
+        const sb = publicClient();
+        const countries = await loadCountries(sb);
+        const passport = countries.find(c => c.slug === data.slug.replace(/-passport-visa-free-countries$/, ""));
+        if (!passport) return JSON.stringify([[COUNTRIES_KEY, countries]]);
+        const { data: reqs, error } = await sb.from("visa_requirements").select("to_country_id,requirement_type").eq("from_country_id", passport.id);
+        if (error) throw error;
+        return JSON.stringify([[COUNTRIES_KEY, countries], [["passport-requirements", passport.slug], reqs || []]]);
+      }
       const sb = publicClient();
       const r = await sb.from("content_pages").select("*").eq("slug", data.slug).eq("is_published", true).maybeSingle();
-      if (r.error || !r.data) return "[]";
+      if (r.error) throw r.error;
+      if (!r.data) return "[]";
       return JSON.stringify([[["content-page", data.slug], r.data]]);
     } catch (e) {
       console.error("getContentPageData failed", e);
-      return "[]";
+      throw e;
     }
+  });
+
+/** Additional public route families. No privileged credentials or request-time writes. */
+export const getPublicListingData = createServerFn({ method: "GET" })
+  .inputValidator((input: { kind: string; slug?: string; country?: string; changeType?: string; severity?: string }) => ({
+    kind: String(input.kind).slice(0, 50), slug: String(input.slug || "").slice(0, 300),
+    country: String(input.country || "all").slice(0, 100), changeType: String(input.changeType || "all").slice(0, 100), severity: String(input.severity || "all").slice(0, 50),
+  }))
+  .handler(async ({ data }): Promise<string> => {
+    const sb = publicClient();
+    const out: Entry[] = [];
+    async function add(key: readonly unknown[], query: PromiseLike<{ data: unknown; error: unknown }>) {
+      const result = await query;
+      if (result.error) { console.error("Public page query failed", result.error); throw new Error("Public content is temporarily unavailable"); }
+      out.push([key, result.data ?? []]);
+    }
+    if (["countries", "passport-index", "home", "blog", "policy", "country"].includes(data.kind)) {
+      out.push([COUNTRIES_KEY, await loadCountries(sb)]);
+    }
+    if (["countries", "home"].includes(data.kind)) await add(["shared", "search_stats"], sb.from("search_stats").select("country_id,search_count,page_view_count"));
+    if (data.kind === "guides") await add(["visa-guides"], sb.from("guides").select("*").not("published_at", "is", null).order("published_at", { ascending: false }));
+    if (data.kind === "guide") {
+      const result = await sb.from("guides").select("*").eq("slug", data.slug).not("published_at", "is", null).maybeSingle();
+      if (result.error) throw result.error;
+      out.push([["guide", data.slug], result.data]);
+      if (result.data) await add(["related-guides", result.data.guide_type], sb.from("guides").select("id,title,slug,guide_type,difficulty,read_time_minutes").neq("slug", data.slug).not("published_at", "is", null).limit(3));
+    }
+    if (data.kind === "blog") {
+      await Promise.all([
+        add(["news-articles", ""], sb.from("news_articles").select("id,title,slug,excerpt,featured_image_url,published_at,created_at,categories,source_url").not("published_at", "is", null).order("published_at", { ascending: false })),
+        add(["blog-posts", ""], sb.from("content_pages").select("id,title,slug,excerpt,featured_image_url,created_at,keywords").like("slug", "blog/%").eq("is_published", true).order("created_at", { ascending: false })),
+        add(["most-read-blog"], sb.from("content_pages").select("id,title,slug,featured_image_url,view_count").eq("is_published", true).not("view_count", "is", null).order("view_count", { ascending: false }).limit(5)),
+      ]);
+      for (const entry of out) {
+        if (entry[0][0] === "news-articles") entry[1] = (entry[1] as Record<string, unknown>[]).map(a => ({ ...a, type: "news" }));
+        if (entry[0][0] === "blog-posts") entry[1] = (entry[1] as Record<string, unknown>[]).map(a => ({ ...a, published_at: a.created_at, categories: a.keywords, source_url: null, type: "blog" }));
+      }
+    }
+    if (data.kind === "home") {
+      await add(["latest-news-home"], sb.from("news_articles").select("id,title,slug,excerpt,featured_image_url,published_at,categories,writer:authors(name,slug)").not("published_at", "is", null).eq("status", "published").order("published_at", { ascending: false }).limit(4));
+      const fields = "id,title,slug,excerpt,featured_image_url,updated_at,view_count,is_featured,writer:authors(name,slug,avatar_url)";
+      const featured = await sb.from("content_pages").select(fields).eq("is_published", true).eq("is_featured", true).order("featured_at", { ascending: false }).limit(6);
+      if (featured.error) throw featured.error;
+      const rows = featured.data || [];
+      if (rows.length < 6) {
+        let q = sb.from("content_pages").select(fields).eq("is_published", true).order("updated_at", { ascending: false }).limit(6 - rows.length);
+        if (rows.length) q = q.not("id", "in", `(${rows.map(r => r.id).join(",")})`);
+        const latest = await q;
+        if (latest.error) throw latest.error;
+        rows.push(...(latest.data || []));
+      }
+      out.push([["latest-guides-home"], rows]);
+    }
+    if (data.kind === "etias-country") {
+      const result = await sb.from("etias_country_pages").select("*").eq("country_slug", data.slug).eq("is_published", true).maybeSingle();
+      if (result.error) throw result.error;
+      out.push([["etias-country", data.slug], result.data]);
+    }
+    if (data.kind === "etias-news") await add(["etias-news"], sb.from("news_articles").select("id,slug,title,excerpt,featured_image_url,published_at").contains("tags", ["etias"]).not("published_at", "is", null).order("published_at", { ascending: false }).limit(50));
+    if (data.kind === "author") {
+      const authors = await sb.from("authors").select("*").order("name");
+      if (authors.error) throw authors.error;
+      out.push([["shared", "authors"], authors.data || []]);
+      const author = authors.data?.find(a => a.slug === data.slug && a.is_active);
+      if (author) await Promise.all([
+        add(["author-content", author.id], sb.from("content_pages").select("id,title,slug,excerpt,created_at,featured_image_url").eq("writer_id", author.id).eq("is_published", true).order("created_at", { ascending: false }).limit(20)),
+        add(["author-news", author.id], sb.from("news_articles").select("id,title,slug,excerpt,created_at,featured_image_url").eq("writer_id", author.id).eq("status", "published").order("created_at", { ascending: false }).limit(20)),
+      ]);
+    }
+    if (data.kind === "policy") {
+      let q = sb.from("visa_policy_changes").select("*, countries(name,slug,flag_emoji), news_articles(slug)").eq("is_published", true).order("announcement_date", { ascending: false }).limit(100);
+      const countries = out.find(e => e[0][0] === "shared")?.[1] as Awaited<ReturnType<typeof loadCountries>>;
+      const country = countries?.find(c => c.slug === data.country);
+      if (country) q = q.eq("country_id", country.id);
+      if (data.changeType !== "all") q = q.eq("change_type", data.changeType as never);
+      if (data.severity !== "all") q = q.eq("severity", data.severity as never);
+      await add(["policy-updates-public", data.country, data.changeType, data.severity], q);
+    }
+    return JSON.stringify(out);
   });

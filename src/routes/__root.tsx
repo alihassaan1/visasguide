@@ -124,6 +124,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     scripts: [
       { children: CONSENT_DEFAULTS },
+      {
+        src: "https://widget.getyourguide.com/dist/pa.umd.production.min.js",
+        async: true,
+        defer: true,
+        "data-gyg-partner-id": "WN9V7PZ",
+      },
       { type: "application/ld+json", children: JSON.stringify(ORGANIZATION_LD) },
       { type: "application/ld+json", children: JSON.stringify(WEBSITE_LD) },
     ],

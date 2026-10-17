@@ -16,6 +16,7 @@ export function publicHead(page?: PublicPageMeta) {
   const image = page?.image?.startsWith("https://") ? page.image : undefined;
   return {
     meta: [
+      { name: "visas:route-head", content: "true" },
       { title }, { name: "description", content: description },
       { property: "og:title", content: title }, { property: "og:description", content: description },
       { property: "og:type", content: page?.type || "website" },

@@ -30,16 +30,16 @@ const estimateReadingTime = (content: string): number => {
 
 export default function ContentPage() {
   const { slug } = useParams();
+  return slug && /-passport-visa-free-countries$/.test(slug) ? <PassportVisaFree /> : <ArticleContentPage key={slug} />;
+}
+
+function ArticleContentPage() {
+  const { slug } = useParams();
   const queryClient = useQueryClient();
   const prefetched = slug ? (queryClient.getQueryData(['content-page', slug]) as any) : null;
   const [page, setPage] = useState<any>(prefetched ?? null);
   const [loading, setLoading] = useState(!prefetched);
   const { toast } = useToast();
-
-  // Programmatic passport visa-free pages: /{country-slug}-passport-visa-free-countries
-  if (slug && /-passport-visa-free-countries$/.test(slug)) {
-    return <PassportVisaFree />;
-  }
 
   useEffect(() => {
     const fetchPage = async () => {

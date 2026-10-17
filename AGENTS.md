@@ -9,4 +9,4 @@
 
 - Country hero URLs live in a browser-safe shared image module used by both page rendering and leaf social metadata, keeping the shown photo and share preview consistent.
 - Load the existing AdSense script after hydration to prevent auto ads mutating SSR markup; preserve the publisher ID, consent configuration and Google Analytics tag.
-- Keep public article spacing in shared prose styles and remove empty editor spacer paragraphs at display time; this keeps templates consistent without rewriting saved content or affecting admin editors.
+- Keep public article spacing, text colors and heading hierarchy in shared prose styles (including Quill visual headings) and remove empty editor spacer paragraphs at display time; this keeps templates consistent without rewriting saved content or affecting admin editors.

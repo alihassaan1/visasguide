@@ -85,6 +85,7 @@
 :root {
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
+  --article-foreground: 0 0% 0%;
   --card: 0 0% 100%;
   --card-foreground: 222.2 84% 4.9%;
   --popover: 0 0% 100%;
@@ -143,6 +144,7 @@
 .dark {
   --background: 222.2 84% 4.9%;
   --foreground: 210 40% 98%;
+  --article-foreground: 210 40% 98%;
   --card: 222.2 84% 4.9%;
   --card-foreground: 210 40% 98%;
   --popover: 222.2 84% 4.9%;
@@ -302,6 +304,62 @@ article table > thead {
   --article-paragraph-gap: 1rem;
   --article-section-gap: 2rem;
   --article-heading-gap: 0.75rem;
+  --article-h1-size: 2.25rem;
+  --article-h2-size: 1.75rem;
+  --article-h3-size: 1.375rem;
+  --tw-prose-body: hsl(var(--article-foreground));
+  --tw-prose-headings: hsl(var(--article-foreground));
+  --tw-prose-bold: hsl(var(--article-foreground));
+  --tw-prose-counters: hsl(var(--article-foreground));
+  color: hsl(var(--article-foreground));
+  font-size: 1rem;
+  line-height: 1.75;
+}
+/* Override template grey-text utilities and pasted editor styles only within
+   public reading areas. Links, metadata, navigation and admin editors retain
+   their own colors; saved article HTML is never changed. */
+.prose :is(p, li, ul, ol, blockquote, td, th, strong, b, h1, h2, h3, h4, h5, h6) {
+  color: hsl(var(--article-foreground)) !important;
+}
+.prose :is(p, li, blockquote) {
+  font-size: inherit !important;
+}
+.prose :is(span, font) {
+  color: inherit !important;
+  font-size: inherit !important;
+}
+.prose :is(h1, h2, h3, h4, h5, h6),
+.prose :is(h1, h2, h3, h4, h5, h6) :is(span, font) {
+  font-weight: 700 !important;
+  line-height: 1.3;
+}
+.prose h1 { font-size: var(--article-h1-size) !important; }
+.prose h2 { font-size: var(--article-h2-size) !important; }
+.prose h3 { font-size: var(--article-h3-size) !important; }
+.prose h4 { font-size: 1.125rem !important; }
+.prose h5,
+.prose h6 { font-size: 1rem !important; }
+.prose :is(strong, b) { font-weight: 700; }
+/* Quill also stores visual headings as a paragraph containing one sized
+   element. Give those the same hierarchy without enlarging inline phrases. */
+.prose p:has(> .ql-size-huge:only-child) {
+  font-size: var(--article-h1-size) !important;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.prose p:has(> .ql-size-large:only-child) {
+  font-size: var(--article-h2-size) !important;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-block: var(--article-section-gap) var(--article-heading-gap);
+}
+@media (min-width: 768px) {
+  .prose {
+    font-size: 1.125rem;
+    --article-h1-size: 2.5rem;
+    --article-h2-size: 1.875rem;
+    --article-h3-size: 1.5rem;
+  }
 }
 .prose :where(p) {
   margin-block: var(--article-paragraph-gap);

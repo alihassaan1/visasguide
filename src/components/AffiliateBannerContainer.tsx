@@ -151,7 +151,7 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
   };
 
 
-  // Detect iframe/embed clicks via window blur-sm (React onClick doesn't fire on iframes)
+  // Detect iframe/embed clicks via window blur (React onClick doesn't fire on iframes)
   useEffect(() => {
     if (!selectedBanner?.html_embed) return;
     let clicked = false;
@@ -162,8 +162,8 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
         setTimeout(() => { clicked = false; }, 2000);
       }
     };
-    window.addEventListener('blur-sm', onBlur);
-    return () => window.removeEventListener('blur-sm', onBlur);
+    window.addEventListener('blur', onBlur);
+    return () => window.removeEventListener('blur', onBlur);
   }, [selectedBanner?.id]);
 
   if (!selectedBanner) return null;

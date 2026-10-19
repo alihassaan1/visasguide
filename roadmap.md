@@ -16,8 +16,8 @@
 - [x] Verify the reported article and representative templates on desktop and mobile.
 ## R2 CDN Migration (cdn.visas.guide)
 - [x] Store R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY secrets
-- [ ] Verify S3 API access + find bucket name
-- [ ] Server upload function → R2 (future images)
-- [ ] Switch ImageUpload.tsx to R2
-- [ ] Migrate existing images (public/, src/assets, Supabase storage) to R2
-- [ ] Update image URL references
+- [x] Verify S3 API access + find bucket name (visas-guide)
+- [x] Server upload function → R2 (future images)
+- [x] Switch ImageUpload.tsx to R2
+- [x] Migrate existing images (public/, src/assets, Supabase storage) to R2
+- [x] Update image URL references (code + DB)

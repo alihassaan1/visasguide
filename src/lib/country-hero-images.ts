@@ -1,17 +1,17 @@
 // Import local destination images
-import angolaImg from "@/assets/destinations/angola.jpg";
-import polandImg from "@/assets/destinations/poland.jpg";
-import hungaryImg from "@/assets/destinations/hungary.jpg";
-import slovakiaImg from "@/assets/destinations/slovakia.jpg";
-import lithuaniaImg from "@/assets/destinations/lithuania.jpg";
-import sloveniaImg from "@/assets/destinations/slovenia.jpg";
-import southKoreaImg from "@/assets/destinations/south-korea.jpg";
-import icelandImg from "@/assets/destinations/iceland.jpg";
-import southSudanImg from "@/assets/destinations/south-sudan.jpg";
-import ivoryCoastImg from "@/assets/destinations/ivory-coast.jpg";
-import japanImg from "@/assets/destinations/japan.jpg";
-import canadaImg from "@/assets/destinations/canada.jpg";
-import pakistanImg from "@/assets/destinations/pakistan.jpg";
+const angolaImg = "https://cdn.visas.guide/assets/destinations/angola.jpg";
+const polandImg = "https://cdn.visas.guide/assets/destinations/poland.jpg";
+const hungaryImg = "https://cdn.visas.guide/assets/destinations/hungary.jpg";
+const slovakiaImg = "https://cdn.visas.guide/assets/destinations/slovakia.jpg";
+const lithuaniaImg = "https://cdn.visas.guide/assets/destinations/lithuania.jpg";
+const sloveniaImg = "https://cdn.visas.guide/assets/destinations/slovenia.jpg";
+const southKoreaImg = "https://cdn.visas.guide/assets/destinations/south-korea.jpg";
+const icelandImg = "https://cdn.visas.guide/assets/destinations/iceland.jpg";
+const southSudanImg = "https://cdn.visas.guide/assets/destinations/south-sudan.jpg";
+const ivoryCoastImg = "https://cdn.visas.guide/assets/destinations/ivory-coast.jpg";
+const japanImg = "https://cdn.visas.guide/assets/destinations/japan.jpg";
+const canadaImg = "https://cdn.visas.guide/assets/destinations/canada.jpg";
+const pakistanImg = "https://cdn.visas.guide/assets/destinations/pakistan.jpg";
 
 const u = (id: string) => `https://images.unsplash.com/photo-${id}?w=1600&h=700&fit=crop&q=80`;
 

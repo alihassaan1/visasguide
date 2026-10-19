@@ -13,14 +13,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
 
 // Import destination images for guide thumbnails
-import franceImg from "@/assets/destinations/france.jpg";
-import canadaImg from "@/assets/destinations/canada.jpg";
-import japanImg from "@/assets/destinations/japan.jpg";
-import uaeImg from "@/assets/destinations/uae.jpg";
-import singaporeImg from "@/assets/destinations/singapore.jpg";
-import thailandImg from "@/assets/destinations/thailand.jpg";
-import polandImg from "@/assets/destinations/poland.jpg";
-import icelandImg from "@/assets/destinations/iceland.jpg";
+const franceImg = "https://cdn.visas.guide/assets/destinations/france.jpg";
+const canadaImg = "https://cdn.visas.guide/assets/destinations/canada.jpg";
+const japanImg = "https://cdn.visas.guide/assets/destinations/japan.jpg";
+const uaeImg = "https://cdn.visas.guide/assets/destinations/uae.jpg";
+const singaporeImg = "https://cdn.visas.guide/assets/destinations/singapore.jpg";
+const thailandImg = "https://cdn.visas.guide/assets/destinations/thailand.jpg";
+const polandImg = "https://cdn.visas.guide/assets/destinations/poland.jpg";
+const icelandImg = "https://cdn.visas.guide/assets/destinations/iceland.jpg";
 
 const guideImageMap: Record<string, string> = {
   'schengen': franceImg,

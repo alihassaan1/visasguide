@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Upload, X, Link, Loader2, ImageIcon } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { uploadImageToR2 } from '@/lib/r2-upload.functions';
 import { useToast } from '@/hooks/use-toast';
 
 interface ImageUploadProps {
@@ -104,20 +104,25 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       const isWebP = optimizedBlob.type === 'image/webp';
       const ext = isWebP ? 'webp' : 'jpg';
 
-      // Step 2: Upload
+      // Step 2: Upload to Cloudflare R2 (served from cdn.visas.guide)
       setUploadStatus('Uploading...');
-      const filePath = `${storagePath}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const buffer = await optimizedBlob.arrayBuffer();
+      let binary = '';
+      const bytes = new Uint8Array(buffer);
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+      }
+      const dataBase64 = btoa(binary);
 
-      const { error } = await supabase.storage.from(bucket).upload(filePath, optimizedBlob, {
-        contentType: optimizedBlob.type,
-        cacheControl: '31536000',
-        upsert: false,
+      const { url: publicUrl } = await uploadImageToR2({
+        data: {
+          fileName: `${storagePath}-${Date.now()}.${ext}`,
+          contentType: optimizedBlob.type,
+          dataBase64,
+          folder: storagePath,
+        },
       });
-
-      if (error) throw error;
-
-      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(filePath);
-      const publicUrl = urlData.publicUrl;
 
       setPreviewUrl(publicUrl);
       onChange(publicUrl);

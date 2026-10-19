@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Globe, Map, FileCheck, BookOpen, ChevronRight } from "lucide-react";
-import exploreVisaBg from "@/assets/explore-visa-bg.jpg";
+const exploreVisaBg = "https://cdn.visas.guide/assets/explore-visa-bg.jpg";
 
 type TabKey = "destinations" | "regions" | "visa-types" | "resources";
 

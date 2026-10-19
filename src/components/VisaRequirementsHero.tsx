@@ -1,25 +1,25 @@
 import { countryCodeToFlagEmoji } from "@/lib/utils";
 
 // Import local destination images
-import angolaImg from "@/assets/destinations/angola.jpg";
-import polandImg from "@/assets/destinations/poland.jpg";
-import hungaryImg from "@/assets/destinations/hungary.jpg";
-import slovakiaImg from "@/assets/destinations/slovakia.jpg";
-import lithuaniaImg from "@/assets/destinations/lithuania.jpg";
-import sloveniaImg from "@/assets/destinations/slovenia.jpg";
-import southKoreaImg from "@/assets/destinations/south-korea.jpg";
-import icelandImg from "@/assets/destinations/iceland.jpg";
-import southSudanImg from "@/assets/destinations/south-sudan.jpg";
-import ivoryCoastImg from "@/assets/destinations/ivory-coast.jpg";
-import japanImg from "@/assets/destinations/japan.jpg";
-import canadaImg from "@/assets/destinations/canada.jpg";
-import pakistanImg from "@/assets/destinations/pakistan.jpg";
-import franceImg from "@/assets/destinations/france.jpg";
-import uaeImg from "@/assets/destinations/uae.jpg";
-import thailandImg from "@/assets/destinations/thailand.jpg";
-import singaporeImg from "@/assets/destinations/singapore.jpg";
-import indonesiaImg from "@/assets/destinations/indonesia.jpg";
-import malaysiaImg from "@/assets/destinations/malaysia.jpg";
+const angolaImg = "https://cdn.visas.guide/assets/destinations/angola.jpg";
+const polandImg = "https://cdn.visas.guide/assets/destinations/poland.jpg";
+const hungaryImg = "https://cdn.visas.guide/assets/destinations/hungary.jpg";
+const slovakiaImg = "https://cdn.visas.guide/assets/destinations/slovakia.jpg";
+const lithuaniaImg = "https://cdn.visas.guide/assets/destinations/lithuania.jpg";
+const sloveniaImg = "https://cdn.visas.guide/assets/destinations/slovenia.jpg";
+const southKoreaImg = "https://cdn.visas.guide/assets/destinations/south-korea.jpg";
+const icelandImg = "https://cdn.visas.guide/assets/destinations/iceland.jpg";
+const southSudanImg = "https://cdn.visas.guide/assets/destinations/south-sudan.jpg";
+const ivoryCoastImg = "https://cdn.visas.guide/assets/destinations/ivory-coast.jpg";
+const japanImg = "https://cdn.visas.guide/assets/destinations/japan.jpg";
+const canadaImg = "https://cdn.visas.guide/assets/destinations/canada.jpg";
+const pakistanImg = "https://cdn.visas.guide/assets/destinations/pakistan.jpg";
+const franceImg = "https://cdn.visas.guide/assets/destinations/france.jpg";
+const uaeImg = "https://cdn.visas.guide/assets/destinations/uae.jpg";
+const thailandImg = "https://cdn.visas.guide/assets/destinations/thailand.jpg";
+const singaporeImg = "https://cdn.visas.guide/assets/destinations/singapore.jpg";
+const indonesiaImg = "https://cdn.visas.guide/assets/destinations/indonesia.jpg";
+const malaysiaImg = "https://cdn.visas.guide/assets/destinations/malaysia.jpg";
 
 // Country hero images mapping
 const countryHeroImages: Record<string, string> = {

@@ -6,22 +6,22 @@ import { Link } from "@/lib/router-compat";
 import { ArrowRight, Calendar, MapPin, Pin } from "lucide-react";
 
 // Import destination images
-import thailandImg from "@/assets/destinations/thailand.jpg";
-import uaeImg from "@/assets/destinations/uae.jpg";
-import japanImg from "@/assets/destinations/japan.jpg";
-import canadaImg from "@/assets/destinations/canada.jpg";
-import franceImg from "@/assets/destinations/france.jpg";
-import singaporeImg from "@/assets/destinations/singapore.jpg";
-import malaysiaImg from "@/assets/destinations/malaysia.jpg";
-import indonesiaImg from "@/assets/destinations/indonesia.jpg";
-import polandImg from "@/assets/destinations/poland.jpg";
-import hungaryImg from "@/assets/destinations/hungary.jpg";
-import slovakiaImg from "@/assets/destinations/slovakia.jpg";
-import sloveniaImg from "@/assets/destinations/slovenia.jpg";
-import icelandImg from "@/assets/destinations/iceland.jpg";
-import lithuaniaImg from "@/assets/destinations/lithuania.jpg";
-import southKoreaImg from "@/assets/destinations/south-korea.jpg";
-import pakistanImg from "@/assets/destinations/pakistan.jpg";
+const thailandImg = "https://cdn.visas.guide/assets/destinations/thailand.jpg";
+const uaeImg = "https://cdn.visas.guide/assets/destinations/uae.jpg";
+const japanImg = "https://cdn.visas.guide/assets/destinations/japan.jpg";
+const canadaImg = "https://cdn.visas.guide/assets/destinations/canada.jpg";
+const franceImg = "https://cdn.visas.guide/assets/destinations/france.jpg";
+const singaporeImg = "https://cdn.visas.guide/assets/destinations/singapore.jpg";
+const malaysiaImg = "https://cdn.visas.guide/assets/destinations/malaysia.jpg";
+const indonesiaImg = "https://cdn.visas.guide/assets/destinations/indonesia.jpg";
+const polandImg = "https://cdn.visas.guide/assets/destinations/poland.jpg";
+const hungaryImg = "https://cdn.visas.guide/assets/destinations/hungary.jpg";
+const slovakiaImg = "https://cdn.visas.guide/assets/destinations/slovakia.jpg";
+const sloveniaImg = "https://cdn.visas.guide/assets/destinations/slovenia.jpg";
+const icelandImg = "https://cdn.visas.guide/assets/destinations/iceland.jpg";
+const lithuaniaImg = "https://cdn.visas.guide/assets/destinations/lithuania.jpg";
+const southKoreaImg = "https://cdn.visas.guide/assets/destinations/south-korea.jpg";
+const pakistanImg = "https://cdn.visas.guide/assets/destinations/pakistan.jpg";
 
 // Country image mapping
 const countryImages: Record<string, string> = {

@@ -11,3 +11,4 @@
 - Load the existing AdSense script after hydration to prevent auto ads mutating SSR markup; preserve the publisher ID, consent configuration and Google Analytics tag.
 - Declare sitewide GetYourGuide partner tracking in the root head so every route receives one script and widget fallback loaders reuse it.
 - Keep public article spacing, text colors and heading hierarchy in shared prose styles (including Quill visual headings) and remove empty editor spacer paragraphs at display time; this keeps templates consistent without rewriting saved content or affecting admin editors.
+- Images live in Cloudflare R2 bucket `visas-guide` (account 0e186cf10248391d7f7e481950644bb7), served from https://cdn.visas.guide; new uploads go through src/lib/r2-upload.functions.ts (admin-only) or the uploadToR2 helper in edge functions — never reintroduce Supabase storage for images.

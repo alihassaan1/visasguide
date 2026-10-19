@@ -1,11 +1,11 @@
 import { Link } from "@/lib/router-compat";
 import { ArrowRight } from "lucide-react";
-import globeTravel from "@/assets/icons/globe-travel.jpg";
-import passportStamps from "@/assets/icons/passport-stamps.jpg";
-import studentGlobal from "@/assets/icons/student-global.jpg";
-import passportRankings from "@/assets/icons/passport-rankings.jpg";
-import visaSearch from "@/assets/icons/visa-search.jpg";
-import businessVisa from "@/assets/icons/business-visa.jpg";
+const globeTravel = "https://cdn.visas.guide/assets/icons/globe-travel.jpg";
+const passportStamps = "https://cdn.visas.guide/assets/icons/passport-stamps.jpg";
+const studentGlobal = "https://cdn.visas.guide/assets/icons/student-global.jpg";
+const passportRankings = "https://cdn.visas.guide/assets/icons/passport-rankings.jpg";
+const visaSearch = "https://cdn.visas.guide/assets/icons/visa-search.jpg";
+const businessVisa = "https://cdn.visas.guide/assets/icons/business-visa.jpg";
 
 const QuickLinks = () => {
   const links = [

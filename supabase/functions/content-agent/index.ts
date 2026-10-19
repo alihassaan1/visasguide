@@ -1,7 +1,37 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
+import { AwsClient } from "npm:aws4fetch@1";
 import { requireAdmin } from "../_shared/adminAuth.ts";
+
+// Cloudflare R2 image storage (public domain: cdn.visas.guide)
+const R2_ACCOUNT_ID = "0e186cf10248391d7f7e481950644bb7";
+const R2_BUCKET = "visas-guide";
+const R2_ENDPOINT = `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
+const R2_PUBLIC_BASE = "https://cdn.visas.guide";
+
+async function uploadToR2(key: string, data: Uint8Array, contentType: string): Promise<string | null> {
+  const accessKeyId = Deno.env.get('R2_ACCESS_KEY_ID');
+  const secretAccessKey = Deno.env.get('R2_SECRET_ACCESS_KEY');
+  if (!accessKeyId || !secretAccessKey) {
+    console.error('R2 credentials not configured');
+    return null;
+  }
+  const r2 = new AwsClient({ accessKeyId, secretAccessKey, service: 's3', region: 'auto' });
+  const res = await r2.fetch(`${R2_ENDPOINT}/${R2_BUCKET}/${key}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': contentType,
+      'Cache-Control': 'public, max-age=31536000, immutable',
+    },
+    body: data,
+  });
+  if (!res.ok) {
+    console.error(`R2 upload failed [${res.status}]: ${await res.text()}`);
+    return null;
+  }
+  return `${R2_PUBLIC_BASE}/${key}`;
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -1470,22 +1500,13 @@ Return ONLY valid JSON.`;
                   const base64Data = generatedImage.replace(/^data:image\/\w+;base64,/, '');
                   const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
                   const fileName = `blog/${topic.slug}-${Date.now()}.png`;
-                  
-                  const { data: uploadData, error: uploadError } = await supabase.storage
-                    .from('content-images')
-                    .upload(fileName, imageBuffer, {
-                      contentType: 'image/png',
-                      upsert: true
-                    });
-                  
-                  if (!uploadError && uploadData) {
-                    const { data: publicUrl } = supabase.storage
-                      .from('content-images')
-                      .getPublicUrl(fileName);
-                    featuredImageUrl = publicUrl.publicUrl;
+
+                  const uploadedUrl = await uploadToR2(fileName, imageBuffer, 'image/png');
+                  if (uploadedUrl) {
+                    featuredImageUrl = uploadedUrl;
                     console.log(`✅ Image uploaded: ${featuredImageUrl}`);
                   } else {
-                    console.error('Image upload error:', uploadError);
+                    console.error('Image upload to R2 failed');
                   }
                 }
               } else {

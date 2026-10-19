@@ -482,28 +482,18 @@ async function getImageForCountry(
     const base64Image = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     
     if (base64Image) {
-      // Upload to Supabase Storage
+      // Upload to Cloudflare R2 (served from cdn.visas.guide)
       const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
       const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-      
-      const filename = `${country}-${Date.now()}.png`;
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('featured-images')
-        .upload(filename, binaryData, {
-          contentType: 'image/png',
-          cacheControl: '31536000',
-        });
-      
-      if (uploadError) {
-        console.error(`Failed to upload image for ${country}:`, uploadError);
+
+      const filename = `featured/${country}-${Date.now()}.png`;
+
+      const publicUrl = await uploadToR2(filename, binaryData, 'image/png');
+      if (!publicUrl) {
+        console.error(`Failed to upload image for ${country} to R2`);
         return { url: DEFAULT_TRAVEL_IMAGE, source: 'default' };
       }
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from('featured-images')
-        .getPublicUrl(filename);
-      
+
       console.log(`AI image uploaded for ${country}: ${publicUrl}`);
       return { url: publicUrl, source: 'ai' };
     }

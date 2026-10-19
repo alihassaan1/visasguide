@@ -162,8 +162,8 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
         setTimeout(() => { clicked = false; }, 2000);
       }
     };
-    window.addEventListener('blur-sm', onBlur);
-    return () => window.removeEventListener('blur-sm', onBlur);
+    window.addEventListener('blur', onBlur);
+    return () => window.removeEventListener('blur', onBlur);
   }, [selectedBanner?.id]);
 
   if (!selectedBanner) return null;

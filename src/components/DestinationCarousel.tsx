@@ -2,13 +2,13 @@ import { Link } from "@/lib/router-compat";
 import { ArrowRight } from "lucide-react";
 
 // Import local destination images
-import uaeImg from "@/assets/destinations/uae.jpg";
-import thailandImg from "@/assets/destinations/thailand.jpg";
-import indonesiaImg from "@/assets/destinations/indonesia.jpg";
-import malaysiaImg from "@/assets/destinations/malaysia.jpg";
-import singaporeImg from "@/assets/destinations/singapore.jpg";
-import franceImg from "@/assets/destinations/france.jpg";
-import japanImg from "@/assets/destinations/japan.jpg";
+const uaeImg = "https://cdn.visas.guide/assets/destinations/uae.jpg";
+const thailandImg = "https://cdn.visas.guide/assets/destinations/thailand.jpg";
+const indonesiaImg = "https://cdn.visas.guide/assets/destinations/indonesia.jpg";
+const malaysiaImg = "https://cdn.visas.guide/assets/destinations/malaysia.jpg";
+const singaporeImg = "https://cdn.visas.guide/assets/destinations/singapore.jpg";
+const franceImg = "https://cdn.visas.guide/assets/destinations/france.jpg";
+const japanImg = "https://cdn.visas.guide/assets/destinations/japan.jpg";
 
 // Top travel destinations ranked by international arrivals/travel volume
 const topDestinations = [

@@ -29,7 +29,7 @@ function sanitizeKeyPart(value: string): string {
 
 function base64ToBytes(base64: string): Uint8Array {
   const bin = atob(base64);
-  const bytes = new Uint8Array(bin.length);
+  const bytes = new Uint8Array(new ArrayBuffer(bin.length));
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
   return bytes;
 }

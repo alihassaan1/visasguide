@@ -19,7 +19,9 @@ export async function loadPublicDetail(qc: QueryClient, kind: string, slug: stri
     const [fromSlug, toSlug] = slug.split("-to-");
     const from = countries.find(c => c.slug === fromSlug);
     const to = countries.find(c => c.slug === toSlug);
-    if (!from || !to || (!row(["visa-requirement", from.id, to.id]) && !row(["visa-content-page", fromSlug, toSlug]))) throw notFound();
+    // Valid country pairs render even without stored data: VisaRequirements
+    // generates the guide on demand via the generate-visa-content function.
+    if (!from || !to) throw notFound();
     return { title: `${to.name} Visa Requirements for ${from.name} Citizens`, description: `Complete visa requirements guide for ${from.name} passport holders traveling to ${to.name}. Get up-to-date information on visa types, processing times, fees, and required documents.`, path: canonicalVisaPath(slug) };
   }
   if (kind === "country") {

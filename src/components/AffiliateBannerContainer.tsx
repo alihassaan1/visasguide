@@ -151,7 +151,7 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
   };
 
 
-  // Detect iframe/embed clicks via window blur-sm (React onClick doesn't fire on iframes)
+  // Detect iframe/embed clicks via window blur (React onClick doesn't fire on iframes)
   useEffect(() => {
     if (!selectedBanner?.html_embed) return;
     let clicked = false;

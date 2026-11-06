@@ -95,7 +95,7 @@ export const uploadImageToR2 = createServerFn({ method: "POST" })
         "Content-Type": data.contentType,
         "Cache-Control": "public, max-age=31536000, immutable",
       },
-      body: new Blob([body], { type: data.contentType }),
+      body: new Blob([body as Uint8Array<ArrayBuffer>], { type: data.contentType }),
     });
 
     if (!response.ok) {

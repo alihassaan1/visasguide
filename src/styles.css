@@ -314,6 +314,30 @@ article table > thead {
   color: hsl(var(--article-foreground));
   font-size: 1rem;
   line-height: 1.75;
+  /* Pasted editor content often joins words with &nbsp;; allow wrapping on
+     narrow screens so articles never scroll sideways. */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  min-width: 0;
+  max-width: 100%;
+}
+.prose :is(img, video, iframe, embed, object, svg, figure) {
+  max-width: 100% !important;
+  height: auto;
+}
+.prose pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+/* Grid/flex children default to min-width:auto, which lets wide content
+   push the page wider than the phone screen. */
+article,
+main .grid > * {
+  min-width: 0;
+}
+html,
+body {
+  overflow-x: clip;
 }
 /* Override template grey-text utilities and pasted editor styles only within
    public reading areas. Links, metadata, navigation and admin editors retain

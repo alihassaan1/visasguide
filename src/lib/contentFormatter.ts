@@ -6,6 +6,9 @@ export function stripEmbeddedSchemas(html: string): string {
   if (!html) return '';
   return html
     .replace(/<script\s+type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi, '')
+    // Pasted content chains words with non-breaking spaces, which stops
+    // text wrapping on phones. Use normal spaces between words.
+    .replace(/(\S)(?:&nbsp;|&#160;|&#xA0;|\u00a0)(?=\S)/gi, '$1 ')
     // Editor spacer paragraphs otherwise add a full line AND prose margins.
     // Only remove empty text/formatting; preserve images, tables and real breaks.
     .replace(/<p\b[^>]*>([\s\S]*?)<\/p>/gi, (paragraph, body: string) =>

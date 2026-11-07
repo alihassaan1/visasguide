@@ -17,7 +17,7 @@ const SEOHead = ({
   title,
   description,
   canonical,
-  ogImage = "https://visas.guide/og-image.jpg",
+  ogImage = "https://cdn.visas.guide/site/og-image.jpg",
   ogType = "website",
   articlePublishedTime,
   articleModifiedTime,

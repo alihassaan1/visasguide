@@ -6,9 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Eye, Search, PenLine, Sparkles, ChevronDown, Clock, ChevronLeft, ChevronRight, Pin, PinOff } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Search, PenLine, Sparkles, ChevronDown, Clock, ChevronLeft, ChevronRight, Pin, PinOff, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useNavigate } from "@/lib/router-compat";
+import {
+  DEFAULT_SORT,
+  nextSort,
+  sortAriaSort,
+  type SortKey,
+  type SortState,
+} from "@/lib/contentSort";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +35,7 @@ export default function ContentManager() {
   const [aiGeneratedCount, setAiGeneratedCount] = useState(0); // kept for compatibility
   const [totalViews, setTotalViews] = useState(0);
   const [filteredCount, setFilteredCount] = useState<number | null>(null);
+  const [sort, setSort] = useState<SortState>(DEFAULT_SORT);
   const pageSize = 50;
 
   // Debounced server-side search
@@ -42,7 +50,7 @@ export default function ContentManager() {
 
   useEffect(() => {
     loadPages();
-  }, [currentPage, debouncedSearch]);
+  }, [currentPage, debouncedSearch, sort.column, sort.dir]);
 
   useEffect(() => {
     loadStats();
@@ -82,7 +90,7 @@ export default function ContentManager() {
       }
 
       const { data, error, count } = await query
-        .order("created_at", { ascending: false })
+        .order(sort.column, { ascending: sort.dir === "asc" })
         .range(from, to);
 
       if (error) throw error;
@@ -173,6 +181,11 @@ export default function ContentManager() {
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     }
+  };
+
+  const handleSort = (column: SortKey) => {
+    setSort((current) => nextSort(current, column));
+    setCurrentPage(1);
   };
 
   // Search is executed server-side, so the current page is already the result set.
@@ -270,12 +283,18 @@ export default function ContentManager() {
                 <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Slug</TableHead>
+                  <SortableHead label="Title" column="title" sort={sort} onSort={handleSort} />
+                  <SortableHead label="Slug" column="slug" sort={sort} onSort={handleSort} />
                   <TableHead>Status</TableHead>
                   <TableHead>Created By</TableHead>
-                  <TableHead>Views</TableHead>
-                  <TableHead>Created</TableHead>
+                  <SortableHead
+                    label="Views"
+                    column="view_count"
+                    sort={sort}
+                    onSort={handleSort}
+                    className="text-right"
+                  />
+                  <SortableHead label="Created" column="created_at" sort={sort} onSort={handleSort} />
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -381,5 +400,42 @@ export default function ContentManager() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function SortableHead({
+  label,
+  column,
+  sort,
+  onSort,
+  className,
+}: {
+  label: string;
+  column: SortKey;
+  sort: SortState;
+  onSort: (column: SortKey) => void;
+  className?: string;
+}) {
+  const active = sort.column === column;
+  return (
+    <TableHead aria-sort={sortAriaSort(sort, column)} className={className}>
+      <button
+        type="button"
+        onClick={() => onSort(column)}
+        title={`Sort by ${label.toLowerCase()}`}
+        className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold uppercase tracking-wide hover:text-foreground rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        {label}
+        {active ? (
+          sort.dir === "asc" ? (
+            <ArrowUp className="h-3 w-3" />
+          ) : (
+            <ArrowDown className="h-3 w-3" />
+          )
+        ) : (
+          <ArrowUpDown className="h-3 w-3 opacity-40" />
+        )}
+      </button>
+    </TableHead>
   );
 }

@@ -834,6 +834,294 @@ export type Database = {
         }
         Relationships: []
       }
+      content_pages_backup_canada_20261117: {
+        Row: {
+          ai_generated: boolean | null
+          author_id: string | null
+          content: string | null
+          created_at: string | null
+          excerpt: string | null
+          featured_at: string | null
+          featured_image_url: string | null
+          id: string | null
+          is_featured: boolean | null
+          is_published: boolean | null
+          keywords: string[] | null
+          meta_description: string | null
+          meta_title: string | null
+          scheduled_at: string | null
+          seo_index: boolean | null
+          slug: string | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+          view_count: number | null
+          writer_id: string | null
+        }
+        Insert: {
+          ai_generated?: boolean | null
+          author_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          excerpt?: string | null
+          featured_at?: string | null
+          featured_image_url?: string | null
+          id?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          scheduled_at?: string | null
+          seo_index?: boolean | null
+          slug?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+          writer_id?: string | null
+        }
+        Update: {
+          ai_generated?: boolean | null
+          author_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          excerpt?: string | null
+          featured_at?: string | null
+          featured_image_url?: string | null
+          id?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          scheduled_at?: string | null
+          seo_index?: boolean | null
+          slug?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+          writer_id?: string | null
+        }
+        Relationships: []
+      }
+      content_pages_backup_eritrea_20261117: {
+        Row: {
+          ai_generated: boolean | null
+          author_id: string | null
+          content: string | null
+          created_at: string | null
+          excerpt: string | null
+          featured_at: string | null
+          featured_image_url: string | null
+          id: string | null
+          is_featured: boolean | null
+          is_published: boolean | null
+          keywords: string[] | null
+          meta_description: string | null
+          meta_title: string | null
+          scheduled_at: string | null
+          seo_index: boolean | null
+          slug: string | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+          view_count: number | null
+          writer_id: string | null
+        }
+        Insert: {
+          ai_generated?: boolean | null
+          author_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          excerpt?: string | null
+          featured_at?: string | null
+          featured_image_url?: string | null
+          id?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          scheduled_at?: string | null
+          seo_index?: boolean | null
+          slug?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+          writer_id?: string | null
+        }
+        Update: {
+          ai_generated?: boolean | null
+          author_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          excerpt?: string | null
+          featured_at?: string | null
+          featured_image_url?: string | null
+          id?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          scheduled_at?: string | null
+          seo_index?: boolean | null
+          slug?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+          writer_id?: string | null
+        }
+        Relationships: []
+      }
+      content_pages_backup_guyana_20261117: {
+        Row: {
+          ai_generated: boolean | null
+          author_id: string | null
+          content: string | null
+          created_at: string | null
+          excerpt: string | null
+          featured_at: string | null
+          featured_image_url: string | null
+          id: string | null
+          is_featured: boolean | null
+          is_published: boolean | null
+          keywords: string[] | null
+          meta_description: string | null
+          meta_title: string | null
+          scheduled_at: string | null
+          seo_index: boolean | null
+          slug: string | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+          view_count: number | null
+          writer_id: string | null
+        }
+        Insert: {
+          ai_generated?: boolean | null
+          author_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          excerpt?: string | null
+          featured_at?: string | null
+          featured_image_url?: string | null
+          id?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          scheduled_at?: string | null
+          seo_index?: boolean | null
+          slug?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+          writer_id?: string | null
+        }
+        Update: {
+          ai_generated?: boolean | null
+          author_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          excerpt?: string | null
+          featured_at?: string | null
+          featured_image_url?: string | null
+          id?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          scheduled_at?: string | null
+          seo_index?: boolean | null
+          slug?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+          writer_id?: string | null
+        }
+        Relationships: []
+      }
+      content_pages_backup_ireland_20261117: {
+        Row: {
+          ai_generated: boolean | null
+          author_id: string | null
+          content: string | null
+          created_at: string | null
+          excerpt: string | null
+          featured_at: string | null
+          featured_image_url: string | null
+          id: string | null
+          is_featured: boolean | null
+          is_published: boolean | null
+          keywords: string[] | null
+          meta_description: string | null
+          meta_title: string | null
+          scheduled_at: string | null
+          seo_index: boolean | null
+          slug: string | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+          view_count: number | null
+          writer_id: string | null
+        }
+        Insert: {
+          ai_generated?: boolean | null
+          author_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          excerpt?: string | null
+          featured_at?: string | null
+          featured_image_url?: string | null
+          id?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          scheduled_at?: string | null
+          seo_index?: boolean | null
+          slug?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+          writer_id?: string | null
+        }
+        Update: {
+          ai_generated?: boolean | null
+          author_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          excerpt?: string | null
+          featured_at?: string | null
+          featured_image_url?: string | null
+          id?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          scheduled_at?: string | null
+          seo_index?: boolean | null
+          slug?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+          writer_id?: string | null
+        }
+        Relationships: []
+      }
       content_pages_backup_liberia_20261117: {
         Row: {
           ai_generated: boolean | null
@@ -907,6 +1195,222 @@ export type Database = {
         Relationships: []
       }
       content_pages_backup_turkmenistan_20261117: {
+        Row: {
+          ai_generated: boolean | null
+          author_id: string | null
+          content: string | null
+          created_at: string | null
+          excerpt: string | null
+          featured_at: string | null
+          featured_image_url: string | null
+          id: string | null
+          is_featured: boolean | null
+          is_published: boolean | null
+          keywords: string[] | null
+          meta_description: string | null
+          meta_title: string | null
+          scheduled_at: string | null
+          seo_index: boolean | null
+          slug: string | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+          view_count: number | null
+          writer_id: string | null
+        }
+        Insert: {
+          ai_generated?: boolean | null
+          author_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          excerpt?: string | null
+          featured_at?: string | null
+          featured_image_url?: string | null
+          id?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          scheduled_at?: string | null
+          seo_index?: boolean | null
+          slug?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+          writer_id?: string | null
+        }
+        Update: {
+          ai_generated?: boolean | null
+          author_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          excerpt?: string | null
+          featured_at?: string | null
+          featured_image_url?: string | null
+          id?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          scheduled_at?: string | null
+          seo_index?: boolean | null
+          slug?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+          writer_id?: string | null
+        }
+        Relationships: []
+      }
+      content_pages_backup_uk_20261117: {
+        Row: {
+          ai_generated: boolean | null
+          author_id: string | null
+          content: string | null
+          created_at: string | null
+          excerpt: string | null
+          featured_at: string | null
+          featured_image_url: string | null
+          id: string | null
+          is_featured: boolean | null
+          is_published: boolean | null
+          keywords: string[] | null
+          meta_description: string | null
+          meta_title: string | null
+          scheduled_at: string | null
+          seo_index: boolean | null
+          slug: string | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+          view_count: number | null
+          writer_id: string | null
+        }
+        Insert: {
+          ai_generated?: boolean | null
+          author_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          excerpt?: string | null
+          featured_at?: string | null
+          featured_image_url?: string | null
+          id?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          scheduled_at?: string | null
+          seo_index?: boolean | null
+          slug?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+          writer_id?: string | null
+        }
+        Update: {
+          ai_generated?: boolean | null
+          author_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          excerpt?: string | null
+          featured_at?: string | null
+          featured_image_url?: string | null
+          id?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          scheduled_at?: string | null
+          seo_index?: boolean | null
+          slug?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+          writer_id?: string | null
+        }
+        Relationships: []
+      }
+      content_pages_backup_us_20261117: {
+        Row: {
+          ai_generated: boolean | null
+          author_id: string | null
+          content: string | null
+          created_at: string | null
+          excerpt: string | null
+          featured_at: string | null
+          featured_image_url: string | null
+          id: string | null
+          is_featured: boolean | null
+          is_published: boolean | null
+          keywords: string[] | null
+          meta_description: string | null
+          meta_title: string | null
+          scheduled_at: string | null
+          seo_index: boolean | null
+          slug: string | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+          view_count: number | null
+          writer_id: string | null
+        }
+        Insert: {
+          ai_generated?: boolean | null
+          author_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          excerpt?: string | null
+          featured_at?: string | null
+          featured_image_url?: string | null
+          id?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          scheduled_at?: string | null
+          seo_index?: boolean | null
+          slug?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+          writer_id?: string | null
+        }
+        Update: {
+          ai_generated?: boolean | null
+          author_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          excerpt?: string | null
+          featured_at?: string | null
+          featured_image_url?: string | null
+          id?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          scheduled_at?: string | null
+          seo_index?: boolean | null
+          slug?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+          writer_id?: string | null
+        }
+        Relationships: []
+      }
+      content_pages_backup_yemen_20261117: {
         Row: {
           ai_generated: boolean | null
           author_id: string | null

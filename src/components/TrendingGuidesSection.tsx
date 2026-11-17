@@ -5,8 +5,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "@/lib/router-compat";
 import { TrendingUp, Calendar, Eye } from "lucide-react";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
+import { useAdminViewCounts } from "@/hooks/useAdminViewCounts";
 
 const TrendingGuidesSection = () => {
+  const showViewCounts = useAdminViewCounts();
   const { data: allCountries, isLoading } = useCountriesWithStats();
   const trendingCountries = [...allCountries]
     .sort((a, b) => (b.updated_at || "").localeCompare(a.updated_at || ""))
@@ -72,10 +74,10 @@ const TrendingGuidesSection = () => {
                     <div className="flex-1">
                       <h3 className="font-bold text-lg mb-2">{country.name}</h3>
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
+                        {showViewCounts && <div className="flex items-center gap-1">
                           <Eye className="h-3 w-3" />
                           <span>{country.search_stats?.[0]?.page_view_count || 0} views</span>
-                        </div>
+                        </div>}
                         <div className="flex items-center gap-1">
                           <TrendingUp className="h-3 w-3" />
                           <span>{country.search_stats?.[0]?.search_count || 0} searches</span>

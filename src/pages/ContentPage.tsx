@@ -19,6 +19,7 @@ import VisaRoutesInline from '@/components/VisaRoutesInline';
 import { AffiliateBannerContainer } from '@/components/AffiliateBannerContainer';
 import { stripEmbeddedSchemas } from '@/lib/contentFormatter';
 import PassportVisaFree from './PassportVisaFree';
+import { useAdminViewCounts } from '@/hooks/useAdminViewCounts';
 
 // Estimate reading time based on content
 const estimateReadingTime = (content: string): number => {
@@ -34,6 +35,7 @@ export default function ContentPage() {
 }
 
 function ArticleContentPage() {
+  const showViewCounts = useAdminViewCounts();
   const { slug } = useParams();
   const queryClient = useQueryClient();
   const prefetched = slug ? (queryClient.getQueryData(['content-page', slug]) as any) : null;
@@ -225,10 +227,10 @@ function ArticleContentPage() {
                   <Clock className="h-4 w-4" />
                   <span>{readingTime} min read</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                {showViewCounts && <div className="flex items-center gap-1.5">
                   <Eye className="h-4 w-4" />
                   <span>{(page.view_count || 0).toLocaleString()} views</span>
-                </div>
+                </div>}
               </div>
             </header>
 

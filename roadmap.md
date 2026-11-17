@@ -32,3 +32,7 @@
 - [x] Set the root RSS alternate link.
 - [x] Report legacy folder references without deleting them; test, verify and document deployment steps.
 - [ ] Redeploy the updated application on the user's Cloudflare Worker; requires their external deployment action.
+
+## Admin-only view count display
+- [x] Hide counters across public articles, news sidebars and trending guides unless the viewer is a verified admin.
+- [x] Preserve admin dashboard counters and tracking; test visibility rules and public page rendering (external admin session unavailable for end-to-end sign-in).

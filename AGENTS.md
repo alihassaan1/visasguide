@@ -9,6 +9,7 @@
 - Public metadata and structured data use loader records; omit unknown authors/dates and respect content indexability so crawler output stays factual.
 - Preserve the scheduled chunked sitemap generator and storage; same-origin sitemap handlers expose its index/chunks, with public content reads, publication filters and page-specific dates only.
 - Keep sitemap pagination and timestamp logic in the shared sitemap data helper so later-page failures and unknown dates have executable regressions.
+- Public view counters share a fail-closed, server-verified admin visibility hook; SSR omits them and auth changes clear visibility to avoid stale signed-in displays.
 
 - Country hero URLs live in a browser-safe shared image module used by both page rendering and leaf social metadata, keeping the shown photo and share preview consistent.
 - Load the existing AdSense script after hydration to prevent auto ads mutating SSR markup; preserve the publisher ID, consent configuration and Google Analytics tag.

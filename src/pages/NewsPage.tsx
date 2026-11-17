@@ -12,6 +12,7 @@ import { Link } from "@/lib/router-compat";
 import { useState } from "react";
 import { getBlogFallbackImage, isBrokenImageUrl } from "@/lib/blogImageMap";
 import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
+import { useAdminViewCounts } from "@/hooks/useAdminViewCounts";
 
 interface ContentItem {
   id: string;
@@ -67,6 +68,7 @@ const broadCategoryOf = (tags: string[] | null): string => {
 };
 
 const NewsPage = () => {
+  const showViewCounts = useAdminViewCounts();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
@@ -330,9 +332,9 @@ const NewsPage = () => {
                         <span className="block text-sm leading-snug line-clamp-2 group-hover:underline">
                           {post.title}
                         </span>
-                        <span className="block text-[11px] text-muted-foreground mt-0.5">
+                        {showViewCounts && <span className="block text-[11px] text-muted-foreground mt-0.5">
                           {(post.view_count || 0).toLocaleString()} views
-                        </span>
+                        </span>}
                       </span>
                     </Link>
                   </li>

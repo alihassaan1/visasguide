@@ -21,3 +21,14 @@
 - [x] Switch ImageUpload.tsx to R2
 - [x] Migrate existing images (public/, src/assets, Supabase storage) to R2
 - [x] Update image URL references (code + DB)
+
+## SSR and SEO audit (no visual changes)
+- [x] Verify initial HTML and metadata across visa pairs, standalone guides, blog/news, countries and cities; list changed routes.
+- [x] Unique 2026 pair titles/descriptions; remove keyword tags and long metadata dashes.
+- [x] Replace fixed country claims with the countries-table count.
+- [x] Server-render breadcrumbs, visible FAQ data and database-backed Article author/dates.
+- [x] Add content_pages.seo_index (default true), connect noindex and sitemap exclusions without disabling any pages.
+- [x] Repair page-specific sitemap dates, publication filters, news/blog chunks and the sitemap index.
+- [x] Set the root RSS alternate link.
+- [x] Report legacy folder references without deleting them; test, verify and document deployment steps.
+- [ ] Redeploy the updated application on the user's Cloudflare Worker; requires their external deployment action.

@@ -14,6 +14,7 @@ interface BreadcrumbSchemaProps {
 
 const BreadcrumbSchema = ({ items, showVisual = true }: BreadcrumbSchemaProps) => {
   useEffect(() => {
+    if (document.querySelector('meta[name="visas:route-head"]')) return;
     if (!items || items.length === 0) return;
 
     // Remove any existing breadcrumb schema

@@ -159,6 +159,7 @@ function ArticleContentPage() {
         canonical={`https://visas.guide/${page.slug}`}
         keywords={page.keywords || []}
         ogImage={page.featured_image_url}
+        seoIndex={page.seo_index !== false}
       />
 
       <Header />

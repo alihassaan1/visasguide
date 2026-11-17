@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from "lucide-react";
@@ -6,6 +7,7 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 
 const ProcessingTimes = () => {
+  const { data: countries = [] } = useCountries();
   const processingData = [
     {
       country: "United States",
@@ -250,7 +252,7 @@ const ProcessingTimes = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <a href="/passport-index" className="block p-5 bg-card rounded-lg border hover:border-primary/50 hover:shadow-md transition-all">
               <h3 className="font-semibold mb-1">🏆 Passport Power Rankings</h3>
-              <p className="text-sm text-muted-foreground">Compare passport strength and visa-free access for 199 countries.</p>
+              <p className="text-sm text-muted-foreground">Compare passport strength and visa-free access for {countries.length || "all"} countries.</p>
             </a>
             <a href="/countries/jordan" className="block p-5 bg-card rounded-lg border hover:border-primary/50 hover:shadow-md transition-all">
               <h3 className="font-semibold mb-1">🇯🇴 Jordan & Petra Visa Guide</h3>
@@ -270,7 +272,7 @@ const ProcessingTimes = () => {
             </a>
             <a href="/countries" className="block p-5 bg-card rounded-lg border hover:border-primary/50 hover:shadow-md transition-all">
               <h3 className="font-semibold mb-1">🌍 All Countries</h3>
-              <p className="text-sm text-muted-foreground">Explore visa requirements for 200+ countries worldwide.</p>
+              <p className="text-sm text-muted-foreground">Explore visa requirements for {countries.length || "all"} countries worldwide.</p>
             </a>
           </div>
         </section>

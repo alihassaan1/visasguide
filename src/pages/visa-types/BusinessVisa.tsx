@@ -121,7 +121,7 @@ const BusinessVisa = () => {
         canonical="https://visas.guide/visa-types/business"
         keywords={["business visa", "business visa requirements", "business visa application", "work travel visa", "business visitor visa", "commercial visa", "conference visa"]}
       />
-      <FAQSchema faqs={businessFaqs} pageUrl="https://visas.guide/visa-types/business" />
+      <FAQSchema visible faqs={businessFaqs} pageUrl="https://visas.guide/visa-types/business" />
       <BreadcrumbSchema items={[
         { name: "Visa Types", url: "/visa-types/business" },
         { name: "Business Visa", url: "/visa-types/business" },
@@ -136,8 +136,6 @@ const BusinessVisa = () => {
             "headline": `Business Visa Requirements and Application Guide ${CURRENT_YEAR}`,
             "description": "Complete guide to business visa requirements, processing times, fees, and application tips for international business travel and meetings.",
             "author": { "@type": "Organization", "name": "Visas Guide" },
-            "datePublished": "2024-01-01",
-            "dateModified": new Date().toISOString().split('T')[0],
             "mainEntityOfPage": "https://visas.guide/visa-types/business"
           })
         }}

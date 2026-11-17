@@ -182,7 +182,7 @@ const NewsArticle = () => {
     : ((article as any).tags || []);
   const authorName = isFromContentPages 
     ? ((article as any).writer?.name || "Visas.Guide Editorial Team")
-    : ((article as any).author || "Visas.Guide Editorial Team");
+    : ((article as any).writer?.name || (article as any).author || "Visas.Guide Editorial Team");
   const writerId = (article as any).writer_id;
   const sourceName = isFromContentPages ? null : (article as any).source_name;
 
@@ -200,6 +200,7 @@ const NewsArticle = () => {
         description={metaDescription}
         canonical={`https://visas.guide/blog/${slug}`}
         ogType="article"
+        seoIndex={(article as any).seo_index !== false}
         articlePublishedTime={publishedAt || undefined}
         articleModifiedTime={updatedAt}
         ogImage={featuredImage || undefined}

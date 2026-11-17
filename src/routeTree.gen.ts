@@ -26,6 +26,7 @@ import { Route as RequirementsRouteImport } from './routes/requirements'
 import { Route as RssRouteImport } from './routes/rss'
 import { Route as SchengenCalculatorRouteImport } from './routes/schengen-calculator'
 import { Route as SchengenVisaGuideRouteImport } from './routes/schengen-visa-guide'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsOfServiceRouteImport } from './routes/terms-of-service'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as VisaSearchRouteImport } from './routes/visa-search'
@@ -79,6 +80,7 @@ import { Route as EtiasNewsRouteImport } from './routes/etias/news'
 import { Route as EtiasTimelineRouteImport } from './routes/etias/timeline'
 import { Route as GuidesIndexRouteImport } from './routes/guides/index'
 import { Route as GuidesSlugRouteImport } from './routes/guides/$slug'
+import { Route as SitemapsSplatRouteImport } from './routes/sitemaps/$'
 import { Route as ThingsToDoIndexRouteImport } from './routes/things-to-do/index'
 import { Route as ThingsToDoCountrySlugRouteImport } from './routes/things-to-do/$countrySlug'
 import { Route as VisaRequirementsSlugRouteImport } from './routes/visa-requirements/$slug'
@@ -179,6 +181,11 @@ const SchengenCalculatorRoute = SchengenCalculatorRouteImport.update({
 const SchengenVisaGuideRoute = SchengenVisaGuideRouteImport.update({
   id: '/schengen-visa-guide',
   path: '/schengen-visa-guide',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
@@ -447,6 +454,11 @@ const GuidesSlugRoute = GuidesSlugRouteImport.update({
   path: '/guides/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitemapsSplatRoute = SitemapsSplatRouteImport.update({
+  id: '/sitemaps/$',
+  path: '/sitemaps/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ThingsToDoIndexRoute = ThingsToDoIndexRouteImport.update({
   id: '/things-to-do/',
   path: '/things-to-do/',
@@ -549,6 +561,7 @@ export interface FileRoutesByFullPath {
   '/rss': typeof RssRoute
   '/schengen-calculator': typeof SchengenCalculatorRoute
   '/schengen-visa-guide': typeof SchengenVisaGuideRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/visa-search': typeof VisaSearchRoute
@@ -597,6 +610,7 @@ export interface FileRoutesByFullPath {
   '/etias/news': typeof EtiasNewsRoute
   '/etias/timeline': typeof EtiasTimelineRoute
   '/guides/$slug': typeof GuidesSlugRoute
+  '/sitemaps/$': typeof SitemapsSplatRoute
   '/things-to-do/$countrySlug': typeof ThingsToDoCountrySlugRoute
   '/visa-requirements/$slug': typeof VisaRequirementsSlugRoute
   '/visa-types/business': typeof VisaTypesBusinessRoute
@@ -636,6 +650,7 @@ export interface FileRoutesByTo {
   '/rss': typeof RssRoute
   '/schengen-calculator': typeof SchengenCalculatorRoute
   '/schengen-visa-guide': typeof SchengenVisaGuideRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/visa-search': typeof VisaSearchRoute
@@ -684,6 +699,7 @@ export interface FileRoutesByTo {
   '/etias/news': typeof EtiasNewsRoute
   '/etias/timeline': typeof EtiasTimelineRoute
   '/guides/$slug': typeof GuidesSlugRoute
+  '/sitemaps/$': typeof SitemapsSplatRoute
   '/things-to-do/$countrySlug': typeof ThingsToDoCountrySlugRoute
   '/visa-requirements/$slug': typeof VisaRequirementsSlugRoute
   '/visa-types/business': typeof VisaTypesBusinessRoute
@@ -725,6 +741,7 @@ export interface FileRoutesById {
   '/rss': typeof RssRoute
   '/schengen-calculator': typeof SchengenCalculatorRoute
   '/schengen-visa-guide': typeof SchengenVisaGuideRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/visa-search': typeof VisaSearchRoute
@@ -773,6 +790,7 @@ export interface FileRoutesById {
   '/etias/news': typeof EtiasNewsRoute
   '/etias/timeline': typeof EtiasTimelineRoute
   '/guides/$slug': typeof GuidesSlugRoute
+  '/sitemaps/$': typeof SitemapsSplatRoute
   '/things-to-do/$countrySlug': typeof ThingsToDoCountrySlugRoute
   '/visa-requirements/$slug': typeof VisaRequirementsSlugRoute
   '/visa-types/business': typeof VisaTypesBusinessRoute
@@ -815,6 +833,7 @@ export interface FileRouteTypes {
     | '/rss'
     | '/schengen-calculator'
     | '/schengen-visa-guide'
+    | '/sitemap.xml'
     | '/terms-of-service'
     | '/unsubscribe'
     | '/visa-search'
@@ -863,6 +882,7 @@ export interface FileRouteTypes {
     | '/etias/news'
     | '/etias/timeline'
     | '/guides/$slug'
+    | '/sitemaps/$'
     | '/things-to-do/$countrySlug'
     | '/visa-requirements/$slug'
     | '/visa-types/business'
@@ -902,6 +922,7 @@ export interface FileRouteTypes {
     | '/rss'
     | '/schengen-calculator'
     | '/schengen-visa-guide'
+    | '/sitemap.xml'
     | '/terms-of-service'
     | '/unsubscribe'
     | '/visa-search'
@@ -950,6 +971,7 @@ export interface FileRouteTypes {
     | '/etias/news'
     | '/etias/timeline'
     | '/guides/$slug'
+    | '/sitemaps/$'
     | '/things-to-do/$countrySlug'
     | '/visa-requirements/$slug'
     | '/visa-types/business'
@@ -990,6 +1012,7 @@ export interface FileRouteTypes {
     | '/rss'
     | '/schengen-calculator'
     | '/schengen-visa-guide'
+    | '/sitemap.xml'
     | '/terms-of-service'
     | '/unsubscribe'
     | '/visa-search'
@@ -1038,6 +1061,7 @@ export interface FileRouteTypes {
     | '/etias/news'
     | '/etias/timeline'
     | '/guides/$slug'
+    | '/sitemaps/$'
     | '/things-to-do/$countrySlug'
     | '/visa-requirements/$slug'
     | '/visa-types/business'
@@ -1079,6 +1103,7 @@ export interface RootRouteChildren {
   RssRoute: typeof RssRoute
   SchengenCalculatorRoute: typeof SchengenCalculatorRoute
   SchengenVisaGuideRoute: typeof SchengenVisaGuideRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsOfServiceRoute: typeof TermsOfServiceRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
   VisaSearchRoute: typeof VisaSearchRoute
@@ -1090,6 +1115,7 @@ export interface RootRouteChildren {
   EtiasNewsRoute: typeof EtiasNewsRoute
   EtiasTimelineRoute: typeof EtiasTimelineRoute
   GuidesSlugRoute: typeof GuidesSlugRoute
+  SitemapsSplatRoute: typeof SitemapsSplatRoute
   ThingsToDoCountrySlugRoute: typeof ThingsToDoCountrySlugRoute
   VisaRequirementsSlugRoute: typeof VisaRequirementsSlugRoute
   VisaTypesBusinessRoute: typeof VisaTypesBusinessRoute
@@ -1228,6 +1254,13 @@ declare module '@tanstack/react-router' {
       path: '/schengen-visa-guide'
       fullPath: '/schengen-visa-guide'
       preLoaderRoute: typeof SchengenVisaGuideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms-of-service': {
@@ -1601,6 +1634,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GuidesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sitemaps/$': {
+      id: '/sitemaps/$'
+      path: '/sitemaps/$'
+      fullPath: '/sitemaps/$'
+      preLoaderRoute: typeof SitemapsSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/things-to-do/': {
       id: '/things-to-do/'
       path: '/things-to-do'
@@ -1825,6 +1865,7 @@ const rootRouteChildren: RootRouteChildren = {
   RssRoute: RssRoute,
   SchengenCalculatorRoute: SchengenCalculatorRoute,
   SchengenVisaGuideRoute: SchengenVisaGuideRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsOfServiceRoute: TermsOfServiceRoute,
   UnsubscribeRoute: UnsubscribeRoute,
   VisaSearchRoute: VisaSearchRoute,
@@ -1836,6 +1877,7 @@ const rootRouteChildren: RootRouteChildren = {
   EtiasNewsRoute: EtiasNewsRoute,
   EtiasTimelineRoute: EtiasTimelineRoute,
   GuidesSlugRoute: GuidesSlugRoute,
+  SitemapsSplatRoute: SitemapsSplatRoute,
   ThingsToDoCountrySlugRoute: ThingsToDoCountrySlugRoute,
   VisaRequirementsSlugRoute: VisaRequirementsSlugRoute,
   VisaTypesBusinessRoute: VisaTypesBusinessRoute,

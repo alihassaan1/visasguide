@@ -53,7 +53,7 @@ export const getCountryGuideData = createServerFn({ method: "GET" })
       const countries = await loadCountries(sb);
       const out: Entry[] = [[COUNTRIES_KEY, countries]];
       const guide = await sb
-        .from("content_pages").select("*")
+        .from("content_pages").select("*, writer:authors(name,slug)")
         .eq("slug", `countries/${data.slug}`).eq("is_published", true).maybeSingle();
       if (guide.error) throw guide.error;
       out.push([["country-guide-content", data.slug], guide.data ?? null]);
@@ -128,12 +128,12 @@ export const getVisaRequirementData = createServerFn({ method: "GET" })
       if (fromSlug && toSlug) {
         let page: unknown = null;
         for (const s of [`${fromSlug}-to-${toSlug}-visa-requirements`, `visa-requirements/${fromSlug}-to-${toSlug}`, `${fromSlug}-to-${toSlug}`]) {
-          const r = await sb.from("content_pages").select("*").eq("slug", s).eq("is_published", true).maybeSingle();
+          const r = await sb.from("content_pages").select("*, writer:authors(name,slug)").eq("slug", s).eq("is_published", true).maybeSingle();
           if (r.error) throw r.error;
           if (r.data && !r.error) { page = r.data; break; }
         }
         if (!page) {
-          const r = await sb.from("content_pages").select("*")
+          const r = await sb.from("content_pages").select("*, writer:authors(name,slug)")
             .ilike("slug", `%${fromSlug}%${toSlug}%visa%`).eq("is_published", true).limit(1).maybeSingle();
           if (r.error) throw r.error;
           if (r.data && !r.error) page = r.data;
@@ -153,7 +153,7 @@ export const getBlogArticleData = createServerFn({ method: "GET" })
     try {
       const sb = publicClient();
       const out: Entry[] = [];
-      const news = await sb.from("news_articles").select("*").eq("slug", data.slug).maybeSingle();
+      const news = await sb.from("news_articles").select("*, writer:authors(name,slug)").eq("slug", data.slug).eq("status", "published").not("published_at", "is", null).lte("published_at", new Date().toISOString()).maybeSingle();
       if (news.error) throw news.error;
       out.push([["news-article", data.slug], news.data ?? null]);
       if (news.data) {
@@ -162,7 +162,7 @@ export const getBlogArticleData = createServerFn({ method: "GET" })
         if (cats && cats.length) {
           const r = await sb.from("news_articles").select("*")
             .neq("id", news.data.id).overlaps("categories", cats)
-            .not("published_at", "is", null).order("published_at", { ascending: false }).limit(3);
+            .not("published_at", "is", null).lte("published_at", new Date().toISOString()).order("published_at", { ascending: false }).limit(3);
           if (!r.error) related = r.data || [];
         }
         out.push([["related-articles", cats], related]);
@@ -194,7 +194,7 @@ export const getContentPageData = createServerFn({ method: "GET" })
         return JSON.stringify([[COUNTRIES_KEY, countries], [["passport-requirements", passport.slug], reqs || []]]);
       }
       const sb = publicClient();
-      const r = await sb.from("content_pages").select("*").eq("slug", data.slug).eq("is_published", true).maybeSingle();
+      const r = await sb.from("content_pages").select("*, writer:authors(name,slug)").eq("slug", data.slug).eq("is_published", true).maybeSingle();
       if (r.error) throw r.error;
       if (!r.data) return "[]";
       return JSON.stringify([[["content-page", data.slug], r.data]]);
@@ -213,25 +213,26 @@ export const getPublicListingData = createServerFn({ method: "GET" })
   .handler(async ({ data }): Promise<string> => {
     const sb = publicClient();
     const out: Entry[] = [];
+    const now = new Date().toISOString();
     async function add(key: readonly unknown[], query: PromiseLike<{ data: unknown; error: unknown }>) {
       const result = await query;
       if (result.error) { console.error("Public page query failed", result.error); throw new Error("Public content is temporarily unavailable"); }
       out.push([key, result.data ?? []]);
     }
-    if (["countries", "passport-index", "home", "blog", "policy", "country"].includes(data.kind)) {
+    if (["countries", "passport-index", "home", "blog", "policy", "country", "coverage"].includes(data.kind)) {
       out.push([COUNTRIES_KEY, await loadCountries(sb)]);
     }
     if (["countries", "home"].includes(data.kind)) await add(["shared", "search_stats"], sb.from("search_stats").select("country_id,search_count,page_view_count"));
-    if (data.kind === "guides") await add(["visa-guides"], sb.from("guides").select("*").not("published_at", "is", null).order("published_at", { ascending: false }));
+    if (data.kind === "guides") await add(["visa-guides"], sb.from("guides").select("*").not("published_at", "is", null).lte("published_at", now).order("published_at", { ascending: false }));
     if (data.kind === "guide") {
-      const result = await sb.from("guides").select("*").eq("slug", data.slug).not("published_at", "is", null).maybeSingle();
+      const result = await sb.from("guides").select("*").eq("slug", data.slug).not("published_at", "is", null).lte("published_at", now).maybeSingle();
       if (result.error) throw result.error;
       out.push([["guide", data.slug], result.data]);
       if (result.data) await add(["related-guides", result.data.guide_type], sb.from("guides").select("id,title,slug,guide_type,difficulty,read_time_minutes").neq("slug", data.slug).not("published_at", "is", null).limit(3));
     }
     if (data.kind === "blog") {
       await Promise.all([
-        add(["news-articles", ""], sb.from("news_articles").select("id,title,slug,excerpt,featured_image_url,published_at,created_at,categories,source_url").not("published_at", "is", null).order("published_at", { ascending: false })),
+        add(["news-articles", ""], sb.from("news_articles").select("id,title,slug,excerpt,featured_image_url,published_at,created_at,categories,source_url").eq("status", "published").not("published_at", "is", null).lte("published_at", now).order("published_at", { ascending: false })),
         add(["blog-posts", ""], sb.from("content_pages").select("id,title,slug,excerpt,featured_image_url,created_at,keywords").like("slug", "blog/%").eq("is_published", true).order("created_at", { ascending: false })),
         add(["most-read-blog"], sb.from("content_pages").select("id,title,slug,featured_image_url,view_count").eq("is_published", true).not("view_count", "is", null).order("view_count", { ascending: false }).limit(5)),
       ]);
@@ -260,7 +261,7 @@ export const getPublicListingData = createServerFn({ method: "GET" })
       if (result.error) throw result.error;
       out.push([["etias-country", data.slug], result.data]);
     }
-    if (data.kind === "etias-news") await add(["etias-news"], sb.from("news_articles").select("id,slug,title,excerpt,featured_image_url,published_at").contains("tags", ["etias"]).not("published_at", "is", null).order("published_at", { ascending: false }).limit(50));
+    if (data.kind === "etias-news") await add(["etias-news"], sb.from("news_articles").select("id,slug,title,excerpt,featured_image_url,published_at").contains("tags", ["etias"]).not("published_at", "is", null).lte("published_at", now).order("published_at", { ascending: false }).limit(50));
     if (data.kind === "author") {
       const authors = await sb.from("authors").select("*").order("name");
       if (authors.error) throw authors.error;

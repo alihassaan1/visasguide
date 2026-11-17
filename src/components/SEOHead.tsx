@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { cleanMetaText } from "@/lib/public-seo";
 
 interface SEOHeadProps {
   title: string;
@@ -11,6 +12,7 @@ interface SEOHeadProps {
   keywords?: string[];
   author?: string;
   noIndex?: boolean;
+  seoIndex?: boolean;
 }
 
 const SEOHead = ({
@@ -21,12 +23,13 @@ const SEOHead = ({
   ogType = "website",
   articlePublishedTime,
   articleModifiedTime,
-  keywords = [],
   author = "Visas.Guide Editorial Team",
+  seoIndex = true,
   noIndex = false
 }: SEOHeadProps) => {
   // Titles use pipes as separators, never long dashes
-  const cleanTitle = title.replace(/\s*[—–]\s*/g, " | ").replace(/\s*\|\s*(\|\s*)+/g, " | ").trim();
+  const cleanTitle = cleanMetaText(title || "Visa Requirements and Travel Guides | visas.guide");
+  const cleanDescription = cleanMetaText(description);
   useEffect(() => {
     // Public leaf routes own metadata in SSR and on navigation. Never overwrite
     // their tags with a late effect (or with a generic default share image).
@@ -49,24 +52,22 @@ const SEOHead = ({
     };
 
     // Basic meta tags
-    updateMetaTag('description', description);
-    if (keywords.length > 0) {
-      updateMetaTag('keywords', keywords.join(', '));
-    }
+    updateMetaTag('description', cleanDescription);
+    document.querySelectorAll('meta[name="keywords"]').forEach(tag => tag.remove());
     
     // Author meta tag (E-E-A-T signal)
     updateMetaTag('author', author);
     
     // Robots meta tag
-    if (noIndex) {
-      updateMetaTag('robots', 'noindex, nofollow');
+    if (noIndex || !seoIndex) {
+      updateMetaTag('robots', 'noindex, follow');
     } else {
       updateMetaTag('robots', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
     }
 
     // Open Graph tags
     updateMetaTag('og:title', cleanTitle, true);
-    updateMetaTag('og:description', description, true);
+    updateMetaTag('og:description', cleanDescription, true);
     updateMetaTag('og:type', ogType, true);
     updateMetaTag('og:image', ogImage, true);
     
@@ -86,7 +87,7 @@ const SEOHead = ({
     // Twitter Card tags
     updateMetaTag('twitter:card', 'summary_large_image');
     updateMetaTag('twitter:title', cleanTitle);
-    updateMetaTag('twitter:description', description);
+    updateMetaTag('twitter:description', cleanDescription);
     updateMetaTag('twitter:image', ogImage);
 
     // Canonical link - always set to prevent duplicate content issues
@@ -108,7 +109,7 @@ const SEOHead = ({
       // Reset title to default when navigating away
       // (Next page's SEOHead will set its own)
     };
-  }, [title, description, canonical, ogImage, ogType, articlePublishedTime, articleModifiedTime, keywords, author, noIndex]);
+  }, [title, description, canonical, ogImage, ogType, articlePublishedTime, articleModifiedTime, author, noIndex, seoIndex]);
 
   return null;
 };

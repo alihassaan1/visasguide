@@ -38,18 +38,18 @@ const PassportRankings = () => {
   const filteredCountries = useMemo(() => {
     if (!allCountries) return [];
     let filtered = allCountries;
-    
+
     if (searchTerm) {
       filtered = filtered.filter(country =>
         country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         country.code.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
+
     if (selectedContinent !== "all") {
       filtered = filtered.filter(country => country.continent === selectedContinent);
     }
-    
+
     return filtered;
   }, [allCountries, searchTerm, selectedContinent]);
 
@@ -95,17 +95,12 @@ const PassportRankings = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <FAQSchema faqs={[
-        { question: "What is the most powerful passport in the world?", answer: `As of ${CURRENT_YEAR}, passports from countries like Japan, Singapore, and several EU nations consistently rank as the most powerful, offering visa-free or visa-on-arrival access to 190+ destinations worldwide.` },
-        { question: "How is passport ranking calculated?", answer: "Passport rankings are calculated based on the number of destinations a passport holder can access without a prior visa, including visa-free entry, visa-on-arrival, eTA, and eVisa destinations. Each destination is weighted by its significance." },
-        { question: "Which passport has the most visa-free countries?", answer: `The top-ranked passports provide visa-free or visa-on-arrival access to over 190 countries. Check our regularly updated ${CURRENT_YEAR} rankings table for the latest data.` },
-      ]} pageUrl="https://visas.guide/passport-index" />
       <BreadcrumbSchema items={[
         { name: "Passport Index", url: "/passport-index" },
       ]} />
       <SEOHead
         title={`Passport Index ${CURRENT_YEAR} – World Passport Rankings & Visa-Free Score | Visas.Guide`}
-        description={`Passport Index ${CURRENT_YEAR}: Compare ${totalCountriesCount || 199} passports ranked by visa-free score & travel freedom. See which passport is the strongest, visa-free countries list, and global mobility rankings. Updated ${new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' })}.`}
+        description={`Passport Index ${CURRENT_YEAR}: Compare ${totalCountriesCount} passports ranked by visa-free score & travel freedom. See which passport is the strongest, visa-free countries list, and global mobility rankings. Updated ${new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' })}.`}
         canonical="https://visas.guide/passport-index"
         keywords={[
           'passport index', 'passport ranking', 'passport rankings', 'world passport rankings',
@@ -127,7 +122,7 @@ const PassportRankings = () => {
             "@context": "https://schema.org",
             "@type": "Dataset",
             "name": `Passport Index Rankings ${CURRENT_YEAR}`,
-            "description": `Comprehensive passport ranking system evaluating ${totalCountriesCount || 199} countries based on visa-free access, visa on arrival, eVisas, and global mobility. Updated ${new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' })}.`,
+            "description": `Comprehensive passport ranking system evaluating ${totalCountriesCount} countries based on visa-free access, visa on arrival, eVisas, and global mobility. Updated ${new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' })}.`,
             "url": "https://visas.guide/passport-index",
             "keywords": "passport rankings, passport index, visa free countries, passport power, global mobility",
             "creator": { "@type": "Organization", "name": "Visas.Guide", "url": "https://visas.guide" },
@@ -150,7 +145,7 @@ const PassportRankings = () => {
                 "name": `What is the most powerful passport in ${CURRENT_YEAR}?`,
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": topCountries.length > 0 
+                  "text": topCountries.length > 0
                     ? `The ${topCountries[0].name} passport is ranked #1 in ${CURRENT_YEAR} with a score of ${topCountries[0].passport_score}, offering visa-free or visa-on-arrival access to the most destinations worldwide.`
                     : `Check our latest rankings for the most up-to-date passport power data.`
                 }
@@ -191,8 +186,8 @@ const PassportRankings = () => {
                 Passport Index {CURRENT_YEAR}: World Passport Rankings
               </h1>
               <p className="text-lg text-muted-foreground max-w-3xl">
-                Comprehensive ranking of {totalCountriesCount || 199} passports by travel freedom. 
-                Compare visa-free access, visa on arrival, eTA, eVisa, and overall mobility scores 
+                Comprehensive ranking of {totalCountriesCount} passports by travel freedom.
+                Compare visa-free access, visa on arrival, eTA, eVisa, and overall mobility scores
                 for every country and territory worldwide.
               </p>
             </div>
@@ -247,14 +242,14 @@ const PassportRankings = () => {
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                 {topCountries.map((country, i) => (
-                  <Link 
-                    key={country.id} 
+                  <Link
+                    key={country.id}
                     to={`/countries/${country.slug}`}
                     className="bg-card rounded-lg border p-4 hover:shadow-md transition-all hover:border-primary/50 group"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-2xl">{country.flag_emoji || '🏳️'}</span>
-                      <Badge className={getRankBadge(country.passport_rank!)}>
+                      <Badge className={getRankBadge(country.passport_rank ?? 0)}>
                         #{country.passport_rank}
                       </Badge>
                     </div>
@@ -288,19 +283,19 @@ const PassportRankings = () => {
                 />
               </div>
               <div className="flex flex-wrap gap-1.5">
-                <Button 
-                  variant={selectedContinent === "all" ? "default" : "outline"} 
+                <Button
+                  variant={selectedContinent === "all" ? "default" : "outline"}
                   size="sm"
                   onClick={() => handleContinentChange("all")}
                 >
                   All
                 </Button>
                 {continents.map(c => (
-                  <Button 
-                    key={c} 
-                    variant={selectedContinent === c ? "default" : "outline"} 
+                  <Button
+                    key={c}
+                    variant={selectedContinent === c ? "default" : "outline"}
                     size="sm"
-                    onClick={() => handleContinentChange(c!)}
+                    onClick={() => handleContinentChange(c || "all")}
                   >
                     {c}
                   </Button>
@@ -391,7 +386,7 @@ const PassportRankings = () => {
                         {paginatedCountries.map((country) => (
                           <TableRow key={country.id} className="hover:bg-muted/30 transition-colors">
                             <TableCell>
-                              <Link 
+                              <Link
                                 to={`/countries/${country.slug}`}
                                 className="flex items-center gap-2 hover:text-primary transition-colors font-medium"
                               >
@@ -400,8 +395,8 @@ const PassportRankings = () => {
                               </Link>
                             </TableCell>
                             <TableCell className="text-center">
-                              <Badge className={getRankBadge(country.passport_rank!)}>
-                                {getOrdinalSuffix(country.passport_rank!)}
+                              <Badge className={getRankBadge(country.passport_rank ?? 0)}>
+                                {getOrdinalSuffix(country.passport_rank ?? 0)}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-center font-semibold">{country.passport_score || '—'}</TableCell>
@@ -417,7 +412,7 @@ const PassportRankings = () => {
                       </TableBody>
                     </Table>
                   </div>
-                  
+
                   {/* Pagination */}
                   {totalPages > 1 && (
                     <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-t">
@@ -486,8 +481,8 @@ const PassportRankings = () => {
                 <AccordionContent>
                   {topCountries.length > 0 ? (
                     <p>
-                      The <strong>{topCountries[0].name}</strong> passport holds the #1 rank in {CURRENT_YEAR} with a 
-                      score of <strong>{topCountries[0].passport_score}</strong>, meaning its holders can access {topCountries[0].passport_score} destinations 
+                      The <strong>{topCountries[0].name}</strong> passport holds the #1 rank in {CURRENT_YEAR} with a
+                      score of <strong>{topCountries[0].passport_score}</strong>, meaning its holders can access {topCountries[0].passport_score} destinations
                       worldwide through visa-free entry, visa on arrival, eTA, or eVisa. It is followed by{' '}
                       {topCountries.slice(1, 5).map((c, i) => (
                         <span key={c.id}>
@@ -503,9 +498,9 @@ const PassportRankings = () => {
                 <AccordionTrigger>How is passport strength measured?</AccordionTrigger>
                 <AccordionContent>
                   <p>
-                    Passport strength is measured by counting the total number of destinations a passport holder 
-                    can access without obtaining a traditional visa in advance. This includes: visa-free entry, 
-                    visa on arrival (VOA), electronic travel authorization (eTA), and electronic visa (eVisa) 
+                    Passport strength is measured by counting the total number of destinations a passport holder
+                    can access without obtaining a traditional visa in advance. This includes: visa-free entry,
+                    visa on arrival (VOA), electronic travel authorization (eTA), and electronic visa (eVisa)
                     destinations. The passport score represents the sum of all these accessible destinations.
                   </p>
                 </AccordionContent>
@@ -514,10 +509,10 @@ const PassportRankings = () => {
                 <AccordionTrigger>What is the difference between visa-free and visa on arrival?</AccordionTrigger>
                 <AccordionContent>
                   <p>
-                    <strong>Visa-free</strong> means you can enter a country by simply showing your passport at 
-                    immigration — no visa paperwork or fees. <strong>Visa on arrival (VOA)</strong> means you 
-                    receive your visa stamp at the airport or border upon arrival, which may involve filling 
-                    out forms and paying a fee. Both options allow travel without applying for a visa at an 
+                    <strong>Visa-free</strong> means you can enter a country by simply showing your passport at
+                    immigration — no visa paperwork or fees. <strong>Visa on arrival (VOA)</strong> means you
+                    receive your visa stamp at the airport or border upon arrival, which may involve filling
+                    out forms and paying a fee. Both options allow travel without applying for a visa at an
                     embassy beforehand.
                   </p>
                 </AccordionContent>
@@ -526,9 +521,9 @@ const PassportRankings = () => {
                 <AccordionTrigger>What is an eTA (Electronic Travel Authorization)?</AccordionTrigger>
                 <AccordionContent>
                   <p>
-                    An eTA is an electronic entry requirement linked to your passport. Countries like Canada, 
-                    Australia, and several others require travelers from visa-exempt nations to obtain an eTA 
-                    online before boarding their flight. The process is usually quick, inexpensive, and can be 
+                    An eTA is an electronic entry requirement linked to your passport. Countries like Canada,
+                    Australia, and several others require travelers from visa-exempt nations to obtain an eTA
+                    online before boarding their flight. The process is usually quick, inexpensive, and can be
                     completed entirely online in minutes.
                   </p>
                 </AccordionContent>
@@ -537,9 +532,9 @@ const PassportRankings = () => {
                 <AccordionTrigger>Can passport rankings change over time?</AccordionTrigger>
                 <AccordionContent>
                   <p>
-                    Yes, passport rankings change frequently as countries sign new visa agreements, introduce 
-                    electronic visa programs, or impose travel restrictions. Geopolitical events, diplomatic 
-                    relations, and bilateral agreements all influence how many destinations a passport can 
+                    Yes, passport rankings change frequently as countries sign new visa agreements, introduce
+                    electronic visa programs, or impose travel restrictions. Geopolitical events, diplomatic
+                    relations, and bilateral agreements all influence how many destinations a passport can
                     access. Rankings are updated regularly to reflect the latest changes.
                   </p>
                 </AccordionContent>
@@ -548,7 +543,7 @@ const PassportRankings = () => {
           </section>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

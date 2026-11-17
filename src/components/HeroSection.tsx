@@ -53,7 +53,7 @@ const HeroSection = () => {
             </span>
           </h1>
           <p className="text-base md:text-lg text-white/90 mb-8 max-w-lg drop-shadow-md">
-            Navigate visa requirements for 200+ countries with up-to-date visa-free lists, eVisa details, and travel documentation tips.
+            Navigate visa requirements for {countries.length || "all"} countries with up-to-date visa-free lists, eVisa details, and travel documentation tips.
           </p>
 
           {/* Floating Search Box - Enhanced with glow */}
@@ -94,7 +94,7 @@ const HeroSection = () => {
           <div className="flex flex-wrap gap-2 md:gap-3 mt-8 text-sm">
             <div className="flex items-center gap-2 bg-white/95 rounded-full px-4 py-2 shadow-xs">
               <Globe className="h-4 w-4 text-emerald-600" />
-              <span className="font-semibold text-foreground">200+ Countries</span>
+              <span className="font-semibold text-foreground">{countries.length || "All"} Countries</span>
             </div>
             <div className="flex items-center gap-2 bg-white/95 rounded-full px-4 py-2 shadow-xs">
               <Route className="h-4 w-4 text-teal-600" />

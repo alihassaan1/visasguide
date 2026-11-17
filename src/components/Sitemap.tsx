@@ -42,13 +42,11 @@ const Sitemap = () => {
       { url: "https://visas.guide/guides/travel-insurance-requirements", priority: "0.5", changefreq: "monthly" },
     ];
 
-    const currentDate = new Date().toISOString().split('T')[0];
     
     const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${sitemapUrls.map(item => `  <url>
     <loc>${item.url}</loc>
-    <lastmod>${currentDate}</lastmod>
     <changefreq>${item.changefreq}</changefreq>
     <priority>${item.priority}</priority>
   </url>`).join('\n')}

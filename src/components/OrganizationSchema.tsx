@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import { useEffect } from "react";
 
 interface OrganizationSchemaProps {
@@ -21,7 +22,7 @@ const OrganizationSchema = ({
   name = "Visas Guide",
   url = "https://visas.guide",
   logo = "https://visas.guide/favicon.png",
-  description = "The world's leading visa information platform providing up-to-date visa requirements, eVisa details, and travel documentation guides for 200+ countries.",
+  description,
   foundingDate = "2024",
   sameAs = [
     "https://twitter.com/visasguide",
@@ -36,6 +37,8 @@ const OrganizationSchema = ({
     availableLanguage: ["English"]
   }
 }: OrganizationSchemaProps) => {
+  const { data: countries = [] } = useCountries();
+  const coverageDescription = description || `Visa requirements, eVisa details and travel documentation guides for ${countries.length || "all"} countries.`;
   useEffect(() => {
     const script = document.createElement("script");
     script.type = "application/ld+json";
@@ -50,7 +53,7 @@ const OrganizationSchema = ({
         "@type": "ImageObject",
         "url": logo
       },
-      "description": description,
+      "description": coverageDescription,
       "foundingDate": foundingDate,
       "sameAs": sameAs,
       "contactPoint": {
@@ -88,7 +91,7 @@ const OrganizationSchema = ({
         scriptToRemove.remove();
       }
     };
-  }, [name, url, logo, description, foundingDate, sameAs, contactPoint]);
+  }, [name, url, logo, description, foundingDate, sameAs, contactPoint, coverageDescription]);
 
   return null;
 };

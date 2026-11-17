@@ -1,10 +1,10 @@
 # Visas.Guide
 
-> Visas.Guide is a global travel visa information platform covering visa requirements, eVisa applications, processing times, and passport rankings for 200+ countries. We help travelers navigate visa rules, policy updates, and destination guides.
+> Visas.Guide is a global travel visa information platform covering visa requirements, eVisa applications, processing times, and passport rankings worldwide. We help travelers navigate visa rules, policy updates, and destination guides.
 
 ## Core Pages
 
-- [Home](https://visas.guide/): Visa requirements and travel guides for 200+ countries.
+- [Home](https://visas.guide/): Visa requirements and travel guides worldwide.
 - [About](https://visas.guide/about): Our mission, editorial team, and methodology.
 - [Editorial Policy](https://visas.guide/editorial-policy): How we research, write, and verify visa information.
 - [Affiliate Disclosure](https://visas.guide/affiliate-disclosure): How we monetize and partner with travel brands.

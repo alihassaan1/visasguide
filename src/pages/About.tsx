@@ -28,14 +28,14 @@ const About = () => {
     }
   });
   const stats = pageStats
-    ? { countries: allCountries?.length || 195, ...pageStats }
+    ? { countries: allCountries?.length, ...pageStats }
     : undefined;
 
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
         title="About Visas.Guide — Trusted Visa Information"
-        description="Learn about Visas.Guide and our team of visa experts who help travelers navigate visa requirements for 200+ countries worldwide."
+        description={`Learn about visas.guide and our team helping travelers navigate visa requirements for ${allCountries?.length || "all"} countries worldwide.`}
         canonical="https://visas.guide/about"
         keywords={["about visas guide", "visa information team", "travel experts", "visa specialists"]}
       />
@@ -75,7 +75,7 @@ const About = () => {
                     <Globe className="h-12 w-12 text-primary mx-auto mb-4" />
                     <h3 className="text-xl font-semibold mb-2">Global Coverage</h3>
                     <p className="text-muted-foreground">
-                      We cover visa requirements for {stats?.countries || 195}+ countries, helping travelers worldwide plan their journeys.
+                      We cover visa requirements for {allCountries?.length || "All"} countries, helping travelers worldwide plan their journeys.
                     </p>
                   </CardContent>
                 </Card>
@@ -109,7 +109,7 @@ const About = () => {
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
               <div>
-                <p className="text-4xl font-bold text-primary">{stats?.countries || 195}+</p>
+                <p className="text-4xl font-bold text-primary">{allCountries?.length || "All"}</p>
                 <p className="text-muted-foreground">Countries Covered</p>
               </div>
               <div>

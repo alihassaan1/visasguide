@@ -28,7 +28,7 @@ const EtiasSubPage = ({ slug: slugProp }: { slug?: string }) => {
         canonical={canonical}
         keywords={page.keywords}
       />
-      {page.faqs && <FAQSchema faqs={page.faqs} pageUrl={canonical} />}
+      {page.faqs && <FAQSchema visible faqs={page.faqs} pageUrl={canonical} />}
 
       <header>
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-3">

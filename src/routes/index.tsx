@@ -8,8 +8,8 @@ import NotFound from "@/pages/NotFound";
 import { publicHead } from "@/lib/public-seo";
 
 export const Route = createFileRoute("/")({
-  head: () => publicHead({ title: "Visa Guide 2026 | Travel Visa Requirements & eVisa Info | Visas.Guide", description: "Travel visa requirements, work visas, visit visas, tourist visas and visa processing times for 200+ countries. Global Passport Index.", path: "/" }),
-  loader: async ({ context }) => { seedQueries(context.queryClient, await getPublicListingData({ data: { kind: "home" } })); },
+  loader: async ({ context }) => { seedQueries(context.queryClient, await getPublicListingData({ data: { kind: "home" } })); return { countryCount: context.queryClient.getQueryData<unknown[]>(["shared", "countries"])?.length }; },
+  head: ({ loaderData }) => { const count = loaderData?.countryCount; return publicHead(loaderData ? { title: `Visa Requirements and Travel Guides | visas.guide`, description: `Visa requirements, entry rules, eVisa options and travel guides for ${count} countries. Compare destinations and plan your next trip with visas.guide.`, path: "/" } : undefined); },
   errorComponent: PublicRouteError,
   notFoundComponent: NotFound,
   component: Index,

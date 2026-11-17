@@ -180,7 +180,7 @@ const TabbedLinksSection = () => {
             Explore Visa Information
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Comprehensive visa guides, requirements, and travel resources for 200+ destinations worldwide
+            Comprehensive visa guides, requirements, and travel resources for {allCountries?.length || "all"} destinations worldwide
           </p>
         </div>
 

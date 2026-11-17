@@ -626,6 +626,7 @@ export type Database = {
           meta_description: string | null
           meta_title: string | null
           scheduled_at: string | null
+          seo_index: boolean
           slug: string
           status: string
           title: string
@@ -648,6 +649,7 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           scheduled_at?: string | null
+          seo_index?: boolean
           slug: string
           status?: string
           title: string
@@ -670,6 +672,7 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           scheduled_at?: string | null
+          seo_index?: boolean
           slug?: string
           status?: string
           title?: string

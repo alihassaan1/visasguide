@@ -1,3 +1,4 @@
+import { fetchSitemapRows, sitemapLastmod as toLastmod, type SitemapFilter } from "../_shared/sitemap-data.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
@@ -6,89 +7,37 @@ const corsHeaders = {
 };
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY');
+if (!supabaseUrl || !supabaseKey) throw new Error('Public sitemap configuration missing');
+const supabase = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false, autoRefreshToken: false } });
+// Storage publishing remains privileged, but every content query uses public access.
+const publisher = () => { const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'); if (!key) throw new Error('Sitemap publishing configuration missing'); return createClient(supabaseUrl, key); };
 
 const BASE_URL = 'https://visas.guide';
 const SITEMAP_BUCKET = 'content-images';
 const URLS_PER_SITEMAP = 10000; // Google allows up to 50k, we use 10k to stay safe
 
-// Helper function to fetch all rows with pagination
-async function fetchAllRows(
-  table: string, 
-  selectColumns: string, 
-  filters?: { column: string; value: any; operator?: string }[],
-  orderBy?: string
-): Promise<any[]> {
-  const allRows: any[] = [];
-  let offset = 0;
-  const pageSize = 1000;
-  let hasMore = true;
-
-  while (hasMore) {
-    let query = supabase.from(table).select(selectColumns);
-    
-    if (filters) {
-      for (const filter of filters) {
-        if (filter.operator === 'eq') {
-          query = query.eq(filter.column, filter.value);
-        } else if (filter.operator === 'like') {
-          query = query.like(filter.column, filter.value);
-        }
-      }
-    }
-    
-    if (orderBy) {
-      query = query.order(orderBy);
-    }
-    
-    const { data, error } = await query.range(offset, offset + pageSize - 1);
-    
-    if (error) {
-      console.error(`Error fetching ${table}:`, error);
-      break;
-    }
-    
-    if (data && data.length > 0) {
-      allRows.push(...data);
-      offset += data.length;
-      hasMore = data.length === pageSize;
-    } else {
-      hasMore = false;
-    }
-  }
-  
-  return allRows;
-}
+const fetchAllRows = (table: string, columns: string, filters?: SitemapFilter[], orderBy?: string) => fetchSitemapRows(supabase, table, columns, filters, orderBy);
 
 type SitemapUrl = { loc: string; changefreq: string; priority: string; lastmod?: string };
 
-function toLastmod(value: string | undefined, fallback: string): string {
-  if (!value) return fallback;
-  // Use full ISO 8601 timestamp (W3C Datetime) so Google sees granular freshness
-  const d = new Date(value);
-  if (isNaN(d.getTime())) return fallback;
-  return d.toISOString();
-}
-
-function generateSitemapXml(urls: SitemapUrl[], currentDate: string): string {
+function generateSitemapXml(urls: SitemapUrl[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map(url => `  <url>
     <loc>${url.loc}</loc>
-    <lastmod>${url.lastmod || currentDate}</lastmod>
+    ${url.lastmod ? `<lastmod>${url.lastmod}</lastmod>` : ''}
     <changefreq>${url.changefreq}</changefreq>
     <priority>${url.priority}</priority>
   </url>`).join('\n')}
 </urlset>`;
 }
 
-function generateSitemapIndex(sitemapUrls: string[], currentDate: string): string {
+function generateSitemapIndex(sitemapUrls: string[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${sitemapUrls.map(url => `  <sitemap>
     <loc>${url}</loc>
-    <lastmod>${currentDate}</lastmod>
   </sitemap>`).join('\n')}
 </sitemapindex>`;
 }
@@ -104,6 +53,8 @@ Deno.serve(async (req) => {
 
     console.log('Starting comprehensive sitemap generation...');
     const urls: SitemapUrl[] = [];
+    const blogUrls: SitemapUrl[] = [];
+    const newsUrls: SitemapUrl[] = [];
     const nowIso = new Date().toISOString();
 
     // Static pages
@@ -116,9 +67,23 @@ Deno.serve(async (req) => {
       { path: '/passport-index', priority: '0.8', changefreq: 'weekly' },
       { path: '/processing-times', priority: '0.6', changefreq: 'weekly' },
       { path: '/requirements', priority: '0.6', changefreq: 'weekly' },
-      { path: '/visa-types/tourist-visa', priority: '0.8', changefreq: 'weekly' },
-      { path: '/visa-types/business-visa', priority: '0.8', changefreq: 'weekly' },
-      { path: '/visa-types/student-visa', priority: '0.7', changefreq: 'weekly' },
+      { path: '/visa-types/tourist', priority: '0.8', changefreq: 'weekly' },
+      { path: '/visa-types/business', priority: '0.8', changefreq: 'weekly' },
+      { path: '/visa-types/student', priority: '0.7', changefreq: 'weekly' },
+      { path: '/etias', priority: '0.8', changefreq: 'weekly' },
+      ...['vs-schengen-visa','faq','after-brexit','for-families','renewal','denied','vs-esta','schengen-itineraries'].map(slug=>({path:`/etias/${slug}`,priority:'0.7',changefreq:'weekly'})),
+      { path: '/etias/countries', priority: '0.7', changefreq: 'weekly' },
+      { path: '/etias/requirements', priority: '0.7', changefreq: 'weekly' },
+      { path: '/etias/application', priority: '0.7', changefreq: 'weekly' },
+      { path: '/etias/cost', priority: '0.7', changefreq: 'weekly' },
+      { path: '/etias/processing-time', priority: '0.7', changefreq: 'weekly' },
+      { path: '/etias/schengen-countries', priority: '0.7', changefreq: 'weekly' },
+      { path: '/etias/timeline', priority: '0.7', changefreq: 'weekly' },
+      { path: '/etias/news', priority: '0.7', changefreq: 'daily' },
+      { path: '/schengen-visa-guide', priority: '0.8', changefreq: 'weekly' },
+      { path: '/schengen-calculator', priority: '0.8', changefreq: 'weekly' },
+      { path: '/policy-updates', priority: '0.7', changefreq: 'daily' },
+      { path: '/things-to-do', priority: '0.7', changefreq: 'weekly' },
       { path: '/about', priority: '0.5', changefreq: 'monthly' },
       { path: '/contact', priority: '0.5', changefreq: 'monthly' },
       { path: '/privacy-policy', priority: '0.3', changefreq: 'monthly' },
@@ -133,19 +98,24 @@ Deno.serve(async (req) => {
         loc: `${BASE_URL}${page.path}`,
         changefreq: page.changefreq,
         priority: page.priority,
-        lastmod: nowIso,
       });
     }
     console.log(`Added ${staticPages.length} static pages`);
 
     // Fetch ALL countries with pagination
-    const countries = await fetchAllRows('countries', 'slug, updated_at', undefined, 'name');
+    const countries = await fetchAllRows('countries', 'id, slug, updated_at', undefined, 'name');
+    const countryById = new Map(countries.map(country => [country.id, country]));
+    const countrySlugs = new Set(countries.map(country => country.slug));
+    const countryGuides = await fetchAllRows('content_pages', 'slug,updated_at,seo_index', [{column:'is_published',value:true,operator:'eq'},{column:'slug',value:'countries/%',operator:'like'}]);
+    const guideBySlug = new Map(countryGuides.map(guide => [guide.slug,guide]));
     for (const country of countries) {
+      const guide = guideBySlug.get(`countries/${country.slug}`);
+      if (guide?.seo_index === false) continue;
       urls.push({
         loc: `${BASE_URL}/countries/${country.slug}`,
         changefreq: 'daily',
         priority: '0.8',
-        lastmod: toLastmod(country.updated_at, nowIso),
+        lastmod: toLastmod(guide?.updated_at || country.updated_at),
       });
     }
     console.log(`Added ${countries.length} country pages`);
@@ -159,7 +129,7 @@ Deno.serve(async (req) => {
           loc: `${BASE_URL}/${countrySlug}/${city.slug}`,
           changefreq: 'weekly',
           priority: '0.6',
-          lastmod: toLastmod(city.updated_at, nowIso),
+          lastmod: toLastmod(city.updated_at),
         });
       }
     }
@@ -169,10 +139,20 @@ Deno.serve(async (req) => {
     const contentPages = await fetchAllRows(
       'content_pages', 
       'slug, updated_at',
-      [{ column: 'is_published', value: true, operator: 'eq' }]
+      [{ column: 'is_published', value: true, operator: 'eq' }, { column: 'seo_index', value: true, operator: 'eq' }]
     );
     
-    const seenPaths = new Set<string>();
+    const seenPaths = new Set<string>(urls.map(url => url.loc));
+    const blockedPages = await fetchAllRows('content_pages', 'slug', [{column:'seo_index',value:false,operator:'eq'}]);
+    const blockedPairs = new Set(blockedPages.map(page => page.slug.replace(/^visa-requirements\//,'').replace(/-visa-requirements$/,'')));
+    const pairs = await fetchAllRows('visa_requirements','from_country_id,to_country_id,last_updated');
+    for (const pair of pairs) {
+      const from = countryById.get(pair.from_country_id);
+      const to = countryById.get(pair.to_country_id);
+      if (!from || !to || from.id === to.id || blockedPairs.has(`${from.slug}-to-${to.slug}`)) continue;
+      urls.push({loc:`${BASE_URL}/visa-requirements/${from.slug}-to-${to.slug}`,changefreq:'weekly',priority:'0.7',lastmod:toLastmod(pair.last_updated)});
+    }
+    const pairByLoc = new Map(urls.map(url => [url.loc,url]));
     for (const page of contentPages) {
       let path = '';
       let priority = '0.7';
@@ -182,6 +162,8 @@ Deno.serve(async (req) => {
         const normalized = page.slug
           .replace(/^visa-requirements\//, '')
           .replace(/-visa-requirements$/, '');
+        const [fromSlug,toSlug] = normalized.split('-to-');
+        if (!countrySlugs.has(fromSlug) || !countrySlugs.has(toSlug) || fromSlug === toSlug || blockedPairs.has(normalized)) continue;
         path = `/visa-requirements/${normalized}`;
         priority = '0.7';
         changefreq = 'weekly';
@@ -202,26 +184,32 @@ Deno.serve(async (req) => {
       }
 
       const fullLoc = `${BASE_URL}${path}`;
+      const existingPair = pairByLoc.get(fullLoc);
+      if (existingPair) {
+        const contentDate = toLastmod(page.updated_at);
+        if (contentDate && (!existingPair.lastmod || contentDate > existingPair.lastmod)) existingPair.lastmod = contentDate;
+        continue;
+      }
       if (seenPaths.has(fullLoc)) continue;
       seenPaths.add(fullLoc);
 
-      urls.push({
+      (page.slug.startsWith('blog/') ? blogUrls : urls).push({
         loc: fullLoc,
         changefreq,
         priority,
-        lastmod: toLastmod(page.updated_at, nowIso),
+        lastmod: toLastmod(page.updated_at),
       });
     }
     console.log(`Added ${contentPages.length} content pages`);
 
     // Fetch ALL guides with pagination
-    const guides = await fetchAllRows('guides', 'slug, updated_at');
+    const guides = await fetchAllRows('guides', 'slug, updated_at', [{column:'published_at',value:null,operator:'not-null'},{column:'published_at',value:nowIso,operator:'lte'}]);
     for (const guide of guides) {
       urls.push({
         loc: `${BASE_URL}/guides/${guide.slug}`,
         changefreq: 'monthly',
         priority: '0.7',
-        lastmod: toLastmod(guide.updated_at, nowIso),
+        lastmod: toLastmod(guide.updated_at),
       });
     }
     console.log(`Added ${guides.length} guide pages`);
@@ -230,41 +218,43 @@ Deno.serve(async (req) => {
     const news = await fetchAllRows(
       'news_articles', 
       'slug, published_at, updated_at',
-      [{ column: 'status', value: 'published', operator: 'eq' }]
+      [{ column: 'status', value: 'published', operator: 'eq' }, {column:'published_at',value:null,operator:'not-null'}, {column:'published_at',value:nowIso,operator:'lte'}]
     );
     for (const article of news) {
-      urls.push({
+      newsUrls.push({
         loc: `${BASE_URL}/blog/${article.slug}`,
         changefreq: 'monthly',
         priority: '0.5',
-        lastmod: toLastmod(article.updated_at || article.published_at, nowIso),
+        lastmod: toLastmod(article.updated_at),
       });
     }
     console.log(`Added ${news.length} news articles`);
 
     console.log(`✅ Generated sitemap with ${urls.length} URLs total`);
 
-    const currentDate = new Date().toISOString().split('T')[0];
+    const etias = await fetchAllRows('etias_country_pages','country_slug,updated_at',[{column:'is_published',value:true,operator:'eq'}]);
+    for (const page of etias) urls.push({loc:`${BASE_URL}/etias/for/${page.country_slug}`,changefreq:'weekly',priority:'0.7',lastmod:toLastmod(page.updated_at)});
+    const authors = await fetchAllRows('authors','slug,updated_at',[{column:'is_active',value:true,operator:'eq'}]);
+    for (const author of authors) urls.push({loc:`${BASE_URL}/author/${author.slug}`,changefreq:'monthly',priority:'0.5',lastmod:toLastmod(author.updated_at)});
+    const urlCount = urls.length + blogUrls.length + newsUrls.length;
 
     if (shouldPublish) {
-      // Split URLs into chunks and upload each as a separate sitemap
-      const chunks: { loc: string; changefreq: string; priority: string }[][] = [];
-      for (let i = 0; i < urls.length; i += URLS_PER_SITEMAP) {
-        chunks.push(urls.slice(i, i + URLS_PER_SITEMAP));
+      const chunks: { name: string; urls: SitemapUrl[] }[] = [];
+      for (const [prefix, entries] of [['sitemap',urls],['sitemap-blog',blogUrls],['sitemap-news',newsUrls]] as const) {
+        for (let i=0;i<entries.length;i+=URLS_PER_SITEMAP) chunks.push({name:`${prefix}-${Math.floor(i/URLS_PER_SITEMAP)+1}.xml`,urls:entries.slice(i,i+URLS_PER_SITEMAP)});
       }
-
       console.log(`Splitting into ${chunks.length} sitemap files (${URLS_PER_SITEMAP} URLs each)`);
 
       const sitemapUrls: string[] = [];
 
       for (let i = 0; i < chunks.length; i++) {
-        const chunk = chunks[i];
-        const sitemapPath = `sitemaps/sitemap-${i + 1}.xml`;
-        const sitemapXml = generateSitemapXml(chunk, currentDate);
+        const chunk = chunks[i].urls;
+        const sitemapPath = `sitemaps/${chunks[i].name}`;
+        const sitemapXml = generateSitemapXml(chunk);
 
         console.log(`Uploading ${sitemapPath} with ${chunk.length} URLs...`);
 
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError } = await publisher().storage
           .from(SITEMAP_BUCKET)
           .upload(
             sitemapPath,
@@ -281,16 +271,16 @@ Deno.serve(async (req) => {
           throw new Error(`Storage upload failed for ${sitemapPath}: ${uploadError.message}`);
         }
 
-        sitemapUrls.push(`${BASE_URL}/sitemaps/sitemap-${i + 1}.xml`);
+        sitemapUrls.push(`${BASE_URL}/sitemaps/${chunks[i].name}`);
       }
 
       // Generate and upload the sitemap index
-      const sitemapIndex = generateSitemapIndex(sitemapUrls, currentDate);
+      const sitemapIndex = generateSitemapIndex(sitemapUrls);
       const indexPath = 'sitemaps/sitemap-index.xml';
 
       console.log(`Uploading sitemap index with ${sitemapUrls.length} sitemaps...`);
 
-      const { error: indexUploadError } = await supabase.storage
+      const { error: indexUploadError } = await publisher().storage
         .from(SITEMAP_BUCKET)
         .upload(
           indexPath,
@@ -314,7 +304,7 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({
           ok: true,
-          urlCount: urls.length,
+          urlCount,
           sitemapCount: chunks.length,
           indexUrl,
           sitemapUrls,
@@ -327,7 +317,7 @@ Deno.serve(async (req) => {
     }
 
     // For non-publish requests, return the full sitemap XML directly
-    const sitemapXml = generateSitemapXml(urls, currentDate);
+    const sitemapXml = generateSitemapXml([...urls,...blogUrls,...newsUrls]);
 
     return new Response(sitemapXml, {
       headers: {

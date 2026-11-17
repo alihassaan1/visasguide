@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     const name = (nameParam || segment).trim();
 
     // Strict whitelist: only sitemap-<digits>.xml or sitemap-index.xml
-    if (!/^sitemap-(\d+|index)\.xml$/.test(name)) {
+    if (!/^sitemap-(?:\d+|index|(?:news|blog)-\d+)\.xml$/.test(name)) {
       return new Response('Not found', { status: 404, headers: corsHeaders });
     }
 

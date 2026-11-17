@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import Footer from "@/components/Footer";
@@ -14,11 +15,12 @@ import { CURRENT_YEAR } from "@/lib/constants";
 import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
 
 const Index = () => {
+  const { data: countries = [] } = useCountries();
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
         title={`Visa Guide ${CURRENT_YEAR} — Travel Visa Requirements & eVisa Info | Visas.Guide`}
-        description="Travel visa requirements, Guide to work visas, visit visas, tourist visas. visa processing times for 200+ countries. Global Passport Index. "
+        description={`Visa requirements, entry rules, eVisa options and travel guides for ${countries.length || "all"} countries.`}
         canonical="https://visas.guide/"
         keywords={[
           "visa guide",

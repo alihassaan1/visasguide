@@ -1,0 +1,2 @@
+ALTER TABLE public.content_pages ADD COLUMN IF NOT EXISTS seo_index boolean NOT NULL DEFAULT true;
+COMMENT ON COLUMN public.content_pages.seo_index IS 'Controls search indexing and sitemap inclusion; does not change publication or public access.';

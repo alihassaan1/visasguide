@@ -55,11 +55,9 @@ const SchengenVisaGuide = () => {
       "name": "Visas.Guide",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://visas.guide/logo.png"
+        "url": "https://visas.guide/favicon.png"
       }
     },
-    "datePublished": "2026-01-01",
-    "dateModified": new Date().toISOString().split('T')[0]
   };
 
   return (

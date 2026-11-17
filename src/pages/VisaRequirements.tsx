@@ -1,3 +1,4 @@
+import { visaPairMeta } from "@/lib/public-seo";
 import { useCountries } from "@/hooks/useSharedData";
 import { useParams, Link } from "@/lib/router-compat";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -161,8 +162,7 @@ const VisaRequirements = () => {
     );
   }
 
-  const pageTitle = `${toCountry.name} Visa Requirements for ${fromCountry.name} Citizens`;
-  const metaDescription = `Complete visa requirements guide for ${fromCountry.name} passport holders traveling to ${toCountry.name}. Get up-to-date information on visa types, processing times, fees, and required documents.`;
+  const { title: pageTitle, description: metaDescription } = visaPairMeta(fromCountry.name, toCountry.name, visaRequirement);
   const displayContent = generatedContent || contentPage?.content;
 
   return (
@@ -180,25 +180,7 @@ const VisaRequirements = () => {
           `${toCountry.name} visa requirements for ${fromCountry.name} citizens`,
           `${toCountry.name} entry requirements`,
         ]}
-        noIndex={false}
-      />
-
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Article",
-            "headline": pageTitle,
-            "description": metaDescription,
-            "author": { "@type": "Organization", "name": "Visas Guide" },
-            "publisher": { "@type": "Organization", "name": "Visas Guide" },
-            "mainEntityOfPage": {
-              "@type": "WebPage",
-              "@id": `https://visas.guide/visa-requirements/${normalizedSlug}`
-            }
-          })
-        }}
+        seoIndex={contentPage?.seo_index !== false}
       />
 
       <Header />

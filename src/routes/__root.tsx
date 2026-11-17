@@ -65,18 +65,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1.0" },
-      { title: "Visas.Guide | Travel Visa Requirements & eVisa Info" },
-      {
-        name: "description",
-        content:
-          "Visa requirements, eVisa info, and processing times for 200+ countries. Trusted by travelers worldwide.",
-      },
-      { name: "author", content: "Visas Guide" },
-      {
-        name: "keywords",
-        content:
-          "visa guide, travel visa requirements, visa destinations, visa map, visa requirements by country, visa-free countries, evisa, global visa processing times, passport ranking, passport index, schengen visa, tourist visa, business visa, student visa",
-      },
       { name: "google-adsense-account", content: "ca-pub-7190852118408617" },
       { name: "google-site-verification", content: "P6CgjHlfzm8TtyvyC-8rPjql3gm3YSKYKXazqAwT424" },
       {
@@ -88,21 +76,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
       },
       { name: "bingbot", content: "index, follow" },
-      { property: "og:title", content: "Visas.Guide | Travel Visa Requirements" },
-      {
-        property: "og:description",
-        content: "Visa requirements, eVisa info, and processing times for 200+ countries.",
-      },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Visas.Guide" },
       { property: "og:locale", content: "en_US" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@visasguide" },
-      { name: "twitter:title", content: "Visas.Guide | Travel Visa Requirements" },
-      {
-        name: "twitter:description",
-        content: "Visa requirements, eVisa info, and processing times for 200+ countries.",
-      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -119,7 +97,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://pagead2.googlesyndication.com", crossOrigin: "anonymous" },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "apple-touch-icon", href: "/favicon.png" },
-      { rel: "alternate", type: "application/rss+xml", title: "Visas.Guide RSS Feed", href: "https://visas.guide/feed" },
+      { rel: "alternate", type: "application/rss+xml", title: "visas.guide", href: "/feed" },
       { rel: "alternate", type: "application/atom+xml", title: "Visas.Guide Atom Feed", href: "https://visas.guide/feed" },
     ],
     scripts: [

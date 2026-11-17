@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import { useLocation, Link, Navigate } from "@/lib/router-compat";
 import { useEffect } from "react";
 import { Search, Home, MapPin, FileText, Globe } from "lucide-react";
@@ -8,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const NotFound = () => {
+  const { data: countries = [] } = useCountries();
   const location = useLocation();
   const path = location.pathname;
 
@@ -46,7 +48,7 @@ const NotFound = () => {
     <>
       <SEOHead
         title="Page Not Found - Visas.Guide"
-        description="The page you're looking for doesn't exist. Find visa information, requirements, and travel guides for over 190+ countries on Visas.Guide."
+        description={`The page you're looking for doesn't exist. Find visa information and travel guides for ${countries.length || "all"} countries on visas.guide.`}
         
         noIndex={true}
       />

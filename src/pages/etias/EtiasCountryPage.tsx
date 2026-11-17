@@ -63,7 +63,7 @@ const EtiasCountryPage = () => {
           keywords={[`ETIAS ${data.country_name}`, `${data.nationality} ETIAS`, "ETIAS application"]}
         />
       )}
-      {faqs.length > 0 && <FAQSchema faqs={faqs} pageUrl={canonical} />}
+
 
       {loading || !data ? (
         <div className="space-y-4">

@@ -277,13 +277,19 @@ export default function SEODashboard() {
 
   const checkSitemapHealth = async () => {
     try {
-      // Read each chunk from storage and total the <url> entries.
+      // Follow the published index, including separate news and blog chunks.
+      const store = 'https://awiytryceqehqapytfgn.supabase.co/storage/v1/object/public/content-images/sitemaps/';
+      const indexResponse = await fetch(`${store}sitemap-index.xml`, { cache: 'no-store' });
+      if (!indexResponse.ok) throw new Error('Sitemap index unavailable');
+      const indexDocument = new DOMParser().parseFromString(await indexResponse.text(), 'application/xml');
+      if (indexDocument.querySelector('parsererror')) throw new Error('Invalid sitemap index');
+      const names = Array.from(indexDocument.querySelectorAll('sitemap > loc')).map(node => node.textContent?.split('/').pop()).filter((name): name is string => !!name && /^sitemap-(?:\d+|(?:news|blog)-\d+)\.xml$/.test(name));
       let totalUrls = 0;
       let chunksFound = 0;
-      for (let i = 1; i <= 10; i++) {
-        const chunkUrl = `https://awiytryceqehqapytfgn.supabase.co/storage/v1/object/public/content-images/sitemaps/sitemap-${i}.xml`;
+      for (const name of names) {
+        const chunkUrl = `${store}${name}`;
         const res = await fetch(chunkUrl, { cache: 'no-store' });
-        if (!res.ok) break;
+        if (!res.ok) throw new Error('Sitemap chunk unavailable');
         const xml = await res.text();
         totalUrls += (xml.match(/<url>/g) || []).length;
         chunksFound++;

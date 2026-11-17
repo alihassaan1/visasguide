@@ -8,8 +8,8 @@ import NotFound from "@/pages/NotFound";
 import { publicHead } from "@/lib/public-seo";
 
 export const Route = createFileRoute("/countries/")({
-  head: () => publicHead({ title: "Visa Requirements by Country | Browse 200+ Visa Destinations | Visas.Guide", description: "Explore visa requirements for 200+ visa destinations worldwide. Find entry rules, visa-free access, eVisa options, and travel documentation for every country.", path: "/countries" }),
-  loader: async ({ context }) => { seedQueries(context.queryClient, await getPublicListingData({ data: { kind: "countries" } })); },
+  loader: async ({ context }) => { seedQueries(context.queryClient, await getPublicListingData({ data: { kind: "countries" } })); return { countryCount: context.queryClient.getQueryData<unknown[]>(["shared", "countries"])?.length }; },
+  head: ({ loaderData }) => { const count = loaderData?.countryCount; return publicHead(loaderData ? { title: `Visa Requirements by Country | Browse ${count} Destinations | visas.guide`, description: `Explore visa requirements for ${count} destinations worldwide. Find entry rules, visa-free access, eVisa options and travel documentation for each country.`, path: "/countries" } : undefined); },
   errorComponent: PublicRouteError,
   notFoundComponent: NotFound,
   component: Countries,

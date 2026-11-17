@@ -108,7 +108,7 @@ const TouristVisa = () => {
         canonical="https://visas.guide/visa-types/tourist"
         keywords={["tourist visa", "tourist visa requirements", "tourist visa application", "travel visa", "visitor visa", "holiday visa", "tourist visa fees", "tourist visa processing time"]}
       />
-      <FAQSchema faqs={touristFaqs} pageUrl="https://visas.guide/visa-types/tourist" />
+      <FAQSchema visible faqs={touristFaqs} pageUrl="https://visas.guide/visa-types/tourist" />
       <BreadcrumbSchema items={[
         { name: "Visa Types", url: "/visa-types/tourist" },
         { name: "Tourist Visa", url: "/visa-types/tourist" },
@@ -123,8 +123,6 @@ const TouristVisa = () => {
             "headline": `Tourist Visa Requirements and Application Guide ${CURRENT_YEAR}`,
             "description": "Complete guide to tourist visa requirements, processing times, fees, and application tips for popular travel destinations worldwide.",
             "author": { "@type": "Organization", "name": "Visas Guide" },
-            "datePublished": "2024-01-01",
-            "dateModified": new Date().toISOString().split('T')[0],
             "mainEntityOfPage": "https://visas.guide/visa-types/tourist"
           })
         }}

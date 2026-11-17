@@ -19,11 +19,12 @@ const ArticleSchema = ({
   imageUrl = "https://cdn.visas.guide/site/og-image.jpg",
   datePublished,
   dateModified,
-  authorName = "Visas.Guide Editorial Team",
+  authorName,
   keywords = [],
   wordCount,
 }: ArticleSchemaProps) => {
   useEffect(() => {
+    if (document.querySelector('meta[name="visas:route-head"]')) return;
     // Remove any existing article schema
     const existingSchema = document.querySelector('script[data-schema="article"]');
     if (existingSchema) {
@@ -41,15 +42,7 @@ const ArticleSchema = ({
         "@type": "WebPage",
         "@id": url
       },
-      "author": {
-        "@type": "Organization",
-        "name": authorName,
-        "url": "https://visas.guide",
-        "logo": {
-          "@type": "ImageObject",
-          "url": "https://visas.guide/favicon.png"
-        }
-      },
+      ...(authorName ? { author: { "@type": "Person", name: authorName } } : {}),
       "publisher": {
         "@type": "Organization",
         "name": "Visas.Guide",
@@ -61,8 +54,8 @@ const ArticleSchema = ({
           "height": 512
         }
       },
-      "datePublished": datePublished || new Date().toISOString(),
-      "dateModified": dateModified || new Date().toISOString(),
+      ...(datePublished ? { datePublished } : {}),
+      ...(dateModified ? { dateModified } : {}),
       ...(keywords.length > 0 && { "keywords": keywords.join(", ") }),
       ...(wordCount && { "wordCount": wordCount }),
       "inLanguage": "en-US",

@@ -1,3 +1,4 @@
+import { useCountries } from "@/hooks/useSharedData";
 import { Link } from "@/lib/router-compat";
 import { ArrowRight } from "lucide-react";
 const globeTravel = "https://cdn.visas.guide/assets/icons/globe-travel.jpg";
@@ -8,11 +9,12 @@ const visaSearch = "https://cdn.visas.guide/assets/icons/visa-search.jpg";
 const businessVisa = "https://cdn.visas.guide/assets/icons/business-visa.jpg";
 
 const QuickLinks = () => {
+  const { data: countries = [] } = useCountries();
   const links = [
     {
       image: globeTravel,
       title: "All Countries",
-      description: "Browse 200+ country visa guides with detailed requirements",
+      description: `Browse ${countries.length || "all"} country visa guides with detailed requirements`,
       link: "/countries",
       gradient: "from-blue-500/20 to-cyan-500/20",
     },

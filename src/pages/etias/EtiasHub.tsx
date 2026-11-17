@@ -41,7 +41,7 @@ const EtiasHub = () => (
       canonical="https://visas.guide/etias"
       keywords={["ETIAS", "ETIAS 2026", "European travel authorisation", "Schengen ETIAS", "ETIAS fee", "ETIAS application"]}
     />
-    <FAQSchema faqs={faqs} pageUrl="https://visas.guide/etias" />
+    <FAQSchema visible faqs={faqs} pageUrl="https://visas.guide/etias" />
 
     <header>
       <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-3">

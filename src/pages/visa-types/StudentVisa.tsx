@@ -119,7 +119,7 @@ const StudentVisa = () => {
         canonical="https://visas.guide/visa-types/student"
         keywords={["student visa", "student visa requirements", "study abroad visa", "F-1 visa", "student visa application", "international student visa", "study permit"]}
       />
-      <FAQSchema faqs={studentFaqs} pageUrl="https://visas.guide/visa-types/student" />
+      <FAQSchema visible faqs={studentFaqs} pageUrl="https://visas.guide/visa-types/student" />
       <BreadcrumbSchema items={[
         { name: "Visa Types", url: "/visa-types/student" },
         { name: "Student Visa", url: "/visa-types/student" },
@@ -134,8 +134,6 @@ const StudentVisa = () => {
             "headline": `Student Visa Requirements and Application Guide ${CURRENT_YEAR}`,
             "description": "Complete guide to student visa requirements, processing times, fees, and application tips for international education opportunities worldwide.",
             "author": { "@type": "Organization", "name": "Visas Guide" },
-            "datePublished": "2024-01-01",
-            "dateModified": new Date().toISOString().split('T')[0],
             "mainEntityOfPage": "https://visas.guide/visa-types/student"
           })
         }}

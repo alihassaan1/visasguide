@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 
 interface FAQ {
   question: string;
@@ -8,47 +7,13 @@ interface FAQ {
 interface FAQSchemaProps {
   faqs: FAQ[];
   pageUrl?: string;
+  visible?: boolean;
 }
 
-const FAQSchema = ({ faqs, pageUrl }: FAQSchemaProps) => {
-  useEffect(() => {
-    if (!faqs || faqs.length === 0) return;
-
-    // Remove any existing FAQ schema
-    const existingSchema = document.querySelector('script[data-schema="faq"]');
-    if (existingSchema) {
-      existingSchema.remove();
-    }
-
-    const schema = {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": faqs.map(faq => ({
-        "@type": "Question",
-        "name": faq.question,
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": faq.answer
-        }
-      })),
-      ...(pageUrl && { "url": pageUrl })
-    };
-
-    const script = document.createElement('script');
-    script.type = 'application/ld+json';
-    script.setAttribute('data-schema', 'faq');
-    script.textContent = JSON.stringify(schema);
-    document.head.appendChild(script);
-
-    return () => {
-      const schemaScript = document.querySelector('script[data-schema="faq"]');
-      if (schemaScript) {
-        schemaScript.remove();
-      }
-    };
-  }, [faqs, pageUrl]);
-
-  return null;
+const FAQSchema = ({ faqs, pageUrl, visible = false }: FAQSchemaProps) => {
+  if (!visible || !faqs?.length) return null;
+  const schema = { "@context": "https://schema.org", "@type": "FAQPage", ...(pageUrl ? { url: pageUrl } : {}), mainEntity: faqs.map(faq => ({ "@type": "Question", name: faq.question, acceptedAnswer: { "@type": "Answer", text: faq.answer } })) };
+  return <script type="application/ld+json" data-schema="faq" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }} />;
 };
 
 export default FAQSchema;

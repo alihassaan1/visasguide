@@ -1,9 +1,10 @@
 # Google indexing repair
 
 ## Affiliate banner repair
-- [ ] Fix the banner image-loading failure without requiring cross-origin image downloads for external URLs.
-- [ ] Support affiliate-provided HTML/script banners in Affiliate Manager and public banner placements, preserving GetYourGuide widgets.
-- [ ] Test banner validation and rendering; verify available public flows and report external admin verification limits.
+- [x] Fix the banner image-loading failure without requiring cross-origin image downloads for external URLs.
+- [x] Support affiliate-provided HTML/script banners in Affiliate Manager and public banner placements, preserving GetYourGuide widgets.
+- [x] Verify the supplied Upflare 728×90 banner code and image at desktop and mobile sizes.
+- [x] Test banner validation and rendering; verified public placements with a browser fixture and the manager save flow with tests; real admin saving requires the user's external Supabase session.
 
 - [x] Repair initial HTML loading across public content route families.
 - [x] Add server-rendered page-specific metadata and canonical URLs; handle missing pages and legacy URLs correctly.

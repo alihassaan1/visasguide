@@ -3,6 +3,7 @@ import AffiliateBanner from "./AffiliateBanner";
 import { useVisitorLocation } from "@/hooks/useVisitorLocation";
 import { useLocation } from "@/lib/router-compat";
 import { useEffect, useMemo } from "react";
+import { AffiliateScriptBanner } from './AffiliateScriptBanner';
 
 function ensureProtocol(url: string): string {
   const input = url?.trim();
@@ -156,7 +157,7 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
     if (!selectedBanner?.html_embed) return;
     let clicked = false;
     const onBlur = () => {
-      if (document.activeElement?.tagName === 'IFRAME' && !clicked) {
+      if (document.activeElement?.getAttribute('title') === `${selectedBanner.name} affiliate banner` && !clicked) {
         clicked = true;
         handleClick(selectedBanner);
         setTimeout(() => { clicked = false; }, 2000);
@@ -174,7 +175,7 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
     ? "w-full flex justify-center"
     : "w-full";
   const embedClass = isHorizontal
-    ? "affiliate-embed w-full max-h-[300px] md:max-h-[300px] overflow-hidden flex justify-center"
+    ? "affiliate-embed w-full max-w-[728px] max-h-[300px] overflow-hidden"
     : "affiliate-embed w-full overflow-hidden";
   // Mobile: fill the page width. Desktop: scale up to a 728x300 box, keeping the
   // creative's own aspect ratio (object-contain) so nothing is stretched or cropped.
@@ -188,9 +189,10 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
     <div className={`${containerClass}`}>
       <div className={isHorizontal ? "w-full flex justify-center" : "w-full"}>
         {banner.html_embed ? (
-          <div
+          <AffiliateScriptBanner
             className={embedClass}
-            dangerouslySetInnerHTML={{ __html: banner.html_embed }}
+            code={banner.html_embed}
+            title={`${banner.name} affiliate banner`}
             onClick={() => handleClick(banner)}
           />
         ) : banner.image_url ? (

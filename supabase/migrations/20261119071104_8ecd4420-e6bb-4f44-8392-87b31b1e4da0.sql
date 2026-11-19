@@ -1,0 +1,3 @@
+ALTER TABLE public.settings_affiliates ADD COLUMN affiliate_program text REFERENCES public.affiliate_programs(slug) ON UPDATE CASCADE ON DELETE SET NULL;
+CREATE INDEX settings_affiliates_affiliate_program_idx ON public.settings_affiliates(affiliate_program);
+COMMENT ON COLUMN public.settings_affiliates.affiliate_program IS 'Optional affiliate program slug for managing image and script banners alongside provider-specific widgets.';

@@ -6087,6 +6087,7 @@ export type Database = {
       }
       settings_affiliates: {
         Row: {
+          affiliate_program: string | null
           click_count: number
           created_at: string
           end_date: string | null
@@ -6107,6 +6108,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          affiliate_program?: string | null
           click_count?: number
           created_at?: string
           end_date?: string | null
@@ -6127,6 +6129,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          affiliate_program?: string | null
           click_count?: number
           created_at?: string
           end_date?: string | null
@@ -6146,7 +6149,15 @@ export type Database = {
           target_url?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "settings_affiliates_affiliate_program_fkey"
+            columns: ["affiliate_program"]
+            isOneToOne: false
+            referencedRelation: "affiliate_programs"
+            referencedColumns: ["slug"]
+          },
+        ]
       }
       site_settings: {
         Row: {

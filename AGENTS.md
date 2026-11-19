@@ -16,3 +16,7 @@
 - Declare sitewide GetYourGuide partner tracking in the root head so every route receives one script and widget fallback loaders reuse it.
 - Keep public article spacing, text colors and heading hierarchy in shared prose styles (including Quill visual headings) and remove empty editor spacer paragraphs at display time; this keeps templates consistent without rewriting saved content or affecting admin editors.
 - Images live in Cloudflare R2 bucket `visas-guide` (account 0e186cf10248391d7f7e481950644bb7), served from https://cdn.visas.guide; new uploads go through src/lib/r2-upload.functions.ts (admin-only) or the uploadToR2 helper in edge functions — never reintroduce Supabase storage for images.
+- Generic affiliate creatives use settings_affiliates with an optional program slug and the shared creative editor; retain affiliate_widgets for GetYourGuide-specific configuration so existing placements keep working.
+- Save banner creatives through the admin-verified server function using the shared validation schema and invalidate the existing public banner query so edits appear without discarding long-lived caching.
+- Render third-party affiliate HTML/scripts only in opaque-origin sandboxed iframes with source-checked resize messages; scripts must not access site sessions or mutate the page.
+- Image URL input applies only on explicit submission and preserves failed URLs for correction; uploaded GIF banners bypass canvas conversion to preserve animation.

@@ -11,6 +11,8 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ArrowLeft, Plus, Trash2, Edit2, Save, Ticket } from 'lucide-react';
 import { toast } from 'sonner';
+import MonetizationSettings from './MonetizationSettings';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface AffiliateProgram {
   id: string;
@@ -129,8 +131,9 @@ const AffiliateManager = () => {
 
   const addWidgetMutation = useMutation({
     mutationFn: async (widget: Partial<AffiliateWidget>) => {
+      if (!selectedProgram) throw new Error('Select an affiliate program first');
       const { error } = await supabase.from('affiliate_widgets').insert({
-        affiliate_program: selectedProgram!.slug,
+        affiliate_program: selectedProgram.slug,
         city_id: widget.city_id || null,
         country_id: widget.country_id || null,
         widget_url: widget.widget_url || '',
@@ -202,9 +205,9 @@ const AffiliateManager = () => {
                 <DialogTitle>Add New Affiliate Program</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
-                <div><Label>Program Name</Label><Input value={newProgram.name} onChange={e => setNewProgram(p => ({ ...p, name: e.target.value }))} placeholder="e.g., GetYourGuide" /></div>
-                <div><Label>Slug</Label><Input value={newProgram.slug} onChange={e => setNewProgram(p => ({ ...p, slug: e.target.value }))} placeholder="e.g., getyourguide" /></div>
-                <div><Label>Partner ID (optional)</Label><Input value={newProgram.partner_id} onChange={e => setNewProgram(p => ({ ...p, partner_id: e.target.value }))} placeholder="e.g., WN9V7PZ" /></div>
+                <div><Label>Program Name</Label><Input value={newProgram.name} onChange={e => setNewProgram(p => ({ ...p, name: e.target.value }))} placeholder="Affiliate name" /></div>
+                <div><Label>Slug</Label><Input value={newProgram.slug} onChange={e => setNewProgram(p => ({ ...p, slug: e.target.value }))} placeholder="affiliate-name" /></div>
+                <div><Label>Partner ID (optional)</Label><Input value={newProgram.partner_id} onChange={e => setNewProgram(p => ({ ...p, partner_id: e.target.value }))} placeholder="Your affiliate account ID" /></div>
                 <div><Label>Description (optional)</Label><Input value={newProgram.description} onChange={e => setNewProgram(p => ({ ...p, description: e.target.value }))} placeholder="Brief description" /></div>
                 <Button onClick={() => addProgramMutation.mutate(newProgram)} disabled={!newProgram.name || !newProgram.slug} className="w-full">Add Program</Button>
               </div>
@@ -228,7 +231,7 @@ const AffiliateManager = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     <Badge variant={program.is_active ? 'default' : 'secondary'}>{program.is_active ? 'Active' : 'Inactive'}</Badge>
-                    <Button variant="outline" size="sm">Manage Widgets</Button>
+                    <Button variant="outline" size="sm">Manage</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -245,13 +248,20 @@ const AffiliateManager = () => {
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => setSelectedProgram(null)}><ArrowLeft className="h-4 w-4" /></Button>
           <div>
-            <h1 className="text-2xl font-bold">{selectedProgram.name} Widgets</h1>
+            <h1 className="text-2xl font-bold">{selectedProgram.name}</h1>
             <p className="text-muted-foreground">Partner ID: {selectedProgram.partner_id || 'Not set'}</p>
           </div>
         </div>
-        <Button onClick={() => setNewWidget({ widget_variant: 'city', position: 'main-content' })}><Plus className="h-4 w-4 mr-2" /> Add New</Button>
       </div>
 
+      <Tabs key={selectedProgram.slug} defaultValue={selectedProgram.slug === 'getyourguide' ? 'widgets' : 'banners'}>
+        <TabsList>
+          <TabsTrigger value="banners">Banners</TabsTrigger>
+          {selectedProgram.slug === 'getyourguide' && <TabsTrigger value="widgets">GetYourGuide Widgets</TabsTrigger>}
+        </TabsList>
+        <TabsContent value="banners"><MonetizationSettings programSlug={selectedProgram.slug} bannersOnly /></TabsContent>
+        {selectedProgram.slug === 'getyourguide' && <TabsContent value="widgets">
+      <div className="mb-4 flex justify-end"><Button onClick={() => setNewWidget({ widget_variant: 'city', position: 'main-content' })}><Plus className="h-4 w-4 mr-2" /> Add Widget</Button></div>
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -276,6 +286,8 @@ const AffiliateManager = () => {
           </div>
         </CardContent>
       </Card>
+        </TabsContent>}
+      </Tabs>
     </div>
   );
 };

@@ -1,4 +1,5 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { useServerFn } from '@tanstack/react-start';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Upload, X, Link, Loader2, ImageIcon } from 'lucide-react';
 import { uploadImageToR2 } from '@/lib/r2-upload.functions';
 import { useToast } from '@/hooks/use-toast';
+import { normalizeImageUrl } from '@/lib/affiliate-embed';
 
 interface ImageUploadProps {
   value: string;
@@ -20,7 +22,9 @@ interface ImageUploadProps {
 const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<Blob> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
     img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
       let { width, height } = img;
 
       // Only downscale, never upscale
@@ -55,8 +59,8 @@ const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<B
         0.85
       );
     };
-    img.onerror = () => reject(new Error('Failed to load image'));
-    img.src = URL.createObjectURL(file);
+    img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('This file could not be opened as an image.')); };
+    img.src = objectUrl;
   });
 };
 
@@ -70,19 +74,29 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   maxHeight = 800,
 }) => {
   const { toast } = useToast();
-  const [previewUrl, setPreviewUrl] = useState(value);
+  const uploadToR2 = useServerFn(uploadImageToR2);
+  const [urlDraft, setUrlDraft] = useState(value);
+  const [failedUrl, setFailedUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => { setUrlDraft(value); setFailedUrl(''); }, [value]);
+
   const handleUrlChange = (url: string) => {
-    setPreviewUrl(url);
-    onChange(url);
+    try {
+      const normalized = normalizeImageUrl(url);
+      setFailedUrl('');
+      onChange(normalized);
+    } catch (error) {
+      toast({ title: 'Invalid image URL', description: error instanceof Error ? error.message : 'Enter a valid image URL.', variant: 'destructive' });
+    }
   };
 
   const clearImage = () => {
-    setPreviewUrl('');
+    setUrlDraft('');
+    setFailedUrl('');
     onChange('');
   };
 
@@ -100,9 +114,9 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     try {
       // Step 1: Optimize
       setUploadStatus('Optimizing...');
-      const optimizedBlob = await resizeImage(file, maxWidth, maxHeight);
+      const optimizedBlob = file.type === 'image/gif' ? file : await resizeImage(file, maxWidth, maxHeight);
       const isWebP = optimizedBlob.type === 'image/webp';
-      const ext = isWebP ? 'webp' : 'jpg';
+      const ext = isWebP ? 'webp' : optimizedBlob.type === 'image/gif' ? 'gif' : 'jpg';
 
       // Step 2: Upload to Cloudflare R2 (served from cdn.visas.guide)
       setUploadStatus('Uploading...');
@@ -115,7 +129,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       }
       const dataBase64 = btoa(binary);
 
-      const { url: publicUrl } = await uploadImageToR2({
+      const { url: publicUrl } = await uploadToR2({
         data: {
           fileName: `${storagePath}-${Date.now()}.${ext}`,
           contentType: optimizedBlob.type,
@@ -124,7 +138,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         },
       });
 
-      setPreviewUrl(publicUrl);
+      setFailedUrl('');
       onChange(publicUrl);
 
       const savedKB = ((file.size - optimizedBlob.size) / 1024).toFixed(0);
@@ -135,7 +149,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       setUploading(false);
       setUploadStatus('');
     }
-  }, [bucket, storagePath, maxWidth, maxHeight, onChange, toast]);
+  }, [bucket, storagePath, maxWidth, maxHeight, onChange, toast, uploadToR2]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -154,13 +168,13 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     <div className="space-y-2">
       {label && <Label>{label}</Label>}
 
-      {previewUrl ? (
+      {value && failedUrl !== value && (
         <div className="relative border rounded-lg p-2 bg-muted/30">
           <img
-            src={previewUrl}
+            src={value}
             alt="Preview"
             className="max-h-48 w-auto mx-auto object-contain rounded-sm"
-            onError={() => { setPreviewUrl(''); toast({ title: 'Image failed to load', variant: 'destructive' }); }}
+            onError={() => setFailedUrl(value)}
           />
           <Button
             type="button"
@@ -168,11 +182,13 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
             size="icon"
             className="absolute top-1 right-1 h-7 w-7"
             onClick={clearImage}
+            aria-label="Remove image"
           >
             <X className="h-3.5 w-3.5" />
           </Button>
         </div>
-      ) : (
+      )}
+      {failedUrl === value && value && <p role="alert" className="text-xs text-destructive">Image preview unavailable. Check the image URL or use Script / HTML for affiliate code.</p>}
         <Tabs defaultValue="upload" className="w-full">
           <TabsList className="w-full grid grid-cols-2 h-8">
             <TabsTrigger value="upload" className="text-xs gap-1">
@@ -218,14 +234,19 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           </TabsContent>
 
           <TabsContent value="url" className="mt-2">
+            <div className="flex min-w-0 gap-2">
             <Input
               type="url"
+              aria-label="Image URL"
               placeholder="https://example.com/image.png"
-              onChange={(e) => handleUrlChange(e.target.value)}
+              value={urlDraft}
+              onChange={(e) => setUrlDraft(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleUrlChange(urlDraft); } }}
             />
+            <Button type="button" variant="outline" size="sm" onClick={() => handleUrlChange(urlDraft)}>Apply URL</Button>
+            </div>
           </TabsContent>
         </Tabs>
-      )}
     </div>
   );
 };

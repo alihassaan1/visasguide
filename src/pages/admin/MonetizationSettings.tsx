@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
+import { useQueryClient } from '@tanstack/react-query';
+import { useServerFn } from '@tanstack/react-start';
+import { saveAffiliateBanner } from '@/lib/affiliate-banners.functions';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +13,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, ExternalLink, Settings2, Eye, MousePointerClick, Percent, Save } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ImageUpload } from "@/components/admin/ImageUpload";
+import { AffiliateCreativeEditor } from '@/components/admin/AffiliateCreativeEditor';
+import { QUERY_KEYS } from '@/hooks/useSharedData';
+import { normalizeImageUrl, validateAffiliateEmbed } from '@/lib/affiliate-embed';
 import { CountryMultiSelect } from "@/components/admin/CountryMultiSelect";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -49,6 +54,7 @@ interface AffiliateData {
   start_date: string | null;
   end_date: string | null;
   impressions: number;
+  affiliate_program?: string | null;
 }
 
 const POSITION_OPTIONS: { value: string; label: string }[] = [
@@ -58,7 +64,9 @@ const POSITION_OPTIONS: { value: string; label: string }[] = [
   { value: "footer", label: "Footer" },
 ];
 
-export default function MonetizationSettings() {
+export default function MonetizationSettings({ programSlug, bannersOnly = false }: { programSlug?: string; bannersOnly?: boolean } = {}) {
+  const queryClient = useQueryClient();
+  const saveBanner = useServerFn(saveAffiliateBanner);
   const { toast } = useToast();
   const [adsenseCode, setAdsenseCode] = useState("");
   const [gdprConsentCode, setGdprConsentCode] = useState("");
@@ -72,13 +80,7 @@ export default function MonetizationSettings() {
 
   useEffect(() => {
     loadSettings();
-  }, []);
-
-  // Sync local state when affiliates load from DB
-  useEffect(() => {
-    setLocalAffiliates(affiliates);
-    setDirtyIds(new Set());
-  }, [affiliates]);
+  }, [programSlug]);
 
   const loadSettings = async () => {
     try {
@@ -107,7 +109,7 @@ export default function MonetizationSettings() {
         .select('*')
         .order('priority', { ascending: false });
 
-      setAffiliates((affiliateData || []).map(aff => {
+      const loaded = (affiliateData || []).filter(aff => !programSlug || aff.affiliate_program === programSlug).map(aff => {
         const positions = (aff as any).positions && (aff as any).positions.length > 0
           ? (aff as any).positions
           : (aff.position ? [aff.position] : []);
@@ -120,7 +122,10 @@ export default function MonetizationSettings() {
           priority: aff.priority || 0,
           impressions: aff.impressions || 0,
         };
-      }));
+      });
+      setAffiliates(loaded);
+      setLocalAffiliates(loaded);
+      setDirtyIds(new Set());
     } catch (error: any) {
       console.error('Error loading settings:', error);
     }
@@ -175,6 +180,7 @@ export default function MonetizationSettings() {
         exclude_countries: [],
         target_page_patterns: [],
         priority: 0,
+        affiliate_program: programSlug || null,
       });
       if (error) throw error;
       await loadSettings();
@@ -200,6 +206,7 @@ export default function MonetizationSettings() {
         .update(updates)
         .eq('id', id);
       if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.affiliates });
       setLocalAffiliates(prev =>
         prev.map(aff => aff.id === id ? { ...aff, ...updates } : aff)
       );
@@ -223,16 +230,19 @@ export default function MonetizationSettings() {
 
     setSavingIds(prev => new Set(prev).add(id));
     try {
+      if (aff.html_embed?.trim()) {
+        const embedError = validateAffiliateEmbed(aff.html_embed);
+        if (embedError) throw new Error(embedError);
+      } else if (!aff.image_url?.trim()) {
+        throw new Error('Add a banner image or affiliate script before saving.');
+      }
       const positions = (aff.positions || []).filter(Boolean);
-      const { error } = await supabase
-        .from('settings_affiliates')
-        .update({
+      await saveBanner({ data: {
+          id: aff.id,
           name: aff.name,
           target_url: ensureProtocol(aff.target_url),
-          html_embed: aff.html_embed,
-          image_url: aff.image_url,
-          // Keep legacy `position` in sync with the first selected slot for back-compat
-          position: positions[0] || aff.position || 'sidebar-right',
+          html_embed: aff.html_embed?.trim() || null,
+          image_url: aff.html_embed?.trim() ? null : normalizeImageUrl(aff.image_url || ''),
           positions,
           priority: aff.priority,
           target_countries: aff.target_countries.filter(c => c !== '__placeholder'),
@@ -240,9 +250,8 @@ export default function MonetizationSettings() {
           target_page_patterns: aff.target_page_patterns,
           start_date: aff.start_date,
           end_date: aff.end_date,
-        })
-        .eq('id', id);
-      if (error) throw error;
+        } });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.affiliates });
 
       setAffiliates(prev =>
         prev.map(a => a.id === id ? { ...aff } : a)
@@ -271,6 +280,7 @@ export default function MonetizationSettings() {
         .delete()
         .eq('id', id);
       if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.affiliates });
       setAffiliates(prev => prev.filter(aff => aff.id !== id));
       setLocalAffiliates(prev => prev.filter(aff => aff.id !== id));
       toast({ title: "Affiliate banner deleted" });
@@ -286,17 +296,17 @@ export default function MonetizationSettings() {
 
   return (
     <div className="container mx-auto p-3 sm:p-6 max-w-5xl">
-      <div className="mb-6">
+      {!bannersOnly && <div className="mb-6">
         <h1 className="text-2xl font-bold mb-1">Monetization</h1>
         <p className="text-sm text-muted-foreground">Manage ads, banners & affiliate links</p>
-      </div>
+      </div>}
 
       <Tabs defaultValue="affiliates">
-        <TabsList className="flex-wrap h-auto">
+        {!bannersOnly && <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="affiliates">Affiliate Banners</TabsTrigger>
           <TabsTrigger value="adsense">AdSense</TabsTrigger>
           <TabsTrigger value="gdpr">GDPR Consent</TabsTrigger>
-        </TabsList>
+        </TabsList>}
 
         <TabsContent value="gdpr">
           <Card>
@@ -364,13 +374,13 @@ export default function MonetizationSettings() {
                           autoFocus
                         />
                       ) : (
-                        <button
-                          className="text-sm font-semibold truncate hover:text-primary transition-colors text-left"
+                        <Button variant="ghost" size="sm"
+                          className="h-auto max-w-full justify-start truncate p-0 text-sm font-semibold hover:text-primary transition-colors text-left"
                           onClick={() => setEditingName(affiliate.id)}
                           title="Click to edit name"
                         >
                           {affiliate.name}
-                        </button>
+                        </Button>
                       )}
                     </div>
 
@@ -389,7 +399,6 @@ export default function MonetizationSettings() {
                     <Switch
                       checked={affiliate.is_active}
                       onCheckedChange={(checked) => {
-                        updateLocal(affiliate.id, { is_active: checked });
                         updateInstant(affiliate.id, { is_active: checked });
                       }}
                     />
@@ -416,7 +425,7 @@ export default function MonetizationSettings() {
                             {POSITION_OPTIONS.map((opt) => {
                               const selected = affiliate.positions.includes(opt.value);
                               return (
-                                <button
+                                <Button variant={selected ? 'default' : 'outline'} size="sm"
                                   key={opt.value}
                                   type="button"
                                   onClick={() => {
@@ -425,14 +434,14 @@ export default function MonetizationSettings() {
                                       : [...affiliate.positions, opt.value];
                                     updateLocal(affiliate.id, { positions: next });
                                   }}
-                                  className={`px-2.5 py-1 rounded-md border text-xs transition-colors ${
+                                  className={`h-auto px-2.5 py-1 rounded-md border text-xs transition-colors ${
                                     selected
                                       ? 'bg-primary text-primary-foreground border-primary'
                                       : 'bg-background hover:bg-muted border-input text-foreground'
                                   }`}
                                 >
                                   {opt.label}
-                                </button>
+                                </Button>
                               );
                             })}
                           </div>
@@ -460,11 +469,10 @@ export default function MonetizationSettings() {
                       </div>
 
                       <div>
-                        <ImageUpload
-                          value={affiliate.image_url || ''}
-                          onChange={(url) => updateLocal(affiliate.id, { image_url: url })}
-                          label="Banner Image"
-                          storagePath="banners"
+                        <AffiliateCreativeEditor
+                          image={affiliate.image_url || ''}
+                          code={affiliate.html_embed || ''}
+                          onChange={(updates) => updateLocal(affiliate.id, updates)}
                           maxWidth={affiliate.positions.some(p => p.startsWith('sidebar')) ? 800 : 1200}
                           maxHeight={affiliate.positions.includes('horizontal-banner') ? 400 : affiliate.positions.some(p => p.startsWith('sidebar')) ? 1200 : 600}
                         />
@@ -483,17 +491,6 @@ export default function MonetizationSettings() {
                         </Button>
                       </CollapsibleTrigger>
                       <CollapsibleContent className="space-y-4 pt-3">
-                        <div>
-                          <Label className="text-xs">HTML Embed Code (optional)</Label>
-                          <Textarea
-                            value={affiliate.html_embed || ''}
-                            onChange={(e) => updateLocal(affiliate.id, { html_embed: e.target.value })}
-                            placeholder="Paste HTML embed code..."
-                            rows={3}
-                            className="font-mono text-xs"
-                          />
-                        </div>
-
                         <div className="space-y-3">
                           <div className="flex items-center gap-2">
                             <Switch

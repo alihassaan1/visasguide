@@ -49,4 +49,23 @@ describe('generic affiliate banner save flow', () => {
     await waitFor(() => expect(mocks.saved).toHaveBeenCalledWith({ data: expect.objectContaining({ html_embed: code, image_url: null, id: '979395b4-cc52-461c-9204-4be1767efecd', positions: ['sidebar-right'] }) }));
     expect(mocks.saved.mock.calls[0]?.[0]?.data).not.toHaveProperty('tour_id');
   });
+  it.each([
+    ['Homepage: Below Hero (Horizontal)', 'homepage-below-hero'],
+    ['Homepage: Above Footer (Horizontal)', 'homepage-above-footer'],
+  ])('saves a banner selected for %s', async (label, position) => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(<QueryClientProvider client={client}><AffiliateManager /></QueryClientProvider>);
+    fireEvent.click(await screen.findByRole('button', { name: 'Manage' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Add Banner' }));
+    const tab = await screen.findByRole('tab', { name: 'Script / HTML' });
+    fireEvent.mouseDown(tab, { button: 0, ctrlKey: false });
+    fireEvent.focus(tab);
+    fireEvent.change(screen.getByRole('textbox', { name: 'Affiliate Banner Code' }), {
+      target: { value: '<script src="https://affiliate.example/banner.js"></script>' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Sidebar Right' }));
+    fireEvent.click(screen.getByRole('button', { name: label }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+    await waitFor(() => expect(mocks.saved).toHaveBeenCalledWith({ data: expect.objectContaining({ positions: [position] }) }));
+  });
 });

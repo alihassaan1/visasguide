@@ -1,5 +1,9 @@
 # Google indexing repair
 
+## Homepage horizontal banners
+- [x] Add independently selectable horizontal slots below the homepage hero and immediately above its footer.
+- [x] Preserve shared banner caching, targeting, safe embeds and empty-slot behavior; 18 tests passed, fixture banners verified at 1280/502/393/320px. External admin saving remains unverified; unrelated Header hydration warnings observed and left outside this task.
+
 ## Affiliate banner repair
 - [x] Fix the banner image-loading failure without requiring cross-origin image downloads for external URLs.
 - [x] Support affiliate-provided HTML/script banners in Affiliate Manager and public banner placements, preserving GetYourGuide widgets.

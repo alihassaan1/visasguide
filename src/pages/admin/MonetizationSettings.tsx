@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AffiliateCreativeEditor } from '@/components/admin/AffiliateCreativeEditor';
 import { QUERY_KEYS } from '@/hooks/useSharedData';
 import { normalizeImageUrl, validateAffiliateEmbed } from '@/lib/affiliate-embed';
+import { BANNER_POSITION_OPTIONS, isHorizontalBannerPosition } from '@/lib/banner-placements';
 import { CountryMultiSelect } from "@/components/admin/CountryMultiSelect";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -56,13 +57,6 @@ interface AffiliateData {
   impressions: number;
   affiliate_program?: string | null;
 }
-
-const POSITION_OPTIONS: { value: string; label: string }[] = [
-  { value: "sidebar-right", label: "Sidebar Right" },
-  { value: "horizontal-banner", label: "Horizontal" },
-  { value: "in-content", label: "In-Content" },
-  { value: "footer", label: "Footer" },
-];
 
 export default function MonetizationSettings({ programSlug, bannersOnly = false }: { programSlug?: string; bannersOnly?: boolean } = {}) {
   const queryClient = useQueryClient();
@@ -422,7 +416,7 @@ export default function MonetizationSettings({ programSlug, bannersOnly = false 
                         <div>
                           <Label className="text-xs">Positions (pick one or more)</Label>
                           <div className="mt-1 flex flex-wrap gap-1.5">
-                            {POSITION_OPTIONS.map((opt) => {
+                            {BANNER_POSITION_OPTIONS.map((opt) => {
                               const selected = affiliate.positions.includes(opt.value);
                               return (
                                 <Button variant={selected ? 'default' : 'outline'} size="sm"
@@ -474,7 +468,7 @@ export default function MonetizationSettings({ programSlug, bannersOnly = false 
                           code={affiliate.html_embed || ''}
                           onChange={(updates) => updateLocal(affiliate.id, updates)}
                           maxWidth={affiliate.positions.some(p => p.startsWith('sidebar')) ? 800 : 1200}
-                          maxHeight={affiliate.positions.includes('horizontal-banner') ? 400 : affiliate.positions.some(p => p.startsWith('sidebar')) ? 1200 : 600}
+                          maxHeight={affiliate.positions.some(isHorizontalBannerPosition) ? 400 : affiliate.positions.some(p => p.startsWith('sidebar')) ? 1200 : 600}
                         />
                       </div>
                     </div>

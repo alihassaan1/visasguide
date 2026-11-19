@@ -4,6 +4,7 @@ import { useVisitorLocation } from "@/hooks/useVisitorLocation";
 import { useLocation } from "@/lib/router-compat";
 import { useEffect, useMemo } from "react";
 import { AffiliateScriptBanner } from './AffiliateScriptBanner';
+import { bannerMatchesPosition, isHorizontalBannerPosition, type BannerPosition } from '@/lib/banner-placements';
 
 function ensureProtocol(url: string): string {
   const input = url?.trim();
@@ -23,8 +24,8 @@ function ensureProtocol(url: string): string {
 }
 
 interface AffiliateBannerContainerProps {
-
-  position: "sidebar-right" | "horizontal-banner" | "in-content" | "footer";
+  position: BannerPosition;
+  className?: string;
 }
 
 interface AffiliateData {
@@ -96,7 +97,7 @@ function shouldShowBanner(
   return true;
 }
 
-export function AffiliateBannerContainer({ position }: AffiliateBannerContainerProps) {
+export function AffiliateBannerContainer({ position, className = '' }: AffiliateBannerContainerProps) {
   const { countryCode, isLoading: locationLoading } = useVisitorLocation();
   const location = useLocation();
   const currentPath = location.pathname;
@@ -105,7 +106,7 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
   // (positions array contains slot OR legacy single `position` equals it).
   const { data: allBanners } = useAffiliateBanners();
   const banners = ((allBanners || []) as unknown as AffiliateData[]).filter(
-    (b) => (b.positions || []).includes(position) || b.position === position
+    (b) => bannerMatchesPosition(b, position, currentPath)
   );
 
   // Filter banners based on targeting rules
@@ -169,7 +170,7 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
 
   if (!selectedBanner) return null;
 
-  const isHorizontal = position === "horizontal-banner";
+  const isHorizontal = isHorizontalBannerPosition(position);
   // Horizontal slot: full-width on mobile, standard leaderboard cap on desktop.
   const containerClass = isHorizontal
     ? "w-full flex justify-center"
@@ -186,7 +187,7 @@ export function AffiliateBannerContainer({ position }: AffiliateBannerContainerP
   const banner = selectedBanner;
 
   return (
-    <div className={`${containerClass}`}>
+    <div className={`${containerClass} ${className}`} data-banner-position={position}>
       <div className={isHorizontal ? "w-full flex justify-center" : "w-full"}>
         {banner.html_embed ? (
           <AffiliateScriptBanner

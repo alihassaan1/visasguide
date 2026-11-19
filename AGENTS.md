@@ -20,3 +20,4 @@
 - Save banner creatives through the admin-verified server function using the shared validation schema and invalidate the existing public banner query so edits appear without discarding long-lived caching.
 - Render third-party affiliate HTML/scripts only in opaque-origin sandboxed iframes with source-checked resize messages; scripts must not access site sessions or mutate the page.
 - Image URL input applies only on explicit submission and preserves failed URLs for correction; uploaded GIF banners bypass canvas conversion to preserve animation.
+- Keep banner positions, horizontal sizing classification and homepage-only matching in a browser-safe shared module used by validation, public rendering and admin controls; independent homepage slots reuse the shared banner query and render spacing only when populated.

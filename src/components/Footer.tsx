@@ -4,8 +4,9 @@ import { Link } from "@/lib/router-compat";
 import { CURRENT_YEAR } from "@/lib/constants";
 import { AffiliateBannerContainer } from "@/components/AffiliateBannerContainer";
 import SeoLinksSection from "@/components/SeoLinksSection";
+import type { ReactNode } from 'react';
 
-const Footer = () => {
+const Footer = ({ beforeFooter }: { beforeFooter?: ReactNode } = {}) => {
   const { data: settings } = useSiteSettings();
   const footerLinks: any = settings?.footer_links || { popular_destinations: [], visa_types: [], resources: [] };
   const socialLinks: any = settings?.social_links || {};
@@ -21,6 +22,7 @@ const Footer = () => {
   return (
     <>
       <SeoLinksSection />
+      {beforeFooter}
       <footer className="bg-primary text-primary-foreground">
       {/* Horizontal Banner - site-wide */}
       <div className="container mx-auto px-4 pt-6">

@@ -84,6 +84,7 @@ const Index = () => {
 
       <main>
         <HeroSection />
+        <AffiliateBannerContainer position="homepage-below-hero" className="container mx-auto px-4 py-6" />
         <DestinationCarousel />
 
         <div className="container mx-auto px-4 py-6">
@@ -130,7 +131,7 @@ const Index = () => {
         </div>
       </main>
 
-      <Footer />
+      <Footer beforeFooter={<AffiliateBannerContainer position="homepage-above-footer" className="container mx-auto px-4 py-6" />} />
     </div>
   );
 };

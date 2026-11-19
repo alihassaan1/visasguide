@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { normalizeImageUrl, validateAffiliateEmbed } from './affiliate-embed';
+import { BANNER_POSITIONS } from './banner-placements';
 
 export const bannerSaveSchema = z.object({
   id: z.string().uuid(),
@@ -7,7 +8,7 @@ export const bannerSaveSchema = z.object({
   target_url: z.string().trim().max(4096),
   html_embed: z.string().max(100_000).nullable(),
   image_url: z.string().max(4096).nullable(),
-  positions: z.array(z.enum(['sidebar-right', 'horizontal-banner', 'in-content', 'footer'])).min(1).max(4),
+  positions: z.array(z.enum(BANNER_POSITIONS)).min(1).max(BANNER_POSITIONS.length),
   priority: z.number().int(),
   target_countries: z.array(z.string().max(100)).max(250),
   exclude_countries: z.array(z.string().max(100)).max(250),

@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { BANNER_POSITIONS, bannerMatchesPosition, type BannerPosition } from '@/lib/banner-placements';
 
-const POSITIONS = ["sidebar-right", "horizontal-banner", "in-content", "footer"] as const;
-type Position = typeof POSITIONS[number];
+const POSITIONS = BANNER_POSITIONS;
 
 const SAMPLE_ROUTES = [
   "/",
@@ -85,9 +85,9 @@ export default function BannerSlotDebugger() {
   }, [customPath]);
 
   // Per-route selected banner per slot (weighted highest-priority deterministic pick)
-  function pickForSlot(path: string, slot: Position): Banner | null {
+  function pickForSlot(path: string, slot: BannerPosition): Banner | null {
     const candidates = banners
-      .filter((b) => bannerSlots(b).includes(slot))
+      .filter((b) => bannerMatchesPosition(b, slot, path))
       .filter((b) => eligible(b, country, path).ok)
       .sort((a, b) => (b.priority || 0) - (a.priority || 0));
     return candidates[0] || null;

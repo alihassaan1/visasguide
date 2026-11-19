@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
+import { useSiteSettings } from '@/hooks/useSharedData';
 import { 
   CheckCircle, 
   XCircle, 
@@ -110,22 +110,21 @@ const PIXEL_CONFIGS: PixelConfig[] = [
 ];
 
 export const PixelStatusDashboard = () => {
+  const { data: sharedSettings, isLoading, refetch } = useSiteSettings();
   const [settings, setSettings] = useState<AnalyticsSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
   const fetchSettings = async () => {
-    setLoading(true);
-    try {
-      const { data } = await supabase
-        .from('site_settings')
-        .select('setting_value')
-        .eq('setting_key', 'analytics_settings')
-        .maybeSingle();
+    await refetch();
+    setLastRefresh(new Date());
+  };
 
-      if (data?.setting_value) {
-        setSettings(data.setting_value as unknown as AnalyticsSettings);
-      } else {
+  useEffect(() => {
+      setLoading(isLoading);
+      if (sharedSettings?.analytics_settings) {
+        setSettings(sharedSettings.analytics_settings as AnalyticsSettings);
+      } else if (!isLoading) {
         setSettings({
           google_analytics_id: '',
           google_tag_manager_id: '',
@@ -138,17 +137,7 @@ export const PixelStatusDashboard = () => {
           microsoft_clarity_id: ''
         });
       }
-      setLastRefresh(new Date());
-    } catch (error) {
-      console.error('Error fetching pixel settings:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchSettings();
-  }, []);
+  }, [sharedSettings, isLoading]);
 
   const isConfigured = (key: keyof AnalyticsSettings): boolean => {
     return !!(settings && settings[key] && settings[key].trim());

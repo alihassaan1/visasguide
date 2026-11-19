@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, ExternalLink, Settings2, Eye, MousePointerClick, Percent, Save } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AffiliateCreativeEditor } from '@/components/admin/AffiliateCreativeEditor';
-import { QUERY_KEYS } from '@/hooks/useSharedData';
+import { QUERY_KEYS, useSiteSettings } from '@/hooks/useSharedData';
 import { normalizeImageUrl, validateAffiliateEmbed } from '@/lib/affiliate-embed';
 import { BANNER_POSITION_OPTIONS, isHorizontalBannerPosition } from '@/lib/banner-placements';
 import { CountryMultiSelect } from "@/components/admin/CountryMultiSelect";
@@ -71,37 +71,33 @@ export default function MonetizationSettings({ programSlug, bannersOnly = false 
   const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
   const [expandedAdvanced, setExpandedAdvanced] = useState<Record<string, boolean>>({});
   const [editingName, setEditingName] = useState<string | null>(null);
+  const { data: sharedSettings } = useSiteSettings();
+
+  useEffect(() => {
+    if (!sharedSettings) return;
+    setAdsenseCode(sharedSettings.adsense_code?.code || '');
+    setGdprConsentCode(sharedSettings.gdpr_consent_code?.code || '');
+  }, [sharedSettings]);
 
   useEffect(() => {
     loadSettings();
   }, [programSlug]);
 
-  const loadSettings = async () => {
+  const loadSettings = async (refresh = false) => {
     try {
-      const { data: adsense } = await supabase
-        .from('site_settings')
-        .select('setting_value')
-        .eq('setting_key', 'adsense_code')
-        .single();
-
-      if (adsense && typeof adsense.setting_value === 'object') {
-        setAdsenseCode((adsense.setting_value as any)?.code || '');
-      }
-
-      const { data: gdpr } = await supabase
-        .from('site_settings')
-        .select('setting_value')
-        .eq('setting_key', 'gdpr_consent_code')
-        .single();
-
-      if (gdpr && typeof gdpr.setting_value === 'object') {
-        setGdprConsentCode((gdpr.setting_value as any)?.code || '');
-      }
-
-      const { data: affiliateData } = await supabase
-        .from('settings_affiliates')
-        .select('*')
-        .order('priority', { ascending: false });
+      const key = ['admin-affiliates', programSlug || 'all'];
+      if (refresh) await queryClient.invalidateQueries({ queryKey: ['admin-affiliates'] });
+      const affiliateData = await queryClient.fetchQuery({
+        queryKey: key,
+        queryFn: async () => {
+          let query = supabase.from('settings_affiliates').select('*');
+          if (programSlug) query = query.eq('affiliate_program', programSlug);
+          const { data, error } = await query.order('priority', { ascending: false });
+          if (error) throw error;
+          return data || [];
+        },
+        staleTime: 60_000,
+      });
 
       const loaded = (affiliateData || []).filter(aff => !programSlug || aff.affiliate_program === programSlug).map(aff => {
         const positions = (aff as any).positions && (aff as any).positions.length > 0
@@ -177,7 +173,7 @@ export default function MonetizationSettings({ programSlug, bannersOnly = false 
         affiliate_program: programSlug || null,
       });
       if (error) throw error;
-      await loadSettings();
+      await loadSettings(true);
       toast({ title: "Affiliate banner added" });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -201,6 +197,7 @@ export default function MonetizationSettings({ programSlug, bannersOnly = false 
         .eq('id', id);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.affiliates });
+      queryClient.invalidateQueries({ queryKey: ['admin-affiliates'] });
       setLocalAffiliates(prev =>
         prev.map(aff => aff.id === id ? { ...aff, ...updates } : aff)
       );
@@ -246,6 +243,7 @@ export default function MonetizationSettings({ programSlug, bannersOnly = false 
           end_date: aff.end_date,
         } });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.affiliates });
+      queryClient.invalidateQueries({ queryKey: ['admin-affiliates'] });
 
       setAffiliates(prev =>
         prev.map(a => a.id === id ? { ...aff } : a)
@@ -275,6 +273,7 @@ export default function MonetizationSettings({ programSlug, bannersOnly = false 
         .eq('id', id);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.affiliates });
+      queryClient.invalidateQueries({ queryKey: ['admin-affiliates'] });
       setAffiliates(prev => prev.filter(aff => aff.id !== id));
       setLocalAffiliates(prev => prev.filter(aff => aff.id !== id));
       toast({ title: "Affiliate banner deleted" });

@@ -15,7 +15,13 @@ export async function loadPublicDetail(qc: QueryClient, kind: string, slug: stri
   if (kind === "content" && /-to-.+-visa-requirements$/.test(slug)) throw redirect({ href: canonicalVisaPath(slug), statusCode: 301 });
   const functions = { visa: getVisaRequirementData, country: getCountryGuideData, city: getCityPageData, blog: getBlogArticleData, content: getContentPageData };
   const fn = functions[kind as keyof typeof functions];
-  seedQueries(qc, fn ? await fn({ data: { slug } }) : await getPublicListingData({ data: { kind, slug } }));
+  const entries = await qc.fetchQuery({
+    queryKey: ['public-detail', kind, slug],
+    queryFn: () => fn ? fn({ data: { slug } }) : getPublicListingData({ data: { kind, slug } }),
+    staleTime: 60_000,
+    gcTime: 30 * 60_000,
+  });
+  seedQueries(qc, entries);
   const row = (key: readonly unknown[]) => qc.getQueryData<Row | null>(key);
   const countries = qc.getQueryData<Row[]>(["shared", "countries"]) || [];
   if (kind === "visa") {

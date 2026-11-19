@@ -1,5 +1,10 @@
 # Google indexing repair
 
+## Banner alignment and page loading
+- [x] Center footer banners consistently and keep their proportions on desktop/mobile.
+- [x] Reduce duplicate location requests, repeated public detail loads and unnecessary admin affiliate/settings queries; parallelize independent public reads.
+- [x] Verify real UAE → Germany → UAE navigation, one location lookup and centered banners at 1280/502/393/320px; 44 regressions passed. External admin end-to-end unavailable; third-party MutationObserver warning remains outside these fixes.
+
 ## Homepage horizontal banners
 - [x] Add independently selectable horizontal slots below the homepage hero and immediately above its footer.
 - [x] Preserve shared banner caching, targeting, safe embeds and empty-slot behavior; 18 tests passed, fixture banners verified at 1280/502/393/320px. External admin saving remains unverified; unrelated Header hydration warnings observed and left outside this task.

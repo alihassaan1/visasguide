@@ -7,6 +7,8 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Plus, Trash2, Save, BarChart3, Share2, Eye } from 'lucide-react';
+import { useSiteSettings, QUERY_KEYS } from '@/hooks/useSharedData';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface FooterLink {
   label: string;
@@ -41,6 +43,8 @@ interface AnalyticsSettings {
 
 export const SiteSettingsManager = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { data: sharedSettings } = useSiteSettings();
   const [loading, setLoading] = useState(false);
   const [footerLinks, setFooterLinks] = useState<FooterLinks>({
     popular_destinations: [],
@@ -67,36 +71,14 @@ export const SiteSettingsManager = () => {
   });
 
   useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = async () => {
-    try {
-      const { data: footerData } = await supabase
-        .from('site_settings')
-        .select('setting_value')
-        .eq('setting_key', 'footer_links')
-        .single();
-
-      const { data: socialData } = await supabase
-        .from('site_settings')
-        .select('setting_value')
-        .eq('setting_key', 'social_links')
-        .single();
-
-      const { data: analyticsData } = await supabase
-        .from('site_settings')
-        .select('setting_value')
-        .eq('setting_key', 'analytics_settings')
-        .single();
-
-      if (footerData?.setting_value) {
-        setFooterLinks(footerData.setting_value as any as FooterLinks);
+      if (!sharedSettings) return;
+      if (sharedSettings.footer_links) {
+        setFooterLinks(sharedSettings.footer_links as FooterLinks);
       }
-      if (socialData?.setting_value) {
-        setSocialLinks(socialData.setting_value as any as SocialLinks);
+      if (sharedSettings.social_links) {
+        setSocialLinks(sharedSettings.social_links as SocialLinks);
       }
-      if (analyticsData?.setting_value) {
+      if (sharedSettings.analytics_settings) {
         setAnalyticsSettings({
           google_analytics_id: '',
           google_tag_manager_id: '',
@@ -107,13 +89,10 @@ export const SiteSettingsManager = () => {
           twitter_pixel_id: '',
           pinterest_tag_id: '',
           microsoft_clarity_id: '',
-          ...(analyticsData.setting_value as any)
+          ...sharedSettings.analytics_settings
         });
       }
-    } catch (error) {
-      console.error('Error loading settings:', error);
-    }
-  };
+  }, [sharedSettings]);
 
   const saveSettings = async () => {
     setLoading(true);
@@ -137,6 +116,7 @@ export const SiteSettingsManager = () => {
         }, { onConflict: 'setting_key' });
 
       if (footerError || socialError || analyticsError) throw footerError || socialError || analyticsError;
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.siteSettings });
 
       toast({
         title: "Settings saved",

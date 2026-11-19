@@ -15,7 +15,7 @@ export const BANNER_POSITION_OPTIONS: { value: BannerPosition; label: string }[]
 ];
 
 export function isHorizontalBannerPosition(position: string): boolean {
-  return position === 'horizontal-banner' || position === 'homepage-below-hero' || position === 'homepage-above-footer';
+  return position === 'horizontal-banner' || position === 'footer' || position === 'homepage-below-hero' || position === 'homepage-above-footer';
 }
 
 export function bannerMatchesPosition(

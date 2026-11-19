@@ -21,3 +21,6 @@
 - Render third-party affiliate HTML/scripts only in opaque-origin sandboxed iframes with source-checked resize messages; scripts must not access site sessions or mutate the page.
 - Image URL input applies only on explicit submission and preserves failed URLs for correction; uploaded GIF banners bypass canvas conversion to preserve animation.
 - Keep banner positions, horizontal sizing classification and homepage-only matching in a browser-safe shared module used by validation, public rendering and admin controls; independent homepage slots reuse the shared banner query and render spacing only when populated.
+- Share optional visitor location through one bounded, failure-cached Query request for banners and passport detection; location must not block primary content or read storage during rendering.
+- Cache public detail request bundles per QueryClient for repeat navigation, exclude duplicate bundles from dehydration, refresh seeded detail rows while preserving fresh shared tables, and parallelize independent public reads within the six-connection runtime budget.
+- Cache admin banner reads separately from public active creatives and reuse shared settings; load destination/widget inputs only for the applicable affiliate to avoid unrelated requests.

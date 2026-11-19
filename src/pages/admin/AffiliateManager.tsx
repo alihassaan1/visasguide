@@ -13,6 +13,7 @@ import { ArrowLeft, Plus, Trash2, Edit2, Save, Ticket } from 'lucide-react';
 import { toast } from 'sonner';
 import MonetizationSettings from './MonetizationSettings';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useCountries } from '@/hooks/useSharedData';
 
 interface AffiliateProgram {
   id: string;
@@ -78,7 +79,7 @@ const AffiliateManager = () => {
       if (error) throw error;
       return data as AffiliateWidget[];
     },
-    enabled: !!selectedProgram
+    enabled: selectedProgram?.slug === 'getyourguide'
   });
 
   const { data: cities = [] } = useQuery({
@@ -87,17 +88,12 @@ const AffiliateManager = () => {
       const { data, error } = await supabase.from('cities').select('id, name, country:countries(id, name)').order('name');
       if (error) throw error;
       return data as City[];
-    }
+    },
+    enabled: selectedProgram?.slug === 'getyourguide',
+    staleTime: 24 * 60 * 60 * 1000,
   });
 
-  const { data: countries = [] } = useQuery({
-    queryKey: ['countries-for-affiliate'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('countries').select('id, name').order('name');
-      if (error) throw error;
-      return data as Country[];
-    }
-  });
+  const { data: countries = [] } = useCountries();
 
   const { data: widgetCounts = {} } = useQuery({
     queryKey: ['widget-counts'],

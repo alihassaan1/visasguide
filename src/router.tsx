@@ -13,7 +13,7 @@ export const getRouter = () => {
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
     defaultErrorComponent: PublicRouteError,
-    dehydrate: () => ({ queryState: JSON.stringify(dehydrate(queryClient, { shouldDehydrateMutation: () => false })) }),
+    dehydrate: () => ({ queryState: JSON.stringify(dehydrate(queryClient, { shouldDehydrateMutation: () => false, shouldDehydrateQuery: (query) => query.state.status === 'success' && query.queryKey[0] !== 'public-detail' })) }),
     hydrate: (data) => { hydrate(queryClient, JSON.parse(data.queryState)); },
   });
 

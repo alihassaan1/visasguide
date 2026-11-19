@@ -25,13 +25,9 @@ const Footer = ({ beforeFooter }: { beforeFooter?: ReactNode } = {}) => {
       {beforeFooter}
       <footer className="bg-primary text-primary-foreground">
       {/* Horizontal Banner - site-wide */}
-      <div className="container mx-auto px-4 pt-6">
-        <AffiliateBannerContainer position="horizontal-banner" />
-      </div>
+      <AffiliateBannerContainer position="horizontal-banner" className="container mx-auto px-4 pt-6" />
       {/* Footer Banner */}
-      <div className="container mx-auto px-4 pt-6">
-        <AffiliateBannerContainer position="footer" />
-      </div>
+      <AffiliateBannerContainer position="footer" className="container mx-auto px-4 pt-6" />
       <div className="container mx-auto px-4">
         {/* Main Footer Content */}
         <div className="py-16">

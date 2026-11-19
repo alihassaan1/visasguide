@@ -33,7 +33,7 @@ vi.mock('@/components/admin/CountryMultiSelect', () => ({ CountryMultiSelect: ()
 import AffiliateManager from '@/pages/admin/AffiliateManager';
 
 describe('generic affiliate banner save flow', () => {
-  beforeEach(() => { mocks.reset(); mocks.saved.mockClear(); mocks.inserted.mockClear(); });
+  beforeEach(() => { mocks.reset(); mocks.saved.mockClear(); mocks.inserted.mockClear(); mocks.from.mockClear(); });
   it('adds a program-linked banner and saves the supplied Upflare code without GetYourGuide fields', async () => {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(<QueryClientProvider client={client}><AffiliateManager /></QueryClientProvider>);
@@ -48,6 +48,9 @@ describe('generic affiliate banner save flow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
     await waitFor(() => expect(mocks.saved).toHaveBeenCalledWith({ data: expect.objectContaining({ html_embed: code, image_url: null, id: '979395b4-cc52-461c-9204-4be1767efecd', positions: ['sidebar-right'] }) }));
     expect(mocks.saved.mock.calls[0]?.[0]?.data).not.toHaveProperty('tour_id');
+    expect(mocks.from.mock.calls.filter(([table]) => table === 'site_settings')).toHaveLength(1);
+    expect(mocks.from.mock.calls.filter(([table]) => table === 'cities')).toHaveLength(0);
+    expect(mocks.from.mock.calls.filter(([table]) => table === 'affiliate_widgets')).toHaveLength(1);
   });
   it.each([
     ['Homepage: Below Hero (Horizontal)', 'homepage-below-hero'],

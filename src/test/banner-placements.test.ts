@@ -36,4 +36,8 @@ describe('homepage horizontal banner placements', () => {
     expect(bannerMatchesPosition(legacy, 'horizontal-banner', '/countries/france')).toBe(true);
     expect(bannerMatchesPosition(legacy, 'homepage-below-hero', '/')).toBe(false);
   });
+  it('uses horizontal sizing for the footer placement', () => {
+    expect(isHorizontalBannerPosition('footer')).toBe(true);
+    expect(isHorizontalBannerPosition('sidebar-right')).toBe(false);
+  });
 });

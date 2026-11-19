@@ -1,5 +1,10 @@
 # Google indexing repair
 
+## Affiliate banner repair
+- [ ] Fix the banner image-loading failure without requiring cross-origin image downloads for external URLs.
+- [ ] Support affiliate-provided HTML/script banners in Affiliate Manager and public banner placements, preserving GetYourGuide widgets.
+- [ ] Test banner validation and rendering; verify available public flows and report external admin verification limits.
+
 - [x] Repair initial HTML loading across public content route families.
 - [x] Add server-rendered page-specific metadata and canonical URLs; handle missing pages and legacy URLs correctly.
 - [x] Verify report URLs and representative routes without JavaScript, and run regression tests.

@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import SocialPostsList from "@/pages/admin/SocialPostsList";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/admin/marketing/posts")({
-  component: SocialPostsList,
+  beforeLoad: () => {
+    throw redirect({ to: "/admin/dashboard", replace: true });
+  },
 });

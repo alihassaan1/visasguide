@@ -24,3 +24,5 @@
 - Share optional visitor location through one bounded, failure-cached Query request for banners and passport detection; location must not block primary content or read storage during rendering.
 - Cache public detail request bundles per QueryClient for repeat navigation, exclude duplicate bundles from dehydration, refresh seeded detail rows while preserving fresh shared tables, and parallelize independent public reads within the six-connection runtime budget.
 - Cache admin banner reads separately from public active creatives and reuse shared settings; load destination/widget inputs only for the applicable affiliate to avoid unrelated requests.
+
+- All ad/affiliate admin work lives on `/admin/monetization` (tabs: banners, performance, GYG widgets, network); old affiliate-manager, ad-performance, banner-debug and social routes redirect there so admins have one place and old links keep working.

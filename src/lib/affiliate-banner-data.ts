@@ -15,6 +15,7 @@ export const bannerSaveSchema = z.object({
   target_page_patterns: z.array(z.string().max(500)).max(100),
   start_date: z.string().datetime().nullable(),
   end_date: z.string().datetime().nullable(),
+  affiliate_program: z.string().trim().max(100).nullable().optional(),
 }).transform((data, context) => {
   const code = data.html_embed?.trim() || null;
   let image: string | null = null;

@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import AdPerformanceDashboard from "@/pages/admin/AdPerformanceDashboard";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/admin/ad-performance")({
-  component: AdPerformanceDashboard,
+  beforeLoad: () => {
+    throw redirect({ to: "/admin/monetization", search: { tab: "performance" }, replace: true });
+  },
 });

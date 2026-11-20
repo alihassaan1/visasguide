@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import BannerSlotDebugger from "@/pages/admin/BannerSlotDebugger";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/admin/banner-debug")({
-  component: BannerSlotDebugger,
+  beforeLoad: () => {
+    throw redirect({ to: "/admin/monetization", search: { tab: "banners" }, replace: true });
+  },
 });

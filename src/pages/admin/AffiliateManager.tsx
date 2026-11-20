@@ -50,7 +50,7 @@ interface Country {
   name: string;
 }
 
-const AffiliateManager = () => {
+const AffiliateManager = ({ gygWidgetsOnly = false }: { gygWidgetsOnly?: boolean } = {}) => {
   const queryClient = useQueryClient();
   const [selectedProgram, setSelectedProgram] = useState<AffiliateProgram | null>(null);
   const [showAddProgram, setShowAddProgram] = useState(false);
@@ -66,6 +66,13 @@ const AffiliateManager = () => {
       return data as AffiliateProgram[];
     }
   });
+
+  useEffect(() => {
+    if (gygWidgetsOnly && !selectedProgram) {
+      const gyg = programs.find(p => p.slug === 'getyourguide');
+      if (gyg) setSelectedProgram(gyg);
+    }
+  }, [gygWidgetsOnly, programs, selectedProgram]);
 
   const { data: widgets = [], isLoading: loadingWidgets } = useQuery({
     queryKey: ['affiliate-widgets', selectedProgram?.slug],
@@ -184,6 +191,10 @@ const AffiliateManager = () => {
     onError: (error: Error) => toast.error(error.message)
   });
 
+  if (!selectedProgram && gygWidgetsOnly) {
+    return <p className="text-sm text-muted-foreground">{loadingPrograms ? 'Loading widgets...' : 'GetYourGuide is not set up yet.'}</p>;
+  }
+
   if (!selectedProgram) {
     return (
       <div className="space-y-6">
@@ -240,7 +251,7 @@ const AffiliateManager = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {!gygWidgetsOnly && <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => setSelectedProgram(null)}><ArrowLeft className="h-4 w-4" /></Button>
           <div>
@@ -248,10 +259,10 @@ const AffiliateManager = () => {
             <p className="text-muted-foreground">Partner ID: {selectedProgram.partner_id || 'Not set'}</p>
           </div>
         </div>
-      </div>
+      </div>}
 
       <Tabs key={selectedProgram.slug} defaultValue={selectedProgram.slug === 'getyourguide' ? 'widgets' : 'banners'}>
-        <TabsList>
+        <TabsList className={gygWidgetsOnly ? 'hidden' : undefined}>
           <TabsTrigger value="banners">Banners</TabsTrigger>
           {selectedProgram.slug === 'getyourguide' && <TabsTrigger value="widgets">GetYourGuide Widgets</TabsTrigger>}
         </TabsList>

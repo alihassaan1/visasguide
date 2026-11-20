@@ -89,21 +89,11 @@ const menuStructure: MenuItemOrGroup[] = [
     ],
   },
   {
-    title: "Social Media",
-    icon: Megaphone,
-    children: [
-      { title: "Social Dashboard", icon: Activity, href: "/admin/marketing/social" },
-      { title: "Social Posts", icon: Megaphone, href: "/admin/marketing/posts" },
-    ],
-  },
-  {
     title: "Marketing",
     icon: Mail,
     children: [
       { title: "Newsletter", icon: Mail, href: "/admin/newsletter" },
-      { title: "Affiliate Manager", icon: Ticket, href: "/admin/affiliate-manager" },
-      { title: "Ads & Affiliates", icon: DollarSign, href: "/admin/monetization" },
-      { title: "Ad Performance", icon: BarChart3, href: "/admin/ad-performance" },
+      { title: "Ads & Monetization", icon: DollarSign, href: "/admin/monetization" },
     ],
   },
   {
@@ -111,7 +101,6 @@ const menuStructure: MenuItemOrGroup[] = [
     icon: Users,
     children: [
       { title: "User Management", icon: Users, href: "/admin/users" },
-      { title: "Freelancers", icon: ClipboardList, href: "/admin/freelancers" },
     ],
   },
   {

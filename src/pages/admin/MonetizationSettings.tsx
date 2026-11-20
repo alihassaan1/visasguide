@@ -58,7 +58,7 @@ interface AffiliateData {
   affiliate_program?: string | null;
 }
 
-export default function MonetizationSettings({ programSlug, bannersOnly = false }: { programSlug?: string; bannersOnly?: boolean } = {}) {
+export default function MonetizationSettings({ programSlug, bannersOnly = false, networkOnly = false }: { programSlug?: string; bannersOnly?: boolean; networkOnly?: boolean } = {}) {
   const queryClient = useQueryClient();
   const saveBanner = useServerFn(saveAffiliateBanner);
   const { toast } = useToast();
@@ -288,15 +288,15 @@ export default function MonetizationSettings({ programSlug, bannersOnly = false 
   };
 
   return (
-    <div className="container mx-auto p-3 sm:p-6 max-w-5xl">
-      {!bannersOnly && <div className="mb-6">
+    <div className={networkOnly ? "max-w-3xl" : "container mx-auto p-3 sm:p-6 max-w-5xl"}>
+      {!bannersOnly && !networkOnly && <div className="mb-6">
         <h1 className="text-2xl font-bold mb-1">Monetization</h1>
         <p className="text-sm text-muted-foreground">Manage ads, banners & affiliate links</p>
       </div>}
 
-      <Tabs defaultValue="affiliates">
+      <Tabs defaultValue={networkOnly ? "adsense" : "affiliates"}>
         {!bannersOnly && <TabsList className="flex-wrap h-auto">
-          <TabsTrigger value="affiliates">Affiliate Banners</TabsTrigger>
+          {!networkOnly && <TabsTrigger value="affiliates">Affiliate Banners</TabsTrigger>}
           <TabsTrigger value="adsense">AdSense</TabsTrigger>
           <TabsTrigger value="gdpr">GDPR Consent</TabsTrigger>
         </TabsList>}

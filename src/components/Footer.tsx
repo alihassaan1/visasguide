@@ -24,8 +24,6 @@ const Footer = ({ beforeFooter }: { beforeFooter?: ReactNode } = {}) => {
       <SeoLinksSection />
       {beforeFooter}
       <footer className="bg-primary text-primary-foreground">
-      {/* Horizontal Banner - site-wide */}
-      <AffiliateBannerContainer position="horizontal-banner" className="container mx-auto px-4 pt-6" />
       {/* Footer Banner */}
       <AffiliateBannerContainer position="footer" className="container mx-auto px-4 pt-6" />
       <div className="container mx-auto px-4">

@@ -2,6 +2,7 @@ import { useAffiliateBanners } from "@/hooks/useSharedData";
 import AffiliateBanner from "./AffiliateBanner";
 import { useVisitorLocation } from "@/hooks/useVisitorLocation";
 import { useLocation } from "@/lib/router-compat";
+import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo } from "react";
 import { AffiliateScriptBanner } from './AffiliateScriptBanner';
 import { bannerMatchesPosition, isHorizontalBannerPosition, type BannerPosition } from '@/lib/banner-placements';
@@ -141,7 +142,11 @@ export function AffiliateBannerContainer({ position, className = '' }: Affiliate
   }, [selectedBanner?.id, locationLoading, currentPath]);
 
   const handleClick = (banner: AffiliateData) => {
-    // Google Analytics click event only (no database writes)
+    // Clicks are low-volume, so each one is counted in the database.
+    // Views are intentionally not written to the database.
+    void supabase.rpc('increment_affiliate_click', { p_banner_id: banner.id }).then(({ error }) => {
+      if (error) console.warn('Banner click not recorded', error.message);
+    });
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', 'affiliate_click', {
         affiliate_name: banner.name,

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import AdsHub, { type AdsTab } from "@/pages/admin/AdsHub";
 import { publicHead } from '@/lib/public-seo';
 
-const TABS: AdsTab[] = ['banners', 'performance', 'widgets', 'network'];
+const TABS: AdsTab[] = ['banners', 'network'];
 
 export const Route = createFileRoute("/admin/monetization")({
   validateSearch: (search: Record<string, unknown>): { tab?: AdsTab } => ({

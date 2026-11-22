@@ -144,7 +144,7 @@ export function BannerList() {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
-          { label: 'Impressions', value: totals.impressions.toLocaleString(), icon: Eye },
+          { label: 'Past views (paused)', value: totals.impressions.toLocaleString(), icon: Eye },
           { label: 'Clicks', value: totals.click_count.toLocaleString(), icon: MousePointerClick },
           { label: 'Average CTR', value: bannerCtr(totals), icon: Percent },
           { label: 'Active banners', value: `${totals.active} / ${banners.length}`, icon: Megaphone },
@@ -192,7 +192,7 @@ export function BannerList() {
       <Card className="overflow-hidden">
         <div className="hidden grid-cols-[1fr_auto_minmax(0,220px)_90px_70px_70px_110px] items-center gap-4 border-b bg-muted/40 px-4 py-2 text-xs font-medium text-muted-foreground lg:grid">
           <span>Banner</span><span>Type</span><span>Placements</span>
-          <span className="text-right">Views</span><span className="text-right">Clicks</span><span className="text-right">CTR</span><span className="text-right">Status</span>
+          <span className="text-right" title="View counting is paused; numbers are historical">Past views</span><span className="text-right">Clicks</span><span className="text-right">CTR</span><span className="text-right">Status</span>
         </div>
         {isLoading && <p className="p-6 text-center text-sm text-muted-foreground">Loading banners…</p>}
         {!isLoading && rows.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">No banners match. Add one to get started.</p>}

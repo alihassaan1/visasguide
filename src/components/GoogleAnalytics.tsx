@@ -264,7 +264,7 @@ const GoogleAnalytics = () => {
     if (settings.google_adsense_publisher_id && settings.google_adsense_publisher_id.startsWith('ca-pub-')) {
       const publisherId = settings.google_adsense_publisher_id.trim();
       
-      if (!document.querySelector('script[data-adsense]')) {
+      if (!document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]')) {
         const script = document.createElement('script');
         script.async = true;
         script.setAttribute('data-adsense', 'true');
@@ -289,7 +289,7 @@ const GoogleAnalytics = () => {
       const clientId = clientMatch[1];
       
       // Check if AdSense is already loaded via publisher ID
-      if (!document.querySelector('script[data-adsense]')) {
+      if (!document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]')) {
         const script = document.createElement('script');
         script.async = true;
         script.setAttribute('data-adsense-raw', 'true');

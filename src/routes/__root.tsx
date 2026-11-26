@@ -65,7 +65,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1.0" },
-      { name: "google-adsense-account", content: "ca-pub-7190852118408617" },
+      { name: "google-adsense-account", content: "ca-pub-7028612619001508" },
       { name: "google-site-verification", content: "P6CgjHlfzm8TtyvyC-8rPjql3gm3YSKYKXazqAwT424" },
       {
         name: "robots",
@@ -138,7 +138,7 @@ function RootComponent() {
     // Auto ads may mutate the HTML before React hydrates, causing the entire
     // server-rendered page to be discarded. Keep AdSense enabled, but start it
     // after hydration; Google Analytics and consent configuration are unchanged.
-    const src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7190852118408617";
+    const src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7028612619001508";
     if (document.querySelector(`script[src="${src}"]`)) return;
     const script = document.createElement("script");
     script.src = src;

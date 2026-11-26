@@ -51,19 +51,6 @@ const CityPage = () => {
     }
   }, [city?.id]);
 
-  // Trigger city data generation if missing description
-  useEffect(() => {
-    if (city && !city.description && city.country) {
-      supabase.functions.invoke('generate-city-content', {
-        body: { 
-          cityId: city.id,
-          cityName: city.name,
-          countryName: city.country.name
-        }
-      }).catch(() => {});
-    }
-  }, [city]);
-
   const formatNumber = (num: number) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(0) + 'K';

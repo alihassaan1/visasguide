@@ -123,81 +123,10 @@ export default function VisaRequirementsContentUpdater() {
             .eq('to_country_id', to.id)
             .maybeSingle();
 
-          // Generate content
-          const prompt = visaData 
-            ? `Create a comprehensive, SEO-optimized guide about ${to.name} visa requirements for ${from.name} citizens. Include:
-
-1. Visa requirement type: ${visaData.requirement_type}
-${visaData.max_stay_days ? `2. Maximum stay: ${visaData.max_stay_days} days` : ''}
-${visaData.processing_time_days ? `3. Processing time: ${visaData.processing_time_days} days` : ''}
-${visaData.fee_usd ? `4. Visa fee: $${visaData.fee_usd} USD` : ''}
-5. Required documents and application process
-6. Entry requirements and tips
-7. Important travel advisories
-${visaData.notes ? `8. Additional notes: ${visaData.notes}` : ''}
-
-Format the content in HTML with proper headings (h2, h3), bullet points, and sections. Make it informative and travel-guide style.`
-            : `Create a comprehensive, SEO-optimized guide about ${to.name} visa requirements for ${from.name} passport holders. Include:
-
-1. Visa policy overview (visa-free, visa on arrival, eVisa, or visa required)
-2. Application process and requirements
-3. Required documents
-4. Processing times and fees
-5. Entry requirements and travel tips
-6. Important advisories and updates for 2026
-
-Format the content in HTML with proper headings (h2, h3), bullet points, and paragraphs. Make it informative and travel-guide style.`;
-
-          const { data, error } = await supabase.functions.invoke('ai-generate-content', {
-            body: {
-              prompt,
-              contentType: 'Visa Requirements Guide',
-              action: 'generate',
-              provider: 'deepseek'
-            }
-          });
-
-          if (error) throw error;
-
-          // Create or update content page
-          const slug = `${from.slug}-to-${to.slug}-visa-requirements`;
-          const { data: existingPage } = await supabase
-            .from('content_pages')
-            .select('id')
-            .eq('slug', slug)
-            .maybeSingle();
-
-          const pageData = {
-            title: `${to.name} Visa Requirements for ${from.name} Citizens`,
-            slug,
-            content: data.content,
-            meta_description: `Complete visa guide for ${from.name} passport holders traveling to ${to.name}. Requirements, fees, processing times, and application process.`,
-            meta_title: `${to.name} Visa for ${from.name} Citizens 2026 | Requirements & Guide`,
-            keywords: [`${to.name} visa`, `${from.name} to ${to.name}`, 'visa requirements', 'travel guide', '2026'],
-            is_published: true,
-            ai_generated: false,
-            status: 'published',
-          };
-
-          if (existingPage) {
-            await supabase
-              .from('content_pages')
-              .update(pageData)
-              .eq('id', existingPage.id);
-          } else {
-            const { data: userData } = await supabase.auth.getUser();
-            await supabase
-              .from('content_pages')
-              .insert({
-                ...pageData,
-                author_id: userData.user?.id,
-              });
-          }
-
           // Update status to success
           setStatuses(prev => prev.map(s => 
             s.combination === `${from.name} → ${to.name}`
-              ? { ...s, status: 'success' as const, message: 'Content generated' }
+              ? { ...s, status: 'success' as const, message: visaData ? 'Visa data available' : 'No visa data recorded' }
               : s
           ));
 
@@ -218,7 +147,7 @@ Format the content in HTML with proper headings (h2, h3), bullet points, and par
       }
 
       toast({
-        title: "Bulk Update Complete!",
+        title: "Review Complete!",
         description: `Processed ${combinations.length} visa requirement combinations.`,
       });
 
@@ -238,7 +167,7 @@ Format the content in HTML with proper headings (h2, h3), bullet points, and par
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Visa Requirements Content Updater</h1>
         <p className="text-muted-foreground">
-          Generate comprehensive visa requirement guides for country combinations
+          Review existing visa data for country combinations
         </p>
       </div>
 
@@ -246,16 +175,16 @@ Format the content in HTML with proper headings (h2, h3), bullet points, and par
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5" />
-            Bulk Generate Visa Requirement Guides
+            Review Visa Requirement Data
           </CardTitle>
           <CardDescription>
-            Generate AI-powered visa requirement content for specific country combinations
+            Inspect stored visa data without generating or changing content
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid gap-4">
             <div className="space-y-2">
-              <Label>Generation Mode</Label>
+              <Label>Review Mode</Label>
               <Select value={mode} onValueChange={(v: any) => setMode(v)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -267,8 +196,8 @@ Format the content in HTML with proper headings (h2, h3), bullet points, and par
               </Select>
               <p className="text-xs text-muted-foreground">
                 {mode === 'top-countries' 
-                  ? 'Generate combinations between the top-ranked passport countries'
-                  : 'Find and generate content for combinations without existing pages'
+                  ? 'Review combinations between the top-ranked passport countries'
+                  : 'Find combinations without existing content pages'
                 }
               </p>
             </div>
@@ -283,20 +212,9 @@ Format the content in HTML with proper headings (h2, h3), bullet points, and par
                 onChange={(e) => setLimit(parseInt(e.target.value) || 50)}
               />
               <p className="text-xs text-muted-foreground">
-                Maximum number of visa requirement guides to generate (recommended: 50-100)
+                Maximum number of country combinations to review (recommended: 50-100)
               </p>
             </div>
-          </div>
-
-          <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-            <h3 className="font-semibold">What this does:</h3>
-            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-              <li>Generates comprehensive visa requirement guides for selected combinations</li>
-              <li>Uses existing visa data when available, or creates general guides</li>
-              <li>Creates SEO-optimized content pages with proper metadata</li>
-              <li>Uses DeepSeek AI for cost-effective generation</li>
-              <li>Processes with 2-second delays to avoid rate limits</li>
-            </ul>
           </div>
 
           <Button 
@@ -313,7 +231,7 @@ Format the content in HTML with proper headings (h2, h3), bullet points, and par
             ) : (
               <>
                 <Search className="mr-2 h-5 w-5" />
-                Generate {limit} Visa Guides
+                Review {limit} Visa Routes
               </>
             )}
           </Button>
@@ -329,7 +247,7 @@ Format the content in HTML with proper headings (h2, h3), bullet points, and par
 
           {statuses.length > 0 && (
             <div className="space-y-2">
-              <h3 className="font-semibold">Generation Status:</h3>
+              <h3 className="font-semibold">Review Status:</h3>
               <ScrollArea className="h-[400px] rounded-md border p-4">
                 <div className="space-y-2">
                   {statuses.map((status, i) => (

@@ -213,10 +213,6 @@ export default function ContentManager() {
               <PenLine className="mr-2 h-4 w-4" />
               Create Manually
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate("/admin/ai-content-studio")}>
-              <Sparkles className="mr-2 h-4 w-4" />
-              Generate with AI
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -272,7 +268,7 @@ export default function ContentManager() {
           ) : filteredPages.length === 0 ? (
             <div className="text-center py-8 sm:py-12">
               <p className="text-sm sm:text-base text-muted-foreground mb-4">No pages found</p>
-              <Button onClick={() => navigate("/admin/ai-content-studio")} className="w-full sm:w-auto">
+              <Button onClick={() => navigate("/admin/manual-editor")} className="w-full sm:w-auto">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Your First Page
               </Button>

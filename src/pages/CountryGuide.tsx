@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Clock, DollarSign, FileText, Globe, Users, MapPin, TrendingUp, Plane, CheckCircle, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { countryCodeToFlagEmoji } from "@/lib/utils";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import SEOHead from "@/components/SEOHead";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -40,7 +40,7 @@ const CountryGuide = () => {
   const [visitorSearch, setVisitorSearch] = useState("");
   
   
-  const { data: allCountries, isLoading: countryLoading, refetch: refetchCountry } = useCountries();
+  const { data: allCountries, isLoading: countryLoading } = useCountries();
   const country = countrySlug ? (allCountries || []).find((c) => c.slug === countrySlug) ?? null : null;
 
   const { data: guideContent } = useQuery({
@@ -67,36 +67,6 @@ const CountryGuide = () => {
 
     }
   }, [country?.id]);
-
-  // Lazy backfill for missing core data
-  const hasBackfilledRef = useRef(false);
-  const hasTravelStatsBackfilledRef = useRef(false);
-  
-  useEffect(() => {
-    if (!country || hasBackfilledRef.current) return;
-    const missingCore = !country.capital || !country.currency || !country.region || !country.continent || !country.language || !country.population || country.visa_free_destinations == null;
-    if (missingCore) {
-      hasBackfilledRef.current = true;
-      supabase.functions
-        .invoke('countries-backfill', { body: { code: country.code } })
-        .then(() => refetchCountry())
-        .catch(() => {});
-    }
-  }, [country, refetchCountry]);
-
-  useEffect(() => {
-    if (!country || hasTravelStatsBackfilledRef.current) return;
-    const missingTravelStats = !country.annual_tourists && !country.tourism_rank;
-    if (missingTravelStats) {
-      hasTravelStatsBackfilledRef.current = true;
-      supabase.functions
-        .invoke('countries-travel-stats-backfill', { 
-          body: { countryId: country.id, countryName: country.name } 
-        })
-        .then(() => refetchCountry())
-        .catch(() => {});
-    }
-  }, [country, refetchCountry]);
 
   // Passport selector uses the same shared countries list (allCountries above)
 

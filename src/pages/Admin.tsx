@@ -359,33 +359,6 @@ export default function Admin() {
     }
   };
 
-  const fetchRssContent = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('rss-fetcher');
-      
-      if (error) throw error;
-
-      toast({
-        title: "RSS fetch started",
-        description: "RSS feeds are being processed. This may take a few minutes.",
-      });
-      
-      // Reload articles after a short delay
-      setTimeout(() => {
-        loadArticles();
-      }, 3000);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch RSS content. Please check your settings.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const loadContentPages = async () => {
     try {
       const { data, error } = await supabase
@@ -556,7 +529,7 @@ export default function Admin() {
           </div>
 
           <Tabs defaultValue="content" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="content" className="flex items-center gap-2">
                 <Newspaper size={16} />
                 Content Pages
@@ -564,10 +537,6 @@ export default function Admin() {
               <TabsTrigger value="site-settings" className="flex items-center gap-2">
                 <Settings size={16} />
                 Site Settings
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2">
-                <Settings size={16} />
-                CMS Settings
               </TabsTrigger>
               <TabsTrigger value="articles" className="flex items-center gap-2">
                 <Newspaper size={16} />
@@ -704,77 +673,6 @@ export default function Admin() {
               </Dialog>
             </TabsContent>
 
-            <TabsContent value="settings" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Content Generation Settings</CardTitle>
-                  <CardDescription>
-                    Configure how your content is automatically generated and updated
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Enable RSS Fetching</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Automatically fetch content from RSS feeds
-                      </p>
-                    </div>
-                    <Switch
-                      checked={settings.rss_fetch_enabled}
-                      onCheckedChange={(checked) =>
-                        setSettings(prev => ({ ...prev, rss_fetch_enabled: checked }))
-                      }
-                    />
-                  </div>
-
-                  <Separator />
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Auto Content Generation</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Use AI to enhance and rewrite fetched content
-                      </p>
-                    </div>
-                    <Switch
-                      checked={settings.auto_content_generation}
-                      onCheckedChange={(checked) =>
-                        setSettings(prev => ({ ...prev, auto_content_generation: checked }))
-                      }
-                    />
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-2">
-                    <Label htmlFor="fetch-interval">Fetch Interval (hours)</Label>
-                    <Input
-                      id="fetch-interval"
-                      type="number"
-                      min="1"
-                      max="168"
-                      value={settings.fetch_interval_hours}
-                      onChange={(e) =>
-                        setSettings(prev => ({ 
-                          ...prev, 
-                          fetch_interval_hours: parseInt(e.target.value) || 6 
-                        }))
-                      }
-                      className="max-w-xs"
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      How often to check RSS feeds for new content
-                    </p>
-                  </div>
-
-                  <Button onClick={saveSettings} disabled={loading}>
-                    Save Settings
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
             <TabsContent value="articles" className="space-y-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
@@ -784,10 +682,6 @@ export default function Admin() {
                       Latest news articles in your database
                     </CardDescription>
                   </div>
-                  <Button onClick={fetchRssContent} disabled={loading}>
-                    {loading ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Rss className="mr-2 h-4 w-4" />}
-                    Fetch RSS Now
-                  </Button>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">

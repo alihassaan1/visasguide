@@ -1,13 +1,11 @@
-import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Target, TrendingUp, Zap, Eye, MousePointer, ArrowUp, RefreshCw, Sparkles, ExternalLink, AlertTriangle, CheckCircle } from "lucide-react";
-import { toast } from "sonner";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Target, TrendingUp, Zap, Eye, MousePointer, ArrowUp, RefreshCw, ExternalLink, AlertTriangle, CheckCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 
@@ -28,7 +26,6 @@ interface PageMetrics {
 
 export default function QuickWinsDashboard() {
   const queryClient = useQueryClient();
-  const [optimizingPage, setOptimizingPage] = useState<string | null>(null);
 
   // Fetch pages with analytics data to identify quick wins
   const { data: quickWins, isLoading } = useQuery({
@@ -166,113 +163,6 @@ export default function QuickWinsDashboard() {
     }
   });
 
-  // Mutation to optimize a page's CTR
-  const optimizeMutation = useMutation({
-    mutationFn: async (pageId: string) => {
-      setOptimizingPage(pageId);
-      
-      // Get the page
-      const { data: page, error: pageError } = await supabase
-        .from('content_pages')
-        .select('*')
-        .eq('id', pageId)
-        .single();
-
-      if (pageError) throw pageError;
-
-      // Call AI to generate optimized meta
-      const { data: aiResult, error: aiError } = await supabase.functions.invoke('ai-generate-content', {
-        body: {
-          prompt: `Optimize the meta title and description for this page to maximize Google Search CTR:
-
-Title: ${page.title}
-Current Meta Title: ${page.meta_title || 'None'}
-Current Meta Description: ${page.meta_description || 'None'}
-Slug: ${page.slug}
-
-Requirements:
-1. Meta title must be under 60 characters
-2. Include the year 2026 for freshness
-3. Use power words (Complete, Ultimate, Official, Easy, Free)
-4. Meta description must be 140-160 characters
-5. Include a checkmark ✓ or arrow → for visual appeal
-6. Start description with a question or strong hook
-7. Include a call-to-action
-
-Return JSON only:
-{
-  "meta_title": "optimized title here",
-  "meta_description": "optimized description here"
-}`,
-          contentType: 'meta',
-          action: 'generate_meta'
-        }
-      });
-
-      if (aiError) throw aiError;
-
-      // Parse AI response
-      let optimizedMeta;
-      try {
-        const content = aiResult.content || aiResult;
-        const jsonMatch = content.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          optimizedMeta = JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error('Invalid AI response format');
-        }
-      } catch {
-        throw new Error('Failed to parse AI response');
-      }
-
-      // Update the page
-      const { error: updateError } = await supabase
-        .from('content_pages')
-        .update({
-          meta_title: optimizedMeta.meta_title,
-          meta_description: optimizedMeta.meta_description,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', pageId);
-
-      if (updateError) throw updateError;
-
-      return optimizedMeta;
-    },
-    onSuccess: () => {
-      toast.success('Page CTR optimized successfully!');
-      queryClient.invalidateQueries({ queryKey: ['quick-wins-pages'] });
-      setOptimizingPage(null);
-    },
-    onError: (error) => {
-      toast.error(`Optimization failed: ${error.message}`);
-      setOptimizingPage(null);
-    }
-  });
-
-  // Bulk optimize mutation
-  const bulkOptimizeMutation = useMutation({
-    mutationFn: async (count: number) => {
-      const pagesToOptimize = quickWins?.slice(0, count) || [];
-      let successCount = 0;
-      let errorCount = 0;
-
-      for (const page of pagesToOptimize) {
-        try {
-          await optimizeMutation.mutateAsync(page.id);
-          successCount++;
-        } catch {
-          errorCount++;
-        }
-      }
-
-      return { successCount, errorCount };
-    },
-    onSuccess: ({ successCount, errorCount }) => {
-      toast.success(`Optimized ${successCount} pages${errorCount > 0 ? `, ${errorCount} failed` : ''}`);
-    }
-  });
-
   const getScoreBadge = (score: number) => {
     if (score >= 70) return <Badge variant="destructive">High Priority</Badge>;
     if (score >= 40) return <Badge className="bg-amber-500">Medium</Badge>;
@@ -311,13 +201,6 @@ Return JSON only:
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
-          </Button>
-          <Button 
-            onClick={() => bulkOptimizeMutation.mutate(5)}
-            disabled={bulkOptimizeMutation.isPending}
-          >
-            <Sparkles className="h-4 w-4 mr-2" />
-            Optimize Top 5
           </Button>
         </div>
       </div>
@@ -404,7 +287,6 @@ Return JSON only:
                     <TableHead>Issues</TableHead>
                     <TableHead className="text-center">Score</TableHead>
                     <TableHead className="text-center">Views</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -456,23 +338,6 @@ Return JSON only:
                           <Eye className="h-4 w-4 text-muted-foreground" />
                           {page.view_count}
                         </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => optimizeMutation.mutate(page.id)}
-                          disabled={optimizingPage === page.id}
-                        >
-                          {optimizingPage === page.id ? (
-                            <RefreshCw className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <>
-                              <Sparkles className="h-4 w-4 mr-1" />
-                              Optimize
-                            </>
-                          )}
-                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

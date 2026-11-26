@@ -34,9 +34,6 @@ import { Route as CountrySlugCitySlugRouteImport } from './routes/$countrySlug.$
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminAdPerformanceRouteImport } from './routes/admin/ad-performance'
 import { Route as AdminAffiliateManagerRouteImport } from './routes/admin/affiliate-manager'
-import { Route as AdminAgentRouteImport } from './routes/admin/agent'
-import { Route as AdminAgentDashboardRouteImport } from './routes/admin/agent-dashboard'
-import { Route as AdminAiContentStudioRouteImport } from './routes/admin/ai-content-studio'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin/analytics'
 import { Route as AdminApiLogsRouteImport } from './routes/admin/api-logs'
 import { Route as AdminApiSettingsRouteImport } from './routes/admin/api-settings'
@@ -44,26 +41,17 @@ import { Route as AdminAuditLogRouteImport } from './routes/admin/audit-log'
 import { Route as AdminAuthorsRouteImport } from './routes/admin/authors'
 import { Route as AdminBannerDebugRouteImport } from './routes/admin/banner-debug'
 import { Route as AdminContentRouteImport } from './routes/admin/content'
-import { Route as AdminContentAgentLogsRouteImport } from './routes/admin/content-agent-logs'
-import { Route as AdminContentValidatorRouteImport } from './routes/admin/content-validator'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AdminDataRouteImport } from './routes/admin/data'
 import { Route as AdminDataImportRouteImport } from './routes/admin/data-import'
-import { Route as AdminDeveloperAgentRouteImport } from './routes/admin/developer-agent'
-import { Route as AdminDeveloperSettingsRouteImport } from './routes/admin/developer-settings'
-import { Route as AdminEtiasGeneratorRouteImport } from './routes/admin/etias-generator'
 import { Route as AdminFreelancerRouteImport } from './routes/admin/freelancer'
-import { Route as AdminImageGeneratorRouteImport } from './routes/admin/image-generator'
 import { Route as AdminLegacyRouteImport } from './routes/admin/legacy'
 import { Route as AdminManualEditorRouteImport } from './routes/admin/manual-editor'
 import { Route as AdminMenuRouteImport } from './routes/admin/menu'
 import { Route as AdminMonetizationRouteImport } from './routes/admin/monetization'
 import { Route as AdminNewsletterRouteImport } from './routes/admin/newsletter'
-import { Route as AdminPolicyTrackerRouteImport } from './routes/admin/policy-tracker'
 import { Route as AdminQuickWinsRouteImport } from './routes/admin/quick-wins'
-import { Route as AdminRssFeedsRouteImport } from './routes/admin/rss-feeds'
 import { Route as AdminRssHealthRouteImport } from './routes/admin/rss-health'
-import { Route as AdminRssMonitoringRouteImport } from './routes/admin/rss-monitoring'
 import { Route as AdminSeoRouteImport } from './routes/admin/seo'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
@@ -223,21 +211,6 @@ const AdminAffiliateManagerRoute = AdminAffiliateManagerRouteImport.update({
   path: '/affiliate-manager',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminAgentRoute = AdminAgentRouteImport.update({
-  id: '/agent',
-  path: '/agent',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminAgentDashboardRoute = AdminAgentDashboardRouteImport.update({
-  id: '/agent-dashboard',
-  path: '/agent-dashboard',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminAiContentStudioRoute = AdminAiContentStudioRouteImport.update({
-  id: '/ai-content-studio',
-  path: '/ai-content-studio',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -273,16 +246,6 @@ const AdminContentRoute = AdminContentRouteImport.update({
   path: '/content',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminContentAgentLogsRoute = AdminContentAgentLogsRouteImport.update({
-  id: '/content-agent-logs',
-  path: '/content-agent-logs',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminContentValidatorRoute = AdminContentValidatorRouteImport.update({
-  id: '/content-validator',
-  path: '/content-validator',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminDashboardRoute = AdminDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -298,29 +261,9 @@ const AdminDataImportRoute = AdminDataImportRouteImport.update({
   path: '/data-import',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminDeveloperAgentRoute = AdminDeveloperAgentRouteImport.update({
-  id: '/developer-agent',
-  path: '/developer-agent',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminDeveloperSettingsRoute = AdminDeveloperSettingsRouteImport.update({
-  id: '/developer-settings',
-  path: '/developer-settings',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminEtiasGeneratorRoute = AdminEtiasGeneratorRouteImport.update({
-  id: '/etias-generator',
-  path: '/etias-generator',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminFreelancerRoute = AdminFreelancerRouteImport.update({
   id: '/freelancer',
   path: '/freelancer',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminImageGeneratorRoute = AdminImageGeneratorRouteImport.update({
-  id: '/image-generator',
-  path: '/image-generator',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminLegacyRoute = AdminLegacyRouteImport.update({
@@ -348,29 +291,14 @@ const AdminNewsletterRoute = AdminNewsletterRouteImport.update({
   path: '/newsletter',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminPolicyTrackerRoute = AdminPolicyTrackerRouteImport.update({
-  id: '/policy-tracker',
-  path: '/policy-tracker',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminQuickWinsRoute = AdminQuickWinsRouteImport.update({
   id: '/quick-wins',
   path: '/quick-wins',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminRssFeedsRoute = AdminRssFeedsRouteImport.update({
-  id: '/rss-feeds',
-  path: '/rss-feeds',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminRssHealthRoute = AdminRssHealthRouteImport.update({
   id: '/rss-health',
   path: '/rss-health',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminRssMonitoringRoute = AdminRssMonitoringRouteImport.update({
-  id: '/rss-monitoring',
-  path: '/rss-monitoring',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminSeoRoute = AdminSeoRouteImport.update({
@@ -568,9 +496,6 @@ export interface FileRoutesByFullPath {
   '/$countrySlug/$citySlug': typeof CountrySlugCitySlugRoute
   '/admin/ad-performance': typeof AdminAdPerformanceRoute
   '/admin/affiliate-manager': typeof AdminAffiliateManagerRoute
-  '/admin/agent': typeof AdminAgentRoute
-  '/admin/agent-dashboard': typeof AdminAgentDashboardRoute
-  '/admin/ai-content-studio': typeof AdminAiContentStudioRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/api-logs': typeof AdminApiLogsRoute
   '/admin/api-settings': typeof AdminApiSettingsRoute
@@ -578,26 +503,17 @@ export interface FileRoutesByFullPath {
   '/admin/authors': typeof AdminAuthorsRoute
   '/admin/banner-debug': typeof AdminBannerDebugRoute
   '/admin/content': typeof AdminContentRoute
-  '/admin/content-agent-logs': typeof AdminContentAgentLogsRoute
-  '/admin/content-validator': typeof AdminContentValidatorRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/data': typeof AdminDataRoute
   '/admin/data-import': typeof AdminDataImportRoute
-  '/admin/developer-agent': typeof AdminDeveloperAgentRoute
-  '/admin/developer-settings': typeof AdminDeveloperSettingsRoute
-  '/admin/etias-generator': typeof AdminEtiasGeneratorRoute
   '/admin/freelancer': typeof AdminFreelancerRoute
-  '/admin/image-generator': typeof AdminImageGeneratorRoute
   '/admin/legacy': typeof AdminLegacyRoute
   '/admin/manual-editor': typeof AdminManualEditorRoute
   '/admin/menu': typeof AdminMenuRoute
   '/admin/monetization': typeof AdminMonetizationRoute
   '/admin/newsletter': typeof AdminNewsletterRoute
-  '/admin/policy-tracker': typeof AdminPolicyTrackerRoute
   '/admin/quick-wins': typeof AdminQuickWinsRoute
-  '/admin/rss-feeds': typeof AdminRssFeedsRoute
   '/admin/rss-health': typeof AdminRssHealthRoute
-  '/admin/rss-monitoring': typeof AdminRssMonitoringRoute
   '/admin/seo': typeof AdminSeoRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
@@ -657,9 +573,6 @@ export interface FileRoutesByTo {
   '/$countrySlug/$citySlug': typeof CountrySlugCitySlugRoute
   '/admin/ad-performance': typeof AdminAdPerformanceRoute
   '/admin/affiliate-manager': typeof AdminAffiliateManagerRoute
-  '/admin/agent': typeof AdminAgentRoute
-  '/admin/agent-dashboard': typeof AdminAgentDashboardRoute
-  '/admin/ai-content-studio': typeof AdminAiContentStudioRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/api-logs': typeof AdminApiLogsRoute
   '/admin/api-settings': typeof AdminApiSettingsRoute
@@ -667,26 +580,17 @@ export interface FileRoutesByTo {
   '/admin/authors': typeof AdminAuthorsRoute
   '/admin/banner-debug': typeof AdminBannerDebugRoute
   '/admin/content': typeof AdminContentRoute
-  '/admin/content-agent-logs': typeof AdminContentAgentLogsRoute
-  '/admin/content-validator': typeof AdminContentValidatorRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/data': typeof AdminDataRoute
   '/admin/data-import': typeof AdminDataImportRoute
-  '/admin/developer-agent': typeof AdminDeveloperAgentRoute
-  '/admin/developer-settings': typeof AdminDeveloperSettingsRoute
-  '/admin/etias-generator': typeof AdminEtiasGeneratorRoute
   '/admin/freelancer': typeof AdminFreelancerRoute
-  '/admin/image-generator': typeof AdminImageGeneratorRoute
   '/admin/legacy': typeof AdminLegacyRoute
   '/admin/manual-editor': typeof AdminManualEditorRoute
   '/admin/menu': typeof AdminMenuRoute
   '/admin/monetization': typeof AdminMonetizationRoute
   '/admin/newsletter': typeof AdminNewsletterRoute
-  '/admin/policy-tracker': typeof AdminPolicyTrackerRoute
   '/admin/quick-wins': typeof AdminQuickWinsRoute
-  '/admin/rss-feeds': typeof AdminRssFeedsRoute
   '/admin/rss-health': typeof AdminRssHealthRoute
-  '/admin/rss-monitoring': typeof AdminRssMonitoringRoute
   '/admin/seo': typeof AdminSeoRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
@@ -748,9 +652,6 @@ export interface FileRoutesById {
   '/$countrySlug/$citySlug': typeof CountrySlugCitySlugRoute
   '/admin/ad-performance': typeof AdminAdPerformanceRoute
   '/admin/affiliate-manager': typeof AdminAffiliateManagerRoute
-  '/admin/agent': typeof AdminAgentRoute
-  '/admin/agent-dashboard': typeof AdminAgentDashboardRoute
-  '/admin/ai-content-studio': typeof AdminAiContentStudioRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/api-logs': typeof AdminApiLogsRoute
   '/admin/api-settings': typeof AdminApiSettingsRoute
@@ -758,26 +659,17 @@ export interface FileRoutesById {
   '/admin/authors': typeof AdminAuthorsRoute
   '/admin/banner-debug': typeof AdminBannerDebugRoute
   '/admin/content': typeof AdminContentRoute
-  '/admin/content-agent-logs': typeof AdminContentAgentLogsRoute
-  '/admin/content-validator': typeof AdminContentValidatorRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/data': typeof AdminDataRoute
   '/admin/data-import': typeof AdminDataImportRoute
-  '/admin/developer-agent': typeof AdminDeveloperAgentRoute
-  '/admin/developer-settings': typeof AdminDeveloperSettingsRoute
-  '/admin/etias-generator': typeof AdminEtiasGeneratorRoute
   '/admin/freelancer': typeof AdminFreelancerRoute
-  '/admin/image-generator': typeof AdminImageGeneratorRoute
   '/admin/legacy': typeof AdminLegacyRoute
   '/admin/manual-editor': typeof AdminManualEditorRoute
   '/admin/menu': typeof AdminMenuRoute
   '/admin/monetization': typeof AdminMonetizationRoute
   '/admin/newsletter': typeof AdminNewsletterRoute
-  '/admin/policy-tracker': typeof AdminPolicyTrackerRoute
   '/admin/quick-wins': typeof AdminQuickWinsRoute
-  '/admin/rss-feeds': typeof AdminRssFeedsRoute
   '/admin/rss-health': typeof AdminRssHealthRoute
-  '/admin/rss-monitoring': typeof AdminRssMonitoringRoute
   '/admin/seo': typeof AdminSeoRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
@@ -840,9 +732,6 @@ export interface FileRouteTypes {
     | '/$countrySlug/$citySlug'
     | '/admin/ad-performance'
     | '/admin/affiliate-manager'
-    | '/admin/agent'
-    | '/admin/agent-dashboard'
-    | '/admin/ai-content-studio'
     | '/admin/analytics'
     | '/admin/api-logs'
     | '/admin/api-settings'
@@ -850,26 +739,17 @@ export interface FileRouteTypes {
     | '/admin/authors'
     | '/admin/banner-debug'
     | '/admin/content'
-    | '/admin/content-agent-logs'
-    | '/admin/content-validator'
     | '/admin/dashboard'
     | '/admin/data'
     | '/admin/data-import'
-    | '/admin/developer-agent'
-    | '/admin/developer-settings'
-    | '/admin/etias-generator'
     | '/admin/freelancer'
-    | '/admin/image-generator'
     | '/admin/legacy'
     | '/admin/manual-editor'
     | '/admin/menu'
     | '/admin/monetization'
     | '/admin/newsletter'
-    | '/admin/policy-tracker'
     | '/admin/quick-wins'
-    | '/admin/rss-feeds'
     | '/admin/rss-health'
-    | '/admin/rss-monitoring'
     | '/admin/seo'
     | '/admin/settings'
     | '/admin/users'
@@ -929,9 +809,6 @@ export interface FileRouteTypes {
     | '/$countrySlug/$citySlug'
     | '/admin/ad-performance'
     | '/admin/affiliate-manager'
-    | '/admin/agent'
-    | '/admin/agent-dashboard'
-    | '/admin/ai-content-studio'
     | '/admin/analytics'
     | '/admin/api-logs'
     | '/admin/api-settings'
@@ -939,26 +816,17 @@ export interface FileRouteTypes {
     | '/admin/authors'
     | '/admin/banner-debug'
     | '/admin/content'
-    | '/admin/content-agent-logs'
-    | '/admin/content-validator'
     | '/admin/dashboard'
     | '/admin/data'
     | '/admin/data-import'
-    | '/admin/developer-agent'
-    | '/admin/developer-settings'
-    | '/admin/etias-generator'
     | '/admin/freelancer'
-    | '/admin/image-generator'
     | '/admin/legacy'
     | '/admin/manual-editor'
     | '/admin/menu'
     | '/admin/monetization'
     | '/admin/newsletter'
-    | '/admin/policy-tracker'
     | '/admin/quick-wins'
-    | '/admin/rss-feeds'
     | '/admin/rss-health'
-    | '/admin/rss-monitoring'
     | '/admin/seo'
     | '/admin/settings'
     | '/admin/users'
@@ -1019,9 +887,6 @@ export interface FileRouteTypes {
     | '/$countrySlug/$citySlug'
     | '/admin/ad-performance'
     | '/admin/affiliate-manager'
-    | '/admin/agent'
-    | '/admin/agent-dashboard'
-    | '/admin/ai-content-studio'
     | '/admin/analytics'
     | '/admin/api-logs'
     | '/admin/api-settings'
@@ -1029,26 +894,17 @@ export interface FileRouteTypes {
     | '/admin/authors'
     | '/admin/banner-debug'
     | '/admin/content'
-    | '/admin/content-agent-logs'
-    | '/admin/content-validator'
     | '/admin/dashboard'
     | '/admin/data'
     | '/admin/data-import'
-    | '/admin/developer-agent'
-    | '/admin/developer-settings'
-    | '/admin/etias-generator'
     | '/admin/freelancer'
-    | '/admin/image-generator'
     | '/admin/legacy'
     | '/admin/manual-editor'
     | '/admin/menu'
     | '/admin/monetization'
     | '/admin/newsletter'
-    | '/admin/policy-tracker'
     | '/admin/quick-wins'
-    | '/admin/rss-feeds'
     | '/admin/rss-health'
-    | '/admin/rss-monitoring'
     | '/admin/seo'
     | '/admin/settings'
     | '/admin/users'
@@ -1312,27 +1168,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAffiliateManagerRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/agent': {
-      id: '/admin/agent'
-      path: '/agent'
-      fullPath: '/admin/agent'
-      preLoaderRoute: typeof AdminAgentRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/agent-dashboard': {
-      id: '/admin/agent-dashboard'
-      path: '/agent-dashboard'
-      fullPath: '/admin/agent-dashboard'
-      preLoaderRoute: typeof AdminAgentDashboardRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/ai-content-studio': {
-      id: '/admin/ai-content-studio'
-      path: '/ai-content-studio'
-      fullPath: '/admin/ai-content-studio'
-      preLoaderRoute: typeof AdminAiContentStudioRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/analytics': {
       id: '/admin/analytics'
       path: '/analytics'
@@ -1382,20 +1217,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminContentRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/content-agent-logs': {
-      id: '/admin/content-agent-logs'
-      path: '/content-agent-logs'
-      fullPath: '/admin/content-agent-logs'
-      preLoaderRoute: typeof AdminContentAgentLogsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/content-validator': {
-      id: '/admin/content-validator'
-      path: '/content-validator'
-      fullPath: '/admin/content-validator'
-      preLoaderRoute: typeof AdminContentValidatorRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/dashboard': {
       id: '/admin/dashboard'
       path: '/dashboard'
@@ -1417,39 +1238,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDataImportRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/developer-agent': {
-      id: '/admin/developer-agent'
-      path: '/developer-agent'
-      fullPath: '/admin/developer-agent'
-      preLoaderRoute: typeof AdminDeveloperAgentRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/developer-settings': {
-      id: '/admin/developer-settings'
-      path: '/developer-settings'
-      fullPath: '/admin/developer-settings'
-      preLoaderRoute: typeof AdminDeveloperSettingsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/etias-generator': {
-      id: '/admin/etias-generator'
-      path: '/etias-generator'
-      fullPath: '/admin/etias-generator'
-      preLoaderRoute: typeof AdminEtiasGeneratorRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/freelancer': {
       id: '/admin/freelancer'
       path: '/freelancer'
       fullPath: '/admin/freelancer'
       preLoaderRoute: typeof AdminFreelancerRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/image-generator': {
-      id: '/admin/image-generator'
-      path: '/image-generator'
-      fullPath: '/admin/image-generator'
-      preLoaderRoute: typeof AdminImageGeneratorRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/legacy': {
@@ -1487,13 +1280,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminNewsletterRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/policy-tracker': {
-      id: '/admin/policy-tracker'
-      path: '/policy-tracker'
-      fullPath: '/admin/policy-tracker'
-      preLoaderRoute: typeof AdminPolicyTrackerRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/quick-wins': {
       id: '/admin/quick-wins'
       path: '/quick-wins'
@@ -1501,25 +1287,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminQuickWinsRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/rss-feeds': {
-      id: '/admin/rss-feeds'
-      path: '/rss-feeds'
-      fullPath: '/admin/rss-feeds'
-      preLoaderRoute: typeof AdminRssFeedsRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/rss-health': {
       id: '/admin/rss-health'
       path: '/rss-health'
       fullPath: '/admin/rss-health'
       preLoaderRoute: typeof AdminRssHealthRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/rss-monitoring': {
-      id: '/admin/rss-monitoring'
-      path: '/rss-monitoring'
-      fullPath: '/admin/rss-monitoring'
-      preLoaderRoute: typeof AdminRssMonitoringRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/seo': {
@@ -1759,9 +1531,6 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminAdPerformanceRoute: typeof AdminAdPerformanceRoute
   AdminAffiliateManagerRoute: typeof AdminAffiliateManagerRoute
-  AdminAgentRoute: typeof AdminAgentRoute
-  AdminAgentDashboardRoute: typeof AdminAgentDashboardRoute
-  AdminAiContentStudioRoute: typeof AdminAiContentStudioRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminApiLogsRoute: typeof AdminApiLogsRoute
   AdminApiSettingsRoute: typeof AdminApiSettingsRoute
@@ -1769,26 +1538,17 @@ interface AdminRouteChildren {
   AdminAuthorsRoute: typeof AdminAuthorsRoute
   AdminBannerDebugRoute: typeof AdminBannerDebugRoute
   AdminContentRoute: typeof AdminContentRoute
-  AdminContentAgentLogsRoute: typeof AdminContentAgentLogsRoute
-  AdminContentValidatorRoute: typeof AdminContentValidatorRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminDataRoute: typeof AdminDataRoute
   AdminDataImportRoute: typeof AdminDataImportRoute
-  AdminDeveloperAgentRoute: typeof AdminDeveloperAgentRoute
-  AdminDeveloperSettingsRoute: typeof AdminDeveloperSettingsRoute
-  AdminEtiasGeneratorRoute: typeof AdminEtiasGeneratorRoute
   AdminFreelancerRoute: typeof AdminFreelancerRoute
-  AdminImageGeneratorRoute: typeof AdminImageGeneratorRoute
   AdminLegacyRoute: typeof AdminLegacyRoute
   AdminManualEditorRoute: typeof AdminManualEditorRoute
   AdminMenuRoute: typeof AdminMenuRoute
   AdminMonetizationRoute: typeof AdminMonetizationRoute
   AdminNewsletterRoute: typeof AdminNewsletterRoute
-  AdminPolicyTrackerRoute: typeof AdminPolicyTrackerRoute
   AdminQuickWinsRoute: typeof AdminQuickWinsRoute
-  AdminRssFeedsRoute: typeof AdminRssFeedsRoute
   AdminRssHealthRoute: typeof AdminRssHealthRoute
-  AdminRssMonitoringRoute: typeof AdminRssMonitoringRoute
   AdminSeoRoute: typeof AdminSeoRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminUsersRoute: typeof AdminUsersRoute
@@ -1803,9 +1563,6 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAdPerformanceRoute: AdminAdPerformanceRoute,
   AdminAffiliateManagerRoute: AdminAffiliateManagerRoute,
-  AdminAgentRoute: AdminAgentRoute,
-  AdminAgentDashboardRoute: AdminAgentDashboardRoute,
-  AdminAiContentStudioRoute: AdminAiContentStudioRoute,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminApiLogsRoute: AdminApiLogsRoute,
   AdminApiSettingsRoute: AdminApiSettingsRoute,
@@ -1813,26 +1570,17 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAuthorsRoute: AdminAuthorsRoute,
   AdminBannerDebugRoute: AdminBannerDebugRoute,
   AdminContentRoute: AdminContentRoute,
-  AdminContentAgentLogsRoute: AdminContentAgentLogsRoute,
-  AdminContentValidatorRoute: AdminContentValidatorRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminDataRoute: AdminDataRoute,
   AdminDataImportRoute: AdminDataImportRoute,
-  AdminDeveloperAgentRoute: AdminDeveloperAgentRoute,
-  AdminDeveloperSettingsRoute: AdminDeveloperSettingsRoute,
-  AdminEtiasGeneratorRoute: AdminEtiasGeneratorRoute,
   AdminFreelancerRoute: AdminFreelancerRoute,
-  AdminImageGeneratorRoute: AdminImageGeneratorRoute,
   AdminLegacyRoute: AdminLegacyRoute,
   AdminManualEditorRoute: AdminManualEditorRoute,
   AdminMenuRoute: AdminMenuRoute,
   AdminMonetizationRoute: AdminMonetizationRoute,
   AdminNewsletterRoute: AdminNewsletterRoute,
-  AdminPolicyTrackerRoute: AdminPolicyTrackerRoute,
   AdminQuickWinsRoute: AdminQuickWinsRoute,
-  AdminRssFeedsRoute: AdminRssFeedsRoute,
   AdminRssHealthRoute: AdminRssHealthRoute,
-  AdminRssMonitoringRoute: AdminRssMonitoringRoute,
   AdminSeoRoute: AdminSeoRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminUsersRoute: AdminUsersRoute,

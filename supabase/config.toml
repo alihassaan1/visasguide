@@ -26,26 +26,11 @@ enable_signup = true
 [functions.visa-data-import]
 verify_jwt = false
 
-[functions.rss-fetcher]
-verify_jwt = false
-
-[functions.rss-content-processor]
-verify_jwt = false
-
-[functions.deepseek-chat]
-verify_jwt = true
-
 [functions.indexnow]
 verify_jwt = false
 
-[functions.content-agent]
-verify_jwt = true
-
 [functions.send-contact-form]
 verify_jwt = false
-
-[functions.developer-agent]
-verify_jwt = true
 
 [functions.track-email-open]
 verify_jwt = false
@@ -53,55 +38,10 @@ verify_jwt = false
 [functions.send-campaign-email]
 verify_jwt = true
 
-[functions.social-content-publisher]
-verify_jwt = false
-
-[functions.social-image-generator]
-verify_jwt = false
-
-[functions.social-click-tracker]
-verify_jwt = false
-
-[functions.social-insights-fetcher]
-verify_jwt = false
-
 [functions.generate-visa-content]
 verify_jwt = false
 
-[functions.generate-author-avatar]
-verify_jwt = true
-
-[functions.send-newsletter-template]
-verify_jwt = true
-
 [functions.track-email-click]
-verify_jwt = false
-
-[functions.send-weekly-newsletter]
-verify_jwt = true
-
-[functions.ai-generate-content]
-verify_jwt = true
-
-[functions.passport-index-enricher]
-verify_jwt = false
-
-[functions.generate-guide-content]
-verify_jwt = false
-
-[functions.countries-travel-stats-backfill]
-verify_jwt = false
-
-[functions.generate-city-content]
-verify_jwt = false
-
-[functions.daily-agent-report]
-verify_jwt = false
-
-[functions.content-cleaner]
-verify_jwt = false
-
-[functions.generate-visa-images]
 verify_jwt = false
 
 [functions.auto-indexnow]
@@ -111,29 +51,4 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.rss-feed]
-verify_jwt = false
-
-[functions.bulk-content-upgrade]
-verify_jwt = false
-
-[functions.policy-detector]
-verify_jwt = false
-
-[functions.policy-article-generator]
-verify_jwt = false
-
-[functions.serve-sitemap]
-verify_jwt = false
-
-
-[functions.gsc-fetch-data]
-verify_jwt = true
-
-[functions.enrich-thin-cities]
-verify_jwt = true
-
-[functions.differentiate-visa-pages]
-verify_jwt = true
-
-[functions.add-quick-facts-tables]
 verify_jwt = false

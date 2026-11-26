@@ -72,20 +72,9 @@ const menuStructure: MenuItemOrGroup[] = [
     icon: FileText,
     children: [
       { title: "All Pages", icon: FileText, href: "/admin/content" },
-      { title: "Create New", icon: Sparkles, href: "/admin/ai-content-studio" },
-      { title: "Image Generator", icon: ImageIcon, href: "/admin/image-generator" },
+      { title: "Create New", icon: FileText, href: "/admin/manual-editor" },
       { title: "Authors", icon: Users, href: "/admin/authors" },
-      { title: "Policy Tracker", icon: Bell, href: "/admin/policy-tracker" },
       { title: "RSS Feeds Health", icon: Activity, href: "/admin/rss-health" },
-      { title: "Content Validator", icon: Activity, href: "/admin/content-validator" },
-    ],
-  },
-  {
-    title: "AI Agent",
-    icon: Bot,
-    children: [
-      { title: "Content Agent", icon: Bot, href: "/admin/agent" },
-      { title: "Agent Logs", icon: ScrollText, href: "/admin/content-agent-logs" },
     ],
   },
   {
@@ -119,11 +108,6 @@ const menuStructure: MenuItemOrGroup[] = [
       { title: "API Keys", icon: Key, href: "/admin/api-settings" },
     ],
   },
-];
-
-const adminOnlyItems: MenuItem[] = [
-  { title: "Developer Agent", icon: Code, href: "/admin/developer-agent" },
-  { title: "Developer Settings", icon: FileCode, href: "/admin/developer-settings" },
 ];
 
 interface AdminSidebarProps {
@@ -295,14 +279,6 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
             isMenuGroup(item) ? renderMenuGroup(item) : renderTopItem(item)
           )}
 
-          {isAdmin && (
-            <div className="pt-4">
-              <p className="px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
-                Developer
-              </p>
-              <div className="space-y-0.5">{adminOnlyItems.map(renderTopItem)}</div>
-            </div>
-          )}
         </nav>
       </ScrollArea>
 

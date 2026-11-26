@@ -1,5 +1,10 @@
 # Google indexing repair
 
+## Scoped edge function cleanup
+- [ ] Remove only the 33 named deployed functions and local folders/config blocks.
+- [ ] Remove their frontend callers and dedicated admin pages; retain mixed-purpose features and the 12 protected functions/callers.
+- [ ] Verify scope, tests and rendering; report exactly the deletions and changed files.
+
 ## Banner alignment and page loading
 - [x] Center footer banners consistently and keep their proportions on desktop/mobile.
 - [x] Reduce duplicate location requests, repeated public detail loads and unnecessary admin affiliate/settings queries; parallelize independent public reads.

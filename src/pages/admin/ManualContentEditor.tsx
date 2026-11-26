@@ -35,7 +35,6 @@ export default function ManualContentEditor() {
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [generatingMeta, setGeneratingMeta] = useState(false);
   const [authors, setAuthors] = useState<Author[]>([]);
 
   // Form state
@@ -149,86 +148,6 @@ export default function ManualContentEditor() {
     if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
       addKeyword();
-    }
-  };
-
-  // Generate meta description with AI
-  const generateMetaWithAI = async () => {
-    if (!content && !title) {
-      toast({
-        title: "Content required",
-        description: "Please add some content or title first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setGeneratingMeta(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("ai-generate-content", {
-        body: {
-          prompt: `Generate an SEO-optimized meta description (max 155 characters) for the following content. Only return the meta description, nothing else:\n\nTitle: ${title}\n\nContent: ${content.substring(0, 1000)}`,
-          action: "generate_meta",
-        },
-      });
-
-
-      if (error) throw error;
-
-      if (data?.content) {
-        setMetaDescription(data.content.substring(0, 160));
-        toast({ title: "Meta description generated!" });
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error generating meta",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setGeneratingMeta(false);
-    }
-  };
-
-  // Generate keywords with AI
-  const generateKeywordsWithAI = async () => {
-    if (!content && !title) {
-      toast({
-        title: "Content required",
-        description: "Please add some content or title first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setGeneratingMeta(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("ai-generate-content", {
-        body: {
-          prompt: `Generate 5-8 SEO keywords for the following content. Return only comma-separated keywords, nothing else:\n\nTitle: ${title}\n\nContent: ${content.substring(0, 1000)}`,
-          action: "generate_keywords",
-        },
-      });
-
-
-      if (error) throw error;
-
-      if (data?.content) {
-        const newKeywords = data.content
-          .split(",")
-          .map((k: string) => k.trim().toLowerCase())
-          .filter((k: string) => k && !keywords.includes(k));
-        setKeywords([...keywords, ...newKeywords]);
-        toast({ title: "Keywords generated!" });
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error generating keywords",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setGeneratingMeta(false);
     }
   };
 
@@ -523,19 +442,6 @@ export default function ManualContentEditor() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="metaDescription">Meta Description</Label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={generateMetaWithAI}
-                  disabled={generatingMeta}
-                >
-                  {generatingMeta ? (
-                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                  ) : (
-                    <Sparkles className="mr-1 h-3 w-3" />
-                  )}
-                  Generate with AI
-                </Button>
               </div>
               <Textarea
                 id="metaDescription"
@@ -553,19 +459,6 @@ export default function ManualContentEditor() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>Keywords</Label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={generateKeywordsWithAI}
-                  disabled={generatingMeta}
-                >
-                  {generatingMeta ? (
-                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                  ) : (
-                    <Sparkles className="mr-1 h-3 w-3" />
-                  )}
-                  Generate with AI
-                </Button>
               </div>
               <div className="flex gap-2">
                 <Input

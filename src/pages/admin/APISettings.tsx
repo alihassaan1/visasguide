@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Key, Sparkles, AlertCircle } from "lucide-react";
+import { Key, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function APISettings() {
@@ -18,10 +18,6 @@ export default function APISettings() {
   const [maxTokens, setMaxTokens] = useState("2000");
   const [enableForFreelancers, setEnableForFreelancers] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [apiKeyValid, setApiKeyValid] = useState<boolean | null>(null);
-  const [deepseekKeyValid, setDeepseekKeyValid] = useState<boolean | null>(null);
-  const [testingKey, setTestingKey] = useState(false);
-  const [testingDeepseek, setTestingDeepseek] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -122,7 +118,6 @@ export default function APISettings() {
         .eq('setting_key', 'openai_api_key');
 
       setOpenAIKey('');
-      setApiKeyValid(null);
       toast({ title: "OpenAI API key cleared" });
     } catch (error: any) {
       toast({
@@ -140,7 +135,6 @@ export default function APISettings() {
         .eq('setting_key', 'deepseek_api_key');
 
       setDeepseekKey('');
-      setDeepseekKeyValid(null);
       toast({ title: "DeepSeek API key cleared" });
     } catch (error: any) {
       toast({
@@ -148,98 +142,6 @@ export default function APISettings() {
         description: error.message,
         variant: "destructive",
       });
-    }
-  };
-
-  const testAPIKey = async () => {
-    if (!openAIKey) {
-      toast({
-        title: "Error",
-        description: "Please enter an API key first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setTestingKey(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('ai-generate-content', {
-        body: {
-          prompt: "Test connection",
-          contentType: "Test",
-          action: 'generate'
-        }
-      });
-
-      if (error) throw error;
-      
-      setApiKeyValid(true);
-      toast({
-        title: "API Key Valid",
-        description: "Successfully connected to OpenAI API",
-      });
-    } catch (error: any) {
-      setApiKeyValid(false);
-      toast({
-        title: "API Key Invalid",
-        description: error.message || "Failed to connect to OpenAI API",
-        variant: "destructive",
-      });
-    } finally {
-      setTestingKey(false);
-    }
-  };
-
-  const testDeepseekKey = async () => {
-    if (!deepseekKey) {
-      toast({
-        title: "Error",
-        description: "Please enter a DeepSeek API key first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setTestingDeepseek(true);
-    try {
-      // Save key first before testing
-      await supabase.from('site_settings').upsert({
-        setting_key: 'deepseek_api_key',
-        setting_value: { key: deepseekKey }
-      });
-
-      // Test DeepSeek API connection through edge function (returns { ok: boolean, reason?: string })
-      const { data, error } = await supabase.functions.invoke('ai-generate-content', {
-        body: {
-          prompt: "Test connection",
-          contentType: "Test",
-          action: 'test_connection',
-          provider: 'deepseek'
-        }
-      });
-
-      if (error) throw error;
-
-      if (data?.ok) {
-        setDeepseekKeyValid(true);
-        toast({ title: "API Key Valid", description: "Successfully connected to DeepSeek API" });
-      } else {
-        setDeepseekKeyValid(false);
-        toast({
-          title: "API Key Invalid",
-          description: data?.reason || "Failed to connect to DeepSeek API",
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
-      setDeepseekKeyValid(false);
-      toast({
-        title: "API Key Invalid",
-        description: error?.message || "Edge function error while testing DeepSeek API",
-        variant: "destructive",
-      });
-    } finally {
-      setTestingDeepseek(false);
     }
   };
 
@@ -255,33 +157,6 @@ export default function APISettings() {
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
             ⚠️ Please configure your ChatGPT API key in API Settings before generating content.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {apiKeyValid === true && (
-        <Alert className="mb-6">
-          <Sparkles className="h-4 w-4" />
-          <AlertDescription>
-            ✅ API Connected - Your OpenAI API key is configured and working.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {apiKeyValid === false && (
-        <Alert className="mb-6" variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            ❌ API Connection Failed - Please check your API key and try again.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {!apiKeyValid && openAIKey && (
-        <Alert className="mb-6">
-          <Sparkles className="h-4 w-4" />
-          <AlertDescription>
-            These settings control the AI Content Studio feature. The API key is stored securely in your database.
           </AlertDescription>
         </Alert>
       )}
@@ -303,14 +178,10 @@ export default function APISettings() {
                 value={openAIKey}
                 onChange={(e) => {
                   setOpenAIKey(e.target.value);
-                  setApiKeyValid(null);
                 }}
                 placeholder="sk-..."
                 className="font-mono"
               />
-              <Button variant="outline" onClick={testAPIKey} disabled={testingKey || !openAIKey}>
-                {testingKey ? "Testing..." : "Test"}
-              </Button>
               <Button variant="outline" onClick={clearAPIKey}>
                 Clear
               </Button>
@@ -331,14 +202,10 @@ export default function APISettings() {
                 value={deepseekKey}
                 onChange={(e) => {
                   setDeepseekKey(e.target.value);
-                  setDeepseekKeyValid(null);
                 }}
                 placeholder="sk-..."
                 className="font-mono"
               />
-              <Button variant="outline" onClick={testDeepseekKey} disabled={testingDeepseek || !deepseekKey}>
-                {testingDeepseek ? "Testing..." : "Test"}
-              </Button>
               <Button variant="outline" onClick={clearDeepseekKey}>
                 Clear
               </Button>

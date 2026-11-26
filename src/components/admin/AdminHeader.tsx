@@ -31,12 +31,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   analytics: "Analytics",
   seo: "SEO Health",
   content: "Content",
-  "ai-content-studio": "AI Content Studio",
-  "image-generator": "Image Generator",
   authors: "Authors",
-  "policy-tracker": "Policy Tracker",
-  agent: "Content Agent",
-  "content-agent-logs": "Agent Logs",
   marketing: "Marketing",
   social: "Social Dashboard",
   posts: "Social Posts",
@@ -50,8 +45,6 @@ const SEGMENT_LABELS: Record<string, string> = {
   "data-import": "Data Import",
   settings: "Site Settings",
   "api-settings": "API Keys",
-  "developer-agent": "Developer Agent",
-  "developer-settings": "Developer Settings",
 };
 
 const labelize = (slug: string) =>

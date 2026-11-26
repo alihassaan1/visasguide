@@ -1,7 +1,6 @@
 import { Link, useLocation } from "@/lib/router-compat";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import {
   Collapsible,
   CollapsibleContent,
@@ -22,10 +21,6 @@ import {
   Download,
   Menu as MenuIcon,
   Activity,
-  Bot,
-  Code,
-  FileCode,
-  ScrollText,
   ChevronRight,
   Megaphone,
   Mail,
@@ -35,8 +30,6 @@ import {
   Ticket,
   X,
   BarChart3,
-  Bell,
-  Image as ImageIcon,
 } from "lucide-react";
 
 interface MenuItem {
@@ -72,20 +65,9 @@ const menuStructure: MenuItemOrGroup[] = [
     icon: FileText,
     children: [
       { title: "All Pages", icon: FileText, href: "/admin/content" },
-      { title: "Create New", icon: Sparkles, href: "/admin/ai-content-studio" },
-      { title: "Image Generator", icon: ImageIcon, href: "/admin/image-generator" },
+      { title: "Create New", icon: Sparkles, href: "/admin/manual-editor" },
       { title: "Authors", icon: Users, href: "/admin/authors" },
-      { title: "Policy Tracker", icon: Bell, href: "/admin/policy-tracker" },
       { title: "RSS Feeds Health", icon: Activity, href: "/admin/rss-health" },
-      { title: "Content Validator", icon: Activity, href: "/admin/content-validator" },
-    ],
-  },
-  {
-    title: "AI Agent",
-    icon: Bot,
-    children: [
-      { title: "Content Agent", icon: Bot, href: "/admin/agent" },
-      { title: "Agent Logs", icon: ScrollText, href: "/admin/content-agent-logs" },
     ],
   },
   {
@@ -121,11 +103,6 @@ const menuStructure: MenuItemOrGroup[] = [
   },
 ];
 
-const adminOnlyItems: MenuItem[] = [
-  { title: "Developer Agent", icon: Code, href: "/admin/developer-agent" },
-  { title: "Developer Settings", icon: FileCode, href: "/admin/developer-settings" },
-];
-
 interface AdminSidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
@@ -133,12 +110,7 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ onClose }: AdminSidebarProps) {
   const location = useLocation();
-  const [isAdmin, setIsAdmin] = useState(false);
   const [openGroups, setOpenGroups] = useState<string[]>([]);
-
-  useEffect(() => {
-    checkAdminRole();
-  }, []);
 
   useEffect(() => {
     const currentPath = location.pathname;
@@ -152,17 +124,6 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
-
-  const checkAdminRole = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", session.user.id)
-      .eq("role", "admin");
-    setIsAdmin(!!roles && roles.length > 0);
-  };
 
   const toggleGroup = (title: string) => {
     setOpenGroups((prev) =>
@@ -293,15 +254,6 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
           </p>
           {menuStructure.map((item) =>
             isMenuGroup(item) ? renderMenuGroup(item) : renderTopItem(item)
-          )}
-
-          {isAdmin && (
-            <div className="pt-4">
-              <p className="px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
-                Developer
-              </p>
-              <div className="space-y-0.5">{adminOnlyItems.map(renderTopItem)}</div>
-            </div>
           )}
         </nav>
       </ScrollArea>

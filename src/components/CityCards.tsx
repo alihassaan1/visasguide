@@ -4,7 +4,6 @@ import { Link } from "@/lib/router-compat";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Star, ArrowRight } from "lucide-react";
-import { useEffect, useRef } from "react";
 
 interface CityCardsProps {
   countryId: string;
@@ -250,9 +249,7 @@ const getCityImage = (city: { slug: string; name: string; hero_image_url?: strin
 };
 
 const CityCards = ({ countryId, countrySlug, countryName }: CityCardsProps) => {
-  const hasTriggeredGeneration = useRef(false);
-
-  const { data: cities, isLoading, refetch } = useQuery({
+  const { data: cities, isLoading } = useQuery({
     queryKey: ['country-cities', countryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -270,22 +267,6 @@ const CityCards = ({ countryId, countrySlug, countryName }: CityCardsProps) => {
     enabled: !!countryId
   });
 
-  // Auto-generate cities if none exist
-  useEffect(() => {
-    if (!isLoading && cities && cities.length === 0 && !hasTriggeredGeneration.current) {
-      hasTriggeredGeneration.current = true;
-      supabase.functions.invoke('generate-city-content', {
-        body: { 
-          countryId,
-          countryName,
-          generateCities: true
-        }
-      }).then(() => {
-        // Refetch after generation
-        setTimeout(() => refetch(), 3000);
-      }).catch(() => {});
-    }
-  }, [cities, isLoading, countryId, countryName, refetch]);
 
   if (isLoading) {
     return (

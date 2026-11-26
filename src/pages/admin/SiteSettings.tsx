@@ -1,6 +1,5 @@
 import { SiteSettingsManager } from "@/components/admin/SiteSettingsManager";
 import { PixelStatusDashboard } from "@/components/admin/PixelStatusDashboard";
-import { GSCSettingsManager } from "@/components/admin/GSCSettingsManager";
 
 export default function SiteSettings() {
   return (
@@ -13,9 +12,6 @@ export default function SiteSettings() {
       <div className="space-y-6">
         {/* Pixel Status Dashboard */}
         <PixelStatusDashboard />
-        
-        {/* Google Search Console Integration */}
-        <GSCSettingsManager />
         
         {/* Settings Manager */}
         <SiteSettingsManager />

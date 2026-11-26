@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Pencil, Trash2, Loader2, Wand2, Users } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Users } from "lucide-react";
 
 interface Author {
   id: string;
@@ -31,7 +31,6 @@ export default function AuthorManager() {
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [editingAuthor, setEditingAuthor] = useState<Author | null>(null);
-  const [generatingAvatar, setGeneratingAvatar] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
@@ -156,44 +155,6 @@ export default function AuthorManager() {
     }
   };
 
-  const generateAvatarForAuthor = async (author: Author) => {
-    setGeneratingAvatar(author.id);
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-author-avatar", {
-        body: { authorId: author.id, authorName: author.name, authorRole: author.role },
-      });
-
-      if (error) throw error;
-
-      if (data?.avatarUrl) {
-        toast({ title: "Success", description: "Avatar generated successfully" });
-        fetchAuthors();
-      } else {
-        throw new Error("No avatar URL returned");
-      }
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message || "Failed to generate avatar", variant: "destructive" });
-    } finally {
-      setGeneratingAvatar(null);
-    }
-  };
-
-  const generateAllAvatars = async () => {
-    const authorsWithoutAvatar = authors.filter(a => !a.avatar_url);
-    if (authorsWithoutAvatar.length === 0) {
-      toast({ title: "Info", description: "All authors already have avatars" });
-      return;
-    }
-
-    toast({ title: "Generating", description: `Generating avatars for ${authorsWithoutAvatar.length} authors...` });
-
-    for (const author of authorsWithoutAvatar) {
-      await generateAvatarForAuthor(author);
-    }
-
-    toast({ title: "Complete", description: "All avatars generated" });
-  };
-
   return (
     <div className="p-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -205,10 +166,6 @@ export default function AuthorManager() {
             <p className="text-muted-foreground">Manage content authors and their profiles</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={generateAllAvatars} disabled={!!generatingAvatar}>
-              <Wand2 className="h-4 w-4 mr-2" />
-              Generate All Avatars
-            </Button>
             <Dialog open={showDialog} onOpenChange={setShowDialog}>
               <DialogTrigger asChild>
                 <Button onClick={() => handleOpenDialog()}>
@@ -334,11 +291,6 @@ export default function AuthorManager() {
                           {author.name.charAt(0)}
                         </div>
                       )}
-                      {generatingAvatar === author.id && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-full">
-                          <Loader2 className="h-6 w-6 animate-spin" />
-                        </div>
-                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <CardTitle className="text-lg truncate">{author.name}</CardTitle>
@@ -365,15 +317,6 @@ export default function AuthorManager() {
                       {author.articles_count || 0} articles
                     </span>
                     <div className="flex gap-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => generateAvatarForAuthor(author)}
-                        disabled={!!generatingAvatar}
-                        title="Generate AI Avatar"
-                      >
-                        <Wand2 className="h-4 w-4" />
-                      </Button>
                       <Button size="sm" variant="ghost" onClick={() => handleOpenDialog(author)}>
                         <Pencil className="h-4 w-4" />
                       </Button>

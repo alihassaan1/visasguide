@@ -15,7 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { RefreshCw, Settings, Rss, Newspaper, Key, FileText, Plus, Edit, Eye, Trash2, LogOut, Loader2, Database } from 'lucide-react';
+import { Settings, Rss, Newspaper, Key, FileText, Plus, Edit, Eye, Trash2, LogOut, Loader2, Database } from 'lucide-react';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { ImageUpload } from '@/components/admin/ImageUpload';
 import { SiteSettingsManager } from '@/components/admin/SiteSettingsManager';
@@ -352,33 +352,6 @@ export default function Admin() {
       toast({
         title: "Error",
         description: "Failed to add RSS feed. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchRssContent = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('rss-fetcher');
-      
-      if (error) throw error;
-
-      toast({
-        title: "RSS fetch started",
-        description: "RSS feeds are being processed. This may take a few minutes.",
-      });
-      
-      // Reload articles after a short delay
-      setTimeout(() => {
-        loadArticles();
-      }, 3000);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch RSS content. Please check your settings.",
         variant: "destructive",
       });
     } finally {
@@ -784,10 +757,6 @@ export default function Admin() {
                       Latest news articles in your database
                     </CardDescription>
                   </div>
-                  <Button onClick={fetchRssContent} disabled={loading}>
-                    {loading ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Rss className="mr-2 h-4 w-4" />}
-                    Fetch RSS Now
-                  </Button>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
